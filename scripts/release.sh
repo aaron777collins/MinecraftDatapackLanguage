@@ -5,9 +5,6 @@
 #   ./scripts/release.sh patch   "Notes..."
 #   ./scripts/release.sh minor   "Notes..."
 #   ./scripts/release.sh major   "Notes..."
-#
-# Requires: git, and optionally GitHub CLI `gh` (gh auth login) if you want the local script
-#           to create the GitHub Release immediately (CI can also do it).
 
 set -euo pipefail
 
@@ -36,8 +33,7 @@ parse_semver () {
 }
 
 bump_part () {
-  local part="$1"
-  local MAJ="$2" MIN="$3" PAT="$4"
+  local part="$1" MAJ="$2" MIN="$3" PAT="$4"
   case "$part" in
     major) MAJ=$((MAJ+1)); MIN=0; PAT=0;;
     minor) MIN=$((MIN+1)); PAT=0;;
@@ -63,12 +59,12 @@ echo "New tag:    $NEW_TAG"
 # Create annotated tag and push
 git tag -a "$NEW_TAG" -m "Release $NEW_TAG"
 git push origin "$NEW_TAG"
-
-# Optionally push the branch too (nice to have)
 git push || true
 
+# 🔥 Clean old local artifacts so we never upload stale files
+rm -rf dist
+
 # OPTIONAL local build (handy if you want to attach artifacts right now)
-# Comment out if you rely entirely on CI to build & attach.
 if command -v python >/dev/null 2>&1; then
   python -m pip install --upgrade pip >/dev/null 2>&1 || true
   python -m pip install build >/dev/null 2>&1 || true
