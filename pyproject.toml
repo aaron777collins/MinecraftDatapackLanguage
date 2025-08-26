@@ -26,3 +26,6 @@ package-dir = {"" = "."}
 [tool.setuptools.packages.find]
 include = ["minecraft_datapack_language*"]
 exclude = ["dist*", "build*", "scripts*", "tools*", "vscode-extension*", "tests*", "examples*", ".*", "tmp_*", "dist_nesting_test*"]
+
+[project.scripts]
+mdl = "minecraft_datapack_language.cli:main"
