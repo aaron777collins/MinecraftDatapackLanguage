@@ -1,17 +1,23 @@
 [project]
-name = "minecraft-datapack-language"
-dynamic = ["version"]
+name = "minecraft-datapack-language"         # REQUIRED
+dynamic = ["version"]                         # version comes from setuptools-scm
 description = "Compile a tiny MDL language or Python API into a Minecraft datapack (1.21+ ready)."
+readme = "README.md"
 requires-python = ">=3.9"
+authors = [{name="Minecraft Datapack Language Team"}]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+]
 
 [tool.setuptools_scm]
-version_scheme = "post-release"  # e.g., 1.2.3, 1.2.3.post1 on non-tag commits
-local_scheme = "no-local-version"
-# (optional) If you want a file with the computed version:
-write_to = "minecraft_datapack_language/_version.py"
+version_scheme = "post-release"
+local_scheme   = "no-local-version"
+write_to = "minecraft_datapack_language/_version.py"   # you said you enabled this
 
 [build-system]
-requires = ["setuptools>=61", "setuptools-scm>=8"]
+requires = ["setuptools>=61", "setuptools-scm>=8", "wheel", "build"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
