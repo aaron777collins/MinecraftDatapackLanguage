@@ -106,3 +106,22 @@ Open `vscode-extension/` in VS Code, run `npm i` then `F5` to launch Extension D
 ./scripts/release.sh v0.1.0 "Initial release"
 ```
 
+
+
+### Auto-bumping & local release
+
+Use the release script to bump the version, build, tag, push, and publish:
+
+```bash
+# bump patch (x.y.Z)
+./scripts/release.sh patch "Bug fixes"
+
+# bump minor (x.Y.0)
+./scripts/release.sh minor "New features"
+
+# bump major (X.0.0)
+./scripts/release.sh major "Breaking changes"
+
+# or set an explicit version:
+./scripts/release.sh v0.3.0 "Exact version"
+```

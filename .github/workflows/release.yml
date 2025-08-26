@@ -7,8 +7,11 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Version (e.g., v0.1.0)"
+        description: "Version (e.g., v0.1.0). If provided, this workflow will create and push the tag first."
         required: false
+
+permissions:
+  contents: write  # required to create releases and push tags with GITHUB_TOKEN
 
 jobs:
   build-release:
@@ -22,6 +25,21 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+
+      # If manually dispatched with an input version, create and push the tag here
+      - name: Create and push tag from workflow_dispatch
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.version != '' }}
+        run: |
+          set -eux
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          # If tag already exists locally or remotely, skip creation
+          if git rev-parse "${{ inputs.version }}" >/dev/null 2>&1; then
+            echo "Tag ${{ inputs.version }} already exists locally"
+          else
+            git tag "${{ inputs.version }}"
+            git push origin "${{ inputs.version }}"
+          fi
 
       - name: Build wheel & sdist
         run: |

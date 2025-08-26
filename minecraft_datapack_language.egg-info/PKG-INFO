@@ -1,0 +1,8 @@
+Metadata-Version: 2.4
+Name: minecraft-datapack-language
+Version: 0.1.0
+Summary: Compile a tiny MDL language or Python API into a Minecraft datapack (1.21+ ready).
+Author: Minecraft Datapack Language Team
+Requires-Python: >=3.9
+License-File: LICENSE
+Dynamic: license-file
