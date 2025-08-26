@@ -1,7 +1,7 @@
 
 [project]
 name = "minecraft-datapack-language"
-version = "0.1.0"
+version = "1.0.0"
 description = "Compile a tiny MDL language or Python API into a Minecraft datapack (1.21+ ready)."
 authors = [{name="Minecraft Datapack Language Team"}]
 requires-python = ">=3.9"
