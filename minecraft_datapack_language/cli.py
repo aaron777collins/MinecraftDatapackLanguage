@@ -56,12 +56,50 @@ pack "{args.name}" description "Example datapack" pack_format {args.pack_format}
 
 namespace "example"
 
-function "hello":
-    say Hello from MDL!
-    tellraw @a {{"text":"MDL works","color":"green"}}
+function "inner":
+    say [example:inner] This is the inner function
+    tellraw @a {"text":"Running inner","color":"yellow"}
 
+function "hello":
+    say [example:hello] Outer says hi
+    function example:inner
+    tellraw @a {"text":"Back in hello","color":"aqua"}
+
+# Hook the function into load and tick
 on_load "example:hello"
 on_tick "example:hello"
+
+# Second namespace with a cross-namespace call
+namespace "util"
+
+function "helper":
+    say [util:helper] Helping out...
+
+function "boss":
+    say [util:boss] Calling example:hello then util:helper
+    function example:hello
+    function util:helper
+
+# Run boss every tick as well
+on_tick "util:boss"
+
+# Function tag examples
+tag function "minecraft:load":
+    add "example:hello"
+
+tag function "minecraft:tick":
+    add "example:hello"
+    add "util:boss"
+
+# Data tag examples across registries
+tag item "example:swords":
+    add "minecraft:diamond_sword"
+    add "minecraft:netherite_sword"
+
+tag block "example:glassy":
+    add "minecraft:glass"
+    add "minecraft:tinted_glass"
+
 """
     with open(os.path.join(root, "mypack.mdl"), "w", encoding="utf-8") as f:
         f.write(sample.strip() + os.linesep)

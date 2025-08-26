@@ -7,14 +7,7 @@ A tiny compiler that lets you write Minecraft datapacks in a simple language (`.
 - ✅ Creates tags for `function`, `item`, `block`, `entity_type`, `fluid`, and `game_event`.
 - ✅ VS Code extension for syntax highlighting, linting, and quick compile.
 
-## Why?
-
-1. **Stop memorizing folder names**: write code, not scaffolding.
-2. **Version-aware**: pass the `pack_format`, and MDL emits the right folders.
-3. **Flexible**: use `.mdl` **or** Python to build complex packs.
-
-> MDL uses `pack_format >= 48` (Java 1.21) by default (singular names like `function`, `advancement`, `recipe`).  
-> Set `--pack-format 47` to emit the legacy plural layout for older versions.
+> Default **pack_format** is **48** (Java 1.21). Set `--pack-format 47` to emit the legacy plural layout for older versions.
 
 ---
 
@@ -75,57 +68,158 @@ mdl check --json src/
 
 ---
 
-## `.mdl` language (minimal)
+## The `.mdl` language
+
+### Grammar you can rely on (based on the parser)
+- **pack header** (required once):
+  ```mdl
+  pack "Name" [description "Desc"] [pack_format N]
+  ```
+- **namespace** (selects a namespace for following blocks):
+  ```mdl
+  namespace "example"
+  ```
+- **function** (colon + indented commands, 4-space indents only):
+  ```mdl
+  function "hello":
+      say hi
+      tellraw @a {"text":"ok","color":"green"}
+  ```
+- **function calls** (one function invoking another with fully qualified ID):
+  ```mdl
+  function "outer":
+      say I will call another function
+      function example:hello
+  ```
+- **hooks** (namespaced ids required):
+  ```mdl
+  on_load "example:hello"
+  on_tick "example:hello"
+  ```
+- **tags** (supported registries: `function`, `item`, `block`, `entity_type`, `fluid`, `game_event`):
+  ```mdl
+  tag function "minecraft:tick":
+      add "example:hello"
+  ```
+  The parser accepts an optional `replace` flag on the header (e.g. `tag function "minecraft:tick" replace:`) but replacement behavior is controlled by the pack writer.
+- **comments** start with `#`. Hashes inside **quoted strings** are preserved.
+- **whitespace**: empty lines are ignored; indentation must be **multiples of four spaces** (tabs are invalid).
+
+> Inside a function block, **every non-empty line** is emitted verbatim as a Minecraft command—no extra parsing.
+
+---
+
+## FULL example (nested calls + multi-namespace)
 
 ```mdl
-pack "My Pack" description "Demo" pack_format 48
+# mypack.mdl — nested and multi-namespace demo
+pack "Minecraft Datapack Language" description "Nested + Namespaces" pack_format 48
 
-namespace "demo"
+# === First namespace ===
+namespace "example"
 
-function "hello":
-    say Hello from MDL!
-    tellraw @a {"text":"tick!","color":"green"}
+function "inner":
+    say [example:inner] This is the inner function
+    tellraw @a {"text":"Running inner","color":"yellow"}
 
-on_load "demo:hello"
-on_tick "demo:hello"
+function "outer":
+    say [example:outer] This is the outer function
+    # "nested" call into inner (composition)
+    function example:inner
+    tellraw @a {"text":"Back in outer","color":"aqua"}
 
-# Tag another function to run every tick (from anywhere)
+# Run outer once on pack load
+on_load "example:outer"
+
+# === Second namespace ===
+namespace "util"
+
+function "helper":
+    say [util:helper] Helping out...
+    tellraw @a {"text":"Util helper called","color":"green"}
+
+function "boss":
+    say [util:boss] Calling outer, then helper
+    # cross-namespace calls with fully-qualified IDs
+    function example:outer
+    function util:helper
+    tellraw @a {"text":"Boss finished!","color":"red"}
+
+# Run boss every tick
+on_tick "util:boss"
+
+# Tag example for demonstration (tick also includes boss)
 tag function "minecraft:tick":
-    add "demo:hello"
+    add "util:boss"
 ```
 
-### Python API
+### What this demonstrates
+- **Nested-like function composition** via the `function <ns:id>` command.
+- **Multiple namespaces** (`example`, `util`) calling each other with fully-qualified IDs.
+- **Lifecycle hooks** (`on_load`, `on_tick`) using namespaced function IDs.
+- **Function tagging** to participate in vanilla tags (`minecraft:tick`).
+
+---
+
+## Python API equivalent
 
 ```python
 from minecraft_datapack_language import Pack
 
-def create_pack():
-    p = Pack("My Pack", description="Example", pack_format=48)
-    ns = p.namespace("demo")
+def build_pack():
+    p = Pack(name="Minecraft Datapack Language",
+             description="Nested + Namespaces",
+             pack_format=48)
 
-    ns.function("hello",
-        'say Hello from Python API',
-        'tellraw @a {"text":"tick!","color":"aqua"}'
+    ex = p.namespace("example")
+    ex.function("inner",
+        'say [example:inner] This is the inner function',
+        'tellraw @a {"text":"Running inner","color":"yellow"}'
     )
-    p.on_tick("demo:hello")
-    p.on_load("demo:hello")
+    ex.function("outer",
+        'say [example:outer] This is the outer function',
+        'function example:inner',
+        'tellraw @a {"text":"Back in outer","color":"aqua"}'
+    )
 
-    # Item tag
-    p.tag("item", "minecraft:swords", values=["minecraft:diamond_sword", "minecraft:netherite_sword"])
+    # Hooks
+    p.on_load("example:outer")
+
+    util = p.namespace("util")
+    util.function("helper",
+        'say [util:helper] Helping out...',
+        'tellraw @a {"text":"Util helper called","color":"green"}'
+    )
+    util.function("boss",
+        'say [util:boss] Calling outer, then helper',
+        'function example:outer',
+        'function util:helper',
+        'tellraw @a {"text":"Boss finished!","color":"red"}'
+    )
+
+    # Tick hook + a function tag example
+    p.on_tick("util:boss")
+    p.tag("function", "minecraft:tick", values=["util:boss"])
 
     return p
 ```
 
-Build:
+Build it:
 ```bash
-python -c "import my_pack; from minecraft_datapack_language.cli import main as M; M(['build','--py-module','my_pack','-o','dist','--pack-format','48','--wrapper','mypack'])"
+python - <<'PY'
+from my_pack_module import build_pack
+from minecraft_datapack_language.cli import main as M
+# write to dist/ with a wrapper folder name 'mypack'
+p = build_pack()
+M(['build', '--py-object', 'my_pack_module:build_pack', '-o', 'dist', '--wrapper', 'mypack', '--pack-format', '48'])
+PY
 ```
 
 ---
 
 ## VS Code
 
-Open `vscode-extension/`, run:
+Open `vscode-extension/`, then:
 
 ```bash
 npm i
