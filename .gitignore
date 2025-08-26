@@ -26,3 +26,5 @@ vscode-extension/out/
 # OS
 .DS_Store
 Thumbs.db
+
+minecraft_datapack_language/_version.py
