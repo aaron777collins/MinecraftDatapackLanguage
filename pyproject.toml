@@ -1,6 +1,6 @@
 [project]
 name = "minecraft-datapack-language"
-dynamic = ["version"]            # <-- remove the old: version = "…"
+dynamic = ["version"]
 description = "Compile a tiny MDL language or Python API into a Minecraft datapack (1.21+ ready)."
 requires-python = ">=3.9"
 
