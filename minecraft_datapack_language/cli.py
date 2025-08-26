@@ -58,12 +58,12 @@ namespace "example"
 
 function "inner":
     say [example:inner] This is the inner function
-    tellraw @a {"text":"Running inner","color":"yellow"}
+    tellraw @a {{"text":"Running inner","color":"yellow"}}
 
 function "hello":
     say [example:hello] Outer says hi
     function example:inner
-    tellraw @a {"text":"Back in hello","color":"aqua"}
+    tellraw @a {{"text":"Back in hello","color":"aqua"}}
 
 # Hook the function into load and tick
 on_load "example:hello"
