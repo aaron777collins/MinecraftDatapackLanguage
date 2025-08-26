@@ -138,6 +138,32 @@ class Pack:
         self.tags.append(t)
         return t
 
+    def merge(self, other: "Pack"):
+        """Merge content of another Pack into this one. Raises on conflicting function names within same namespace."""
+        # Namespaces
+        for ns_name, ns_other in other.namespaces.items():
+            ns_self = self.namespaces.get(ns_name)
+            if ns_self is None:
+                self.namespaces[ns_name] = ns_other
+                continue
+            # functions
+            for fname, fobj in ns_other.functions.items():
+                if fname in ns_self.functions:
+                    raise ValueError(f"Duplicate function '{ns_name}:{fname}' while merging")
+                ns_self.functions[fname] = fobj
+            # simple maps
+            ns_self.recipes.update(ns_other.recipes)
+            ns_self.advancements.update(ns_other.advancements)
+            ns_self.loot_tables.update(ns_other.loot_tables)
+            ns_self.predicates.update(ns_other.predicates)
+            ns_self.item_modifiers.update(ns_other.item_modifiers)
+            ns_self.structures.update(ns_other.structures)
+
+        # Tags and hooks
+        self.tags.extend(other.tags)
+        self._tick_functions.extend(other._tick_functions)
+        self._load_functions.extend(other._load_functions)
+
     # Compilation
     def build(self, out_dir: str):
         dm: DirMap = get_dir_map(self.pack_format)

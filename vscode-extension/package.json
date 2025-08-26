@@ -1,22 +1,48 @@
-
 {
   "name": "minecraft-datapack-language",
   "displayName": "Minecraft Datapack Language (MDL)",
   "description": "Syntax highlighting, linting, and build tasks for .mdl",
   "version": "0.1.0",
   "publisher": "mdl",
-  "engines": { "vscode": "^1.90.0" },
-  "categories": ["Programming Languages"],
-  "activationEvents": ["onLanguage:mdl", "onCommand:mdl.build"],
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "activationEvents": [
+    "onLanguage:mdl",
+    "onCommand:mdl.build"
+  ],
   "contributes": {
     "languages": [
-      { "id": "mdl", "aliases": ["MDL"], "extensions": [".mdl"], "configuration": "./language-configuration.json" }
+      {
+        "id": "mdl",
+        "aliases": [
+          "MDL"
+        ],
+        "extensions": [
+          ".mdl"
+        ],
+        "configuration": "./language-configuration.json"
+      }
     ],
     "grammars": [
-      { "language": "mdl", "scopeName": "source.mdl", "path": "./syntaxes/mdl.tmLanguage.json" }
+      {
+        "language": "mdl",
+        "scopeName": "source.mdl",
+        "path": "./syntaxes/mdl.tmLanguage.json"
+      }
     ],
     "commands": [
-      { "command": "mdl.build", "title": "MDL: Build current file" }
+      {
+        "command": "mdl.build",
+        "title": "MDL: Build current file"
+      },
+      {
+        "command": "mdl.checkWorkspace",
+        "title": "MDL: Check Workspace"
+      }
     ]
   },
   "main": "./out/extension.js",

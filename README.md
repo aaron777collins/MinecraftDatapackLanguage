@@ -125,3 +125,39 @@ Use the release script to bump the version, build, tag, push, and publish:
 # or set an explicit version:
 ./scripts/release.sh v0.3.0 "Exact version"
 ```
+
+
+## Wrapper, multi-file builds, and VS Code workspace checks
+
+### Build with a custom wrapper
+```bash
+mdl build --mdl src/my_pack.mdl -o dist --wrapper mypack
+# → dist/mypack/..., dist/mypack.zip
+```
+
+### Build a whole folder of `.mdl` files
+```bash
+mdl build --mdl src/ -o dist
+# Recursively parses src/**/*.mdl, merges into one pack, errors on duplicate functions.
+```
+
+### Validate a folder (JSON diagnostics)
+```bash
+mdl check --json src/
+```
+
+### VS Code
+- Command: **MDL: Check Workspace** — runs `mdl check --json <workspace>` and shows errors across files.
+- Command: **MDL: Build current file** — prompts for output folder and optional wrapper.
+
+## PyPI publishing
+
+- GitHub Actions workflow `.github/workflows/pypi.yml` publishes to **PyPI** on tags `v*.*.*`.
+- Set repo secret **PYPI_API_TOKEN** (create at pypi.org → Account settings → API tokens).
+
+Local publish (optional):
+```bash
+python -m pip install -U build twine
+python -m build
+python -m twine upload dist/*   # requires TWINE_USERNAME=__token__ and TWINE_PASSWORD=<pypi token>
+```
