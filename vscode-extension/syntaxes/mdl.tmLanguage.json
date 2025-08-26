@@ -1,0 +1,11 @@
+
+{
+  "scopeName": "source.mdl",
+  "patterns": [
+    { "name": "keyword.control.mdl", "match": "\\b(pack|description|pack_format|namespace|function|on_tick|on_load|tag|add)\\b" },
+    { "name": "entity.name.section.mdl", "match": "^(\\s*)(pack|namespace|function|tag)\\b" },
+    { "name": "string.quoted.double.mdl", "match": "\"([^\"\\\\]|\\\\.)*\"" },
+    { "name": "comment.line.number-sign.mdl", "match": "#.*$" },
+    { "name": "constant.numeric.mdl", "match": "\\b\\d+\\b" }
+  ]
+}

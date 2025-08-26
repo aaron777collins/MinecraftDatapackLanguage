@@ -1,0 +1,33 @@
+
+{
+  "name": "minecraft-datapack-language",
+  "displayName": "Minecraft Datapack Language (MDL)",
+  "description": "Syntax highlighting, linting, and build tasks for .mdl",
+  "version": "0.1.0",
+  "publisher": "mdl",
+  "engines": { "vscode": "^1.90.0" },
+  "categories": ["Programming Languages"],
+  "activationEvents": ["onLanguage:mdl", "onCommand:mdl.build"],
+  "contributes": {
+    "languages": [
+      { "id": "mdl", "aliases": ["MDL"], "extensions": [".mdl"], "configuration": "./language-configuration.json" }
+    ],
+    "grammars": [
+      { "language": "mdl", "scopeName": "source.mdl", "path": "./syntaxes/mdl.tmLanguage.json" }
+    ],
+    "commands": [
+      { "command": "mdl.build", "title": "MDL: Build current file" }
+    ]
+  },
+  "main": "./out/extension.js",
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.4.0",
+    "vscode": "^1.1.40"
+  }
+}

@@ -1,0 +1,14 @@
+
+pack "Minecraft Datapack Language" description "MDL Sample" pack_format 48
+
+namespace "example"
+
+function "hello":
+    say Hello from MDL!
+    tellraw @a {"text":"MDL tick","color":"yellow"}
+
+on_load "example:hello"
+on_tick "example:hello"
+
+tag function "minecraft:tick":
+    add "example:hello"
