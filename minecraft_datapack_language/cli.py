@@ -64,7 +64,7 @@ on_load "example:hello"
 on_tick "example:hello"
 """
     with open(os.path.join(root, "mypack.mdl"), "w", encoding="utf-8") as f:
-        f.write(sample.strip() + "\\n")
+        f.write(sample.strip() + os.linesep)
     print(f"Created sample at {root}")
 
 def _determine_wrapper(pack: Pack, override: str | None):
