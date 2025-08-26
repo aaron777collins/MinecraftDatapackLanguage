@@ -28,3 +28,6 @@ vscode-extension/out/
 Thumbs.db
 
 minecraft_datapack_language/_version.py
+
+dist/
+dist_nesting_test/
