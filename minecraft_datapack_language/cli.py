@@ -9,7 +9,7 @@ def cmd_new(args):
     # Create a sample project
     root = os.path.abspath(args.path)
     ensure_dir(root)
-    sample = f""\"\"
+    sample = f"""
 # mypack.mdl - minimal example for Minecraft Datapack Language
 pack "{args.name}" description "Example datapack" pack_format {args.pack_format}
 
@@ -21,7 +21,7 @@ function "hello":
 
 on_load "example:hello"
 on_tick "example:hello"
-""\"\"
+"""
     with open(os.path.join(root, "mypack.mdl"), "w", encoding="utf-8") as f:
         f.write(sample.strip() + "\n")
     print(f"Created sample at {root}")
