@@ -1,7 +1,7 @@
 
 [project]
 name = "minecraft-datapack-language"
-version = "1.0.0"
+version = "0.1.0"
 description = "Compile a tiny MDL language or Python API into a Minecraft datapack (1.21+ ready)."
 authors = [{name="Minecraft Datapack Language Team"}]
 requires-python = ">=3.9"
@@ -13,3 +13,11 @@ mdl = "minecraft_datapack_language.cli:main"
 [build-system]
 requires = ["setuptools>=61"]
 build-backend = "setuptools.build_meta"
+
+
+[tool.setuptools]
+package-dir = {"" = "."}
+
+[tool.setuptools.packages.find]
+include = ["minecraft_datapack_language*"]
+exclude = ["dist*", "build*", "scripts*", "tools*", "vscode-extension*", "tests*", "examples*", ".*", "tmp_*", "dist_nesting_test*"]

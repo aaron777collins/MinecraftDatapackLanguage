@@ -1,1 +1,28 @@
-dist
+
+# Python / build
+__pycache__/
+*.pyc
+build/
+dist/
+*.egg-info/
+.venv/
+.env/
+pip-wheel-metadata/
+dist_nesting_test/
+tmp_*/
+*.pyz
+
+# VS Code
+.vscode/
+.vscode-test/
+.vscode-test-web/
+
+# Node
+node_modules/
+vscode-extension/node_modules/
+vscode-extension/out/
+.vscode-extension-pack/
+
+# OS
+.DS_Store
+Thumbs.db
