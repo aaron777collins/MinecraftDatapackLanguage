@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
-# release.sh — bump version in pyproject.toml, build, tag, push, and publish a GitHub Release with assets.
+# release.sh — tag-driven release (setuptools-scm). No editing pyproject.toml.
 # Usage:
-#   ./scripts/release.sh v0.2.0 "Notes..."         # set exact version
-#   ./scripts/release.sh patch "Notes..."          # auto-bump patch
-#   ./scripts/release.sh minor "Notes..."          # auto-bump minor
-#   ./scripts/release.sh major "Notes..."          # auto-bump major
+#   ./scripts/release.sh v1.2.3 "Notes..."
+#   ./scripts/release.sh patch   "Notes..."
+#   ./scripts/release.sh minor   "Notes..."
+#   ./scripts/release.sh major   "Notes..."
 #
-# Requires: git, python, build (python -m pip install build), and GitHub CLI `gh` authenticated (gh auth login).
+# Requires: git, and optionally GitHub CLI `gh` (gh auth login) if you want the local script
+#           to create the GitHub Release immediately (CI can also do it).
 
 set -euo pipefail
 
@@ -15,86 +16,80 @@ if [ $# -lt 1 ]; then
   exit 1
 fi
 
-BUMP="$1"                    # vX.Y.Z or bump keyword
+BUMP="$1"
 NOTES="${2:-}"
 
-PYPROJECT="pyproject.toml"
-
-# Extract current version (simple TOML parse)
-CURR=$(grep -E '^[[:space:]]*version[[:space:]]*=' "$PYPROJECT" | head -n1 | sed -E 's/.*"([^"]+)".*/\1/')
-if [ -z "$CURR" ]; then
-  echo "Could not find current version in $PYPROJECT"
+# Ensure clean working tree
+if ! git diff --quiet || ! git diff --cached --quiet; then
+  echo "Error: working tree not clean. Commit or stash changes first."
   exit 1
 fi
 
-function bump() {
-  local ver="$1" part="$2"
-  IFS='.' read -r MAJ MIN PAT <<<"$ver"
+# Find latest semver tag (vX.Y.Z). If none, start at v0.0.0
+LATEST_TAG=$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' | sort -V | tail -n1 || true)
+[ -z "$LATEST_TAG" ] && LATEST_TAG="v0.0.0"
+
+parse_semver () {
+  local v="${1#v}"
+  IFS='.' read -r MAJ MIN PAT <<<"$v"
+  echo "$MAJ" "$MIN" "$PAT"
+}
+
+bump_part () {
+  local part="$1"
+  local MAJ="$2" MIN="$3" PAT="$4"
   case "$part" in
     major) MAJ=$((MAJ+1)); MIN=0; PAT=0;;
     minor) MIN=$((MIN+1)); PAT=0;;
     patch) PAT=$((PAT+1));;
-    *) echo "Unknown bump part: $part"; exit 1;;
+    *) echo "Unknown bump: $part"; exit 1;;
   esac
-  echo "${MAJ}.${MIN}.${PAT}"
+  echo "v${MAJ}.${MIN}.${PAT}"
 }
 
 if [[ "$BUMP" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-  NEW=${BUMP#v}
+  NEW_TAG="$BUMP"
 elif [[ "$BUMP" =~ ^(major|minor|patch)$ ]]; then
-  NEW=$(bump "$CURR" "$BUMP")
+  read -r MAJ MIN PAT < <(parse_semver "$LATEST_TAG")
+  NEW_TAG=$(bump_part "$BUMP" "$MAJ" "$MIN" "$PAT")
 else
   echo "First arg must be vX.Y.Z or one of: major, minor, patch"
   exit 1
 fi
 
-TAG="v${NEW}"
+echo "Latest tag: ${LATEST_TAG:-<none>}"
+echo "New tag:    $NEW_TAG"
 
-# Ensure clean working tree
-if ! git diff --quiet || ! git diff --cached --quiet; then
-  echo "Error: Working tree not clean. Commit or stash changes first."
-  exit 1
+# Create annotated tag and push
+git tag -a "$NEW_TAG" -m "Release $NEW_TAG"
+git push origin "$NEW_TAG"
+
+# Optionally push the branch too (nice to have)
+git push || true
+
+# OPTIONAL local build (handy if you want to attach artifacts right now)
+# Comment out if you rely entirely on CI to build & attach.
+if command -v python >/dev/null 2>&1; then
+  python -m pip install --upgrade pip >/dev/null 2>&1 || true
+  python -m pip install build >/dev/null 2>&1 || true
+  python -m build || true
 fi
 
-# Update pyproject.toml version
-echo "Updating version: $CURR -> $NEW"
-# Replace only the first match for version = "x.y.z"
-tmpfile="$(mktemp)"
-awk -v new="$NEW" '
-  found==0 && $0 ~ /^[[:space:]]*version[[:space:]]*=/ {
-    sub(/"[^"]+"/, "\"" new "\"")
-    found=1
-  }
-  { print }
-' "$PYPROJECT" > "$tmpfile"
-mv "$tmpfile" "$PYPROJECT"
-
-# Commit version bump
-git add "$PYPROJECT"
-git commit -m "chore(release): $TAG"
-
-# Build artifacts
-python -m pip install --upgrade pip >/dev/null
-python -m pip install build >/dev/null
-python -m build
-
-# Create annotated tag & push
-git tag -a "$TAG" -m "Release $TAG"
-git push origin "$TAG"
-git push
-
-# Create (or update) GitHub Release with assets
-if ! command -v gh >/dev/null 2>&1; then
-  echo "Warning: GitHub CLI 'gh' not found. Tag was pushed; GitHub Actions release workflow will publish."
-  exit 0
-fi
-
-if gh release view "$TAG" >/dev/null 2>&1; then
-  echo "Release $TAG exists — uploading assets..."
-  gh release upload "$TAG" dist/* --clobber
+# Create GitHub Release and attach any local dist/* (CI will also attach its own)
+if command -v gh >/dev/null 2>&1; then
+  if gh release view "$NEW_TAG" >/dev/null 2>&1; then
+    echo "GitHub Release $NEW_TAG exists — uploading local assets (if any)..."
+    if ls dist/* >/dev/null 2>&1; then gh release upload "$NEW_TAG" dist/* --clobber; fi
+  else
+    [ -z "$NOTES" ] && NOTES="Automated release $NEW_TAG"
+    if ls dist/* >/dev/null 2>&1; then
+      gh release create "$NEW_TAG" dist/* --notes "$NOTES"
+    else
+      gh release create "$NEW_TAG" --notes "$NOTES"
+    fi
+  fi
 else
-  if [ -z "$NOTES" ]; then NOTES="Automated release $TAG"; fi
-  gh release create "$TAG" dist/* --notes "$NOTES"
+  echo "Note: 'gh' not installed — tag pushed. CI will create the GitHub Release."
 fi
 
-echo "✅ Released $TAG"
+echo "✅ Tagged and released $NEW_TAG"
