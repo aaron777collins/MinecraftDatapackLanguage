@@ -53,6 +53,9 @@ mdl new my_pack --name "My Pack" --pack-format 48
 mdl check my_pack/mypack.mdl
 mdl build --mdl my_pack/mypack.mdl -o dist --wrapper mypack --pack-format 48
 # → dist/mypack/... and dist/mypack.zip
+
+# With verbose output to see file processing
+mdl build --mdl my_pack/ -o dist --verbose
 ```
 
 ### Build a whole folder of `.mdl` files
@@ -61,10 +64,62 @@ mdl build --mdl src/ -o dist
 # Recursively parses src/**/*.mdl, merges into one pack (errors on duplicate functions).
 ```
 
+### Build multiple specific `.mdl` files
+```bash
+mdl build --mdl "src/core.mdl src/features.mdl src/ui.mdl" -o dist
+# Parses multiple specific files and merges them into one datapack.
+```
+
 ### Validate a folder (JSON diagnostics)
 ```bash
 mdl check --json src/
 ```
+
+---
+
+## Multi-file Support
+
+MDL supports building datapacks from multiple `.mdl` files. This is useful for organizing large projects into logical modules.
+
+### How it works
+- **Directory scanning**: When you pass a directory to `--mdl`, MDL recursively finds all `.mdl` files
+- **File merging**: Each file is parsed into a `Pack` object, then merged into a single datapack
+- **Conflict resolution**: Duplicate function names within the same namespace will cause an error
+- **Pack metadata**: The first file's pack declaration (name, description, format) is used as the base
+
+### Best practices
+- **One pack declaration per project**: Only the first file's pack declaration is used
+- **Organize by namespace**: Consider splitting files by namespace or feature
+- **Use descriptive filenames**: `core.mdl`, `combat.mdl`, `ui.mdl` etc.
+- **Avoid conflicts**: Ensure function names are unique within each namespace
+
+### Example project structure
+```
+my_datapack/
+├── core.mdl          # pack declaration, main functions
+├── combat/
+│   ├── weapons.mdl   # combat-related functions
+│   └── armor.mdl     # armor-related functions
+├── ui/
+│   └── hud.mdl       # UI functions
+└── data/
+    └── recipes.mdl   # recipe definitions
+```
+
+Build the entire project:
+```bash
+mdl build --mdl my_datapack/ -o dist
+```
+
+### CLI Options for Multi-file Builds
+
+- `--mdl <path>`: Path to `.mdl` file, directory, or space-separated file list
+- `--src <path>`: Alias for `--mdl` (same functionality)
+- `-o, --out <dir>`: Output directory for the built datapack
+- `--wrapper <name>`: Custom wrapper folder/zip name (default: first namespace or pack name slug)
+- `--pack-format <N>`: Minecraft pack format (default: 48 for 1.21+)
+- `-v, --verbose`: Show detailed processing information including file merging
+- `--py-module <path>`: Alternative: build from Python module with `create_pack()` function
 
 ---
 

@@ -18,6 +18,20 @@ def _zip_dir(src_dir: str, zip_path: str):
                 zf.write(abs_path, rel)
 
 def _gather_mdl_files(path: str):
+    """Gather MDL files from a path. Supports:
+    - Directory: recursively finds all .mdl files
+    - Single file: returns just that file
+    - Space-separated file list: returns all specified files
+    """
+    # Check if it's a space-separated list of files
+    if ' ' in path and not os.path.exists(path):
+        files = path.split()
+        # Validate each file exists
+        for f in files:
+            if not os.path.isfile(f):
+                raise SystemExit(f"File not found: {f}")
+        return files
+    
     if os.path.isdir(path):
         return sorted([p for p in glob.glob(os.path.join(path, "**", "*.mdl"), recursive=True)])
     elif os.path.isfile(path):
@@ -25,9 +39,14 @@ def _gather_mdl_files(path: str):
     else:
         raise SystemExit(f"Path not found: {path}")
 
-def _parse_many(files, default_pack_format: int):
+def _parse_many(files, default_pack_format: int, verbose: bool = False):
     root_pack = None
-    for fp in files:
+    if verbose:
+        print(f"Processing {len(files)} MDL file(s)...")
+    
+    for i, fp in enumerate(files, 1):
+        if verbose:
+            print(f"  [{i}/{len(files)}] {fp}")
         with open(fp, "r", encoding="utf-8") as f:
             src = f.read()
         try:
@@ -35,15 +54,24 @@ def _parse_many(files, default_pack_format: int):
         except Exception as e:
             # Bubble up with filename context
             raise RuntimeError(f"{fp}: {e}")
+        
         if root_pack is None:
             root_pack = p
+            if verbose:
+                print(f"    Using pack: {p.name} (format: {p.pack_format})")
         else:
             # Ensure consistent pack_format; prefer explicit default
             if p.pack_format != root_pack.pack_format and default_pack_format is not None:
                 p.pack_format = default_pack_format
+            if verbose:
+                print(f"    Merging into: {root_pack.name}")
             root_pack.merge(p)
+    
     if root_pack is None:
         raise SystemExit("No .mdl files found")
+    
+    if verbose:
+        print(f"Successfully merged {len(files)} file(s) into datapack: {root_pack.name}")
     return root_pack
 
 def cmd_new(args):
@@ -121,7 +149,7 @@ def cmd_build(args):
     if args.mdl or args.src:
         path = args.mdl or args.src
         files = _gather_mdl_files(path)
-        pack = _parse_many(files, default_pack_format=args.pack_format)
+        pack = _parse_many(files, default_pack_format=args.pack_format, verbose=args.verbose)
     else:
         # from python module path containing a function create_pack()
         sys.path.insert(0, os.path.abspath("."))
@@ -209,6 +237,7 @@ def main(argv=None):
     p_build.add_argument("-o", "--out", required=True, help="Output folder (MDL creates <out>/<wrapper>/ and <out>/<wrapper>.zip)")
     p_build.add_argument("--pack-format", type=int, default=48)
     p_build.add_argument("--wrapper", help="Wrapper folder/zip name (default: first namespace or slug of pack name)")
+    p_build.add_argument("-v", "--verbose", action="store_true", help="Show detailed processing information")
     p_build.set_defaults(func=cmd_build)
 
     p_check = sub.add_parser("check", help="Validate .mdl (file or directory)")
