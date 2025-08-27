@@ -11,6 +11,11 @@ A tiny compiler that lets you write Minecraft datapacks in a simple language (`.
 
 <div class="quick-nav">
   <div class="nav-card">
+    <h3>📥 Downloads</h3>
+    <p>Get the latest version and VS Code extension</p>
+    <a href="{{ site.baseurl }}/downloads/" class="nav-link">Download Now →</a>
+  </div>
+  <div class="nav-card">
     <h3>🚀 Getting Started</h3>
     <p>Install and create your first datapack</p>
     <a href="{{ site.baseurl }}/docs/getting-started/" class="nav-link">Get Started →</a>
