@@ -1,4 +1,3 @@
-
 import re
 from .pack import Pack
 
@@ -8,16 +7,21 @@ class ParseError(Exception):
 def parse_mdl(src: str, default_pack_format: int = 48) -> Pack:
     # Simple line-oriented parser with blocks using ":" and indentation for functions
     lines = src.splitlines()
-    i = 0
-    pack = None
+
     current_ns = None
-    indent_stack = [0]
     mode = None  # None or "function"
     fn_ns = fn_name = None
     fn_commands = []
+    fn_body_indent = None  # indentation level required for function body lines
+
+    # Tag block state
+    in_tag = False
+    tag_reg = None
+    tag_name = None
+    tag_values = []
 
     def flush_function():
-        nonlocal fn_ns, fn_name, fn_commands, mode
+        nonlocal fn_ns, fn_name, fn_commands, mode, fn_body_indent
         if mode == "function":
             if fn_ns is None or fn_name is None:
                 raise ParseError("Internal function state error")
@@ -25,24 +29,33 @@ def parse_mdl(src: str, default_pack_format: int = 48) -> Pack:
             fn_ns = fn_name = None
             fn_commands = []
             mode = None
+            fn_body_indent = None
 
-    # Preprocess: remove comments (# ...), keep indentation
+    def flush_tag():
+        nonlocal in_tag, tag_reg, tag_name, tag_values
+        if in_tag:
+            # finalize the open tag block
+            p.tag(tag_reg, tag_name, values=tag_values)
+            in_tag = False
+            tag_reg = None
+            tag_name = None
+            tag_values = []
+
+    # Preprocess: remove comments (# ...), keep indentation and hashes inside strings
     cleaned = []
     for raw in lines:
-        # allow comments after commands
         if "#" in raw:
-            idx = raw.find("#")
-            # permit JSON braces within tellraw etc (ignore hash inside quotes)
+            # split by quoted segments, only strip '#' from non-quoted parts (first '#')
             parts = re.split(r'(".*?")', raw)
             rebuilt = ""
-            seen = False
+            seen_hash = False
             for part in parts:
                 if part.startswith('"') and part.endswith('"'):
-                    rebuilt += part
+                    rebuilt += part  # keep quoted content verbatim
                 else:
-                    if "#" in part and not seen:
-                        part = part.split("#",1)[0]
-                        seen = True
+                    if not seen_hash and "#" in part:
+                        part = part.split("#", 1)[0]
+                        seen_hash = True
                     rebuilt += part
             raw = rebuilt
         cleaned.append(raw.rstrip("\n"))
@@ -51,14 +64,33 @@ def parse_mdl(src: str, default_pack_format: int = 48) -> Pack:
     for lineno, raw in enumerate(cleaned, start=1):
         line = raw.rstrip()
         if not line.strip():
+            # blank lines are ignored everywhere (including inside blocks)
             continue
+
+        # Count leading spaces (tabs are not supported)
         indent = len(line) - len(line.lstrip(" "))
         if indent % 4 != 0:
             raise ParseError(f"Line {lineno}: indentation must be multiples of 4 spaces")
         text = line.strip()
 
+        # If we were inside a function and we dedented, close the function first
+        if mode == "function" and indent < (fn_body_indent or 0):
+            flush_function()
+            # fall through to parse this line as a directive
+
+        # Lines inside a function body: treat as raw Minecraft commands
+        if mode == "function":
+            # any non-empty line with indent >= body indent is part of the body
+            if indent >= (fn_body_indent or 0):
+                fn_commands.append(text)
+                continue
+            # (otherwise a dedent would have flushed above)
+
+        # Top-level directives only from here on (indent must be 0 for directives)
+        # Also ensure we flush any open tag before starting a new directive
         # Pack header
-        if text.startswith("pack "):
+        if indent == 0 and text.startswith("pack "):
+            flush_tag()
             if p is not None:
                 raise ParseError(f"Line {lineno}: duplicate pack declaration")
             m = re.match(r'pack\s+"([^"]+)"(?:\s+description\s+"([^"]*)")?(?:\s+pack_format\s+(\d+))?$', text)
@@ -72,7 +104,8 @@ def parse_mdl(src: str, default_pack_format: int = 48) -> Pack:
             raise ParseError(f"Line {lineno}: missing pack declaration")
 
         # namespace
-        if text.startswith("namespace "):
+        if indent == 0 and text.startswith("namespace "):
+            flush_tag()
             flush_function()
             m = re.match(r'namespace\s+"([a-z0-9_\-\.]+)"$', text)
             if not m:
@@ -81,7 +114,8 @@ def parse_mdl(src: str, default_pack_format: int = 48) -> Pack:
             continue
 
         # function start: function "name":
-        if text.startswith("function "):
+        if indent == 0 and text.startswith("function "):
+            flush_tag()
             flush_function()
             m = re.match(r'function\s+"([^"]+)"\s*:\s*$', text)
             if not m:
@@ -92,16 +126,20 @@ def parse_mdl(src: str, default_pack_format: int = 48) -> Pack:
             fn_name = m.group(1)
             fn_commands = []
             mode = "function"
+            fn_body_indent = indent + 4  # function body must be at least one indent level deeper
             continue
 
-        if text.startswith("on_tick "):
+        # hooks
+        if indent == 0 and text.startswith("on_tick "):
+            flush_tag()
             m = re.match(r'on_tick\s+"([^"]+:[^"]+)"$', text)
             if not m:
                 raise ParseError(f"Line {lineno}: on_tick requires a namespaced id")
             p.on_tick(m.group(1))
             continue
 
-        if text.startswith("on_load "):
+        if indent == 0 and text.startswith("on_load "):
+            flush_tag()
             m = re.match(r'on_load\s+"([^"]+:[^"]+)"$', text)
             if not m:
                 raise ParseError(f"Line {lineno}: on_load requires a namespaced id")
@@ -109,53 +147,38 @@ def parse_mdl(src: str, default_pack_format: int = 48) -> Pack:
             continue
 
         # tag <registry> "<ns:id>" [replace]:
-        if text.startswith("tag "):
+        if indent == 0 and text.startswith("tag "):
+            flush_tag()
             flush_function()
             m = re.match(r'tag\s+(function|item|block|entity_type|fluid|game_event)\s+"([^"]+:[^"]+)"(?:\s+replace)?\s*:\s*$', text)
             if not m:
                 raise ParseError(f"Line {lineno}: invalid tag header")
-            reg = m.group(1)
-            name = m.group(2)
-            # consume subsequent indented "add" lines until next block
-            values = []
-            continue  # header; values gathered in following lines
+            tag_reg = m.group(1)
+            tag_name = m.group(2)
+            tag_values = []
+            in_tag = True
+            continue  # values gathered on following 'add' lines
 
-        # Inside function block: any other non-empty line is a command
-        if mode == "function":
-            # commands are raw, no further parsing
-            fn_commands.append(text)
-            continue
-
-        # tag values lines: 'add "<ns:val>"' or '# comment already removed'
+        # tag values lines: 'add "<ns:val>"'
         if text.startswith("add "):
+            if not in_tag:
+                raise ParseError(f"Line {lineno}: 'add' outside of tag block")
             m = re.match(r'add\s+"([^"]+:[^"]+)"$', text)
             if not m:
                 raise ParseError(f"Line {lineno}: invalid add line")
-            try:
-                reg  # noqa: F821
-            except NameError:
-                raise ParseError(f"Line {lineno}: 'add' outside of tag block")
-            values.append(m.group(1))
-            # Lookahead to see if next line starts a new block; we handle finalization when we hit new tag/namespace/pack or EOF
+            tag_values.append(m.group(1))
             continue
 
-        # finalize a tag if a new construct starts
-        if any(text.startswith(kw) for kw in ("namespace ", "function ", "pack ", "tag ", "on_tick", "on_load")):
-            # will be handled at next iteration
-            pass
-
-        # unknown directive
-        raise ParseError(f"Line {lineno}: unknown directive: {text}")
+        # If we get here:
+        # - indent == 0: unknown directive
+        # - indent > 0: unexpected indentation outside any block
+        if indent == 0:
+            raise ParseError(f"Line {lineno}: unknown directive: {text}")
+        else:
+            raise ParseError(f"Line {lineno}: unexpected indentation")
 
     # Finalize any open scopes
     flush_function()
-    # finalize last tag if any
-    try:
-        reg  # noqa: F821
-        # If 'reg' exists in locals, we have an open tag
-        if values:
-            p.tag(reg, name, values=values)
-    except NameError:
-        pass
+    flush_tag()
 
     return p
