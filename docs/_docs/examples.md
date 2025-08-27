@@ -406,9 +406,11 @@ tag item "adventure:armor":
 mdl build --mdl adventure_pack/ -o dist --verbose
 ```
 
-## Conditional Examples
+## Control Flow Examples
 
 > **Recent Improvements**: The conditional system has been enhanced to ensure proper logical flow. `else if` blocks now only execute if all previous conditions were false, and `else` blocks only execute if all conditions were false. This provides more predictable and efficient execution.
+
+### Conditional Examples
 
 ### Weapon Effects System
 
@@ -439,6 +441,115 @@ function "apply_weapon_effects":
         say No player found
 
 on_tick "weapons:apply_weapon_effects"
+```
+
+### Loop Examples
+
+#### While Loop - Countdown System
+
+A system that demonstrates while loops with a countdown:
+
+```mdl
+# countdown.mdl
+pack "Countdown System" description "While loop countdown example" pack_format 48
+
+namespace "countdown"
+
+function "start_countdown":
+    scoreboard players set @s timer 10
+    tellraw @a {"text":"Countdown started!","color":"green"}
+
+function "countdown_loop":
+    while "score @s timer matches 1..":
+        say Countdown: @s timer
+        tellraw @a {"text":"T-minus ","color":"yellow","extra":[{"score":{"name":"@s","objective":"timer"}}]}
+        scoreboard players remove @s timer 1
+        say Decremented timer
+
+function "blast_off":
+    say Blast off!
+    tellraw @a {"text":"Blast off!","color":"red","bold":true}
+    execute as @a run particle minecraft:explosion ~ ~ ~ 1 1 1 0.1 10
+
+on_tick "countdown:countdown_loop"
+```
+
+#### For Loop - Entity Processing
+
+A system that demonstrates for loops for entity iteration:
+
+```mdl
+# entity_processing.mdl
+pack "Entity Processing" description "For loop entity processing example" pack_format 48
+
+namespace "processing"
+
+function "process_players":
+    tag @e[type=minecraft:player] add players
+    for player in @e[tag=players]:
+        say Processing player: @s
+        effect give @s minecraft:night_vision 10 0
+        tellraw @s {"text":"You have night vision!","color":"aqua"}
+
+function "process_items":
+    tag @e[type=minecraft:item] add items
+    for item in @e[tag=items]:
+        say Processing item: @s
+        effect give @s minecraft:glowing 5 1
+        particle minecraft:end_rod ~ ~ ~ 0.2 0.2 0.2 0.01 5
+
+function "process_zombies":
+    tag @e[type=minecraft:zombie] add zombies
+    for zombie in @e[tag=zombies]:
+        say Processing zombie: @s
+        effect give @s minecraft:slowness 5 1
+        particle minecraft:smoke ~ ~ ~ 0.3 0.3 0.3 0.05 3
+
+on_tick "processing:process_players"
+on_tick "processing:process_items"
+on_tick "processing:process_zombies"
+```
+
+#### Mixed Control Flow - Advanced System
+
+A system that combines conditionals and loops:
+
+```mdl
+# mixed_control.mdl
+pack "Mixed Control Flow" description "Combines conditionals and loops" pack_format 48
+
+namespace "mixed"
+
+function "smart_processing":
+    # First, check if there are any players
+    if "entity @e[type=minecraft:player]":
+        say Players detected, processing...
+        
+        # Process each player with a for loop
+        tag @e[type=minecraft:player] add players
+        for player in @e[tag=players]:
+            say Processing player: @s
+            
+            # Use conditionals inside the loop
+            if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:'minecraft:diamond_sword'}}]":
+                say Player has diamond sword!
+                effect give @s minecraft:strength 5 1
+            else if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:'minecraft:golden_sword'}}]":
+                say Player has golden sword!
+                effect give @s minecraft:speed 5 1
+            else:
+                say Player has no special weapon
+                effect give @s minecraft:glowing 5 0
+    else:
+        say No players found
+        
+        # Use while loop to clean up entities
+        while "entity @e[type=minecraft:item,distance=..5]":
+            say Cleaning up nearby items
+            kill @e[type=minecraft:item,distance=..5,limit=1]
+
+on_tick "mixed:smart_processing"
+```
 ```
 
 ### Entity Type Detection
@@ -721,6 +832,9 @@ Each example is available in both MDL and Python API formats:
 - **[Combat System](https://github.com/aaron777collins/MinecraftDatapackLanguage/blob/main/test_examples/combat_system.mdl)** - [Python version](https://github.com/aaron777collins/MinecraftDatapackLanguage/blob/main/test_examples/combat_system.py)
 - **[UI System](https://github.com/aaron777collins/MinecraftDatapackLanguage/blob/main/test_examples/ui_system.mdl)** - [Python version](https://github.com/aaron777collins/MinecraftDatapackLanguage/blob/main/test_examples/ui_system.py)
 - **[Adventure Pack](https://github.com/aaron777collins/MinecraftDatapackLanguage/blob/main/test_examples/adventure_pack.mdl)** - [Python version](https://github.com/aaron777collins/MinecraftDatapackLanguage/blob/main/test_examples/adventure_pack.py)
+- **[Conditionals](https://github.com/aaron777collins/MinecraftDatapackLanguage/blob/main/test_examples/conditionals.mdl)** - [Python version](https://github.com/aaron777collins/MinecraftDatapackLanguage/blob/main/test_examples/conditionals.py)
+- **[Loops](https://github.com/aaron777collins/MinecraftDatapackLanguage/blob/main/test_examples/loops.mdl)** - [Python version](https://github.com/aaron777collins/MinecraftDatapackLanguage/blob/main/test_examples/loops.py)
+- **[Pack Format 82](https://github.com/aaron777collins/MinecraftDatapackLanguage/blob/main/test_examples/pack_format_82.mdl)** - Modern pack format with loops
 - **[Multi-file Project](https://github.com/aaron777collins/MinecraftDatapackLanguage/tree/main/test_examples/adventure_pack)** - Complete directory structure
 
 ### Run the Tests Yourself

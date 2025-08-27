@@ -16,6 +16,7 @@ A tiny compiler that lets you write Minecraft datapacks in a simple language (`.
 - ✅ Creates tags for `function`, `item`, `block`, `entity_type`, `fluid`, and `game_event`.
 - ✅ VS Code extension for syntax highlighting, linting, and quick compile.
 - ✅ **Conditional blocks** with proper if/else if/else logic and efficient execution.
+- ✅ **While and For loops** for repetitive execution and entity iteration.
 
 > Default **pack_format** is **48** (Java 1.21). Set `--pack-format 47` to emit the legacy plural layout for older versions.
 
@@ -316,6 +317,21 @@ This will create a datapack with:
           effect give @s minecraft:poison 5 1
       else:
           say Unknown entity
+  ```
+- **while loops** (repetitive execution):
+  ```mdl
+  function "countdown":
+      scoreboard players set @s counter 5
+      while "score @s counter matches 1..":
+          say Counter: @s counter
+          scoreboard players remove @s counter 1
+  ```
+- **for loops** (entity iteration):
+  ```mdl
+  function "player_effects":
+      for player in @e[type=minecraft:player]:
+          say Processing player: @s
+          effect give @s minecraft:speed 10 1
   ```
 - **function calls** (one function invoking another with fully qualified ID):
   ```mdl

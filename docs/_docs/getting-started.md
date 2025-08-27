@@ -130,7 +130,7 @@ Let's break down what we just created:
 
 ## Adding Control Flow
 
-MDL supports both conditional logic and loops for advanced control flow in your datapacks.
+MDL supports conditional logic, while loops, and for loops for advanced control flow in your datapacks.
 
 ### Conditional Logic
 
@@ -214,6 +214,19 @@ function "player_effects":
         say Processing player: @s
         effect give @s minecraft:speed 10 1
         tellraw @s {"text":"You got speed!","color":"green"}
+
+function "item_processing":
+    tag @e[type=minecraft:item] add items
+    for item in @e[tag=items]:
+        say Processing item: @s
+        effect give @s minecraft:glowing 5 1
+
+# Run the for loops every tick
+on_tick "demo:player_effects"
+on_tick "demo:item_processing"
+```
+
+For loops are perfect for applying effects to multiple entities or processing collections of items.
 
 function "item_processing":
     tag @e[type=minecraft:item] add items
