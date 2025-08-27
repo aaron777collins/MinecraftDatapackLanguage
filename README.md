@@ -85,10 +85,12 @@ MDL supports building datapacks from multiple `.mdl` files. This is useful for o
 - **Directory scanning**: When you pass a directory to `--mdl`, MDL recursively finds all `.mdl` files
 - **File merging**: Each file is parsed into a `Pack` object, then merged into a single datapack
 - **Conflict resolution**: Duplicate function names within the same namespace will cause an error
-- **Pack metadata**: The first file's pack declaration (name, description, format) is used as the base
+- **Pack metadata**: Only the **first file** should have a pack declaration (name, description, format)
+- **Module files**: Subsequent files should **not** have pack declarations - they are treated as modules
 
 ### Best practices
-- **One pack declaration per project**: Only the first file's pack declaration is used
+- **One pack declaration per project**: Only the **first file** should have a pack declaration
+- **Module files**: All other files should **not** have pack declarations - they are treated as modules
 - **Organize by namespace**: Consider splitting files by namespace or feature
 - **Use descriptive filenames**: `core.mdl`, `combat.mdl`, `ui.mdl` etc.
 - **Avoid conflicts**: Ensure function names are unique within each namespace
@@ -96,15 +98,17 @@ MDL supports building datapacks from multiple `.mdl` files. This is useful for o
 ### Example project structure
 ```
 my_datapack/
-├── core.mdl          # pack declaration, main functions
+├── core.mdl          # ✅ HAS pack declaration
 ├── combat/
-│   ├── weapons.mdl   # combat-related functions
-│   └── armor.mdl     # armor-related functions
+│   ├── weapons.mdl   # ❌ NO pack declaration (module)
+│   └── armor.mdl     # ❌ NO pack declaration (module)
 ├── ui/
-│   └── hud.mdl       # UI functions
+│   └── hud.mdl       # ❌ NO pack declaration (module)
 └── data/
-    └── recipes.mdl   # recipe definitions
+    └── recipes.mdl   # ❌ NO pack declaration (module)
 ```
+
+**Important**: Only `core.mdl` should have a `pack "Name"` declaration. All other files are modules that merge into the main pack.
 
 Build the entire project:
 ```bash

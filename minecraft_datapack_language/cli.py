@@ -49,8 +49,17 @@ def _parse_many(files, default_pack_format: int, verbose: bool = False):
             print(f"  [{i}/{len(files)}] {fp}")
         with open(fp, "r", encoding="utf-8") as f:
             src = f.read()
+        
+        # Check if this file has a pack declaration
+        has_pack_declaration = any(line.strip().startswith("pack ") for line in src.splitlines())
+        
+        if has_pack_declaration and root_pack is not None:
+            raise RuntimeError(f"{fp}: duplicate pack declaration (only the first file should have a pack declaration)")
+        
         try:
-            p = parse_mdl(src, default_pack_format=default_pack_format)
+            # First file requires pack declaration, subsequent files don't
+            require_pack = (root_pack is None)
+            p = parse_mdl(src, default_pack_format=default_pack_format, require_pack=require_pack)
         except Exception as e:
             # Bubble up with filename context
             raise RuntimeError(f"{fp}: {e}")

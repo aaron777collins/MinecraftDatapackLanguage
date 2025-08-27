@@ -4,7 +4,7 @@ from .pack import Pack
 class ParseError(Exception):
     pass
 
-def parse_mdl(src: str, default_pack_format: int = 48) -> Pack:
+def parse_mdl(src: str, default_pack_format: int = 48, require_pack: bool = True) -> Pack:
     # Simple line-oriented parser with blocks using ":" and indentation for functions
     lines = src.splitlines()
 
@@ -157,7 +157,11 @@ def parse_mdl(src: str, default_pack_format: int = 48) -> Pack:
             continue
 
         if p is None:
-            raise ParseError(f"Line {lineno}: missing pack declaration")
+            if require_pack:
+                raise ParseError(f"Line {lineno}: missing pack declaration")
+            else:
+                # In module mode, create a minimal pack for merging
+                p = Pack(name="module", description="Module", pack_format=default_pack_format)
 
         # namespace
         if indent == 0 and text.startswith("namespace "):
