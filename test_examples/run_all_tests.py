@@ -51,6 +51,42 @@ def test_multi_file_project(project_dir, description):
     
     return True
 
+def test_loop_functionality():
+    """Test the new loop functionality specifically"""
+    print("Testing loop functionality...")
+    
+    # Import and run the loop test modules
+    try:
+        # Test loop processing
+        from test_loop_processing import test_loop_regex_patterns, test_loop_processing
+        test_loop_regex_patterns()
+        success1 = test_loop_processing()
+        
+        # Test processing directly
+        from test_processing import test_loop_processing_direct, test_for_loop_processing
+        success2 = test_loop_processing_direct()
+        success3 = test_for_loop_processing()
+        
+        # Test parser
+        from test_commands import test_parser_stores_loop_commands
+        success4 = test_parser_stores_loop_commands()
+        
+        # Test build process
+        from test_build import test_build_with_loops, test_build_with_mixed_control_flow
+        success5 = test_build_with_loops()
+        success6 = test_build_with_mixed_control_flow()
+        
+        all_success = all([success1, success2, success3, success4, success5, success6])
+        if all_success:
+            print("✅ Loop functionality tests - PASSED")
+        else:
+            print("❌ Loop functionality tests - FAILED")
+        return all_success
+        
+    except Exception as e:
+        print(f"❌ Loop functionality tests - FAILED with error: {e}")
+        return False
+
 def main():
     """Run all tests"""
     print("🚀 Starting comprehensive MDL example tests...")
@@ -92,6 +128,11 @@ def main():
         ("test_examples/adventure_pack", "Multi-file Adventure Pack"),
     ]
     
+    # Test loop functionality specifically
+    total_tests += 1
+    if test_loop_functionality():
+        passed_tests += 1
+    
     # Test MDL files
     print("\n📝 Testing MDL Files:")
     print("-" * 30)
@@ -123,6 +164,11 @@ def main():
     # Test help command
     total_tests += 1
     if run_command("mdl --help", "CLI help command"):
+        passed_tests += 1
+    
+    # Test version command
+    total_tests += 1
+    if run_command("python -m minecraft_datapack_language.cli --version", "CLI version command"):
         passed_tests += 1
     
     # Test new command
