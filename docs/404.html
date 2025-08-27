@@ -1,0 +1,42 @@
+---
+layout: default
+title: Page Not Found
+---
+
+<div class="page-content">
+  <div class="wrapper">
+    <div class="error-page">
+      <h1>404 - Page Not Found</h1>
+      <p>The page you're looking for doesn't exist.</p>
+      <p><a href="{{ '/' | relative_url }}">Return to the homepage</a></p>
+    </div>
+  </div>
+</div>
+
+<style>
+.error-page {
+  text-align: center;
+  padding: 4rem 2rem;
+}
+
+.error-page h1 {
+  font-size: 3rem;
+  color: #24292e;
+  margin-bottom: 1rem;
+}
+
+.error-page p {
+  font-size: 1.2rem;
+  color: #586069;
+  margin-bottom: 2rem;
+}
+
+.error-page a {
+  color: #0366d6;
+  text-decoration: none;
+}
+
+.error-page a:hover {
+  text-decoration: underline;
+}
+</style>

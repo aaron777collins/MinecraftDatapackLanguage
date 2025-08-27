@@ -1,0 +1,71 @@
+title: Minecraft Datapack Language (MDL)
+description: A tiny compiler that lets you write Minecraft datapacks in a simple language (.mdl) or via a clean Python API
+baseurl: "/MinecraftDatapackLanguage"
+url: "https://aaron777collins.github.io"
+github_username: aaron777collins
+github_repo: MinecraftDatapackLanguage
+
+# Build settings
+markdown: kramdown
+highlighter: rouge
+permalink: pretty
+
+# Collections
+collections:
+  docs:
+    output: true
+    permalink: /:collection/:name/
+
+# Defaults
+defaults:
+  - scope:
+      path: ""
+      type: "docs"
+    values:
+      layout: "page"
+  - scope:
+      path: ""
+      type: "posts"
+    values:
+      layout: "post"
+
+# Plugins
+plugins:
+  - jekyll-feed
+  - jekyll-seo-tag
+  - jekyll-sitemap
+
+# Exclude from processing
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor/bundle/
+  - vendor/cache/
+  - vendor/gems/
+  - vendor/ruby/
+
+# Theme settings
+theme: jekyll-theme-cayman
+show_downloads: false
+
+# Navigation
+nav:
+  - title: Home
+    url: /
+  - title: Getting Started
+    url: /docs/getting-started/
+  - title: Language Reference
+    url: /docs/language-reference/
+  - title: Python API
+    url: /docs/python-api/
+  - title: CLI Reference
+    url: /docs/cli-reference/
+  - title: VS Code Extension
+    url: /docs/vscode-extension/
+  - title: Examples
+    url: /docs/examples/
+  - title: Multi-file Projects
+    url: /docs/multi-file-projects/
+  - title: Contributing
+    url: /docs/contributing/
