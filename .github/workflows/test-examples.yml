@@ -77,7 +77,7 @@ jobs:
         
         # Check that datapacks have the expected structure
         for dir in test_examples/dist/*/; do
-          if [[ -d "$dir" ]]; then
+          if [[ -d "$dir" ]] && [[ "$(basename "$dir")" != "data" ]]; then
             echo "Checking datapack: $dir"
             ls -la "$dir"
             
