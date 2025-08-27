@@ -33,7 +33,21 @@ def _gather_mdl_files(path: str):
         return files
     
     if os.path.isdir(path):
-        return sorted([p for p in glob.glob(os.path.join(path, "**", "*.mdl"), recursive=True)])
+        files = [p for p in glob.glob(os.path.join(path, "**", "*.mdl"), recursive=True)]
+        # Sort files, but prioritize files with pack declarations
+        def sort_key(f):
+            # Check if file has a pack declaration
+            try:
+                with open(f, 'r', encoding='utf-8') as file:
+                    content = file.read()
+                    has_pack = any(line.strip().startswith("pack ") for line in content.splitlines())
+                    # Files with pack declarations come first (lower sort key)
+                    return (0 if has_pack else 1, f)
+            except:
+                # If we can't read the file, treat it as a regular file
+                return (1, f)
+        
+        return sorted(files, key=sort_key)
     elif os.path.isfile(path):
         return [path]
     else:
