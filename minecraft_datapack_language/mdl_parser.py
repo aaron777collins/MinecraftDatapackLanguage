@@ -20,8 +20,76 @@ def parse_mdl(src: str, default_pack_format: int = 48) -> Pack:
     tag_name = None
     tag_values = []
 
+    # === Multi-line command joiner state (for function bodies) ===
+    current_cmd = ""     # buffered logical command
+    brace = 0            # '{' ... '}'
+    bracket = 0          # '[' ... ']'
+    in_str = False       # double-quoted JSON strings only (mcfunction uses "...")
+    # Keep a rough pointer to where the current command started for nicer errors
+    current_cmd_start_line = None
+
+    def update_nesting(segment: str):
+        """Update quote/brace/bracket state for a line segment."""
+        nonlocal brace, bracket, in_str
+        i = 0
+        while i < len(segment):
+            c = segment[i]
+            if c == '"' and (i == 0 or segment[i - 1] != '\\'):
+                in_str = not in_str
+            elif not in_str:
+                if c == '{':
+                    brace += 1
+                elif c == '}':
+                    brace -= 1
+                elif c == '[':
+                    bracket += 1
+                elif c == ']':
+                    bracket -= 1
+            i += 1
+
+    def push_cmd_if_complete(force: bool = False):
+        """If the buffered command is complete (balanced and not in a string) or force=True, append it."""
+        nonlocal current_cmd, brace, bracket, in_str, fn_commands, current_cmd_start_line
+        if not current_cmd:
+            return
+        if force:
+            # On force, ensure we're not mid-quote or unbalanced; else raise a clear error.
+            if in_str or brace != 0 or bracket != 0:
+                start = current_cmd_start_line if current_cmd_start_line is not None else "?"
+                raise ParseError(f"Unterminated multi-line command starting at line {start}")
+            fn_commands.append(current_cmd.strip())
+            current_cmd = ""
+            current_cmd_start_line = None
+            return
+        if not in_str and brace == 0 and bracket == 0:
+            fn_commands.append(current_cmd.strip())
+            current_cmd = ""
+            current_cmd_start_line = None
+
+    def buffer_segment(seg: str, lineno: int):
+        """Append a segment of a function-body line to current_cmd, tracking nesting and continuations."""
+        nonlocal current_cmd, current_cmd_start_line
+        s = seg.rstrip()
+        # Support explicit line continuation with backslash at end of the physical line
+        forced_continuation = s.endswith("\\")
+        if forced_continuation:
+            s = s[:-1].rstrip()
+
+        if current_cmd:
+            current_cmd += " " + s
+        else:
+            current_cmd = s
+            current_cmd_start_line = lineno
+
+        update_nesting(s)
+        # Only push when balanced and not inside quotes and not forced continuation
+        if not forced_continuation:
+            push_cmd_if_complete(force=False)
+
     def flush_function():
         nonlocal fn_ns, fn_name, fn_commands, mode, fn_body_indent
+        # Before closing, finalize any buffered multi-line command
+        push_cmd_if_complete(force=True)
         if mode == "function":
             if fn_ns is None or fn_name is None:
                 raise ParseError("Internal function state error")
@@ -41,7 +109,7 @@ def parse_mdl(src: str, default_pack_format: int = 48) -> Pack:
             tag_name = None
             tag_values = []
 
-    # Preprocess: remove comments (# ...), keep indentation and hashes inside strings
+    # Preprocess: keep only full-line '#' comments; do not strip inline '#'
     cleaned = []
     for raw in lines:
         if re.match(r'^\s*#', raw):
@@ -66,11 +134,11 @@ def parse_mdl(src: str, default_pack_format: int = 48) -> Pack:
             flush_function()
             # fall through to parse this line as a directive
 
-        # Lines inside a function body: treat as raw Minecraft commands
+        # Lines inside a function body: join multi-line commands safely
         if mode == "function":
             # any non-empty line with indent >= body indent is part of the body
             if indent >= (fn_body_indent or 0):
-                fn_commands.append(text)
+                buffer_segment(text, lineno)
                 continue
             # (otherwise a dedent would have flushed above)
 
@@ -115,6 +183,11 @@ def parse_mdl(src: str, default_pack_format: int = 48) -> Pack:
             fn_commands = []
             mode = "function"
             fn_body_indent = indent + 4  # function body must be at least one indent level deeper
+            # reset joiner state for the new function
+            current_cmd = ""
+            brace = bracket = 0
+            in_str = False
+            current_cmd_start_line = None
             continue
 
         # hooks
