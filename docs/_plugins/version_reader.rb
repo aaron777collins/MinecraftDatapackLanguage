@@ -11,6 +11,8 @@ module Jekyll
         content = File.read(version_file)
         if content =~ /__version__\s*=\s*version\s*=\s*['"]([^'"]+)['"]/
           site.config['current_version'] = $1
+        elsif content =~ /__version__\s*=\s*['"]([^'"]+)['"]/
+          site.config['current_version'] = $1
         end
       end
       
@@ -21,7 +23,7 @@ module Jekyll
       
       unless site.config['github']['latest_release']
         site.config['github']['latest_release'] = {
-          'tag_name' => "v#{site.config['current_version'] || '6.7.7'}",
+          'tag_name' => "v#{site.config['current_version'] || '8.0.4'}",
           'published_at' => Time.now.strftime('%Y-%m-%d'),
           'html_url' => "https://github.com/aaron777collins/MinecraftDatapackLanguage/releases/latest"
         }
