@@ -105,7 +105,62 @@ mdl check --json src/
 - **comments** start with `#`. Hashes inside **quoted strings** are preserved.
 - **whitespace**: empty lines are ignored; indentation must be **multiples of four spaces** (tabs are invalid).
 
-> Inside a function block, **every non-empty line** is emitted verbatim as a Minecraft command—no extra parsing.
+> Inside a function block, **every non-empty line** is emitted almost verbatim as a Minecraft command. Comments are stripped out and multi-line commands are automatically wrapped. See below for details.
+
+### Comments
+
+MDL supports comments in a way that matches how Minecraft actually interprets them:
+
+- **Full-line comments** (a line starting with `#`) are ignored by the parser.
+- **Inline `#` characters** are preserved inside function bodies, so you can still use them the way `mcfunction` normally allows.
+
+Example:
+
+```mdl
+pack "Comment Demo" description "Testing comments"
+
+namespace "demo"
+
+function "comments":
+    # This whole line is ignored by MDL
+    say Hello # This inline comment is preserved
+    tellraw @a {"text":"World","color":"blue"} # Inline too!
+```
+
+When compiled, the resulting function looks like:
+
+```mcfunction
+say Hello # This inline comment is preserved
+tellraw @a {"text":"World","color":"blue"} # Inline too!
+```
+
+Notice how the full-line `#` never makes it into the `.mcfunction`, but the inline ones do.
+
+---
+
+### Multi-line Commands
+
+Long JSON commands can be split across multiple lines with a trailing backslash `\`.  
+MDL will join them back together before writing the final `.mcfunction`.
+
+Example:
+
+```mdl
+pack "Multi-line Demo"
+
+namespace "demo"
+
+function "multiline":
+    tellraw @a \
+        {"text":"This text is really, really long so we split it",\
+         "color":"gold"}
+```
+
+When compiled, the function is a single line:
+
+```mcfunction
+tellraw @a {"text":"This text is really, really long so we split it","color":"gold"}
+```
 
 ---
 
