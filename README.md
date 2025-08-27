@@ -54,8 +54,11 @@ mdl check my_pack/mypack.mdl
 mdl build --mdl my_pack/mypack.mdl -o dist --wrapper mypack --pack-format 48
 # → dist/mypack/... and dist/mypack.zip
 
-# With verbose output to see file processing
-mdl build --mdl my_pack/ -o dist --verbose
+# Multi-file examples
+mdl check my_pack/                    # Check entire directory
+mdl build --mdl my_pack/ -o dist      # Build from directory
+mdl build --mdl "file1.mdl file2.mdl" -o dist  # Build specific files
+mdl build --mdl my_pack/ -o dist --verbose  # With detailed output
 ```
 
 ### Build a whole folder of `.mdl` files
@@ -110,9 +113,26 @@ my_datapack/
 
 **Important**: Only `core.mdl` should have a `pack "Name"` declaration. All other files are modules that merge into the main pack.
 
-Build the entire project:
+### Usage Examples
+
+**Build from directory:**
 ```bash
 mdl build --mdl my_datapack/ -o dist
+```
+
+**Build from specific files:**
+```bash
+mdl build --mdl "core.mdl combat.mdl ui.mdl" -o dist
+```
+
+**Check entire project:**
+```bash
+mdl check my_datapack/
+```
+
+**Check with verbose output:**
+```bash
+mdl build --mdl my_datapack/ -o dist --verbose
 ```
 
 ### CLI Options for Multi-file Builds
@@ -124,6 +144,13 @@ mdl build --mdl my_datapack/ -o dist
 - `--pack-format <N>`: Minecraft pack format (default: 48 for 1.21+)
 - `-v, --verbose`: Show detailed processing information including file merging
 - `--py-module <path>`: Alternative: build from Python module with `create_pack()` function
+
+### Error Handling
+
+- **Missing pack declaration**: Single files must have a pack declaration
+- **Duplicate pack declarations**: Only the first file in a multi-file project should have a pack declaration
+- **Function conflicts**: Duplicate function names within the same namespace will cause an error
+- **Clear error messages**: Errors include file paths and line numbers for easy debugging
 
 ---
 
