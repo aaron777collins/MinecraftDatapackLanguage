@@ -44,21 +44,9 @@ def parse_mdl(src: str, default_pack_format: int = 48) -> Pack:
     # Preprocess: remove comments (# ...), keep indentation and hashes inside strings
     cleaned = []
     for raw in lines:
-        if "#" in raw:
-            # split by quoted segments, only strip '#' from non-quoted parts (first '#')
-            parts = re.split(r'(".*?")', raw)
-            rebuilt = ""
-            seen_hash = False
-            for part in parts:
-                if part.startswith('"') and part.endswith('"'):
-                    rebuilt += part  # keep quoted content verbatim
-                else:
-                    if not seen_hash and "#" in part:
-                        part = part.split("#", 1)[0]
-                        seen_hash = True
-                    rebuilt += part
-            raw = rebuilt
-        cleaned.append(raw.rstrip("\n"))
+        if re.match(r'^\s*#', raw):
+            continue
+        cleaned.append(raw.rstrip('\n'))
 
     p = None
     for lineno, raw in enumerate(cleaned, start=1):

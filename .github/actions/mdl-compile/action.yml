@@ -1,0 +1,94 @@
+name: "MDL Compile Datapack"
+description: "Compile Minecraft Datapack Language (.mdl) into a datapack folder + zip"
+author: "Minecraft Datapack Language"
+
+inputs:
+  mdl-path:
+    description: "Path to .mdl file or directory (recursive)"
+    required: true
+  out-dir:
+    description: "Output root directory (will contain <wrapper>/ and <wrapper>.zip)"
+    default: dp_out
+    required: false
+  wrapper:
+    description: "Wrapper name (folder + zip name). If empty, uses first namespace or slug of pack name."
+    required: false
+    default: ""
+  pack-format:
+    description: "Minecraft datapack pack_format. 48 for 1.21; 61 for 1.21.4"
+    required: false
+    default: "48"
+  python-version:
+    description: "Python version used to run MDL"
+    required: false
+    default: "3.11"
+  mdl-spec:
+    description: "pip spec for installing MDL (e.g. 'minecraft-datapack-language' or a URL to a wheel)"
+    required: false
+    default: "minecraft-datapack-language"
+
+outputs:
+  folder:
+    description: "Path to built datapack folder"
+    value: ${{ steps.compute-outputs.outputs.folder }}
+  zip:
+    description: "Path to built datapack zip"
+    value: ${{ steps.compute-outputs.outputs.zip }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ inputs.python-version }}
+
+    - name: Install MDL
+      shell: bash
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install "${{ inputs.mdl-spec }}"
+
+    - name: Check .mdl
+      shell: bash
+      run: |
+        mdl check "${{ inputs.mdl-path }}"
+
+    - name: Build datapack
+      shell: bash
+      run: |
+        rm -rf "${{ inputs.out-dir }}"
+        if [ -n "${{ inputs.wrapper }}" ]; then
+          mdl build --mdl "${{ inputs.mdl-path }}" -o "${{ inputs.out-dir }}" --pack-format "${{ inputs.pack-format }}" --wrapper "${{ inputs.wrapper }}"
+        else
+          mdl build --mdl "${{ inputs.mdl-path }}" -o "${{ inputs.out-dir }}" --pack-format "${{ inputs.pack-format }}"
+        fi
+
+    - name: Compute outputs
+      id: compute-outputs
+      shell: bash
+      run: |
+        # Figure out wrapper folder created by MDL
+        # Choose first directory in out-dir (there should be exactly one)
+        WRAP=$(find "${{ inputs.out-dir }}" -maxdepth 1 -type d -not -name "$(basename "${{ inputs.out-dir }}")" -printf '%f\n' | head -n1)
+        if [ -z "$WRAP" ]; then
+          echo "No wrapper folder found in ${{ inputs.out-dir }}" >&2
+          exit 1
+        fi
+        echo "folder=${{ inputs.out-dir }}/$WRAP" >> "$GITHUB_OUTPUT"
+        echo "zip=${{ inputs.out-dir }}/$WRAP.zip" >> "$GITHUB_OUTPUT"
+
+    - name: Show tree (debug)
+      shell: bash
+      run: |
+        echo "::group::Output tree"
+        ls -la "${{ steps.compute-outputs.outputs.folder }}" || true
+        echo "::endgroup::"
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: datapack-${{ github.sha }}
+        path: |
+          ${{ steps.compute-outputs.outputs.folder }}
+          ${{ steps.compute-outputs.outputs.zip }}
