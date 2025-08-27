@@ -26,6 +26,11 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
       # If manually dispatched with an input version, create and push the tag here
       - name: Create and push tag from workflow_dispatch
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.version != '' }}
@@ -47,6 +52,16 @@ jobs:
           python -m pip install build
           python -m build
 
+      - name: Build VS Code Extension
+        run: |
+          cd vscode-extension
+          npm install
+          npm run compile
+          npm install -g @vscode/vsce
+          vsce package --no-yarn
+          echo "VS Code extension built successfully"
+          ls -la *.vsix
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
@@ -55,7 +70,12 @@ jobs:
           body: |
             Automated release for ${{ github.ref_name || inputs.version }}.
             - Commit: ${{ github.sha }}
+            
+            ## Downloads
+            - **Python Package**: Available on PyPI
+            - **VS Code Extension**: Download the `.vsix` file below for VS Code/Cursor installation
           files: |
             dist/*
+            vscode-extension/*.vsix
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

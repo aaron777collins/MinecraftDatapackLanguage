@@ -17,9 +17,23 @@ The MDL VS Code extension provides syntax highlighting, linting, and build comma
 
 ## Installation
 
-### Option 1: Install Built Extension (Recommended)
+### Option 1: Download from GitHub Releases (Easiest)
 
-The extension is available as a VSIX package that can be installed in any VS Code-based editor:
+The VS Code extension is automatically built and available for download with each release:
+
+1. **Go to [GitHub Releases](https://github.com/aaron777collins/MinecraftDatapackLanguage/releases)**
+2. **Download the latest `.vsix` file** from the release assets
+3. **Install in your editor**:
+   - Open VS Code/Cursor
+   - Go to Extensions (Ctrl+Shift+X)
+   - Click the "..." menu in the Extensions panel
+   - Select "Install from VSIX..."
+   - Choose the downloaded `.vsix` file
+   - Click "Install"
+
+### Option 2: Build from Source
+
+If you want to build the extension yourself:
 
 #### For VS Code/Cursor:
 
@@ -51,7 +65,7 @@ The extension is available as a VSIX package that can be installed in any VS Cod
 code --install-extension minecraft-datapack-language-0.1.0.vsix
 ```
 
-### Option 2: Development Installation
+### Option 3: Development Installation
 
 For development and testing:
 

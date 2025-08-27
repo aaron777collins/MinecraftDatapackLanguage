@@ -496,19 +496,31 @@ PY
 
 ---
 
-## VS Code
+## VS Code Extension
 
-Open `vscode-extension/`, then:
+Get syntax highlighting, linting, and build commands for `.mdl` files in VS Code, Cursor, and other VS Code-based editors.
 
+### Quick Install
+
+1. **Download from [GitHub Releases](https://github.com/aaron777collins/MinecraftDatapackLanguage/releases)**
+2. **Install the `.vsix` file**:
+   - Open VS Code/Cursor
+   - Go to Extensions (Ctrl+Shift+X)
+   - Click "..." → "Install from VSIX..."
+   - Choose the downloaded `.vsix` file
+
+### Features
+- **Syntax highlighting** for `.mdl` files
+- **Real-time linting** with error detection
+- **Build commands**: `MDL: Build current file` and `MDL: Check Workspace`
+- **Workspace validation** for multi-file projects
+
+### Development Setup
 ```bash
+cd vscode-extension/
 npm i
 # Press F5 to launch the Extension Dev Host
 ```
-
-- Highlights `.mdl`
-- Runs `mdl check` on save and shows inline diagnostics
-- **MDL: Build current file** prompts for output folder and optional wrapper
-- **MDL: Check Workspace** validates the whole workspace
 
 ---
 
