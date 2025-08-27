@@ -102,9 +102,20 @@ def cmd_new(args):
     # Create a sample project
     root = os.path.abspath(args.path)
     ensure_dir(root)
+    
+    # Generate pack declaration based on format
+    if args.format == "modern" and args.pack_format >= 82:
+        pack_declaration = f'pack "{args.name}" description "Example datapack" pack_format {args.pack_format} min_format [{args.pack_format}, 0] max_format [{args.pack_format}, 1] min_engine_version "1.21.4"'
+    else:
+        pack_declaration = f'pack "{args.name}" description "Example datapack" pack_format {args.pack_format}'
+    
+    # Add format-specific comment
+    format_comment = "# Using modern pack format 82+ metadata" if args.format == "modern" and args.pack_format >= 82 else "# Using legacy pack format"
+    
     sample = f"""
 # mypack.mdl - minimal example for Minecraft Datapack Language
-pack "{args.name}" description "Example datapack" pack_format {args.pack_format}
+{format_comment}
+{pack_declaration}
 
 namespace "example"
 
@@ -306,7 +317,9 @@ def main(argv=None):
     p_new = sub.add_parser("new", help="Create a sample .mdl project")
     p_new.add_argument("path")
     p_new.add_argument("--name", default="Minecraft Datapack Language")
-    p_new.add_argument("--pack-format", type=int, default=48)
+    p_new.add_argument("--pack-format", type=int, default=82)
+    p_new.add_argument("--format", choices=["legacy", "modern"], default="modern", 
+                      help="Pack format style: 'legacy' (pre-82) or 'modern' (82+)")
     p_new.set_defaults(func=cmd_new)
 
     p_build = sub.add_parser("build", help="Build a datapack")
