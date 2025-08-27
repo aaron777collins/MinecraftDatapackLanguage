@@ -34,6 +34,12 @@ plugins:
   - jekyll-feed
   - jekyll-seo-tag
   - jekyll-sitemap
+  - jekyll-github-metadata
+
+# GitHub metadata
+github:
+  is_project_page: true
+  show_downloads: false
 
 # Exclude from processing
 exclude:
@@ -53,6 +59,8 @@ show_downloads: false
 nav:
   - title: Home
     url: /
+  - title: Downloads
+    url: /downloads/
   - title: Getting Started
     url: /docs/getting-started/
   - title: Language Reference
