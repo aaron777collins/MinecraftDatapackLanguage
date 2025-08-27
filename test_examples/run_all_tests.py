@@ -71,6 +71,7 @@ def main():
         ("test_examples/combat_system.mdl", "Combat System"),
         ("test_examples/ui_system.mdl", "UI System"),
         ("test_examples/adventure_pack.mdl", "Adventure Pack"),
+        ("test_examples/conditionals.mdl", "Conditionals"),
     ]
     
     # Python API examples
@@ -81,6 +82,7 @@ def main():
         ("test_examples/combat_system.py", "Combat System"),
         ("test_examples/ui_system.py", "UI System"),
         ("test_examples/adventure_pack.py", "Adventure Pack"),
+        ("test_examples/conditionals.py", "Conditionals"),
     ]
     
     # Multi-file project

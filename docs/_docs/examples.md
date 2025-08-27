@@ -406,6 +406,116 @@ tag item "adventure:armor":
 mdl build --mdl adventure_pack/ -o dist --verbose
 ```
 
+## Conditional Examples
+
+### Weapon Effects System
+
+A system that applies different effects based on the player's weapon:
+
+```mdl
+# weapon_effects.mdl
+pack "Weapon Effects" description "Conditional weapon effects system" pack_format 48
+
+namespace "weapons"
+
+function "apply_weapon_effects":
+    if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:\"minecraft:diamond_sword\"}}]":
+        say Diamond sword detected!
+        effect give @s minecraft:strength 10 1
+        effect give @s minecraft:glowing 10 0
+    else if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:\"minecraft:golden_sword\"}}]":
+        say Golden sword detected!
+        effect give @s minecraft:speed 10 1
+        effect give @s minecraft:night_vision 10 0
+    else if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:\"minecraft:iron_sword\"}}]":
+        say Iron sword detected!
+        effect give @s minecraft:haste 5 0
+    else if "entity @s[type=minecraft:player]":
+        say No special weapon detected
+        effect give @s minecraft:glowing 5 0
+    else:
+        say No player found
+
+on_tick "weapons:apply_weapon_effects"
+```
+
+### Entity Type Detection
+
+A system that responds differently to different entity types:
+
+```mdl
+# entity_detection.mdl
+pack "Entity Detection" description "Conditional entity detection system" pack_format 48
+
+namespace "detection"
+
+function "detect_entity":
+    if "entity @s[type=minecraft:player]":
+        say Player detected!
+        effect give @s minecraft:glowing 5 1
+        particle minecraft:end_rod ~ ~ ~ 0.5 0.5 0.5 0.1 10
+    else if "entity @s[type=minecraft:zombie]":
+        say Zombie detected!
+        effect give @s minecraft:poison 5 1
+        particle minecraft:smoke ~ ~ ~ 0.5 0.5 0.5 0.1 10
+    else if "entity @s[type=minecraft:creeper]":
+        say Creeper detected!
+        effect give @s minecraft:resistance 5 1
+        particle minecraft:explosion ~ ~ ~ 0.5 0.5 0.5 0.1 5
+    else if "entity @s[type=minecraft:skeleton]":
+        say Skeleton detected!
+        effect give @s minecraft:slowness 5 1
+        particle minecraft:arrow ~ ~ ~ 0.5 0.5 0.5 0.1 10
+    else:
+        say Unknown entity detected
+        particle minecraft:cloud ~ ~ ~ 0.5 0.5 0.5 0.1 5
+
+on_tick "detection:detect_entity"
+```
+
+### Conditional Function Calls
+
+A system that calls different functions based on conditions:
+
+```mdl
+# conditional_calls.mdl
+pack "Conditional Calls" description "Conditional function calling system" pack_format 48
+
+namespace "calls"
+
+function "main_logic":
+    if "entity @s[type=minecraft:player]":
+        say Executing player logic
+        function calls:player_effects
+        function calls:player_ui
+    else if "entity @s[type=minecraft:zombie]":
+        say Executing zombie logic
+        function calls:zombie_ai
+        function calls:zombie_effects
+    else:
+        say Executing default logic
+        function calls:default_behavior
+
+function "player_effects":
+    effect give @s minecraft:night_vision 10 0
+    effect give @s minecraft:glowing 10 0
+
+function "player_ui":
+    title @s actionbar {"text":"Player Mode Active","color":"green"}
+
+function "zombie_ai":
+    effect give @s minecraft:speed 5 1
+    effect give @s minecraft:strength 5 1
+
+function "zombie_effects":
+    particle minecraft:smoke ~ ~ ~ 0.3 0.3 0.3 0.05 5
+
+function "default_behavior":
+    effect give @s minecraft:glowing 5 0
+
+on_tick "calls:main_logic"
+```
+
 ## Gameplay Examples
 
 ### Mini-Game Framework

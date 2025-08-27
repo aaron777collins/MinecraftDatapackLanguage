@@ -1,0 +1,116 @@
+pack "Conditional Tests" description "Comprehensive tests for if/else if/else functionality" pack_format 48
+
+namespace "test"
+
+# Test 1: Simple if statement
+function "simple_if":
+    say Testing simple if statement
+    if "entity @s[type=minecraft:player]":
+        say Player detected!
+        effect give @s minecraft:glowing 5 1
+
+# Test 2: if/else statement
+function "if_else":
+    say Testing if/else statement
+    if "entity @s[type=minecraft:player]":
+        say Player detected!
+        effect give @s minecraft:glowing 5 1
+    else:
+        say No player found
+        say This is the else block
+
+# Test 3: if/else if/else statement
+function "if_else_if_else":
+    say Testing if/else if/else statement
+    if "entity @s[type=minecraft:player]":
+        say Player detected!
+        effect give @s minecraft:glowing 5 1
+    else if "entity @s[type=minecraft:zombie]":
+        say Zombie detected!
+        effect give @s minecraft:poison 5 1
+    else if "entity @s[type=minecraft:creeper]":
+        say Creeper detected!
+        effect give @s minecraft:resistance 5 1
+    else:
+        say Unknown entity
+        say This is the final else block
+
+# Test 4: Complex conditions with NBT
+function "complex_conditions":
+    say Testing complex conditions
+    if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:\"minecraft:diamond_sword\"}}]":
+        say Player with diamond sword!
+        effect give @s minecraft:strength 10 1
+    else if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:\"minecraft:golden_sword\"}}]":
+        say Player with golden sword!
+        effect give @s minecraft:speed 10 1
+    else if "entity @s[type=minecraft:player]":
+        say Player without special sword
+        effect give @s minecraft:haste 5 0
+    else:
+        say No player found
+
+# Test 5: Mixed commands with conditionals
+function "mixed_commands":
+    say Testing mixed commands with conditionals
+    say This is before the conditional
+    if "entity @s[type=minecraft:player]":
+        say Inside if block
+        effect give @s minecraft:glowing 5 1
+    say This is after the conditional
+    say Another command after
+
+# Test 6: Multiple else if blocks
+function "multiple_else_if":
+    say Testing multiple else if blocks
+    if "entity @s[type=minecraft:player]":
+        say Player
+    else if "entity @s[type=minecraft:zombie]":
+        say Zombie
+    else if "entity @s[type=minecraft:skeleton]":
+        say Skeleton
+    else if "entity @s[type=minecraft:creeper]":
+        say Creeper
+    else if "entity @s[type=minecraft:spider]":
+        say Spider
+    else:
+        say Unknown entity
+
+# Test 7: Conditional with function calls
+function "conditional_with_calls":
+    say Testing conditionals with function calls
+    if "entity @s[type=minecraft:player]":
+        say Calling player function
+        function test:player_effects
+    else if "entity @s[type=minecraft:zombie]":
+        say Calling zombie function
+        function test:zombie_effects
+    else:
+        say Calling default function
+        function test:default_effects
+
+# Test 8: Nested conditionals (should work as regular commands)
+function "nested_conditionals":
+    say Testing nested conditionals
+    if "entity @s[type=minecraft:player]":
+        say Player detected
+        if "entity @s[gamemode=creative]":
+            say Creative player
+        else:
+            say Survival player
+
+# Helper functions for conditional_with_calls
+function "player_effects":
+    say Applying player effects
+    effect give @s minecraft:night_vision 10 0
+
+function "zombie_effects":
+    say Applying zombie effects
+    effect give @s minecraft:poison 5 1
+
+function "default_effects":
+    say Applying default effects
+    effect give @s minecraft:glowing 5 0
+
+# Hook into tick for testing
+on_tick "test:simple_if"

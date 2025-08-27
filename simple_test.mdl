@@ -1,7 +1,0 @@
-# simple_test.mdl - Simple test file
-pack "Simple Test" description "Testing single file" pack_format 48
-
-namespace "test"
-
-function "hello":
-    say Hello from simple test!

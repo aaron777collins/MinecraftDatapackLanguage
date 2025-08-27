@@ -138,6 +138,100 @@ class Pack:
         self.tags.append(t)
         return t
 
+    def _process_conditionals(self, ns_name: str, func_name: str, commands: List[str]) -> List[str]:
+        """Process conditional blocks in function commands and generate appropriate Minecraft commands."""
+        import re
+        
+        processed_commands = []
+        i = 0
+        
+        while i < len(commands):
+            cmd = commands[i].strip()
+            
+            # Check for if statement
+            if_match = re.match(r'^if\s+"([^"]+)"\s*:\s*$', cmd)
+            if if_match:
+                condition = if_match.group(1)
+                if_commands = []
+                i += 1
+                
+                # Collect commands for this if block (until next conditional or end)
+                while i < len(commands):
+                    next_cmd = commands[i].strip()
+                    # Stop if we hit another conditional or end of commands
+                    if (re.match(r'^else\s+if\s+"', next_cmd) or 
+                        next_cmd == "else:" or 
+                        re.match(r'^if\s+"', next_cmd)):
+                        break
+                    if next_cmd:  # Skip empty lines
+                        if_commands.append(next_cmd)
+                    i += 1
+                
+                # Generate conditional function
+                conditional_func_name = f"{func_name}_if_{len(processed_commands)}"
+                self.namespace(ns_name).function(conditional_func_name, *if_commands)
+                
+                # Add execute command
+                processed_commands.append(f"execute if {condition} run function {ns_name}:{conditional_func_name}")
+                continue
+            
+            # Check for else if statement
+            elif_match = re.match(r'^else\s+if\s+"([^"]+)"\s*:\s*$', cmd)
+            if elif_match:
+                condition = elif_match.group(1)
+                elif_commands = []
+                i += 1
+                
+                # Collect commands for this else if block (until next conditional or end)
+                while i < len(commands):
+                    next_cmd = commands[i].strip()
+                    # Stop if we hit another conditional or end of commands
+                    if (re.match(r'^else\s+if\s+"', next_cmd) or 
+                        next_cmd == "else:" or 
+                        re.match(r'^if\s+"', next_cmd)):
+                        break
+                    if next_cmd:  # Skip empty lines
+                        elif_commands.append(next_cmd)
+                    i += 1
+                
+                # Generate conditional function
+                conditional_func_name = f"{func_name}_elif_{len(processed_commands)}"
+                self.namespace(ns_name).function(conditional_func_name, *elif_commands)
+                
+                # Add execute command (this is simplified - in practice we'd need to track previous conditions)
+                processed_commands.append(f"execute if {condition} run function {ns_name}:{conditional_func_name}")
+                continue
+            
+            # Check for else statement
+            elif cmd == "else:":
+                else_commands = []
+                i += 1
+                
+                # Collect commands for this else block (until end)
+                while i < len(commands):
+                    next_cmd = commands[i].strip()
+                    # Stop if we hit another conditional or end of commands
+                    if (re.match(r'^else\s+if\s+"', next_cmd) or 
+                        re.match(r'^if\s+"', next_cmd)):
+                        break
+                    if next_cmd:  # Skip empty lines
+                        else_commands.append(next_cmd)
+                    i += 1
+                
+                # Generate conditional function
+                conditional_func_name = f"{func_name}_else"
+                self.namespace(ns_name).function(conditional_func_name, *else_commands)
+                
+                # Add execute command (this is simplified - in practice we'd need to track previous conditions)
+                processed_commands.append(f"execute unless entity @s run function {ns_name}:{conditional_func_name}")
+                continue
+            
+            # Regular command
+            processed_commands.append(cmd)
+            i += 1
+        
+        return processed_commands
+
     def merge(self, other: "Pack"):
         """Merge content of another Pack into this one. Raises on conflicting function names within same namespace."""
         # Namespaces
@@ -181,11 +275,23 @@ class Pack:
         for ns_name, ns in self.namespaces.items():
             ns_root = os.path.join(data_root, ns_name)
             # Functions
-            for path, fn in ns.functions.items():
+            functions_to_process = list(ns.functions.items())
+            for path, fn in functions_to_process:
                 fn_dir = os.path.join(ns_root, dm.function, os.path.dirname(path))
                 file_path = os.path.join(ns_root, dm.function, f"{path}.mcfunction")
                 ensure_dir(fn_dir)
-                write_text(file_path, "\n".join(fn.commands))
+                
+                # Process conditionals in function commands
+                processed_commands = self._process_conditionals(ns_name, path, fn.commands)
+                write_text(file_path, "\n".join(processed_commands))
+            
+            # Write any additional functions created during conditional processing
+            for path, fn in ns.functions.items():
+                if path not in [f[0] for f in functions_to_process]:  # Skip already processed functions
+                    fn_dir = os.path.join(ns_root, dm.function, os.path.dirname(path))
+                    file_path = os.path.join(ns_root, dm.function, f"{path}.mcfunction")
+                    ensure_dir(fn_dir)
+                    write_text(file_path, "\n".join(fn.commands))
 
             # Recipes, Advancements, etc.
             for name, r in ns.recipes.items():

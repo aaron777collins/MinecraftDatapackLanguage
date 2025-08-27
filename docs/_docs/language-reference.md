@@ -108,6 +108,48 @@ function "welcome":
     effect give @a minecraft:glowing 10 1
 ```
 
+## Conditional Blocks
+
+MDL supports if/else if/else statements for conditional execution:
+
+```mdl
+function "conditional_example":
+    if "entity @s[type=minecraft:player]":
+        say Player detected!
+        effect give @s minecraft:glowing 5 1
+    else if "entity @s[type=minecraft:zombie]":
+        say Zombie detected!
+        effect give @s minecraft:poison 5 1
+    else:
+        say Unknown entity
+        effect give @s minecraft:slowness 5 1
+```
+
+**Rules:**
+- Conditions must be valid Minecraft selector syntax (e.g., `entity @s[type=minecraft:player]`)
+- Commands inside conditional blocks must be indented with 4 spaces
+- You can have multiple `else if` blocks
+- The `else` block is optional
+- Conditional blocks are compiled to separate functions and called with `execute` commands
+- Each conditional block becomes its own function with a generated name
+
+**Example with complex conditions:**
+
+```mdl
+function "weapon_effects":
+    if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:\"minecraft:diamond_sword\"}}]":
+        say Diamond sword detected!
+        effect give @s minecraft:strength 10 1
+    else if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:\"minecraft:golden_sword\"}}]":
+        say Golden sword detected!
+        effect give @s minecraft:speed 10 1
+    else if "entity @s[type=minecraft:player]":
+        say Player without special sword
+        effect give @s minecraft:haste 5 0
+    else:
+        say No player found
+```
+
 ## Function Calls
 
 Functions can call other functions using fully qualified names:
@@ -335,8 +377,27 @@ on_tick "example:tick"
 
 ### Conditional Execution
 
+MDL provides built-in support for if/else if/else statements:
+
 ```mdl
-function "conditional":
+function "weapon_effects":
+    if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:\"minecraft:diamond_sword\"}}]":
+        say Diamond sword detected!
+        effect give @s minecraft:strength 10 1
+    else if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:\"minecraft:golden_sword\"}}]":
+        say Golden sword detected!
+        effect give @s minecraft:speed 10 1
+    else if "entity @s[type=minecraft:player]":
+        say Player without special sword
+        effect give @s minecraft:haste 5 0
+    else:
+        say No player found
+```
+
+This is equivalent to the traditional approach:
+
+```mdl
+function "weapon_effects_traditional":
     # Check if player has specific item
     execute as @a[nbt={SelectedItem:{id:"minecraft:diamond_sword"}}] \
         run function example:sword_effects

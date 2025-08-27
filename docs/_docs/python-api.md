@@ -299,6 +299,56 @@ def create_feature_pack(features):
 # Usage
 pack = create_feature_pack(["combat", "ui"])
 pack.build("dist")
+
+### Implementing Conditional Logic
+
+While MDL files support native if/else if/else syntax, you can implement the same logic using the Python API with execute commands:
+
+```python
+def create_conditional_pack():
+    pack = Pack(name="Conditional Example", pack_format=48)
+    ns = pack.namespace("test")
+    
+    # Create the main function with conditional logic
+    ns.function("weapon_effects",
+        "execute if entity @s[type=minecraft:player,nbt={SelectedItem:{id:\"minecraft:diamond_sword\"}}] run function test:diamond_effects",
+        "execute unless entity @s[type=minecraft:player,nbt={SelectedItem:{id:\"minecraft:diamond_sword\"}}] if entity @s[type=minecraft:player,nbt={SelectedItem:{id:\"minecraft:golden_sword\"}}] run function test:golden_effects",
+        "execute unless entity @s[type=minecraft:player,nbt={SelectedItem:{id:\"minecraft:diamond_sword\"}}] unless entity @s[type=minecraft:player,nbt={SelectedItem:{id:\"minecraft:golden_sword\"}}] if entity @s[type=minecraft:player] run function test:default_effects"
+    )
+    
+    # Create the conditional function implementations
+    ns.function("diamond_effects",
+        "say Diamond sword detected!",
+        "effect give @s minecraft:strength 10 1"
+    )
+    
+    ns.function("golden_effects",
+        "say Golden sword detected!",
+        "effect give @s minecraft:speed 10 1"
+    )
+    
+    ns.function("default_effects",
+        "say Default weapon detected",
+        "effect give @s minecraft:haste 5 0"
+    )
+    
+    pack.on_tick("test:weapon_effects")
+    return pack
+```
+
+This is equivalent to the MDL syntax:
+
+```mdl
+function "weapon_effects":
+    if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:\"minecraft:diamond_sword\"}}]":
+        say Diamond sword detected!
+        effect give @s minecraft:strength 10 1
+    else if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:\"minecraft:golden_sword\"}}]":
+        say Golden sword detected!
+        effect give @s minecraft:speed 10 1
+    else if "entity @s[type=minecraft:player]":
+        say Default weapon detected
+        effect give @s minecraft:haste 5 0
 ```
 
 ### Integration with CLI

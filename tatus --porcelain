@@ -1,0 +1,9 @@
+warning: in the working copy of 'README.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'minecraft_datapack_language/pack.py', LF will be replaced by CRLF the next time Git touches it
+README.md
+docs/_docs/examples.md
+docs/_docs/language-reference.md
+docs/_docs/python-api.md
+minecraft_datapack_language/pack.py
+simple_test.mdl
+test_examples/run_all_tests.py

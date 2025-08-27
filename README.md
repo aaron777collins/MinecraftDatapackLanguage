@@ -298,6 +298,18 @@ This will create a datapack with:
       say hi
       tellraw @a {"text":"ok","color":"green"}
   ```
+- **conditional blocks** (if/else if/else statements):
+  ```mdl
+  function "conditional":
+      if "entity @s[type=minecraft:player]":
+          say Player detected!
+          effect give @s minecraft:glowing 5 1
+      else if "entity @s[type=minecraft:zombie]":
+          say Zombie detected!
+          effect give @s minecraft:poison 5 1
+      else:
+          say Unknown entity
+  ```
 - **function calls** (one function invoking another with fully qualified ID):
   ```mdl
   function "outer":
@@ -348,6 +360,32 @@ tellraw @a {"text":"World","color":"blue"} # Inline too!
 ```
 
 Notice how the full-line `#` never makes it into the `.mcfunction`, but the inline ones do.
+
+---
+
+### Conditional Blocks
+
+MDL supports if/else if/else statements for conditional execution:
+
+```mdl
+function "conditional_example":
+    if "entity @s[type=minecraft:player]":
+        say Player detected!
+        effect give @s minecraft:glowing 5 1
+    else if "entity @s[type=minecraft:zombie]":
+        say Zombie detected!
+        effect give @s minecraft:poison 5 1
+    else:
+        say Unknown entity
+        effect give @s minecraft:slowness 5 1
+```
+
+**Rules:**
+- Conditions must be valid Minecraft selector syntax
+- Commands inside conditional blocks must be indented with 4 spaces
+- You can have multiple `else if` blocks
+- The `else` block is optional
+- Conditional blocks are compiled to separate functions and called with `execute` commands
 
 ---
 
