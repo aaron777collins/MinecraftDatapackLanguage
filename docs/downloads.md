@@ -4,7 +4,7 @@ title: Downloads
 permalink: /downloads/
 ---
 
-# Downloads
+# <img src="{{ site.baseurl }}/icons/icon-128.png" width="32" height="32" alt="MDL Icon" style="vertical-align: middle; margin-right: 8px;"> Downloads
 
 Get the latest version of Minecraft Datapack Language (MDL) and the VS Code extension.
 

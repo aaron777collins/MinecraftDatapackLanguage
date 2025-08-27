@@ -1,4 +1,4 @@
-# Minecraft Datapack Language (MDL)
+# <img src="icons/icon-128.png" width="32" height="32" alt="MDL Icon"> Minecraft Datapack Language (MDL)
 
 A tiny compiler that lets you write Minecraft datapacks in a simple language (`.mdl`) **or** via a clean Python API, and then compiles to the correct 1.21+ datapack folder layout (singular directories) automatically.
 
@@ -13,7 +13,7 @@ A tiny compiler that lets you write Minecraft datapacks in a simple language (`.
 
 ---
 
-## Install
+## 🚀 Install
 
 ### Option A — from PyPI (recommended for users)
 Global, isolated CLI via **pipx**:
@@ -40,7 +40,7 @@ python -m pip install -e .
 
 ---
 
-## Update
+## 🔄 Update
 
 - **pipx**: `pipx upgrade minecraft-datapack-language`  
 - **pip (venv)**: `pip install -U minecraft-datapack-language`  
@@ -48,7 +48,7 @@ python -m pip install -e .
 
 ---
 
-## CLI
+## 💻 CLI
 
 ```bash
 mdl new my_pack --name "My Pack" --pack-format 48
@@ -82,7 +82,7 @@ mdl check --json src/
 
 ---
 
-## Multi-file Support
+## 📁 Multi-file Support
 
 MDL supports building datapacks from multiple `.mdl` files. This is useful for organizing large projects into logical modules.
 
@@ -276,7 +276,7 @@ This will create a datapack with:
 
 ---
 
-## The `.mdl` language
+## 📝 The `.mdl` language
 
 ### Grammar you can rely on (based on the parser)
 - **pack header** (required once):
@@ -372,7 +372,7 @@ tellraw @a {"text":"This text is really, really long so we split it","color":"go
 
 ---
 
-## FULL example (nested calls + multi-namespace)
+## 🎯 FULL example (nested calls + multi-namespace)
 
 ```mdl
 # mypack.mdl - minimal example for Minecraft Datapack Language
@@ -434,7 +434,7 @@ tag block "example:glassy":
 
 ---
 
-## Python API equivalent
+## 🐍 Python API equivalent
 
 ```python
 from minecraft_datapack_language import Pack
@@ -496,7 +496,7 @@ PY
 
 ---
 
-## VS Code Extension
+## 🔧 VS Code Extension
 
 Get syntax highlighting, linting, and build commands for `.mdl` files in VS Code, Cursor, and other VS Code-based editors.
 
@@ -524,7 +524,7 @@ npm i
 
 ---
 
-## CI & Releases
+## 🚀 CI & Releases
 
 - **CI** runs on push/PR across Linux/macOS/Windows and uploads artifacts.
 - **Release** is triggered by pushing a tag like `v1.0.0` or via the Release workflow manually.

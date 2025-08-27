@@ -3,6 +3,7 @@
   "displayName": "Minecraft Datapack Language (MDL)",
   "description": "Syntax highlighting, linting, and build tasks for .mdl",
   "version": "0.1.0",
+  "icon": "icons/icon-128.png",
   "publisher": "mdl",
   "repository": {
     "type": "git",
