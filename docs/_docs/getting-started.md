@@ -72,11 +72,18 @@ Let's create a simple datapack that displays a welcome message when the world lo
 
 ### 1. Create the MDL File
 
+**Option A: Use the `mdl new` command (Recommended)**
+```bash
+mdl new hello --name "My First Pack"
+```
+This creates a complete template with modern pack format 82+ metadata.
+
+**Option B: Create manually**
 Create a file called `hello.mdl` with the following content:
 
 ```mdl
 # hello.mdl - My first datapack
-pack "My First Pack" description "A simple example datapack" pack_format 48
+pack "My First Pack" description "A simple example datapack" pack_format 82 min_format [82, 0] max_format [82, 1] min_engine_version "1.21.4"
 
 namespace "example"
 
@@ -113,7 +120,10 @@ This will create a `dist/` folder containing your compiled datapack.
 Let's break down what we just created:
 
 - **`pack "My First Pack"`**: Declares the datapack name and metadata
-- **`pack_format 48`**: Specifies compatibility with Minecraft 1.21+
+- **`pack_format 82`**: Specifies compatibility with Minecraft 1.21.4+
+- **`min_format [82, 0]`**: Minimum supported pack format version
+- **`max_format [82, 1]`**: Maximum supported pack format version
+- **`min_engine_version "1.21.4"`**: Minimum Minecraft engine version required
 - **`namespace "example"`**: Creates a namespace for organizing functions
 - **`function "hello":`**: Defines a function that contains Minecraft commands
 - **`on_load "example:hello"`**: Automatically runs the function when the world loads

@@ -26,12 +26,22 @@ mdl new <project_name> [options]
 
 **Options:**
 - `--name "Pack Name"` - Set the datapack name
-- `--pack-format N` - Set the pack format (default: 48)
+- `--pack-format N` - Set the pack format (default: 82)
+- `--format {legacy,modern}` - Pack format style: 'legacy' (pre-82) or 'modern' (82+) (default: modern)
 - `--description "Description"` - Set the datapack description
 
-**Example:**
+**Examples:**
+
+**Modern format (default):**
 ```bash
-mdl new my_pack --name "My Adventure Pack" --pack-format 48
+mdl new my_pack --name "My Adventure Pack"
+# Creates pack format 82+ with min_format, max_format, and min_engine_version
+```
+
+**Legacy format:**
+```bash
+mdl new my_pack --name "My Adventure Pack" --format legacy --pack-format 48
+# Creates legacy pack format 48
 ```
 
 This creates:
