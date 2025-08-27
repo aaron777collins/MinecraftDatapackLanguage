@@ -188,26 +188,40 @@ def cmd_check(args):
     try:
         path = args.path
         if os.path.isdir(path):
+            # Use the same multi-file logic as build command
             files = _gather_mdl_files(path)
-            for fp in files:
-                try:
-                    with open(fp, "r", encoding="utf-8") as f:
-                        src = f.read()
-                    parse_mdl(src, default_pack_format=args.pack_format)
-                except Exception as e:
-                    # Try to extract 'Line N:'
-                    m = re.search(r'Line (\\d+):\\s*(.*)', str(e))
-                    if m:
-                        errors.append({"file": fp, "line": int(m.group(1)), "message": m.group(2)})
+            try:
+                _parse_many(files, default_pack_format=args.pack_format, verbose=args.verbose)
+            except Exception as e:
+                # Try to extract filename and line info from the error
+                error_str = str(e)
+                if ":" in error_str:
+                    # Format: "filename: error message" or "filename: Line N: error message"
+                    parts = error_str.split(":", 2)
+                    if len(parts) >= 2:
+                        file_path = parts[0]
+                        if len(parts) >= 3 and "Line" in parts[1]:
+                            # "Line N: error message" format
+                            line_match = re.search(r'Line (\d+):\s*(.*)', parts[1] + ":" + parts[2])
+                            if line_match:
+                                errors.append({"file": file_path, "line": int(line_match.group(1)), "message": line_match.group(2)})
+                            else:
+                                errors.append({"file": file_path, "line": None, "message": parts[2]})
+                        else:
+                            # "error message" format
+                            errors.append({"file": file_path, "line": None, "message": parts[1]})
                     else:
-                        errors.append({"file": fp, "line": None, "message": str(e)})
+                        errors.append({"file": path, "line": None, "message": error_str})
+                else:
+                    errors.append({"file": path, "line": None, "message": error_str})
         else:
+            # Single file - parse individually
             with open(path, "r", encoding="utf-8") as f:
                 src = f.read()
             parse_mdl(src, default_pack_format=args.pack_format)
     except Exception as e:
         # For top-level failures
-        m = re.search(r'Line (\\d+):\\s*(.*)', str(e))
+        m = re.search(r'Line (\d+):\s*(.*)', str(e))
         if m:
             errors.append({"file": path, "line": int(m.group(1)), "message": m.group(2)})
         else:

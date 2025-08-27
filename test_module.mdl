@@ -1,0 +1,5 @@
+# test_module.mdl - Module without pack declaration
+namespace "test"
+
+function "hello":
+    say hi from module!
