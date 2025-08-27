@@ -6,7 +6,7 @@ permalink: /docs/vscode-extension/
 
 # VS Code Extension
 
-The MDL VS Code extension provides syntax highlighting, linting, and build commands for `.mdl` files.
+The MDL VS Code extension provides syntax highlighting, linting, and build commands for `.mdl` files in VS Code, Cursor, and other VS Code-based editors.
 
 ## Features
 
@@ -17,43 +17,69 @@ The MDL VS Code extension provides syntax highlighting, linting, and build comma
 
 ## Installation
 
-### From Source
+### Option 1: Install Built Extension (Recommended)
 
-1. Clone the repository:
+The extension is available as a VSIX package that can be installed in any VS Code-based editor:
+
+#### For VS Code/Cursor:
+
+1. **Download the extension**:
    ```bash
+   # Clone the repository
    git clone https://github.com/aaron777collins/MinecraftDatapackLanguage.git
    cd MinecraftDatapackLanguage/vscode-extension
-   ```
-
-2. Install dependencies:
-   ```bash
+   
+   # Build the extension
    npm install
-   ```
-
-3. Build the extension:
-   ```bash
    npm run compile
+   npm install -g @vscode/vsce
+   vsce package
    ```
 
-4. Press `F5` to launch the Extension Development Host
+2. **Install in your editor**:
+   - Open VS Code/Cursor
+   - Go to Extensions (Ctrl+Shift+X)
+   - Click the "..." menu in the Extensions panel
+   - Select "Install from VSIX..."
+   - Navigate to `minecraft-datapack-language-0.1.0.vsix`
+   - Click "Install"
 
-### Development Setup
+#### Alternative: Command Line Installation
+
+```bash
+# Install directly from command line
+code --install-extension minecraft-datapack-language-0.1.0.vsix
+```
+
+### Option 2: Development Installation
 
 For development and testing:
 
-```bash
-cd vscode-extension
-npm install
-npm run watch  # For continuous compilation
-```
+1. **Clone and setup**:
+   ```bash
+   git clone https://github.com/aaron777collins/MinecraftDatapackLanguage.git
+   cd MinecraftDatapackLanguage/vscode-extension
+   npm install
+   npm run compile
+   ```
 
-Then press `F5` in VS Code to launch the extension in a new window.
+2. **Launch Extension Development Host**:
+   - Press `F5` in VS Code to launch the extension in a new window
+   - Or use `npm run watch` for continuous compilation
+
+## Quick Start
+
+Once installed, the extension will automatically activate when you open `.mdl` files:
+
+1. **Open any `.mdl` file** - syntax highlighting will activate immediately
+2. **Try the commands** - Press `Ctrl+Shift+P` and type "MDL" to see available commands
+3. **Build a datapack** - Use "MDL: Build current file" to compile your MDL files
 
 ## Usage
 
 ### Opening MDL Files
 
-1. Open any `.mdl` file in VS Code
+1. Open any `.mdl` file in VS Code/Cursor
 2. The extension will automatically activate and provide syntax highlighting
 3. You'll see color-coded syntax for:
    - Pack declarations
