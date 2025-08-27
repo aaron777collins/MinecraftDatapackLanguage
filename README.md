@@ -7,7 +7,9 @@ A tiny compiler that lets you write Minecraft datapacks in a simple language (`.
 
 ![CI](https://github.com/aaron777collins/MinecraftDatapackLanguage/workflows/CI/badge.svg)
 ![Test Examples](https://github.com/aaron777collins/MinecraftDatapackLanguage/workflows/Test%20Examples/badge.svg)
+![Documentation](https://github.com/aaron777collins/MinecraftDatapackLanguage/workflows/Build%20and%20Deploy%20Documentation/badge.svg)
 ![PyPI](https://img.shields.io/pypi/v/minecraft-datapack-language?style=flat-square)
+![Release](https://github.com/aaron777collins/MinecraftDatapackLanguage/workflows/Release/badge.svg)
 
 - ✅ Handles the directory renames from snapshots **24w19a** (tag subfolders) and **24w21a** (core registry folders) for you.
 - ✅ Easy hooks into `minecraft:tick` and `minecraft:load` via function tags.
