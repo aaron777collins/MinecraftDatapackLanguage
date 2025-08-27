@@ -408,6 +408,8 @@ mdl build --mdl adventure_pack/ -o dist --verbose
 
 ## Conditional Examples
 
+> **Recent Improvements**: The conditional system has been enhanced to ensure proper logical flow. `else if` blocks now only execute if all previous conditions were false, and `else` blocks only execute if all conditions were false. This provides more predictable and efficient execution.
+
 ### Weapon Effects System
 
 A system that applies different effects based on the player's weapon:

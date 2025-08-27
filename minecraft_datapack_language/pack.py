@@ -144,6 +144,7 @@ class Pack:
         
         processed_commands = []
         i = 0
+        previous_conditions = []  # Track conditions for proper else if logic
         
         while i < len(commands):
             cmd = commands[i].strip()
@@ -173,6 +174,7 @@ class Pack:
                 
                 # Add execute command
                 processed_commands.append(f"execute if {condition} run function {ns_name}:{conditional_func_name}")
+                previous_conditions = [condition]  # Reset for new if chain
                 continue
             
             # Check for else if statement
@@ -198,8 +200,15 @@ class Pack:
                 conditional_func_name = f"{func_name}_elif_{len(processed_commands)}"
                 self.namespace(ns_name).function(conditional_func_name, *elif_commands)
                 
-                # Add execute command (this is simplified - in practice we'd need to track previous conditions)
-                processed_commands.append(f"execute if {condition} run function {ns_name}:{conditional_func_name}")
+                # Build execute command with all previous conditions negated
+                execute_parts = []
+                for prev_condition in previous_conditions:
+                    execute_parts.append(f"unless {prev_condition}")
+                execute_parts.append(f"if {condition}")
+                execute_parts.append(f"run function {ns_name}:{conditional_func_name}")
+                
+                processed_commands.append("execute " + " ".join(execute_parts))
+                previous_conditions.append(condition)
                 continue
             
             # Check for else statement
@@ -222,8 +231,14 @@ class Pack:
                 conditional_func_name = f"{func_name}_else"
                 self.namespace(ns_name).function(conditional_func_name, *else_commands)
                 
-                # Add execute command (this is simplified - in practice we'd need to track previous conditions)
-                processed_commands.append(f"execute unless entity @s run function {ns_name}:{conditional_func_name}")
+                # Build execute command with all previous conditions negated
+                execute_parts = []
+                for prev_condition in previous_conditions:
+                    execute_parts.append(f"unless {prev_condition}")
+                execute_parts.append(f"run function {ns_name}:{conditional_func_name}")
+                
+                processed_commands.append("execute " + " ".join(execute_parts))
+                previous_conditions = []  # Reset for next if chain
                 continue
             
             # Regular command
@@ -277,6 +292,7 @@ class Pack:
             # Functions
             functions_to_process = list(ns.functions.items())
             processed_functions = set()
+            generated_functions = set()  # Track functions created during conditional processing
             
             for path, fn in functions_to_process:
                 fn_dir = os.path.join(ns_root, dm.function, os.path.dirname(path))
@@ -287,10 +303,15 @@ class Pack:
                 processed_commands = self._process_conditionals(ns_name, path, fn.commands)
                 write_text(file_path, "\n".join(processed_commands))
                 processed_functions.add(path)
+                
+                # Track any new functions that were created during conditional processing
+                for new_path in ns.functions.keys():
+                    if new_path not in [f[0] for f in functions_to_process]:
+                        generated_functions.add(new_path)
             
             # Write any additional functions created during conditional processing
             for path, fn in ns.functions.items():
-                if path not in processed_functions:  # Skip already processed functions
+                if path not in processed_functions and path in generated_functions:  # Only write generated functions
                     fn_dir = os.path.join(ns_root, dm.function, os.path.dirname(path))
                     file_path = os.path.join(ns_root, dm.function, f"{path}.mcfunction")
                     ensure_dir(fn_dir)

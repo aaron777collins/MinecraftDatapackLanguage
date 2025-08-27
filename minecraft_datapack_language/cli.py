@@ -116,7 +116,7 @@ function "hello":
     function example:inner
     tellraw @a {{"text":"Back in hello","color":"aqua"}}
 
-# Conditional example - detect different entity types
+# Conditional example - detect different entity types with enhanced logic
 function "conditional_demo":
     if "entity @s[type=minecraft:player]":
         say Player detected!
@@ -126,14 +126,35 @@ function "conditional_demo":
         say Zombie detected!
         effect give @s minecraft:poison 5 1
         tellraw @a {{"text":"A zombie is nearby!","color":"red"}}
+    else if "entity @s[type=minecraft:creeper]":
+        say Creeper detected!
+        effect give @s minecraft:resistance 5 1
+        tellraw @a {{"text":"A creeper is nearby!","color":"dark_red"}}
     else:
         say Unknown entity detected
         tellraw @a {{"text":"Something unknown is nearby...","color":"gray"}}
+
+# Advanced conditional example - weapon effects system
+function "weapon_effects":
+    if "entity @s[type=minecraft:player,nbt={{SelectedItem:{{id:\"minecraft:diamond_sword\"}}}}]":
+        say Diamond sword detected!
+        effect give @s minecraft:strength 10 1
+        effect give @s minecraft:glowing 10 0
+    else if "entity @s[type=minecraft:player,nbt={{SelectedItem:{{id:\"minecraft:golden_sword\"}}}}]":
+        say Golden sword detected!
+        effect give @s minecraft:speed 10 1
+        effect give @s minecraft:night_vision 10 0
+    else if "entity @s[type=minecraft:player]":
+        say Player without special weapon
+        effect give @s minecraft:haste 5 0
+    else:
+        say No player found
 
 # Hook the function into load and tick
 on_load "example:hello"
 on_tick "example:hello"
 on_tick "example:conditional_demo"
+on_tick "example:weapon_effects"
 
 # Second namespace with a cross-namespace call
 namespace "util"
@@ -156,6 +177,7 @@ tag function "minecraft:load":
 tag function "minecraft:tick":
     add "example:hello"
     add "example:conditional_demo"
+    add "example:weapon_effects"
     add "util:boss"
 
 # Data tag examples across registries

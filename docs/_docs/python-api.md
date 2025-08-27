@@ -278,6 +278,8 @@ create_weapon_functions(pack, weapons)
 
 ### Conditional Logic
 
+> **Enhanced Implementation**: The conditional system now ensures proper logical flow where `else if` conditions only execute if all previous conditions were false, and `else` blocks only execute if all conditions were false.
+
 You can use Python logic to conditionally add features:
 
 ```python

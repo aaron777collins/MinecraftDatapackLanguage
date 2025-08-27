@@ -13,6 +13,7 @@ A tiny compiler that lets you write Minecraft datapacks in a simple language (`.
 - ✅ Easy hooks into `minecraft:tick` and `minecraft:load` via function tags.
 - ✅ Creates tags for `function`, `item`, `block`, `entity_type`, `fluid`, and `game_event`.
 - ✅ VS Code extension for syntax highlighting, linting, and quick compile.
+- ✅ **Conditional blocks** with proper if/else if/else logic and efficient execution.
 
 > Default **pack_format** is **48** (Java 1.21). Set `--pack-format 47` to emit the legacy plural layout for older versions.
 
@@ -375,6 +376,9 @@ function "conditional_example":
     else if "entity @s[type=minecraft:zombie]":
         say Zombie detected!
         effect give @s minecraft:poison 5 1
+    else if "entity @s[type=minecraft:creeper]":
+        say Creeper detected!
+        effect give @s minecraft:resistance 5 1
     else:
         say Unknown entity
         effect give @s minecraft:slowness 5 1
@@ -386,6 +390,8 @@ function "conditional_example":
 - You can have multiple `else if` blocks
 - The `else` block is optional
 - Conditional blocks are compiled to separate functions and called with `execute` commands
+- **Proper logic**: `else if` blocks only execute if previous conditions were false
+- **Efficient execution**: Each conditional block becomes a separate function for optimal performance
 
 ---
 

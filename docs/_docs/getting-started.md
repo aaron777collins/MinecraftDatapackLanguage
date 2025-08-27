@@ -118,6 +118,8 @@ Let's break down what we just created:
 
 ## Adding Conditional Logic
 
+> **Enhanced Logic**: The conditional system ensures proper if/else if/else logic where each condition is only checked if all previous conditions were false.
+
 Now let's create a more advanced example that uses conditional blocks to detect different types of entities:
 
 ```mdl

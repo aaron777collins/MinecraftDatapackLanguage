@@ -200,7 +200,9 @@ function "item_detection":
 
 **How conditionals work:**
 
-When you write conditional blocks in MDL, they are automatically converted to separate functions and called using Minecraft's `execute` command. For example, the above `weapon_effects` function generates:
+When you write conditional blocks in MDL, they are automatically converted to separate functions and called using Minecraft's `execute` command. The system ensures proper logical flow where `else if` blocks only execute if all previous conditions were false, and `else` blocks only execute if all conditions were false.
+
+For example, the above `weapon_effects` function generates:
 
 **Main function (`weapon_effects.mcfunction`):**
 ```mcfunction
