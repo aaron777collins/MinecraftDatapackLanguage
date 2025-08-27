@@ -112,52 +112,62 @@ mdl check --json src/
 ## FULL example (nested calls + multi-namespace)
 
 ```mdl
-# mypack.mdl — nested and multi-namespace demo
-pack "Minecraft Datapack Language" description "Nested + Namespaces" pack_format 48
+# mypack.mdl - minimal example for Minecraft Datapack Language
+pack "Minecraft Datapack Language" description "Example datapack" pack_format 48
 
-# === First namespace ===
 namespace "example"
 
 function "inner":
     say [example:inner] This is the inner function
     tellraw @a {"text":"Running inner","color":"yellow"}
 
-function "outer":
-    say [example:outer] This is the outer function
-    # "nested" call into inner (composition)
+function "hello":
+    say [example:hello] Outer says hi
     function example:inner
-    tellraw @a {"text":"Back in outer","color":"aqua"}
+    tellraw @a {"text":"Back in hello","color":"aqua"}
 
-# Run outer once on pack load
-on_load "example:outer"
+# Hook the function into load and tick
+on_load "example:hello"
+on_tick "example:hello"
 
-# === Second namespace ===
+# Second namespace with a cross-namespace call
 namespace "util"
 
 function "helper":
     say [util:helper] Helping out...
-    tellraw @a {"text":"Util helper called","color":"green"}
 
 function "boss":
-    say [util:boss] Calling outer, then helper
-    # cross-namespace calls with fully-qualified IDs
-    function example:outer
+    say [util:boss] Calling example:hello then util:helper
+    function example:hello
     function util:helper
-    tellraw @a {"text":"Boss finished!","color":"red"}
 
-# Run boss every tick
+# Run boss every tick as well
 on_tick "util:boss"
 
-# Tag example for demonstration (tick also includes boss)
+# Function tag examples
+tag function "minecraft:load":
+    add "example:hello"
+
 tag function "minecraft:tick":
+    add "example:hello"
     add "util:boss"
+
+# Data tag examples across registries
+tag item "example:swords":
+    add "minecraft:diamond_sword"
+    add "minecraft:netherite_sword"
+
+tag block "example:glassy":
+    add "minecraft:glass"
+    add "minecraft:tinted_glass"
 ```
 
 ### What this demonstrates
-- **Nested-like function composition** via the `function <ns:id>` command.
+- **Nested-like function composition** (`function example:inner` inside `function "hello"`).
 - **Multiple namespaces** (`example`, `util`) calling each other with fully-qualified IDs.
-- **Lifecycle hooks** (`on_load`, `on_tick`) using namespaced function IDs.
-- **Function tagging** to participate in vanilla tags (`minecraft:tick`).
+- **Lifecycle hooks** (`on_load`, `on_tick`) on both `example:hello` and `util:boss`.
+- **Function tags** to participate in vanilla tags (`minecraft:load`, `minecraft:tick`).
+- **Data tags** (`item`, `block`) in addition to function tags.
 
 ---
 
@@ -168,7 +178,7 @@ from minecraft_datapack_language import Pack
 
 def build_pack():
     p = Pack(name="Minecraft Datapack Language",
-             description="Nested + Namespaces",
+             description="Example datapack",
              pack_format=48)
 
     ex = p.namespace("example")
@@ -176,30 +186,36 @@ def build_pack():
         'say [example:inner] This is the inner function',
         'tellraw @a {"text":"Running inner","color":"yellow"}'
     )
-    ex.function("outer",
-        'say [example:outer] This is the outer function',
+    ex.function("hello",
+        'say [example:hello] Outer says hi',
         'function example:inner',
-        'tellraw @a {"text":"Back in outer","color":"aqua"}'
+        'tellraw @a {"text":"Back in hello","color":"aqua"}'
     )
 
-    # Hooks
-    p.on_load("example:outer")
+    # Hooks for example namespace
+    p.on_load("example:hello")
+    p.on_tick("example:hello")
 
     util = p.namespace("util")
     util.function("helper",
-        'say [util:helper] Helping out...',
-        'tellraw @a {"text":"Util helper called","color":"green"}'
+        'say [util:helper] Helping out...'
     )
     util.function("boss",
-        'say [util:boss] Calling outer, then helper',
-        'function example:outer',
-        'function util:helper',
-        'tellraw @a {"text":"Boss finished!","color":"red"}'
+        'say [util:boss] Calling example:hello then util:helper',
+        'function example:hello',
+        'function util:helper'
     )
 
-    # Tick hook + a function tag example
+    # Tick hook for util namespace
     p.on_tick("util:boss")
-    p.tag("function", "minecraft:tick", values=["util:boss"])
+
+    # Function tags
+    p.tag("function", "minecraft:load", values=["example:hello"])
+    p.tag("function", "minecraft:tick", values=["example:hello", "util:boss"])
+
+    # Data tags
+    p.tag("item",  "example:swords", values=["minecraft:diamond_sword", "minecraft:netherite_sword"])
+    p.tag("block", "example:glassy", values=["minecraft:glass", "minecraft:tinted_glass"])
 
     return p
 ```
