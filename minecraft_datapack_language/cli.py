@@ -3,6 +3,7 @@ import argparse, os, sys, json, traceback, re, zipfile, shutil, glob
 from .pack import Pack
 from .utils import ensure_dir
 from .mdl_parser import parse_mdl
+from . import __version__
 
 def _slug(s: str) -> str:
     s = s.strip().lower()
@@ -296,6 +297,10 @@ def cmd_check(args):
 
 def main(argv=None):
     p = argparse.ArgumentParser(prog="mdl", description="Minecraft Datapack Language (compiler)")
+    
+    # Add version argument
+    p.add_argument("--version", action="version", version="%(prog)s " + __version__)
+    
     sub = p.add_subparsers(dest="cmd", required=True)
 
     p_new = sub.add_parser("new", help="Create a sample .mdl project")

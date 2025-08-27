@@ -368,7 +368,11 @@ Notice how the full-line `#` never makes it into the `.mcfunction`, but the inli
 
 ---
 
-### Conditional Blocks
+### Control Flow
+
+MDL supports conditional blocks and loops for advanced control flow.
+
+#### Conditional Blocks
 
 MDL supports if/else if/else statements for conditional execution:
 
@@ -395,6 +399,43 @@ function "conditional_example":
 - The `else` block is optional
 - Conditional blocks are compiled to separate functions and called with `execute` commands
 - **Proper logic**: `else if` blocks only execute if previous conditions were false
+
+#### While Loops
+
+MDL supports while loops for repetitive execution:
+
+```mdl
+function "while_example":
+    scoreboard players set @s counter 5
+    while "score @s counter matches 1..":
+        say Counter: @s counter
+        scoreboard players remove @s counter 1
+        say Decremented counter
+```
+
+**Rules:**
+- Conditions must be valid Minecraft selector syntax
+- Commands inside while blocks must be indented with 4 spaces
+- While loops continue until the condition becomes false
+- **Important**: Ensure your loop body modifies the condition to avoid infinite loops
+
+#### For Loops
+
+MDL supports for loops for iterating over entity collections:
+
+```mdl
+function "for_example":
+    tag @e[type=minecraft:player] add players
+    for player in @e[tag=players]:
+        say Processing player: @s
+        effect give @s minecraft:speed 10 1
+        tellraw @s {"text":"You got speed!","color":"green"}
+```
+
+**Rules:**
+- Collection must be a valid Minecraft entity selector
+- Commands inside for blocks must be indented with 4 spaces
+- For loops iterate over each entity in the collection
 - **Efficient execution**: Each conditional block becomes a separate function for optimal performance
 
 ---

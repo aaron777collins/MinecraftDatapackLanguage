@@ -118,11 +118,15 @@ Let's break down what we just created:
 - **`function "hello":`**: Defines a function that contains Minecraft commands
 - **`on_load "example:hello"`**: Automatically runs the function when the world loads
 
-## Adding Conditional Logic
+## Adding Control Flow
+
+MDL supports both conditional logic and loops for advanced control flow in your datapacks.
+
+### Conditional Logic
 
 > **Enhanced Logic**: The conditional system ensures proper if/else if/else logic where each condition is only checked if all previous conditions were false.
 
-Now let's create a more advanced example that uses conditional blocks to detect different types of entities:
+Let's create a more advanced example that uses conditional blocks to detect different types of entities:
 
 ```mdl
 # conditional.mdl - Conditional logic example
@@ -158,6 +162,61 @@ This example demonstrates:
 - **Indentation** - Commands inside conditional blocks must be indented with 4 spaces
 
 The conditional blocks are compiled into separate functions and called using Minecraft's `execute` command for efficient execution.
+
+### While Loops
+
+While loops allow you to repeat commands until a condition becomes false:
+
+```mdl
+# loops.mdl - Loop examples
+pack "Loop Demo" description "Shows while and for loop functionality" pack_format 48
+
+namespace "demo"
+
+function "countdown":
+    scoreboard players set @s counter 5
+    while "score @s counter matches 1..":
+        say Countdown: @s counter
+        scoreboard players remove @s counter 1
+        say Decremented counter
+
+function "zombie_cleanup":
+    while "entity @e[type=minecraft:zombie,distance=..10]":
+        say Zombie nearby!
+        effect give @e[type=minecraft:zombie,distance=..10,limit=1] minecraft:glowing 5 1
+        say Applied effect to zombie
+
+# Run the loops every tick
+on_tick "demo:countdown"
+on_tick "demo:zombie_cleanup"
+```
+
+**Important**: Always ensure your while loop body modifies the condition to avoid infinite loops!
+
+### For Loops
+
+For loops allow you to iterate over collections of entities:
+
+```mdl
+function "player_effects":
+    tag @e[type=minecraft:player] add players
+    for player in @e[tag=players]:
+        say Processing player: @s
+        effect give @s minecraft:speed 10 1
+        tellraw @s {"text":"You got speed!","color":"green"}
+
+function "item_processing":
+    tag @e[type=minecraft:item] add items
+    for item in @e[tag=items]:
+        say Processing item: @s
+        effect give @s minecraft:glowing 5 1
+
+# Run the for loops every tick
+on_tick "demo:player_effects"
+on_tick "demo:item_processing"
+```
+
+For loops are perfect for applying effects to multiple entities or processing collections of items.
 
 ## Next Steps
 

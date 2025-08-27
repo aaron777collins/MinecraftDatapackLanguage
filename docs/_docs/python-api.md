@@ -305,9 +305,11 @@ pack = create_feature_pack(["combat", "ui"])
 pack.build("dist")
 ```
 
-### Implementing Conditional Logic
+### Implementing Control Flow
 
-While MDL files support native if/else if/else syntax, you can implement the same logic using the Python API with execute commands:
+While MDL files support native if/else if/else syntax and loops, you can implement the same logic using the Python API with execute commands.
+
+#### Conditional Logic
 
 ```python
 def create_conditional_pack():
@@ -351,9 +353,91 @@ function "weapon_effects":
         else if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:'minecraft:golden_sword'}}]":
             say Golden sword detected!
             effect give @s minecraft:speed 10 1
-    else if "entity @s[type=minecraft:player]":
-        say Default weapon detected
-        effect give @s minecraft:haste 5 0
+        else if "entity @s[type=minecraft:player]":
+            say Default weapon detected
+            effect give @s minecraft:haste 5 0
+```
+
+#### While Loops
+
+```python
+def create_while_loop_pack():
+    pack = Pack(name="While Loop Example", pack_format=48)
+    ns = pack.namespace("test")
+    
+    # Create the main function that starts the loop
+    ns.function("countdown",
+        "scoreboard players set @s counter 5",
+        "execute if score @s counter matches 1.. run function test:countdown_control"
+    )
+    
+    # Create the control function that manages the loop
+    ns.function("countdown_control",
+        "execute if score @s counter matches 1.. run function test:countdown_body",
+        "execute if score @s counter matches 1.. run function test:countdown_control"
+    )
+    
+    # Create the loop body function
+    ns.function("countdown_body",
+        "say Counter: @s counter",
+        "scoreboard players remove @s counter 1",
+        "say Decremented counter"
+    )
+    
+    pack.on_tick("test:countdown")
+    return pack
+```
+
+This is equivalent to the MDL syntax:
+
+```mdl
+function "countdown":
+    scoreboard players set @s counter 5
+    while "score @s counter matches 1..":
+        say Counter: @s counter
+        scoreboard players remove @s counter 1
+        say Decremented counter
+```
+
+#### For Loops
+
+```python
+def create_for_loop_pack():
+    pack = Pack(name="For Loop Example", pack_format=48)
+    ns = pack.namespace("test")
+    
+    # Create the main function that starts the iteration
+    ns.function("player_effects",
+        "tag @e[type=minecraft:player] add players",
+        "execute if entity @e[tag=players] run function test:player_effects_control"
+    )
+    
+    # Create the control function that iterates through entities
+    ns.function("player_effects_control",
+        "execute as @e[tag=players] run function test:player_effects_body"
+    )
+    
+    # Create the loop body function
+    ns.function("player_effects_body",
+        "say Processing player: @s",
+        "effect give @s minecraft:speed 10 1",
+        "tellraw @s {\"text\":\"You got speed!\",\"color\":\"green\"}"
+    )
+    
+    pack.on_tick("test:player_effects")
+    return pack
+```
+
+This is equivalent to the MDL syntax:
+
+```mdl
+function "player_effects":
+    tag @e[type=minecraft:player] add players
+    for player in @e[tag=players]:
+        say Processing player: @s
+        effect give @s minecraft:speed 10 1
+        tellraw @s {"text":"You got speed!","color":"green"}
+```
 ```
 
 ### Advanced Conditional Examples

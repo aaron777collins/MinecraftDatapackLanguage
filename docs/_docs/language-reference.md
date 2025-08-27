@@ -225,6 +225,86 @@ execute unless entity @s[type=minecraft:player,nbt={SelectedItem:{id:"minecraft:
 - `weapon_effects_elif_3.mcfunction` - Default player effects
 - `weapon_effects_else.mcfunction` - No player found
 
+### While Loops
+
+MDL supports while loops for repetitive execution based on conditions:
+
+```mdl
+function "while_example":
+    scoreboard players set @s counter 5
+    while "score @s counter matches 1..":
+        say Counter: @s counter
+        scoreboard players remove @s counter 1
+        say Decremented counter
+```
+
+**Rules:**
+- Conditions must be valid Minecraft selector syntax
+- Commands inside while blocks must be indented with 4 spaces
+- While loops continue until the condition becomes false
+- **Important**: Ensure your loop body modifies the condition to avoid infinite loops
+- While loops are compiled to separate functions and use recursive calls
+
+**Example with entity condition:**
+
+```mdl
+function "entity_while":
+    while "entity @e[type=minecraft:zombie,distance=..10]":
+        say Zombie nearby!
+        effect give @e[type=minecraft:zombie,distance=..10,limit=1] minecraft:glowing 5 1
+        say Applied effect to zombie
+```
+
+### For Loops
+
+MDL supports for loops for iterating over entity collections:
+
+```mdl
+function "for_example":
+    tag @e[type=minecraft:player] add players
+    for player in @e[tag=players]:
+        say Processing player: @s
+        effect give @s minecraft:speed 10 1
+        tellraw @s {"text":"You got speed!","color":"green"}
+```
+
+**Rules:**
+- Variable name (e.g., `player`) is used for reference but doesn't affect execution
+- Collection must be a valid Minecraft entity selector
+- Commands inside for blocks must be indented with 4 spaces
+- For loops iterate over each entity in the collection
+- For loops are compiled to separate functions using `execute as` commands
+
+**Example with complex selector:**
+
+```mdl
+function "complex_for":
+    for player in @a[gamemode=survival]:
+        say Processing survival player: @s
+        if "entity @s[nbt={SelectedItem:{id:'minecraft:diamond_sword'}}]":
+            say Player has diamond sword!
+            effect give @s minecraft:strength 10 1
+        else:
+            say Player has no diamond sword
+            effect give @s minecraft:haste 5 0
+```
+
+**How loops work:**
+
+Loops in MDL are implemented using recursive function calls:
+
+**While loops** generate:
+- A main function that starts the loop
+- A loop body function containing the commands
+- A control function that calls the body and then calls itself if the condition is still true
+
+**For loops** generate:
+- A main function that starts the iteration
+- A loop body function containing the commands
+- A control function that uses `execute as` to iterate through entities
+
+This approach ensures proper execution flow and prevents infinite loops while maintaining compatibility with Minecraft's function system.
+
 ## Function Calls
 
 Functions can call other functions using fully qualified names:
