@@ -55,12 +55,21 @@ jobs:
       - name: Build VS Code Extension
         run: |
           cd vscode-extension
+          # Extract version from git tag (remove 'v' prefix)
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "Building VS Code extension version: $VERSION"
+          
+          # Update package.json version
+          npm version $VERSION --no-git-tag-version
+          
           npm install
           npm run compile
           npm install -g @vscode/vsce
           vsce package --no-yarn
           echo "VS Code extension built successfully"
           ls -la *.vsix
+          echo "Extension file details:"
+          file *.vsix
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
