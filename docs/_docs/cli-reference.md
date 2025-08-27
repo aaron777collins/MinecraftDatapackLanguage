@@ -366,7 +366,7 @@ jobs:
       run: mdl build --mdl src/ -o dist --verbose
     
     - name: Upload artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: datapack
         path: dist/
