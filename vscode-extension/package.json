@@ -39,6 +39,12 @@
         "path": "./syntaxes/mdl.tmLanguage.json"
       }
     ],
+    "snippets": [
+      {
+        "language": "mdl",
+        "path": "./snippets/mdl.json"
+      }
+    ],
     "commands": [
       {
         "command": "mdl.build",

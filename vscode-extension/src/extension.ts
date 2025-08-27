@@ -7,6 +7,60 @@ export function activate(context: vscode.ExtensionContext) {
   const diag = vscode.languages.createDiagnosticCollection('mdl');
   context.subscriptions.push(diag);
 
+  // Register completion provider for IntelliSense
+  const completionProvider = vscode.languages.registerCompletionItemProvider('mdl', {
+    provideCompletionItems(document, position) {
+      const completionItems: vscode.CompletionItem[] = [];
+      
+      // Get the line text up to the cursor position
+      const linePrefix = document.lineAt(position).text.substr(0, position.character);
+      
+      // Check if we're in a pack declaration
+      if (linePrefix.includes('pack "') && !linePrefix.includes('min_format') && !linePrefix.includes('max_format')) {
+        // Suggest min_format and max_format for pack format 82+
+        const minFormatItem = new vscode.CompletionItem('min_format [82, 0]', vscode.CompletionItemKind.Field);
+        minFormatItem.detail = 'Minimum pack format version (required for pack format 82+)';
+        minFormatItem.documentation = 'Specifies the minimum version supported. Format: [major, minor] or just major';
+        minFormatItem.insertText = 'min_format [82, 0]';
+        completionItems.push(minFormatItem);
+        
+        const maxFormatItem = new vscode.CompletionItem('max_format [82, 1]', vscode.CompletionItemKind.Field);
+        maxFormatItem.detail = 'Maximum pack format version (required for pack format 82+)';
+        maxFormatItem.documentation = 'Specifies the maximum version supported. Format: [major, minor] or just major';
+        maxFormatItem.insertText = 'max_format [82, 1]';
+        completionItems.push(maxFormatItem);
+      }
+      
+      // General pack declaration suggestions
+      if (linePrefix.includes('pack "') && !linePrefix.includes('description')) {
+        const descItem = new vscode.CompletionItem('description "Description"', vscode.CompletionItemKind.Field);
+        descItem.detail = 'Pack description';
+        descItem.insertText = 'description "Description"';
+        completionItems.push(descItem);
+      }
+      
+      if (linePrefix.includes('pack "') && !linePrefix.includes('pack_format')) {
+        const formatItem = new vscode.CompletionItem('pack_format 82', vscode.CompletionItemKind.Field);
+        formatItem.detail = 'Pack format version';
+        formatItem.documentation = 'Specifies the pack format version. Use 82+ for new metadata format';
+        formatItem.insertText = 'pack_format 82';
+        completionItems.push(formatItem);
+      }
+      
+      if (linePrefix.includes('pack "') && !linePrefix.includes('min_engine_version')) {
+        const engineItem = new vscode.CompletionItem('min_engine_version "1.21.4"', vscode.CompletionItemKind.Field);
+        engineItem.detail = 'Minimum engine version';
+        engineItem.documentation = 'Specifies the minimum Minecraft engine version required';
+        engineItem.insertText = 'min_engine_version "1.21.4"';
+        completionItems.push(engineItem);
+      }
+      
+      return completionItems;
+    }
+  });
+
+  context.subscriptions.push(completionProvider);
+
   vscode.workspace.onDidSaveTextDocument(doc => {
     if (doc.languageId === 'mdl') {
       runCheckFile(doc, diag);
