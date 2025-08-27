@@ -1,0 +1,55 @@
+# adventure_pack.mdl
+pack "Adventure Pack" description "A complete adventure experience" pack_format 48
+
+# Core system
+namespace "core"
+
+function "init":
+    say [core:init] Initializing Adventure Pack...
+    tellraw @a {"text":"Adventure Pack loaded!","color":"green"}
+    scoreboard objectives add adventure_points dummy "Adventure Points"
+
+function "tick":
+    say [core:tick] Core systems running...
+
+# Combat system
+namespace "combat"
+
+function "weapon_effects":
+    execute as @a[nbt={SelectedItem:{id:"minecraft:diamond_sword"}}] \
+        run effect give @s minecraft:strength 1 0 true
+
+function "update_combat":
+    function core:tick
+    function combat:weapon_effects
+
+# UI system
+namespace "ui"
+
+function "hud":
+    title @a actionbar {"text":"Adventure Pack Active","color":"gold"}
+
+function "update_ui":
+    function ui:hud
+    function combat:update_combat
+
+# Data tags
+namespace "data"
+
+# Function tags
+tag function "minecraft:load":
+    add "core:init"
+
+tag function "minecraft:tick":
+    add "ui:update_ui"
+
+# Item tags
+tag item "adventure:weapons":
+    add "minecraft:diamond_sword"
+    add "minecraft:netherite_sword"
+
+tag item "adventure:armor":
+    add "minecraft:diamond_helmet"
+    add "minecraft:diamond_chestplate"
+    add "minecraft:diamond_leggings"
+    add "minecraft:diamond_boots"

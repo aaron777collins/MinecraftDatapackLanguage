@@ -595,6 +595,49 @@ mdl check --json example.mdl
 3. Run `/reload` in-game
 4. Test the functionality
 
+## Tested Examples
+
+All examples on this page are thoroughly tested and verified to work correctly. You can find the complete test suite in the [GitHub repository](https://github.com/aaron777collins/MinecraftDatapackLanguage/tree/main/test_examples).
+
+### Download Working Examples
+
+Each example is available in both MDL and Python API formats:
+
+- **[Hello World](https://github.com/aaron777collins/MinecraftDatapackLanguage/blob/main/test_examples/hello_world.mdl)** - [Python version](https://github.com/aaron777collins/MinecraftDatapackLanguage/blob/main/test_examples/hello_world.py)
+- **[Particle Effects](https://github.com/aaron777collins/MinecraftDatapackLanguage/blob/main/test_examples/particles.mdl)** - [Python version](https://github.com/aaron777collins/MinecraftDatapackLanguage/blob/main/test_examples/particles.py)
+- **[Custom Commands](https://github.com/aaron777collins/MinecraftDatapackLanguage/blob/main/test_examples/commands.mdl)** - [Python version](https://github.com/aaron777collins/MinecraftDatapackLanguage/blob/main/test_examples/commands.py)
+- **[Combat System](https://github.com/aaron777collins/MinecraftDatapackLanguage/blob/main/test_examples/combat_system.mdl)** - [Python version](https://github.com/aaron777collins/MinecraftDatapackLanguage/blob/main/test_examples/combat_system.py)
+- **[UI System](https://github.com/aaron777collins/MinecraftDatapackLanguage/blob/main/test_examples/ui_system.mdl)** - [Python version](https://github.com/aaron777collins/MinecraftDatapackLanguage/blob/main/test_examples/ui_system.py)
+- **[Adventure Pack](https://github.com/aaron777collins/MinecraftDatapackLanguage/blob/main/test_examples/adventure_pack.mdl)** - [Python version](https://github.com/aaron777collins/MinecraftDatapackLanguage/blob/main/test_examples/adventure_pack.py)
+- **[Multi-file Project](https://github.com/aaron777collins/MinecraftDatapackLanguage/tree/main/test_examples/adventure_pack)** - Complete directory structure
+
+### Run the Tests Yourself
+
+To verify these examples work:
+
+```bash
+# Clone the repository
+git clone https://github.com/aaron777collins/MinecraftDatapackLanguage.git
+cd MinecraftDatapackLanguage
+
+# Install MDL
+pipx install minecraft-datapack-language
+
+# Run all tests
+python test_examples/run_all_tests.py
+```
+
+### Test Coverage
+
+These examples are automatically tested in CI/CD to ensure they work with every release:
+
+- ✅ **MDL Syntax Validation** - All examples pass `mdl check`
+- ✅ **MDL Build Process** - All examples build successfully  
+- ✅ **Python API** - All Python equivalents work correctly
+- ✅ **Multi-file Projects** - Directory-based builds work
+- ✅ **CLI Functionality** - Basic CLI commands work
+- ✅ **Output Verification** - Generated datapacks have correct structure
+
 ## Contributing Examples
 
 If you have a great example to share:

@@ -1,0 +1,14 @@
+# particles.mdl
+pack "Particle Effects" description "Creates particle effects around players" pack_format 48
+
+namespace "particles"
+
+function "tick":
+    execute as @a run particle minecraft:end_rod ~ ~ ~ 0.1 0.1 0.1 0.01 1
+    execute as @a run particle minecraft:firework ~ ~ ~ 0.2 0.2 0.2 0.02 2
+
+function "init":
+    say Particle effects enabled!
+
+on_load "particles:init"
+on_tick "particles:tick"

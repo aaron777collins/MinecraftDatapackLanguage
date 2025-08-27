@@ -1,0 +1,23 @@
+# commands.mdl
+pack "Custom Commands" description "Adds useful commands for players" pack_format 48
+
+namespace "commands"
+
+function "heal":
+    effect give @s minecraft:instant_health 1 1
+    effect give @s minecraft:regeneration 5 1
+    tellraw @s {"text":"You have been healed!","color":"green"}
+
+function "feed":
+    effect give @s minecraft:saturation 1 5
+    tellraw @s {"text":"You are no longer hungry!","color":"yellow"}
+
+function "fly":
+    effect give @s minecraft:levitation 10 1
+    tellraw @s {"text":"You can now fly!","color":"aqua"}
+
+# Make functions available as commands
+tag function "minecraft:load":
+    add "commands:heal"
+    add "commands:feed"
+    add "commands:fly"

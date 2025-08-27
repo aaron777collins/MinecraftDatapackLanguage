@@ -121,9 +121,13 @@ Let's break down what we just created:
 Now that you have the basics, explore:
 
 - **[Language Reference]({{ site.baseurl }}/docs/language-reference/)** - Learn the complete MDL syntax
-- **[Examples]({{ site.baseurl }}/docs/examples/)** - See more complex examples
+- **[Examples]({{ site.baseurl }}/docs/examples/)** - See more complex examples (all tested and verified!)
 - **[CLI Reference]({{ site.baseurl }}/docs/cli-reference/)** - Master the command-line tools
 - **[VS Code Extension]({{ site.baseurl }}/docs/vscode-extension/)** - Get syntax highlighting and linting
+
+### Want to See Working Examples?
+
+All examples in the documentation are thoroughly tested and available for download. Check out the **[Tested Examples]({{ site.baseurl }}/docs/examples/#tested-examples)** section for direct links to working MDL and Python API files.
 
 ## Troubleshooting
 

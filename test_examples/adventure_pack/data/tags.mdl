@@ -1,0 +1,20 @@
+# data/tags.mdl - Data tags and function tags
+namespace "data"
+
+# Function tags
+tag function "minecraft:load":
+    add "core:init"
+
+tag function "minecraft:tick":
+    add "ui:update_ui"
+
+# Item tags
+tag item "adventure:weapons":
+    add "minecraft:diamond_sword"
+    add "minecraft:netherite_sword"
+
+tag item "adventure:armor":
+    add "minecraft:diamond_helmet"
+    add "minecraft:diamond_chestplate"
+    add "minecraft:diamond_leggings"
+    add "minecraft:diamond_boots"

@@ -1,0 +1,10 @@
+# combat/weapons.mdl - Weapon-related functions
+namespace "combat"
+
+function "weapon_effects":
+    execute as @a[nbt={SelectedItem:{id:"minecraft:diamond_sword"}}] \
+        run effect give @s minecraft:strength 1 0 true
+
+function "update_combat":
+    function core:tick
+    function combat:weapon_effects

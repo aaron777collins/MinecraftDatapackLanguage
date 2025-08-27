@@ -1,0 +1,14 @@
+# core.mdl - Main pack and core systems
+pack "Adventure Pack" description "Multi-file example datapack" pack_format 48
+
+namespace "core"
+
+function "init":
+    say [core:init] Initializing Adventure Pack...
+    tellraw @a {"text":"Adventure Pack loaded!","color":"green"}
+
+function "tick":
+    say [core:tick] Core systems running...
+
+on_load "core:init"
+on_tick "core:tick"

@@ -1,0 +1,32 @@
+# combat_system.mdl
+pack "Combat System" description "Enhanced combat mechanics" pack_format 48
+
+namespace "combat"
+
+function "weapon_effects":
+    # Diamond sword gives strength
+    execute as @a[nbt={SelectedItem:{id:"minecraft:diamond_sword"}}] \
+        run effect give @s minecraft:strength 1 0 true
+    
+    # Golden sword gives speed
+    execute as @a[nbt={SelectedItem:{id:"minecraft:golden_sword"}}] \
+        run effect give @s minecraft:speed 1 0 true
+    
+    # Netherite sword gives fire resistance
+    execute as @a[nbt={SelectedItem:{id:"minecraft:netherite_sword"}}] \
+        run effect give @s minecraft:fire_resistance 1 0 true
+
+function "armor_effects":
+    # Diamond armor gives resistance
+    execute as @a[nbt={Inventory:[{Slot:103b,id:"minecraft:diamond_helmet"}]}] \
+        run effect give @s minecraft:resistance 1 0 true
+    
+    # Netherite armor gives fire resistance
+    execute as @a[nbt={Inventory:[{Slot:103b,id:"minecraft:netherite_helmet"}]}] \
+        run effect give @s minecraft:fire_resistance 1 0 true
+
+function "update_combat":
+    function combat:weapon_effects
+    function combat:armor_effects
+
+on_tick "combat:update_combat"

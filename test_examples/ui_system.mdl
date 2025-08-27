@@ -1,0 +1,23 @@
+# ui_system.mdl
+pack "UI System" description "Custom HUD and UI elements" pack_format 48
+
+namespace "ui"
+
+function "hud":
+    # Show current health
+    execute as @a run title @s actionbar \
+        {"text":"Health: ","color":"red","extra":[{"score":{"name":"@s","objective":"health"}}]}
+    
+    # Show current food level
+    execute as @a run title @s actionbar \
+        {"text":"Food: ","color":"yellow","extra":[{"score":{"name":"@s","objective":"food"}}]}
+
+function "welcome_message":
+    tellraw @a {"text":"Welcome to the server!","color":"gold","bold":true}
+    tellraw @a {"text":"Use /help for commands","color":"gray","italic":true}
+
+function "update_ui":
+    function ui:hud
+
+on_load "ui:welcome_message"
+on_tick "ui:update_ui"

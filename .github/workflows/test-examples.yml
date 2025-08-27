@@ -1,0 +1,129 @@
+name: Test Examples
+
+on:
+  push:
+    branches: [ main ]
+    paths: [ 'test_examples/**', '.github/workflows/test-examples.yml', 'minecraft_datapack_language/**' ]
+  pull_request:
+    branches: [ main ]
+    paths: [ 'test_examples/**', '.github/workflows/test-examples.yml', 'minecraft_datapack_language/**' ]
+
+jobs:
+  test-examples:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Install pipx
+      run: |
+        python -m pip install --user pipx
+        python -m pipx ensurepath
+        echo "$HOME/.local/bin" >> $GITHUB_PATH
+        
+    - name: Install MDL via pipx
+      run: |
+        pipx install minecraft-datapack-language
+        
+    - name: Verify MDL installation
+      run: |
+        mdl --help
+        mdl --version || echo "Version command not available"
+        
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install -e .
+        
+    - name: Run comprehensive tests
+      run: |
+        python test_examples/run_all_tests.py
+        
+    - name: Test individual examples
+      run: |
+        echo "Testing individual MDL examples..."
+        
+        # Test each MDL file
+        for file in test_examples/*.mdl; do
+          echo "Testing $file"
+          mdl check "$file"
+          mdl build --mdl "$file" -o test_examples/dist
+        done
+        
+        # Test multi-file project
+        echo "Testing multi-file project..."
+        mdl check test_examples/adventure_pack/
+        mdl build --mdl test_examples/adventure_pack/ -o test_examples/dist
+        
+        # Test Python API examples
+        echo "Testing Python API examples..."
+        for file in test_examples/*.py; do
+          if [[ "$file" != "test_examples/run_all_tests.py" ]]; then
+            echo "Testing $file"
+            python "$file"
+          fi
+        done
+        
+    - name: Verify generated datapacks
+      run: |
+        echo "Verifying generated datapacks..."
+        ls -la test_examples/dist/
+        
+        # Check that datapacks have the expected structure
+        for dir in test_examples/dist/*/; do
+          if [[ -d "$dir" ]]; then
+            echo "Checking datapack: $dir"
+            ls -la "$dir"
+            
+            # Check for pack.mcmeta
+            if [[ -f "$dir/pack.mcmeta" ]]; then
+              echo "✅ pack.mcmeta found in $dir"
+            else
+              echo "❌ pack.mcmeta missing in $dir"
+              exit 1
+            fi
+            
+            # Check for data directory
+            if [[ -d "$dir/data" ]]; then
+              echo "✅ data directory found in $dir"
+            else
+              echo "❌ data directory missing in $dir"
+              exit 1
+            fi
+          fi
+        done
+        
+    - name: Test CLI commands
+      run: |
+        echo "Testing CLI commands..."
+        
+        # Test help
+        mdl --help
+        
+        # Test new command
+        mdl new cli_test --name "CLI Test" --pack-format 48
+        
+        # Verify created project
+        ls -la cli_test/
+        cat cli_test/*.mdl
+        
+        # Test check and build
+        mdl check cli_test/
+        mdl build --mdl cli_test/ -o test_examples/dist
+        
+        # Clean up
+        rm -rf cli_test/
+        
+    - name: Upload test artifacts
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: test-datapacks
+        path: test_examples/dist/
+        retention-days: 7

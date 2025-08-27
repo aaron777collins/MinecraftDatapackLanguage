@@ -1,0 +1,9 @@
+# combat/armor.mdl - Armor-related functions
+namespace "combat"
+
+function "armor_bonus":
+    execute as @a[nbt={Inventory:[{Slot:103b,id:"minecraft:diamond_helmet"}]}] \
+        run effect give @s minecraft:resistance 1 0 true
+
+function "update_armor":
+    function combat:armor_bonus
