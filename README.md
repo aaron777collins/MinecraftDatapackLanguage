@@ -174,7 +174,7 @@ namespace "combat"
 
 function "weapon_effects":
     say [combat:weapon_effects] Applying weapon effects...
-    execute as @a[nbt={SelectedItem:{id:"minecraft:diamond_sword"}}] run effect give @s minecraft:strength 1 0 true
+    execute as @a[nbt={SelectedItem:{id:'minecraft:diamond_sword'}}] run effect give @s minecraft:strength 1 0 true
 
 function "update_combat":
     function core:tick

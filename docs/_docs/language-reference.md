@@ -137,10 +137,10 @@ function "conditional_example":
 
 ```mdl
 function "weapon_effects":
-    if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:\"minecraft:diamond_sword\"}}]":
+    if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:'minecraft:diamond_sword'}}]":
         say Diamond sword detected!
         effect give @s minecraft:strength 10 1
-    else if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:\"minecraft:golden_sword\"}}]":
+    else if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:'minecraft:golden_sword'}}]":
         say Golden sword detected!
         effect give @s minecraft:speed 10 1
     else if "entity @s[type=minecraft:player]":
@@ -449,10 +449,10 @@ MDL provides built-in support for if/else if/else statements:
 
 ```mdl
 function "weapon_effects":
-    if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:\"minecraft:diamond_sword\"}}]":
+    if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:'minecraft:diamond_sword'}}]":
         say Diamond sword detected!
         effect give @s minecraft:strength 10 1
-    else if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:\"minecraft:golden_sword\"}}]":
+    else if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:'minecraft:golden_sword'}}]":
         say Golden sword detected!
         effect give @s minecraft:speed 10 1
     else if "entity @s[type=minecraft:player]":

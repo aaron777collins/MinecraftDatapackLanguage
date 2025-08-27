@@ -421,15 +421,15 @@ pack "Weapon Effects" description "Conditional weapon effects system" pack_forma
 namespace "weapons"
 
 function "apply_weapon_effects":
-    if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:\"minecraft:diamond_sword\"}}]":
+    if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:'minecraft:diamond_sword'}}]":
         say Diamond sword detected!
         effect give @s minecraft:strength 10 1
         effect give @s minecraft:glowing 10 0
-    else if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:\"minecraft:golden_sword\"}}]":
+    else if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:'minecraft:golden_sword'}}]":
         say Golden sword detected!
         effect give @s minecraft:speed 10 1
         effect give @s minecraft:night_vision 10 0
-    else if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:\"minecraft:iron_sword\"}}]":
+    else if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:'minecraft:iron_sword'}}]":
         say Iron sword detected!
         effect give @s minecraft:haste 5 0
     else if "entity @s[type=minecraft:player]":

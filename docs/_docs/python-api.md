@@ -343,12 +343,12 @@ This is equivalent to the MDL syntax:
 
 ```mdl
 function "weapon_effects":
-    if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:\"minecraft:diamond_sword\"}}]":
-        say Diamond sword detected!
-        effect give @s minecraft:strength 10 1
-    else if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:\"minecraft:golden_sword\"}}]":
-        say Golden sword detected!
-        effect give @s minecraft:speed 10 1
+        if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:'minecraft:diamond_sword'}}]":
+            say Diamond sword detected!
+            effect give @s minecraft:strength 10 1
+        else if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:'minecraft:golden_sword'}}]":
+            say Golden sword detected!
+            effect give @s minecraft:speed 10 1
     else if "entity @s[type=minecraft:player]":
         say Default weapon detected
         effect give @s minecraft:haste 5 0
