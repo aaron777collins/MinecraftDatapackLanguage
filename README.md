@@ -135,6 +135,126 @@ mdl check my_datapack/
 mdl build --mdl my_datapack/ -o dist --verbose
 ```
 
+### Complete Multi-File Example
+
+Here's a complete example showing how to organize a datapack across multiple files:
+
+**`core.mdl`** (main file with pack declaration):
+```mdl
+# core.mdl - Main pack and core systems
+pack "Adventure Pack" description "Multi-file example datapack" pack_format 48
+
+namespace "core"
+
+function "init":
+    say [core:init] Initializing Adventure Pack...
+    tellraw @a {"text":"Adventure Pack loaded!","color":"green"}
+
+function "tick":
+    say [core:tick] Core systems running...
+    execute as @a run particle minecraft:end_rod ~ ~ ~ 0.1 0.1 0.1 0.01 1
+
+# Hook into vanilla lifecycle
+on_load "core:init"
+on_tick "core:tick"
+```
+
+**`combat/weapons.mdl`** (combat module):
+```mdl
+# combat/weapons.mdl - Weapon-related functions
+namespace "combat"
+
+function "weapon_effects":
+    say [combat:weapon_effects] Applying weapon effects...
+    execute as @a[nbt={SelectedItem:{id:"minecraft:diamond_sword"}}] run effect give @s minecraft:strength 1 0 true
+
+function "update_combat":
+    function core:tick
+    function combat:weapon_effects
+```
+
+**`combat/armor.mdl`** (armor module):
+```mdl
+# combat/armor.mdl - Armor-related functions
+namespace "combat"
+
+function "armor_bonus":
+    say [combat:armor_bonus] Checking armor bonuses...
+    execute as @a[nbt={Inventory:[{Slot:103b,id:"minecraft:diamond_helmet"}]}] run effect give @s minecraft:resistance 1 0 true
+
+function "update_armor":
+    function combat:armor_bonus
+```
+
+**`ui/hud.mdl`** (UI module):
+```mdl
+# ui/hud.mdl - User interface functions
+namespace "ui"
+
+function "show_hud":
+    say [ui:show_hud] Updating HUD...
+    title @a actionbar {"text":"Adventure Pack Active","color":"gold"}
+
+function "update_ui":
+    function ui:show_hud
+    function combat:update_combat
+    function combat:update_armor
+```
+
+**`data/recipes.mdl`** (data module):
+```mdl
+# data/recipes.mdl - Custom recipes
+namespace "data"
+
+# Custom recipe for a special item
+recipe "special_sword":
+    {
+        "type": "minecraft:crafting",
+        "pattern": [
+            " D ",
+            " D ",
+            " S "
+        ],
+        "key": {
+            "D": {"item": "minecraft:diamond"},
+            "S": {"item": "minecraft:stick"}
+        },
+        "result": {
+            "item": "minecraft:diamond_sword",
+            "count": 1
+        }
+    }
+
+# Function tag to run UI updates
+tag function "minecraft:tick":
+    add "ui:update_ui"
+```
+
+**Project structure:**
+```
+adventure_pack/
+├── core.mdl              # ✅ HAS pack declaration
+├── combat/
+│   ├── weapons.mdl       # ❌ NO pack declaration (module)
+│   └── armor.mdl         # ❌ NO pack declaration (module)
+├── ui/
+│   └── hud.mdl           # ❌ NO pack declaration (module)
+└── data/
+    └── recipes.mdl       # ❌ NO pack declaration (module)
+```
+
+**Build the project:**
+```bash
+mdl build --mdl adventure_pack/ -o dist --verbose
+```
+
+This will create a datapack with:
+- **Core systems** (initialization and tick functions)
+- **Combat features** (weapon and armor effects)
+- **UI elements** (HUD display)
+- **Custom data** (recipes and tags)
+- **Cross-module calls** (UI calls combat functions)
+
 ### CLI Options for Multi-file Builds
 
 - `--mdl <path>`: Path to `.mdl` file, directory, or space-separated file list
