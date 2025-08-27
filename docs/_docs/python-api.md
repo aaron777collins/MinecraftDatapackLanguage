@@ -566,21 +566,21 @@ def create_dynamic_conditional_pack(weapon_configs):
         if i == 0:
             # First condition
             execute_commands.append(
-                f"execute if entity @s[type=minecraft:player,nbt={{SelectedItem:{{id:\"{weapon['id']}\"}}}}] run function dynamic:{weapon['name']}_effects"
+                f"execute if entity @s[type=minecraft:player,nbt={{{{SelectedItem:{{{{id:\"{weapon['id']}\"}}}}}}}] run function dynamic:{weapon['name']}_effects"
             )
         else:
             # Subsequent conditions need unless clauses
             unless_clauses = " ".join([
-                f"unless entity @s[type=minecraft:player,nbt={{SelectedItem:{{id:\"{prev_weapon['id']}\"}}}}]"
+                f"unless entity @s[type=minecraft:player,nbt={{{{SelectedItem:{{{{id:\"{prev_weapon['id']}\"}}}}}}}]"
                 for prev_weapon in weapon_configs[:i]
             ])
             execute_commands.append(
-                f"execute {unless_clauses} if entity @s[type=minecraft:player,nbt={{SelectedItem:{{id:\"{weapon['id']}\"}}}}] run function dynamic:{weapon['name']}_effects"
+                f"execute {unless_clauses} if entity @s[type=minecraft:player,nbt={{{{SelectedItem:{{{{id:\"{weapon['id']}\"}}}}}}}] run function dynamic:{weapon['name']}_effects"
             )
     
     # Add default case
     unless_clauses = " ".join([
-        f"unless entity @s[type=minecraft:player,nbt={{SelectedItem:{{id:\"{weapon['id']}\"}}}}]"
+        f"unless entity @s[type=minecraft:player,nbt={{{{SelectedItem:{{{{id:\"{weapon['id']}\"}}}}}}}]"
         for weapon in weapon_configs
     ])
     execute_commands.append(
@@ -628,9 +628,9 @@ def create_complex_nbt_conditional():
     
     # Complex NBT conditions
     ns.function("item_detection",
-        "execute if entity @s[type=minecraft:player,nbt={Inventory:[{Slot:0b,id:\"minecraft:diamond_sword\",Count:1b}]}] run function nbt:diamond_sword_effects",
-        "execute unless entity @s[type=minecraft:player,nbt={Inventory:[{Slot:0b,id:\"minecraft:diamond_sword\",Count:1b}]}] if entity @s[type=minecraft:player,nbt={Inventory:[{Slot:0b,id:\"minecraft:golden_sword\",Count:1b}]}] run function nbt:golden_sword_effects",
-        "execute unless entity @s[type=minecraft:player,nbt={Inventory:[{Slot:0b,id:\"minecraft:diamond_sword\",Count:1b}]}] unless entity @s[type=minecraft:player,nbt={Inventory:[{Slot:0b,id:\"minecraft:golden_sword\",Count:1b}]}] if entity @s[type=minecraft:player] run function nbt:default_effects"
+        "execute if entity @s[type=minecraft:player,nbt={{{Inventory:[{{Slot:0b,id:\"minecraft:diamond_sword\",Count:1b}}]}}}] run function nbt:diamond_sword_effects",
+        "execute unless entity @s[type=minecraft:player,nbt={{{Inventory:[{{Slot:0b,id:\"minecraft:diamond_sword\",Count:1b}}]}}}] if entity @s[type=minecraft:player,nbt={{{Inventory:[{{Slot:0b,id:\"minecraft:golden_sword\",Count:1b}}]}}}] run function nbt:golden_sword_effects",
+        "execute unless entity @s[type=minecraft:player,nbt={{{Inventory:[{{Slot:0b,id:\"minecraft:diamond_sword\",Count:1b}}]}}}] unless entity @s[type=minecraft:player,nbt={{{Inventory:[{{Slot:0b,id:\"minecraft:golden_sword\",Count:1b}}]}}}] if entity @s[type=minecraft:player] run function nbt:default_effects"
     )
     
     ns.function("diamond_sword_effects",
