@@ -2,10 +2,70 @@
 {
   "scopeName": "source.mdl",
   "patterns": [
-            { "name": "keyword.control.mdl", "match": "\\b(pack|description|pack_format|min_format|max_format|min_engine_version|namespace|function|on_tick|on_load|tag|add|if|else if|else|while|for|in)\\b" },
-    { "name": "entity.name.section.mdl", "match": "^(\\s*)(pack|namespace|function|tag)\\b" },
-    { "name": "string.quoted.double.mdl", "match": "\"([^\"\\\\]|\\\\.)*\"" },
-    { "name": "comment.line.number-sign.mdl", "match": "#.*$" },
-    { "name": "constant.numeric.mdl", "match": "\\b\\d+\\b" }
+    {
+      "name": "keyword.control.mdl",
+      "match": "\\b(pack|description|pack_format|min_format|max_format|min_engine_version|namespace|function|on_tick|on_load|tag|add|if|else if|else|while|for|in|var|let|const|num|str|list|try|catch|throw|switch|case|default|break|continue|return|import|from|as)\\b"
+    },
+    {
+      "name": "entity.name.section.mdl",
+      "match": "^(\\s*)(pack|namespace|function|tag)\\b"
+    },
+    {
+      "name": "string.quoted.double.mdl",
+      "match": "\"([^\"\\\\]|\\\\.)*\""
+    },
+    {
+      "name": "comment.line.number-sign.mdl",
+      "match": "//.*$"
+    },
+    {
+      "name": "comment.block.mdl",
+      "begin": "/\\*",
+      "end": "\\*/"
+    },
+    {
+      "name": "constant.numeric.mdl",
+      "match": "\\b\\d+\\b"
+    },
+    {
+      "name": "keyword.operator.mdl",
+      "match": "\\b(\\+|-|\\*|/|%|=|==|!=|<|>|<=|>=|&&|\\|\\||!)\\b"
+    },
+    {
+      "name": "keyword.operator.assignment.mdl",
+      "match": "\\b(\\+=|-=|\\*=|/=|%=)\\b"
+    },
+    {
+      "name": "punctuation.terminator.mdl",
+      "match": ";"
+    },
+    {
+      "name": "punctuation.section.block.mdl",
+      "match": "[{}]"
+    },
+    {
+      "name": "punctuation.section.parens.mdl",
+      "match": "[()]"
+    },
+    {
+      "name": "punctuation.section.brackets.mdl",
+      "match": "[\\[\\]]"
+    },
+    {
+      "name": "variable.other.mdl",
+      "match": "\\b[a-zA-Z_][a-zA-Z0-9_]*\\b"
+    },
+    {
+      "name": "constant.language.mdl",
+      "match": "\\b(true|false|null|undefined)\\b"
+    },
+    {
+      "name": "support.function.mdl",
+      "match": "\\b(say|tellraw|effect|particle|execute|scoreboard|data|function|tag|tp|kill|summon|give|clear|enchant|gamemode|weather|time|difficulty|gamerule|title|playsound|stopsound|kick|ban|ban-ip|pardon|pardon-ip|whitelist|op|deop|save-all|save-off|save-on|list|me|msg|team|trigger|advancement|recipe|loot|schedule|return|run)\\b"
+    },
+    {
+      "name": "entity.name.selector.mdl",
+      "match": "\\b(@p|@r|@a|@e|@s)\\b"
+    }
   ]
 }

@@ -4,9 +4,11 @@ title: Examples
 permalink: /docs/examples/
 ---
 
-# Examples
+# JavaScript-style MDL Examples (v10+)
 
-This page contains complete, working examples of MDL datapacks that demonstrate various features and patterns.
+This page contains complete, working examples of the new JavaScript-style MDL format that demonstrate all the modern features and patterns.
+
+> **📚 Looking for legacy examples?** See [Legacy Examples](legacy-examples.md) for the old MDL format (v9 and below).
 
 ## Basic Examples
 
@@ -15,16 +17,17 @@ This page contains complete, working examples of MDL datapacks that demonstrate 
 A simple datapack that displays a welcome message when loaded.
 
 ```mdl
-# hello_world.mdl
-pack "Hello World" description "A simple example datapack" pack_format 48
+// hello_world.mdl
+pack "Hello World" description "A simple example datapack" pack_format 82;
 
-namespace "example"
+namespace "example";
 
-function "hello":
-    say Hello, Minecraft!
-    tellraw @a {"text":"Welcome to my datapack!","color":"green"}
+function "hello" {
+    say Hello, Minecraft!;
+    tellraw @a {"text":"Welcome to my datapack!","color":"green"};
+}
 
-on_load "example:hello"
+on_load "example:hello";
 ```
 
 **Build and use:**
@@ -34,843 +37,633 @@ mdl build --mdl hello_world.mdl -o dist
 # Run /reload in-game
 ```
 
+### Variable System
+
+Demonstrates the new variable system with different data types.
+
+```mdl
+// variables.mdl
+pack "Variable System" description "Demonstrates variables and data types" pack_format 82;
+
+namespace "variables";
+
+// Global variables
+var num player_count = 0;
+var str welcome_message = "Welcome to the server!";
+var list effects = ["speed", "jump_boost", "night_vision"];
+
+function "init" {
+    say Initializing variable system...;
+    player_count = 0;
+    welcome_message = "System ready!";
+}
+
+function "count_players" {
+    player_count = 0;
+    for player in @a {
+        player_count = player_count + 1;
+    }
+    say Player count: player_count;
+}
+
+function "show_welcome" {
+    tellraw @a {"text":welcome_message,"color":"green"};
+}
+
+function "apply_effects" {
+    for player in @a {
+        if "entity @s[type=minecraft:player]" {
+            effect give @s minecraft:speed 10 1;
+            effect give @s minecraft:jump_boost 10 0;
+        }
+    }
+}
+
+on_load "variables:init";
+on_tick "variables:count_players";
+```
+
 ### Particle Effects
 
-A datapack that creates particle effects around players.
+A datapack that creates particle effects around players with variables.
 
 ```mdl
-# particles.mdl
-pack "Particle Effects" description "Creates particle effects around players" pack_format 48
-
-namespace "particles"
-
-function "tick":
-    execute as @a run particle minecraft:end_rod ~ ~ ~ 0.1 0.1 0.1 0.01 1
-    execute as @a run particle minecraft:firework ~ ~ ~ 0.2 0.2 0.2 0.02 2
-
-function "init":
-    say Particle effects enabled!
-
-on_load "particles:init"
-on_tick "particles:tick"
-```
-
-### Custom Commands
-
-A datapack that adds custom commands for players.
-
-```mdl
-# commands.mdl
-pack "Custom Commands" description "Adds useful commands for players" pack_format 48
-
-namespace "commands"
-
-function "heal":
-    effect give @s minecraft:instant_health 1 1
-    effect give @s minecraft:regeneration 5 1
-    tellraw @s {"text":"You have been healed!","color":"green"}
-
-function "feed":
-    effect give @s minecraft:saturation 1 5
-    tellraw @s {"text":"You are no longer hungry!","color":"yellow"}
-
-function "fly":
-    effect give @s minecraft:levitation 10 1
-    tellraw @s {"text":"You can now fly!","color":"aqua"}
-
-# Make functions available as commands
-tag function "minecraft:load":
-    add "commands:heal"
-    add "commands:feed"
-    add "commands:fly"
-```
-
-## Intermediate Examples
-
-### Combat System
-
-A more complex datapack that adds combat enhancements.
-
-```mdl
-# combat_system.mdl
-pack "Combat System" description "Enhanced combat mechanics" pack_format 48
-
-namespace "combat"
-
-function "weapon_effects":
-    # Diamond sword gives strength
-    execute as @a[nbt={SelectedItem:{id:"minecraft:diamond_sword"}}] \
-        run effect give @s minecraft:strength 1 0 true
-    
-    # Golden sword gives speed
-    execute as @a[nbt={SelectedItem:{id:"minecraft:golden_sword"}}] \
-        run effect give @s minecraft:speed 1 0 true
-    
-    # Netherite sword gives fire resistance
-    execute as @a[nbt={SelectedItem:{id:"minecraft:netherite_sword"}}] \
-        run effect give @s minecraft:fire_resistance 1 0 true
-
-function "armor_effects":
-    # Diamond armor gives resistance
-    execute as @a[nbt={Inventory:[{Slot:103b,id:"minecraft:diamond_helmet"}]}] \
-        run effect give @s minecraft:resistance 1 0 true
-    
-    # Netherite armor gives fire resistance
-    execute as @a[nbt={Inventory:[{Slot:103b,id:"minecraft:netherite_helmet"}]}] \
-        run effect give @s minecraft:fire_resistance 1 0 true
-
-function "update_combat":
-    function combat:weapon_effects
-    function combat:armor_effects
-
-on_tick "combat:update_combat"
-```
-
-### UI System
-
-A datapack that adds a custom HUD and UI elements.
-
-```mdl
-# ui_system.mdl
-pack "UI System" description "Custom HUD and UI elements" pack_format 48
-
-namespace "ui"
-
-function "hud":
-    # Show current health
-    execute as @a run title @s actionbar \
-        {"text":"Health: ","color":"red","extra":[{"score":{"name":"@s","objective":"health"}}]}
-    
-    # Show current food level
-    execute as @a run title @s actionbar \
-        {"text":"Food: ","color":"yellow","extra":[{"score":{"name":"@s","objective":"food"}}]}
-
-function "welcome_message":
-    tellraw @a {"text":"Welcome to the server!","color":"gold","bold":true}
-    tellraw @a {"text":"Use /help for commands","color":"gray","italic":true}
-
-function "update_ui":
-    function ui:hud
-
-on_load "ui:welcome_message"
-on_tick "ui:update_ui"
-```
-
-## Advanced Examples
-
-### Multi-Namespace Adventure Pack
-
-A comprehensive datapack with multiple systems working together.
-
-```mdl
-# adventure_pack.mdl
-pack "Adventure Pack" description "A complete adventure experience" pack_format 48
-
-# Core system
-namespace "core"
-
-function "init":
-    say [core:init] Initializing Adventure Pack...
-    tellraw @a {"text":"Adventure Pack loaded!","color":"green"}
-    scoreboard objectives add adventure_points dummy "Adventure Points"
-
-function "tick":
-    say [core:tick] Core systems running...
-
-# Combat system
-namespace "combat"
-
-function "weapon_effects":
-    execute as @a[nbt={SelectedItem:{id:"minecraft:diamond_sword"}}] \
-        run effect give @s minecraft:strength 1 0 true
-
-function "update_combat":
-    function core:tick
-    function combat:weapon_effects
-
-# UI system
-namespace "ui"
-
-function "hud":
-    title @a actionbar {"text":"Adventure Pack Active","color":"gold"}
-
-function "update_ui":
-    function ui:hud
-    function combat:update_combat
-
-# Data tags
-namespace "data"
-
-# Function tags
-tag function "minecraft:load":
-    add "core:init"
-
-tag function "minecraft:tick":
-    add "ui:update_ui"
-
-# Item tags
-tag item "adventure:weapons":
-    add "minecraft:diamond_sword"
-    add "minecraft:netherite_sword"
-
-tag item "adventure:armor":
-    add "minecraft:diamond_helmet"
-    add "minecraft:diamond_chestplate"
-    add "minecraft:diamond_leggings"
-    add "minecraft:diamond_boots"
-```
-
-### Python API Example
-
-The same adventure pack created using the Python API:
-
-```python
-from minecraft_datapack_language import Pack
-
-def create_adventure_pack():
-    # Create the main pack
-    pack = Pack(
-        name="Adventure Pack",
-        description="A complete adventure experience",
-        pack_format=48
-    )
-    
-    # Core system
-    core = pack.namespace("core")
-    core.function("init",
-        'say [core:init] Initializing Adventure Pack...',
-        'tellraw @a {"text":"Adventure Pack loaded!","color":"green"}',
-        'scoreboard objectives add adventure_points dummy "Adventure Points"'
-    )
-    
-    core.function("tick",
-        'say [core:tick] Core systems running...'
-    )
-    
-    # Combat system
-    combat = pack.namespace("combat")
-    combat.function("weapon_effects",
-        'execute as @a[nbt={SelectedItem:{id:"minecraft:diamond_sword"}}] run effect give @s minecraft:strength 1 0 true'
-    )
-    
-    combat.function("update_combat",
-        'function core:tick',
-        'function combat:weapon_effects'
-    )
-    
-    # UI system
-    ui = pack.namespace("ui")
-    ui.function("hud",
-        'title @a actionbar {"text":"Adventure Pack Active","color":"gold"}'
-    )
-    
-    ui.function("update_ui",
-        'function ui:hud',
-        'function combat:update_combat'
-    )
-    
-    # Lifecycle hooks
-    pack.on_load("core:init")
-    pack.on_tick("ui:update_ui")
-    
-    # Function tags
-    pack.tag("function", "minecraft:load", values=["core:init"])
-    pack.tag("function", "minecraft:tick", values=["ui:update_ui"])
-    
-    # Data tags
-    pack.tag("item", "adventure:weapons", values=[
-        "minecraft:diamond_sword",
-        "minecraft:netherite_sword"
-    ])
-    
-    pack.tag("item", "adventure:armor", values=[
-        "minecraft:diamond_helmet",
-        "minecraft:diamond_chestplate",
-        "minecraft:diamond_leggings",
-        "minecraft:diamond_boots"
-    ])
-    
-    return pack
-
-# Create and build the pack
-if __name__ == "__main__":
-    pack = create_adventure_pack()
-    pack.build("dist")
-    print("Adventure pack built successfully!")
-```
-
-## Multi-file Examples
-
-### Organized Project Structure
-
-A large datapack organized across multiple files:
-
-**Project structure:**
-```
-adventure_pack/
-├── core.mdl              # Main pack and core systems
-├── combat/
-│   ├── weapons.mdl       # Weapon-related functions
-│   └── armor.mdl         # Armor-related functions
-├── ui/
-│   └── hud.mdl           # UI and HUD functions
-└── data/
-    └── tags.mdl          # Data tags and function tags
-```
-
-**`core.mdl`** (main file):
-```mdl
-# core.mdl - Main pack and core systems
-pack "Adventure Pack" description "Multi-file example datapack" pack_format 48
-
-namespace "core"
-
-function "init":
-    say [core:init] Initializing Adventure Pack...
-    tellraw @a {"text":"Adventure Pack loaded!","color":"green"}
-
-function "tick":
-    say [core:tick] Core systems running...
-
-on_load "core:init"
-on_tick "core:tick"
-```
-
-**`combat/weapons.mdl`** (combat module):
-```mdl
-# combat/weapons.mdl - Weapon-related functions
-namespace "combat"
-
-function "weapon_effects":
-    execute as @a[nbt={SelectedItem:{id:"minecraft:diamond_sword"}}] \
-        run effect give @s minecraft:strength 1 0 true
-
-function "update_combat":
-    function core:tick
-    function combat:weapon_effects
-```
-
-**`combat/armor.mdl`** (armor module):
-```mdl
-# combat/armor.mdl - Armor-related functions
-namespace "combat"
-
-function "armor_bonus":
-    execute as @a[nbt={Inventory:[{Slot:103b,id:"minecraft:diamond_helmet"}]}] \
-        run effect give @s minecraft:resistance 1 0 true
-
-function "update_armor":
-    function combat:armor_bonus
-```
-
-**`ui/hud.mdl`** (UI module):
-```mdl
-# ui/hud.mdl - User interface functions
-namespace "ui"
-
-function "show_hud":
-    title @a actionbar {"text":"Adventure Pack Active","color":"gold"}
-
-function "update_ui":
-    function ui:show_hud
-    function combat:update_combat
-    function combat:update_armor
-```
-
-**`data/tags.mdl`** (data module):
-```mdl
-# data/tags.mdl - Data tags and function tags
-namespace "data"
-
-# Function tags
-tag function "minecraft:load":
-    add "core:init"
-
-tag function "minecraft:tick":
-    add "ui:update_ui"
-
-# Item tags
-tag item "adventure:weapons":
-    add "minecraft:diamond_sword"
-    add "minecraft:netherite_sword"
-
-tag item "adventure:armor":
-    add "minecraft:diamond_helmet"
-    add "minecraft:diamond_chestplate"
-    add "minecraft:diamond_leggings"
-    add "minecraft:diamond_boots"
-```
-
-**Build the project:**
-```bash
-mdl build --mdl adventure_pack/ -o dist --verbose
+// particles.mdl
+pack "Particle Effects" description "Creates particle effects around players" pack_format 82;
+
+namespace "particles";
+
+// Configuration variables
+var num particle_count = 5;
+var str particle_type = "minecraft:end_rod";
+
+function "tick" {
+    for player in @a {
+        particle minecraft:end_rod ~ ~ ~ 0.1 0.1 0.1 0.01 particle_count;
+        particle minecraft:firework ~ ~ ~ 0.2 0.2 0.2 0.02 2;
+    }
+}
+
+function "init" {
+    say Particle effects enabled!;
+    particle_count = 10;
+}
+
+on_load "particles:init";
+on_tick "particles:tick";
 ```
 
 ## Control Flow Examples
 
-> **Recent Improvements**: The conditional system has been enhanced to ensure proper logical flow. `else if` blocks now only execute if all previous conditions were false, and `else` blocks only execute if all conditions were false. This provides more predictable and efficient execution.
+### Advanced Conditional Logic
 
-### Conditional Examples
-
-### Weapon Effects System
-
-A system that applies different effects based on the player's weapon:
+Demonstrates complex conditional statements with variables.
 
 ```mdl
-# weapon_effects.mdl
-pack "Weapon Effects" description "Conditional weapon effects system" pack_format 48
+// conditionals.mdl
+pack "Advanced Conditionals" description "Complex conditional logic" pack_format 82;
 
-namespace "weapons"
+namespace "conditionals";
 
-function "apply_weapon_effects":
-    if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:'minecraft:diamond_sword'}}]":
-        say Diamond sword detected!
-        effect give @s minecraft:strength 10 1
-        effect give @s minecraft:glowing 10 0
-    else if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:'minecraft:golden_sword'}}]":
-        say Golden sword detected!
-        effect give @s minecraft:speed 10 1
-        effect give @s minecraft:night_vision 10 0
-    else if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:'minecraft:iron_sword'}}]":
-        say Iron sword detected!
-        effect give @s minecraft:haste 5 0
-    else if "entity @s[type=minecraft:player]":
-        say No special weapon detected
-        effect give @s minecraft:glowing 5 0
-    else:
-        say No player found
+// State variables
+var num player_level = 0;
+var str player_class = "warrior";
+var num experience = 0;
 
-on_tick "weapons:apply_weapon_effects"
+function "check_player_status" {
+    for player in @a {
+        if "entity @s[type=minecraft:player]" {
+            if "entity @s[gamemode=survival]" {
+                if "score @s experience matches 100.." {
+                    player_level = player_level + 1;
+                    experience = 0;
+                    say Level up! New level: player_level;
+                }
+                
+                if "entity @s[nbt={SelectedItem:{id:'minecraft:diamond_sword'}}]" {
+                    player_class = "warrior";
+                    effect give @s minecraft:strength 10 1;
+                } else if "entity @s[nbt={SelectedItem:{id:'minecraft:bow'}}]" {
+                    player_class = "archer";
+                    effect give @s minecraft:speed 10 1;
+                } else if "entity @s[nbt={SelectedItem:{id:'minecraft:stick'}}]" {
+                    player_class = "mage";
+                    effect give @s minecraft:night_vision 10 0;
+                }
+            } else {
+                say Creative mode detected;
+            }
+        }
+    }
+}
+
+on_tick "conditionals:check_player_status";
+```
+
+### Switch Statements
+
+Demonstrates the new switch statement feature.
+
+```mdl
+// switch_example.mdl
+pack "Switch Statements" description "Using switch statements" pack_format 82;
+
+namespace "switch_example";
+
+var num item_type = 0;
+
+function "handle_item" {
+    for player in @a {
+        if "entity @s[nbt={SelectedItem:{id:'minecraft:diamond_sword'}}]" {
+            item_type = 1;
+        } else if "entity @s[nbt={SelectedItem:{id:'minecraft:bow'}}]" {
+            item_type = 2;
+        } else if "entity @s[nbt={SelectedItem:{id:'minecraft:shield'}}]" {
+            item_type = 3;
+        } else {
+            item_type = 0;
+        }
+        
+        switch (item_type) {
+            case 1:
+                say You have a sword;
+                effect give @s minecraft:strength 10 1;
+                break;
+            case 2:
+                say You have a bow;
+                effect give @s minecraft:speed 10 1;
+                break;
+            case 3:
+                say You have a shield;
+                effect give @s minecraft:resistance 10 1;
+                break;
+            default:
+                say No special item detected;
+                break;
+        }
+    }
+}
+
+on_tick "switch_example:handle_item";
 ```
 
 ### Loop Examples
 
-#### While Loop - Countdown System
-
-A system that demonstrates while loops with a countdown:
+Demonstrates various loop patterns with variables.
 
 ```mdl
-# countdown.mdl
-pack "Countdown System" description "While loop countdown example" pack_format 48
+// loops.mdl
+pack "Loop Examples" description "Advanced loop patterns" pack_format 82;
 
-namespace "countdown"
+namespace "loops";
 
-function "start_countdown":
-    scoreboard players set @s timer 10
-    tellraw @a {"text":"Countdown started!","color":"green"}
+var num counter = 0;
+var num max_count = 10;
+var list entities = ["zombie", "skeleton", "creeper"];
 
-function "countdown_loop":
-    while "score @s timer matches 1..":
-        say Countdown: @s timer
-        tellraw @a {"text":"T-minus ","color":"yellow","extra":[{"score":{"name":"@s","objective":"timer"}}]}
-        scoreboard players remove @s timer 1
-        say Decremented timer
+function "countdown" {
+    counter = max_count;
+    while "score @s counter matches 1.." {
+        say Countdown: counter;
+        counter = counter - 1;
+        if "score @s counter matches 0" {
+            say Blast off!;
+            break;
+        }
+    }
+}
 
-function "blast_off":
-    say Blast off!
-    tellraw @a {"text":"Blast off!","color":"red","bold":true}
-    execute as @a run particle minecraft:explosion ~ ~ ~ 1 1 1 0.1 10
+function "process_entities" {
+    for entity in @e[type=minecraft:zombie] {
+        effect give @s minecraft:glowing 10 0;
+        particle minecraft:smoke ~ ~ ~ 0.3 0.3 0.3 0.1 3;
+    }
+    
+    for player in @a {
+        if "entity @s[type=minecraft:player]" {
+            counter = counter + 1;
+            if "score @s counter matches 10" {
+                say Processed 10 players;
+                counter = 0;
+                continue;
+            }
+        }
+    }
+}
 
-on_tick "countdown:countdown_loop"
+on_tick "loops:process_entities";
 ```
 
-#### For Loop - Entity Processing
+## Error Handling Examples
 
-A system that demonstrates for loops for entity iteration:
+### Try-Catch Blocks
+
+Demonstrates error handling with try-catch blocks.
 
 ```mdl
-# entity_processing.mdl
-pack "Entity Processing" description "For loop entity processing example" pack_format 48
+// error_handling.mdl
+pack "Error Handling" description "Using try-catch blocks" pack_format 82;
 
-namespace "processing"
+namespace "error_handling";
 
-function "process_players":
-    tag @e[type=minecraft:player] add players
-    for player in @e[tag=players]:
-        say Processing player: @s
-        effect give @s minecraft:night_vision 10 0
-        tellraw @s {"text":"You have night vision!","color":"aqua"}
+var str error_message = "No error";
 
-function "process_items":
-    tag @e[type=minecraft:item] add items
-    for item in @e[tag=items]:
-        say Processing item: @s
-        effect give @s minecraft:glowing 5 1
-        particle minecraft:end_rod ~ ~ ~ 0.2 0.2 0.2 0.01 5
+function "safe_operation" {
+    for player in @a {
+        try {
+            say Attempting risky operation...;
+            // Simulate a risky operation
+            if "entity @s[type=minecraft:player]" {
+                effect give @s minecraft:levitation 10 1;
+            } else {
+                throw "Invalid entity type";
+            }
+        } catch (error) {
+            error_message = error;
+            say Operation failed: error_message;
+            effect give @s minecraft:slowness 10 0;
+        }
+    }
+}
 
-function "process_zombies":
-    tag @e[type=minecraft:zombie] add zombies
-    for zombie in @e[tag=zombies]:
-        say Processing zombie: @s
-        effect give @s minecraft:slowness 5 1
-        particle minecraft:smoke ~ ~ ~ 0.3 0.3 0.3 0.05 3
+function "divide_by_zero" {
+    var num result = 0;
+    try {
+        result = 10 / 0;
+        say Result: result;
+    } catch (error) {
+        say Division error: error;
+        result = 0;
+    }
+}
 
-on_tick "processing:process_players"
-on_tick "processing:process_items"
-on_tick "processing:process_zombies"
+on_tick "error_handling:safe_operation";
 ```
 
-#### Mixed Control Flow - Advanced System
+## Function System Examples
 
-A system that combines conditionals and loops:
+### Functions with Parameters and Return Values
+
+Demonstrates advanced function features.
 
 ```mdl
-# mixed_control.mdl
-pack "Mixed Control Flow" description "Combines conditionals and loops" pack_format 48
+// functions.mdl
+pack "Advanced Functions" description "Functions with parameters and returns" pack_format 82;
 
-namespace "mixed"
+namespace "functions";
 
-function "smart_processing":
-    # First, check if there are any players
-    if "entity @e[type=minecraft:player]":
-        say Players detected, processing...
-        
-        # Process each player with a for loop
-        tag @e[type=minecraft:player] add players
-        for player in @e[tag=players]:
-            say Processing player: @s
+var num health = 20;
+var num mana = 100;
+
+function "heal_player" (amount) {
+    health = health + amount;
+    if "score @s health > 20" {
+        health = 20;
+    }
+    effect give @s minecraft:instant_health 1 1;
+    return health;
+}
+
+function "use_mana" (cost) {
+    if "score @s mana >= cost" {
+        mana = mana - cost;
+        return true;
+    } else {
+        return false;
+    }
+}
+
+function "cast_spell" {
+    var num spell_cost = 25;
+    var bool success = use_mana(spell_cost);
+    
+    if (success) {
+        say Spell cast successfully!;
+        effect give @s minecraft:night_vision 30 0;
+    } else {
+        say Not enough mana!;
+    }
+}
+
+function "restore_health" {
+    var num old_health = health;
+    health = heal_player(10);
+    say Health restored from old_health to health;
+}
+
+on_tick "functions:cast_spell";
+```
+
+## Multi-file Project Examples
+
+### Modular Architecture
+
+Demonstrates how to organize code across multiple files.
+
+```mdl
+// core.mdl
+pack "Modular Project" description "Multi-file project example" pack_format 82;
+
+namespace "core";
+
+// Global state
+var num game_time = 0;
+var str game_state = "running";
+
+function "init" {
+    say Core module initialized;
+    game_time = 0;
+    game_state = "running";
+}
+
+function "tick" {
+    game_time = game_time + 1;
+    if "score @s game_time matches 1200" {
+        say One minute has passed;
+        game_time = 0;
+    }
+}
+
+on_load "core:init";
+on_tick "core:tick";
+```
+
+```mdl
+// combat.mdl
+namespace "combat";
+
+import "core" from "./core.mdl";
+
+function "attack" {
+    for player in @a {
+        if "entity @s[nbt={SelectedItem:{id:'minecraft:diamond_sword'}}]" {
+            execute as @s at @s if entity @e[type=minecraft:zombie,distance=..3] run function combat:damage;
+        }
+    }
+}
+
+function "damage" {
+    effect give @e[type=minecraft:zombie,distance=..3] minecraft:instant_damage 1 1;
+    particle minecraft:crit ~ ~ ~ 0.5 0.5 0.5 0.1 10;
+}
+
+on_tick "combat:attack";
+```
+
+```mdl
+// ui.mdl
+namespace "ui";
+
+import "core" from "./core.mdl";
+
+function "show_hud" {
+    for player in @a {
+        tellraw @s {"text":"Game Time: ","color":"yellow","extra":[{"score":{"name":"@s","objective":"game_time"},"color":"white"}]};
+        tellraw @s {"text":"Game State: ","color":"blue","extra":[{"text":"game_state","color":"white"}]};
+    }
+}
+
+on_tick "ui:show_hud";
+```
+
+## Game Mechanics Examples
+
+### RPG System
+
+A comprehensive RPG system using all new features.
+
+```mdl
+// rpg_system.mdl
+pack "RPG System" description "Complete RPG mechanics" pack_format 82;
+
+namespace "rpg";
+
+// Player stats
+var num player_level = 1;
+var num experience = 0;
+var num health = 20;
+var num mana = 100;
+var str player_class = "adventurer";
+var list inventory = ["sword", "shield", "potion"];
+
+function "init_player" {
+    player_level = 1;
+    experience = 0;
+    health = 20;
+    mana = 100;
+    player_class = "adventurer";
+    say Player initialized as level player_level player_class;
+}
+
+function "gain_experience" (amount) {
+    experience = experience + amount;
+    say Gained amount experience points;
+    
+    // Level up logic
+    if "score @s experience >= 100" {
+        player_level = player_level + 1;
+        experience = experience - 100;
+        health = health + 5;
+        mana = mana + 10;
+        say Level up! You are now level player_level;
+        effect give @s minecraft:glowing 60 0;
+    }
+}
+
+function "use_item" (item_name) {
+    switch (item_name) {
+        case "potion":
+            if "score @s health < 20" {
+                health = heal_player(10);
+                say Used health potion;
+            }
+            break;
+        case "mana_potion":
+            if "score @s mana < 100" {
+                mana = mana + 25;
+                say Used mana potion;
+            }
+            break;
+        default:
+            say Unknown item: item_name;
+            break;
+    }
+}
+
+function "heal_player" (amount) {
+    var num old_health = health;
+    health = health + amount;
+    if "score @s health > 20" {
+        health = 20;
+    }
+    effect give @s minecraft:instant_health 1 1;
+    return health;
+}
+
+function "combat_tick" {
+    for player in @a {
+        if "entity @s[type=minecraft:player]" {
+            // Auto-heal over time
+            if "score @s health < 20" {
+                health = health + 1;
+            }
             
-            # Use conditionals inside the loop
-            if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:'minecraft:diamond_sword'}}]":
-                say Player has diamond sword!
-                effect give @s minecraft:strength 5 1
-            else if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:'minecraft:golden_sword'}}]":
-                say Player has golden sword!
-                effect give @s minecraft:speed 5 1
-            else:
-                say Player has no special weapon
-                effect give @s minecraft:glowing 5 0
-    else:
-        say No players found
+            // Mana regeneration
+            if "score @s mana < 100" {
+                mana = mana + 2;
+            }
+        }
+    }
+}
+
+on_load "rpg:init_player";
+on_tick "rpg:combat_tick";
+```
+
+### Inventory System
+
+Advanced inventory management with variables and error handling.
+
+```mdl
+// inventory_system.mdl
+pack "Inventory System" description "Advanced inventory management" pack_format 82;
+
+namespace "inventory";
+
+var num inventory_size = 36;
+var list items = [];
+var num gold_coins = 0;
+
+function "add_item" (item_name) {
+    try {
+        if "score @s items < inventory_size" {
+            items = items + [item_name];
+            say Added item_name to inventory;
+        } else {
+            throw "Inventory full";
+        }
+    } catch (error) {
+        say Cannot add item: error;
+    }
+}
+
+function "remove_item" (item_name) {
+    try {
+        var num index = find_item(item_name);
+        if (index >= 0) {
+            items = remove_from_list(items, index);
+            say Removed item_name from inventory;
+        } else {
+            throw "Item not found";
+        }
+    } catch (error) {
+        say Cannot remove item: error;
+    }
+}
+
+function "find_item" (item_name) {
+    for i in range(len(items)) {
+        if (items[i] == item_name) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+function "show_inventory" {
+    for player in @a {
+        tellraw @s {"text":"Inventory: ","color":"yellow"};
+        for item in items {
+            tellraw @s {"text":"- item","color":"white"};
+        }
+        tellraw @s {"text":"Gold: gold_coins","color":"gold"};
+    }
+}
+
+on_tick "inventory:show_inventory";
+```
+
+## Performance Examples
+
+### Optimized Systems
+
+Demonstrates performance optimization techniques.
+
+```mdl
+// performance.mdl
+pack "Performance" description "Optimized systems" pack_format 82;
+
+namespace "performance";
+
+var num frame_count = 0;
+var num update_interval = 20;
+
+function "optimized_tick" {
+    frame_count = frame_count + 1;
+    
+    // Only update every 20 ticks (1 second)
+    if "score @s frame_count % update_interval == 0" {
+        // Process only nearby entities
+        for entity in @e[type=minecraft:zombie,distance=..32] {
+            effect give @s minecraft:glowing 10 0;
+        }
         
-        # Use while loop to clean up entities
-        while "entity @e[type=minecraft:item,distance=..5]":
-            say Cleaning up nearby items
-            kill @e[type=minecraft:item,distance=..5,limit=1]
+        // Batch process players
+        for player in @a[limit=5] {
+            effect give @s minecraft:speed 10 0;
+        }
+    }
+}
 
-on_tick "mixed:smart_processing"
-```
-```
+function "memory_management" {
+    // Clear old data periodically
+    if "score @s frame_count >= 1200" {
+        frame_count = 0;
+        say Memory cleanup performed;
+    }
+}
 
-### Entity Type Detection
-
-A system that responds differently to different entity types:
-
-```mdl
-# entity_detection.mdl
-pack "Entity Detection" description "Conditional entity detection system" pack_format 48
-
-namespace "detection"
-
-function "detect_entity":
-    if "entity @s[type=minecraft:player]":
-        say Player detected!
-        effect give @s minecraft:glowing 5 1
-        particle minecraft:end_rod ~ ~ ~ 0.5 0.5 0.5 0.1 10
-    else if "entity @s[type=minecraft:zombie]":
-        say Zombie detected!
-        effect give @s minecraft:poison 5 1
-        particle minecraft:smoke ~ ~ ~ 0.5 0.5 0.5 0.1 10
-    else if "entity @s[type=minecraft:creeper]":
-        say Creeper detected!
-        effect give @s minecraft:resistance 5 1
-        particle minecraft:explosion ~ ~ ~ 0.5 0.5 0.5 0.1 5
-    else if "entity @s[type=minecraft:skeleton]":
-        say Skeleton detected!
-        effect give @s minecraft:slowness 5 1
-        particle minecraft:arrow ~ ~ ~ 0.5 0.5 0.5 0.1 10
-    else:
-        say Unknown entity detected
-        particle minecraft:cloud ~ ~ ~ 0.5 0.5 0.5 0.1 5
-
-on_tick "detection:detect_entity"
+on_tick "performance:optimized_tick";
+on_tick "performance:memory_management";
 ```
 
-### Conditional Function Calls
+## Building and Testing
 
-A system that calls different functions based on conditions:
-
-```mdl
-# conditional_calls.mdl
-pack "Conditional Calls" description "Conditional function calling system" pack_format 48
-
-namespace "calls"
-
-function "main_logic":
-    if "entity @s[type=minecraft:player]":
-        say Executing player logic
-        function calls:player_effects
-        function calls:player_ui
-    else if "entity @s[type=minecraft:zombie]":
-        say Executing zombie logic
-        function calls:zombie_ai
-        function calls:zombie_effects
-    else:
-        say Executing default logic
-        function calls:default_behavior
-
-function "player_effects":
-    effect give @s minecraft:night_vision 10 0
-    effect give @s minecraft:glowing 10 0
-
-function "player_ui":
-    title @s actionbar {"text":"Player Mode Active","color":"green"}
-
-function "zombie_ai":
-    effect give @s minecraft:speed 5 1
-    effect give @s minecraft:strength 5 1
-
-function "zombie_effects":
-    particle minecraft:smoke ~ ~ ~ 0.3 0.3 0.3 0.05 5
-
-function "default_behavior":
-    effect give @s minecraft:glowing 5 0
-
-on_tick "calls:main_logic"
-```
-
-## Gameplay Examples
-
-### Mini-Game Framework
-
-A framework for creating mini-games:
-
-```mdl
-# minigame_framework.mdl
-pack "Mini-Game Framework" description "Framework for creating mini-games" pack_format 48
-
-namespace "framework"
-
-function "init":
-    scoreboard objectives add game_state dummy "Game State"
-    scoreboard objectives add player_score dummy "Player Score"
-    scoreboard objectives add game_timer dummy "Game Timer"
-    say [framework:init] Mini-game framework initialized!
-
-function "start_game":
-    scoreboard players set @a game_state 1
-    scoreboard players set @a player_score 0
-    scoreboard players set @a game_timer 0
-    tellraw @a {"text":"Game started!","color":"green"}
-
-function "end_game":
-    scoreboard players set @a game_state 0
-    tellraw @a {"text":"Game ended!","color":"red"}
-
-function "update_game":
-    execute as @a[scores={game_state=1}] run scoreboard players add @s game_timer 1
-
-on_load "framework:init"
-on_tick "framework:update_game"
-```
-
-### Custom Items
-
-A datapack that adds custom item behaviors:
-
-```mdl
-# custom_items.mdl
-pack "Custom Items" description "Custom item behaviors" pack_format 48
-
-namespace "items"
-
-function "magic_staff":
-    execute as @a[nbt={SelectedItem:{id:"minecraft:blaze_rod"}}] \
-        run particle minecraft:witch ~ ~ ~ 0.5 0.5 0.5 0.1 10
-    execute as @a[nbt={SelectedItem:{id:"minecraft:blaze_rod"}}] \
-        run effect give @s minecraft:night_vision 5 0 true
-
-function "healing_potion":
-    execute as @a[nbt={SelectedItem:{id:"minecraft:potion"}] \
-        run effect give @s minecraft:instant_health 1 1
-    execute as @a[nbt={SelectedItem:{id:"minecraft:potion"}] \
-        run effect give @s minecraft:regeneration 10 1
-
-function "update_items":
-    function items:magic_staff
-    function items:healing_potion
-
-on_tick "items:update_items"
-```
-
-## Best Practices Examples
-
-### Error Handling
-
-A datapack that demonstrates proper error handling:
-
-```mdl
-# error_handling.mdl
-pack "Error Handling Example" description "Shows proper error handling" pack_format 48
-
-namespace "example"
-
-function "safe_teleport":
-    # Check if player exists before teleporting
-    execute as @a if entity @s run tp @s ~ ~ ~
-    execute unless entity @a run tellraw @a {"text":"No players to teleport","color":"red"}
-
-function "conditional_effects":
-    # Only give effects if player has specific item
-    execute as @a[nbt={SelectedItem:{id:"minecraft:diamond"}}] \
-        run effect give @s minecraft:strength 1 0 true
-    execute as @a unless entity @s[nbt={SelectedItem:{id:"minecraft:diamond"}}] \
-        run effect clear @s minecraft:strength
-
-function "update_safe":
-    function example:safe_teleport
-    function example:conditional_effects
-
-on_tick "example:update_safe"
-```
-
-### Performance Optimization
-
-A datapack optimized for performance:
-
-```mdl
-# performance_example.mdl
-pack "Performance Example" description "Optimized for performance" pack_format 48
-
-namespace "perf"
-
-function "efficient_particles":
-    # Only create particles for nearby players
-    execute as @a[distance=..10] run particle minecraft:end_rod ~ ~ ~ 0.1 0.1 0.1 0.01 1
-
-function "batched_effects":
-    # Batch multiple effects in one function
-    execute as @a run effect give @s minecraft:speed 1 0 true
-    execute as @a run effect give @s minecraft:jump_boost 1 0 true
-
-function "update_perf":
-    function perf:efficient_particles
-    function perf:batched_effects
-
-on_tick "perf:update_perf"
-```
-
-## Testing Examples
-
-### Test Datapack
-
-A datapack designed for testing MDL features:
-
-```mdl
-# test_pack.mdl
-pack "Test Pack" description "For testing MDL features" pack_format 48
-
-namespace "test"
-
-function "syntax_test":
-    # Test various MDL syntax features
-    say Testing MDL syntax
-    tellraw @a {"text":"JSON test","color":"blue","bold":true}
-    execute as @a run particle minecraft:end_rod ~ ~ ~ 0.1 0.1 0.1 0.01 1
-
-function "multi_line_test":
-    # Test multi-line commands
-    tellraw @a \
-        {"text":"This is a multi-line","color":"green",\
-         "extra":[{"text":" command test","color":"yellow"}]}
-
-function "namespace_test":
-    # Test cross-namespace calls
-    function test:syntax_test
-    function test:multi_line_test
-
-on_load "test:namespace_test"
-```
-
-## Running the Examples
-
-### Building Examples
-
-To build any of these examples:
+To build these examples:
 
 ```bash
-# Single file
+# Build a single file
 mdl build --mdl example.mdl -o dist
 
-# Multi-file project
-mdl build --mdl project_folder/ -o dist
+# Build multi-file project
+mdl build --mdl "core.mdl combat.mdl ui.mdl" -o dist
 
-# With verbose output
-mdl build --mdl example.mdl -o dist --verbose
-```
-
-### Testing Examples
-
-To test examples before building:
-
-```bash
 # Check syntax
 mdl check example.mdl
 
-# Check with detailed output
-mdl check --json example.mdl
+# Run tests
+mdl test --mdl example.mdl
 ```
 
-### Installing in Minecraft
+## VS Code Integration
 
-1. Build the example: `mdl build --mdl example.mdl -o dist`
-2. Copy the folder from `dist/` to your world's `datapacks/` folder
-3. Run `/reload` in-game
-4. Test the functionality
+These examples work perfectly with the VS Code extension:
 
-## Tested Examples
+1. **Install the extension** from the marketplace
+2. **Open any .mdl file** to get syntax highlighting
+3. **Use snippets** for rapid development
+4. **Get IntelliSense** for all keywords and functions
+5. **Build directly** from the command palette
 
-All examples on this page are thoroughly tested and verified to work correctly. You can find the complete test suite in the [GitHub repository](https://github.com/aaron777collins/MinecraftDatapackLanguage/tree/main/test_examples).
+## Next Steps
 
-### Download Working Examples
+After exploring these examples:
 
-Each example is available in both MDL and Python API formats:
+1. **Try the VS Code extension** for the best development experience
+2. **Check the language reference** for complete syntax documentation
+3. **Explore the Python API** for programmatic datapack creation
+4. **Join the community** to share your creations
 
-- **[Hello World](https://github.com/aaron777collins/MinecraftDatapackLanguage/blob/main/test_examples/hello_world.mdl)** - [Python version](https://github.com/aaron777collins/MinecraftDatapackLanguage/blob/main/test_examples/hello_world.py)
-- **[Particle Effects](https://github.com/aaron777collins/MinecraftDatapackLanguage/blob/main/test_examples/particles.mdl)** - [Python version](https://github.com/aaron777collins/MinecraftDatapackLanguage/blob/main/test_examples/particles.py)
-- **[Custom Commands](https://github.com/aaron777collins/MinecraftDatapackLanguage/blob/main/test_examples/commands.mdl)** - [Python version](https://github.com/aaron777collins/MinecraftDatapackLanguage/blob/main/test_examples/commands.py)
-- **[Combat System](https://github.com/aaron777collins/MinecraftDatapackLanguage/blob/main/test_examples/combat_system.mdl)** - [Python version](https://github.com/aaron777collins/MinecraftDatapackLanguage/blob/main/test_examples/combat_system.py)
-- **[UI System](https://github.com/aaron777collins/MinecraftDatapackLanguage/blob/main/test_examples/ui_system.mdl)** - [Python version](https://github.com/aaron777collins/MinecraftDatapackLanguage/blob/main/test_examples/ui_system.py)
-- **[Adventure Pack](https://github.com/aaron777collins/MinecraftDatapackLanguage/blob/main/test_examples/adventure_pack.mdl)** - [Python version](https://github.com/aaron777collins/MinecraftDatapackLanguage/blob/main/test_examples/adventure_pack.py)
-- **[Conditionals](https://github.com/aaron777collins/MinecraftDatapackLanguage/blob/main/test_examples/conditionals.mdl)** - [Python version](https://github.com/aaron777collins/MinecraftDatapackLanguage/blob/main/test_examples/conditionals.py)
-- **[Loops](https://github.com/aaron777collins/MinecraftDatapackLanguage/blob/main/test_examples/loops.mdl)** - [Python version](https://github.com/aaron777collins/MinecraftDatapackLanguage/blob/main/test_examples/loops.py)
-- **[Pack Format 82](https://github.com/aaron777collins/MinecraftDatapackLanguage/blob/main/test_examples/pack_format_82.mdl)** - Modern pack format with loops
-- **[Multi-file Project](https://github.com/aaron777collins/MinecraftDatapackLanguage/tree/main/test_examples/adventure_pack)** - Complete directory structure
+---
 
-### Run the Tests Yourself
-
-To verify these examples work:
-
-```bash
-# Clone the repository
-git clone https://github.com/aaron777collins/MinecraftDatapackLanguage.git
-cd MinecraftDatapackLanguage
-
-# Install MDL
-pipx install minecraft-datapack-language
-
-# Run all tests
-python test_examples/run_all_tests.py
-```
-
-### Test Coverage
-
-These examples are automatically tested in CI/CD to ensure they work with every release:
-
-- ✅ **MDL Syntax Validation** - All examples pass `mdl check`
-- ✅ **MDL Build Process** - All examples build successfully  
-- ✅ **Python API** - All Python equivalents work correctly
-- ✅ **Multi-file Projects** - Directory-based builds work
-- ✅ **CLI Functionality** - Basic CLI commands work
-- ✅ **Output Verification** - Generated datapacks have correct structure
-
-## Contributing Examples
-
-If you have a great example to share:
-
-1. Create a clear, well-documented example
-2. Include comments explaining the code
-3. Test that it works correctly
-4. Submit it as a pull request to the repository
-
-Your example could help other users learn MDL and create amazing datapacks!
+**Previous**: [Language Reference](language-reference.md) | **Next**: [Python API](python-api.md)

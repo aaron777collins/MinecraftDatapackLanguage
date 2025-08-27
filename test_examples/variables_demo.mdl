@@ -1,0 +1,108 @@
+pack "Variables Demo" description "Demonstrates the complete variable system" pack_format 82;
+
+namespace "demo";
+
+// Global variables (accessible across all functions)
+var num global_counter = 0;
+var str global_message = "Hello World";
+var list global_items = ["sword", "shield", "bow"];
+
+function "variable_demo" {
+    // Local variables (function scope)
+    var num local_counter = 10;
+    var str player_name = "Steve";
+    var list local_items = ["apple", "bread", "steak"];
+    
+    // Variable operations
+    local_counter = local_counter + 5;
+    global_counter = global_counter + 1;
+    
+    // String operations
+    player_name = "Alex";
+    global_message = "Updated: " + player_name;
+    
+    // List operations
+    local_items[0] = "golden_apple";
+    global_items[1] = "crossbow";
+    
+    // Conditional with variables
+    if "score @s demo:local_counter matches 15" {
+        say Counter is 15!;
+        local_counter = local_counter - 5;
+    }
+    
+    // Loop with variables
+    while "score @s demo:local_counter matches 1.." {
+        say Counter: @s demo:local_counter;
+        local_counter = local_counter - 1;
+        global_counter = global_counter + 1;
+    }
+}
+
+function "list_operations" {
+    // Create lists
+    var list weapons = ["diamond_sword", "netherite_sword", "golden_sword"];
+    var list numbers = [1, 2, 3, 4, 5];
+    var list mixed = ["text", 42, "more_text"];
+    
+    // List access
+    var str first_weapon = weapons[0];
+    var num first_number = numbers[0];
+    
+    // List modification
+    weapons[1] = "emerald_sword";
+    numbers[2] = 10;
+    
+    // List in conditionals
+    if "score @s demo:first_number matches 1" {
+        say First number is 1;
+    }
+    
+    // List in loops
+    for i in numbers {
+        say Number: @s demo:i;
+    }
+}
+
+function "mathematical_operations" {
+    var num a = 10;
+    var num b = 5;
+    
+    // Basic operations
+    var num sum = a + b;
+    var num difference = a - b;
+    var num product = a * b;
+    var num quotient = a / b;
+    var num remainder = a % b;
+    
+    // Complex expressions
+    var num result = (a + b) * (a - b) / 2;
+    
+    say Sum: @s demo:sum;
+    say Difference: @s demo:difference;
+    say Product: @s demo:product;
+    say Quotient: @s demo:quotient;
+    say Remainder: @s demo:remainder;
+    say Complex result: @s demo:result;
+}
+
+function "string_operations" {
+    var str greeting = "Hello";
+    var str name = "World";
+    
+    // String concatenation
+    var str message = greeting + " " + name + "!";
+    
+    // String with variables
+    var num count = 42;
+    var str status = "Count is: " + count;
+    
+    say Message: message;
+    say Status: status;
+}
+
+// Hook into Minecraft's tick system
+on_tick "demo:variable_demo";
+on_tick "demo:list_operations";
+on_tick "demo:mathematical_operations";
+on_tick "demo:string_operations";

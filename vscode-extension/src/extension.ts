@@ -16,22 +16,14 @@ export function activate(context: vscode.ExtensionContext) {
       const linePrefix = document.lineAt(position).text.substr(0, position.character);
       
       // Check if we're in a pack declaration
-      if (linePrefix.includes('pack "') && !linePrefix.includes('min_format') && !linePrefix.includes('max_format')) {
-        // Suggest min_format and max_format for pack format 82+
-        const minFormatItem = new vscode.CompletionItem('min_format [82, 0]', vscode.CompletionItemKind.Field);
-        minFormatItem.detail = 'Minimum pack format version (required for pack format 82+)';
-        minFormatItem.documentation = 'Specifies the minimum version supported. Format: [major, minor] or just major';
-        minFormatItem.insertText = 'min_format [82, 0]';
-        completionItems.push(minFormatItem);
-        
-        const maxFormatItem = new vscode.CompletionItem('max_format [82, 1]', vscode.CompletionItemKind.Field);
-        maxFormatItem.detail = 'Maximum pack format version (required for pack format 82+)';
-        maxFormatItem.documentation = 'Specifies the maximum version supported. Format: [major, minor] or just major';
-        maxFormatItem.insertText = 'max_format [82, 1]';
-        completionItems.push(maxFormatItem);
+      if (linePrefix.includes('pack "') && !linePrefix.includes('pack_format')) {
+        const formatItem = new vscode.CompletionItem('pack_format 82', vscode.CompletionItemKind.Field);
+        formatItem.detail = 'Pack format version';
+        formatItem.documentation = 'Specifies the pack format version. Use 82 for new JavaScript-style format';
+        formatItem.insertText = 'pack_format 82';
+        completionItems.push(formatItem);
       }
       
-      // General pack declaration suggestions
       if (linePrefix.includes('pack "') && !linePrefix.includes('description')) {
         const descItem = new vscode.CompletionItem('description "Description"', vscode.CompletionItemKind.Field);
         descItem.detail = 'Pack description';
@@ -39,21 +31,135 @@ export function activate(context: vscode.ExtensionContext) {
         completionItems.push(descItem);
       }
       
-      if (linePrefix.includes('pack "') && !linePrefix.includes('pack_format')) {
-        const formatItem = new vscode.CompletionItem('pack_format 82', vscode.CompletionItemKind.Field);
-        formatItem.detail = 'Pack format version';
-        formatItem.documentation = 'Specifies the pack format version. Use 82+ for new metadata format';
-        formatItem.insertText = 'pack_format 82';
-        completionItems.push(formatItem);
+      // Variable declarations
+      if (linePrefix.trim().startsWith('var ')) {
+        const numItem = new vscode.CompletionItem('num', vscode.CompletionItemKind.Keyword);
+        numItem.detail = 'Number variable type';
+        numItem.documentation = 'Declares a number variable stored in scoreboard';
+        numItem.insertText = 'num';
+        completionItems.push(numItem);
+        
+        const strItem = new vscode.CompletionItem('str', vscode.CompletionItemKind.Keyword);
+        strItem.detail = 'String variable type';
+        strItem.documentation = 'Declares a string variable stored in NBT data';
+        strItem.insertText = 'str';
+        completionItems.push(strItem);
+        
+        const listItem = new vscode.CompletionItem('list', vscode.CompletionItemKind.Keyword);
+        listItem.detail = 'List variable type';
+        listItem.documentation = 'Declares a list variable stored in multiple scoreboard objectives';
+        listItem.insertText = 'list';
+        completionItems.push(listItem);
       }
       
-      if (linePrefix.includes('pack "') && !linePrefix.includes('min_engine_version')) {
-        const engineItem = new vscode.CompletionItem('min_engine_version "1.21.4"', vscode.CompletionItemKind.Field);
-        engineItem.detail = 'Minimum engine version';
-        engineItem.documentation = 'Specifies the minimum Minecraft engine version required';
-        engineItem.insertText = 'min_engine_version "1.21.4"';
-        completionItems.push(engineItem);
-      }
+      // Control flow keywords
+      const controlFlowKeywords = [
+        { name: 'if', detail: 'If statement', doc: 'Conditional statement with curly braces' },
+        { name: 'else if', detail: 'Else if statement', doc: 'Additional conditional branch' },
+        { name: 'else', detail: 'Else statement', doc: 'Default branch for conditional' },
+        { name: 'while', detail: 'While loop', doc: 'Loop that continues while condition is true' },
+        { name: 'for', detail: 'For loop', doc: 'Loop that iterates over entities or values' },
+        { name: 'switch', detail: 'Switch statement', doc: 'Multi-branch conditional statement' },
+        { name: 'case', detail: 'Case label', doc: 'Individual case in switch statement' },
+        { name: 'default', detail: 'Default case', doc: 'Default branch in switch statement' },
+        { name: 'break', detail: 'Break statement', doc: 'Exit current loop or switch' },
+        { name: 'continue', detail: 'Continue statement', doc: 'Skip to next iteration of loop' },
+        { name: 'return', detail: 'Return statement', doc: 'Return value from function' }
+      ];
+      
+      controlFlowKeywords.forEach(keyword => {
+        const item = new vscode.CompletionItem(keyword.name, vscode.CompletionItemKind.Keyword);
+        item.detail = keyword.detail;
+        item.documentation = keyword.doc;
+        item.insertText = keyword.name;
+        completionItems.push(item);
+      });
+      
+      // Error handling keywords
+      const errorKeywords = [
+        { name: 'try', detail: 'Try block', doc: 'Start of error handling block' },
+        { name: 'catch', detail: 'Catch block', doc: 'Error handling block' },
+        { name: 'throw', detail: 'Throw statement', doc: 'Throw an error' }
+      ];
+      
+      errorKeywords.forEach(keyword => {
+        const item = new vscode.CompletionItem(keyword.name, vscode.CompletionItemKind.Keyword);
+        item.detail = keyword.detail;
+        item.documentation = keyword.doc;
+        item.insertText = keyword.name;
+        completionItems.push(item);
+      });
+      
+      // Variable declaration keywords
+      const varKeywords = [
+        { name: 'var', detail: 'Variable declaration', doc: 'Declare a variable' },
+        { name: 'let', detail: 'Let declaration', doc: 'Declare a block-scoped variable' },
+        { name: 'const', detail: 'Constant declaration', doc: 'Declare a constant variable' }
+      ];
+      
+      varKeywords.forEach(keyword => {
+        const item = new vscode.CompletionItem(keyword.name, vscode.CompletionItemKind.Keyword);
+        item.detail = keyword.detail;
+        item.documentation = keyword.doc;
+        item.insertText = keyword.name;
+        completionItems.push(item);
+      });
+      
+      // Import keywords
+      const importKeywords = [
+        { name: 'import', detail: 'Import statement', doc: 'Import module or function' },
+        { name: 'from', detail: 'From clause', doc: 'Specify import source' },
+        { name: 'as', detail: 'As alias', doc: 'Import with alias' }
+      ];
+      
+      importKeywords.forEach(keyword => {
+        const item = new vscode.CompletionItem(keyword.name, vscode.CompletionItemKind.Keyword);
+        item.detail = keyword.detail;
+        item.documentation = keyword.doc;
+        item.insertText = keyword.name;
+        completionItems.push(item);
+      });
+      
+      // Minecraft commands
+      const minecraftCommands = [
+        { name: 'say', detail: 'Say command', doc: 'Send message to all players' },
+        { name: 'tellraw', detail: 'Tellraw command', doc: 'Send formatted message' },
+        { name: 'effect', detail: 'Effect command', doc: 'Apply status effect' },
+        { name: 'particle', detail: 'Particle command', doc: 'Create particle effect' },
+        { name: 'execute', detail: 'Execute command', doc: 'Execute command conditionally' },
+        { name: 'scoreboard', detail: 'Scoreboard command', doc: 'Manage scoreboard objectives' },
+        { name: 'function', detail: 'Function command', doc: 'Call another function' },
+        { name: 'tag', detail: 'Tag command', doc: 'Manage entity tags' },
+        { name: 'tp', detail: 'Teleport command', doc: 'Teleport entities' },
+        { name: 'kill', detail: 'Kill command', doc: 'Kill entities' },
+        { name: 'summon', detail: 'Summon command', doc: 'Summon entity' },
+        { name: 'give', detail: 'Give command', doc: 'Give item to player' }
+      ];
+      
+      minecraftCommands.forEach(cmd => {
+        const item = new vscode.CompletionItem(cmd.name, vscode.CompletionItemKind.Function);
+        item.detail = cmd.detail;
+        item.documentation = cmd.doc;
+        item.insertText = cmd.name;
+        completionItems.push(item);
+      });
+      
+      // Entity selectors
+      const selectors = [
+        { name: '@p', detail: 'Nearest player', doc: 'Select nearest player' },
+        { name: '@r', detail: 'Random player', doc: 'Select random player' },
+        { name: '@a', detail: 'All players', doc: 'Select all players' },
+        { name: '@e', detail: 'All entities', doc: 'Select all entities' },
+        { name: '@s', detail: 'Self', doc: 'Select executing entity' }
+      ];
+      
+      selectors.forEach(selector => {
+        const item = new vscode.CompletionItem(selector.name, vscode.CompletionItemKind.Variable);
+        item.detail = selector.detail;
+        item.documentation = selector.doc;
+        item.insertText = selector.name;
+        completionItems.push(item);
+      });
       
       return completionItems;
     }
@@ -89,7 +195,16 @@ export function activate(context: vscode.ExtensionContext) {
     await runCheckWorkspace(folder.uri.fsPath, diag);
   });
 
-  context.subscriptions.push(buildCmd, checkWsCmd);
+  const newProjectCmd = vscode.commands.registerCommand('mdl.newProject', async () => {
+    const name = await vscode.window.showInputBox({ prompt: 'Project name', value: 'my_mdl_project' });
+    if (!name) { return; }
+    const description = await vscode.window.showInputBox({ prompt: 'Project description', value: 'My MDL Project' });
+    if (!description) { return; }
+    const cmd = `mdl new "${name}" --name "${description}" --pack-format 82`;
+    runShell(cmd);
+  });
+
+  context.subscriptions.push(buildCmd, checkWsCmd, newProjectCmd);
 
   // initial diagnostics
   const active = vscode.window.activeTextEditor?.document;

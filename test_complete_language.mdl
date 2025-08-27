@@ -1,0 +1,239 @@
+pack "complete_language" description "Complete MDL language demonstration" pack_format 82;
+
+namespace "complete";
+
+// Global variables
+var num global_counter = 0;
+var str global_message = "Complete Language Active";
+var list global_items = ["sword", "shield", "potion"];
+const num MAX_LEVEL = 100;
+
+// Function with parameters and return value
+function "calculate_damage" (base_damage, weapon_multiplier, armor_reduction) {
+    var num final_damage = base_damage * weapon_multiplier;
+    final_damage = final_damage - armor_reduction;
+    
+    if "score @s complete:final_damage matches 1.." {
+        return final_damage;
+    } else {
+        return 1;  // Minimum damage
+    }
+}
+
+// Function with list operations
+function "process_inventory" {
+    var list player_items = ["diamond_sword", "iron_armor", "golden_apple"];
+    var num item_count = 3;
+    var num processed = 0;
+    
+    // Loop through list items
+    for item in player_items {
+        var str current_item = item;
+        
+        // Switch statement for different item types
+        switch (current_item) {
+            case "diamond_sword" {
+                say Found diamond sword!;
+                processed = processed + 1;
+            }
+            case "iron_armor" {
+                say Found iron armor!;
+                processed = processed + 1;
+            }
+            case "golden_apple" {
+                say Found golden apple!;
+                processed = processed + 1;
+            }
+            default {
+                say Unknown item found;
+            }
+        }
+        
+        // Conditional with logical operators
+        if "score @s complete:processed == 3 && score @s complete:item_count == 3" {
+            say All items processed successfully!;
+            break;
+        }
+    }
+    
+    return processed;
+}
+
+// Function with error handling
+function "safe_operation" {
+    var num divisor = 0;
+    var num result = 0;
+    
+    try {
+        // This will cause an error
+        result = 100 / divisor;
+        say Result: @s complete:result;
+    } catch (error) {
+        say Error occurred: Division by zero;
+        result = 0;
+    }
+    
+    return result;
+}
+
+// Function with complex control flow
+function "combat_system" {
+    var num player_health = 100;
+    var num enemy_health = 50;
+    var num round = 1;
+    
+    while "score @s complete:player_health > 0 && score @s complete:enemy_health > 0" {
+        say Round @s complete:round;
+        
+        // Player attacks
+        var num damage = calculate_damage(10, 1.5, 2);
+        enemy_health = enemy_health - damage;
+        say Player deals @s complete:damage damage!;
+        
+        // Check if enemy is defeated
+        if "score @s complete:enemy_health <= 0" {
+            say Enemy defeated!;
+            break;
+        }
+        
+        // Enemy attacks
+        var num enemy_damage = 8;
+        player_health = player_health - enemy_damage;
+        say Enemy deals @s complete:enemy_damage damage!;
+        
+        // Check if player is defeated
+        if "score @s complete:player_health <= 0" {
+            say Player defeated!;
+            break;
+        }
+        
+        round = round + 1;
+        
+        // Continue to next round
+        continue;
+    }
+    
+    return player_health;
+}
+
+// Function with list iteration and nested conditionals
+function "advanced_inventory" {
+    var list weapons = ["sword", "axe", "bow", "staff"];
+    var list armor = ["leather", "iron", "diamond"];
+    var num weapon_index = 0;
+    var num armor_index = 0;
+    
+    // Loop through weapons
+    for weapon in weapons {
+        weapon_index = weapon_index + 1;
+        
+        // Nested conditional with complex logic
+        if "score @s complete:weapon_index == 1 || score @s complete:weapon_index == 3" {
+            say Melee weapon: @s complete:weapon;
+            
+            // Deep nesting
+            if "score @s complete:weapon_index == 1" {
+                say Primary melee weapon;
+                
+                // Loop through armor for this weapon
+                for armor_piece in armor {
+                    armor_index = armor_index + 1;
+                    
+                    if "score @s complete:armor_index == 2" {
+                        say Best armor for sword: @s complete:armor_piece;
+                        break;
+                    }
+                }
+            }
+        } else if "score @s complete:weapon_index == 2" {
+            say Heavy weapon: @s complete:weapon;
+        } else {
+            say Ranged weapon: @s complete:weapon;
+        }
+    }
+    
+    return weapon_index + armor_index;
+}
+
+// Function demonstrating mathematical operations
+function "complex_math" {
+    var num a = 10;
+    var num b = 5;
+    var num c = 3;
+    
+    // Complex expressions with parentheses
+    var num result1 = (a + b) * c;
+    var num result2 = a * b + c;
+    var num result3 = (a - b) / c;
+    var num result4 = a % b;
+    
+    // Comparison operations
+    if "score @s complete:result1 > 40 && score @s complete:result2 < 60" {
+        say Math checks out!;
+    }
+    
+    // Logical operations
+    if "score @s complete:result3 == 1 || score @s complete:result4 == 0" {
+        say Logical conditions met!;
+    }
+    
+    return result1 + result2 + result3 + result4;
+}
+
+// Function with string operations
+function "string_operations" {
+    var str player_name = "Steve";
+    var str title = "Warrior";
+    var str level = "10";
+    
+    // String concatenation
+    var str full_title = player_name + " the " + title;
+    var str status = "Level " + level + " " + full_title;
+    
+    say @s complete:status;
+    
+    return status;
+}
+
+// Main game loop
+function "main_loop" {
+    var num game_state = 1;
+    var num tick_count = 0;
+    
+    while "score @s complete:game_state == 1" {
+        tick_count = tick_count + 1;
+        
+        // Switch statement for game states
+        switch (tick_count) {
+            case 100 {
+                say Game running for 100 ticks;
+                process_inventory();
+            }
+            case 500 {
+                say Game running for 500 ticks;
+                safe_operation();
+            }
+            case 1000 {
+                say Game running for 1000 ticks;
+                combat_system();
+            }
+            case 2000 {
+                say Game running for 2000 ticks;
+                advanced_inventory();
+                complex_math();
+                string_operations();
+                game_state = 0;  // End game
+            }
+            default {
+                // Continue running
+                continue;
+            }
+        }
+    }
+    
+    say Game completed!;
+    return tick_count;
+}
+
+// Hook into vanilla lifecycle
+on_tick "complete:main_loop";

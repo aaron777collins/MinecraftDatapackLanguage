@@ -1,9 +1,10 @@
-# <img src="https://github.com/aaron777collins/MinecraftDatapackLanguage/raw/main/icons/icon-128.png" width="32" height="32" alt="MDL Icon"> Minecraft Datapack Language (MDL)
+# <img src="https://github.com/aaron777collins/MinecraftDatapackLanguage/raw/main/icons/icon-128.png" width="32" height="32" alt="MDL Icon"> Minecraft Datapack Language (MDL) v10
 
-A tiny compiler that lets you write Minecraft datapacks in a simple language (`.mdl`) **or** via a clean Python API, and then compiles to the correct 1.21+ datapack folder layout (singular directories) automatically.
+A powerful compiler that lets you write Minecraft datapacks in a modern JavaScript-style language (`.mdl`) **or** via a clean Python API, and then compiles to the correct 1.21+ datapack folder layout automatically.
 
 📖 **[View Full Documentation](https://aaron777collins.github.io/MinecraftDatapackLanguage/)** - Complete guides, examples, and API reference  
-📦 **[View on PyPI](https://pypi.org/project/minecraft-datapack-language/)** - Download and install from PyPI
+📦 **[View on PyPI](https://pypi.org/project/minecraft-datapack-language/)** - Download and install from PyPI  
+🔧 **[VS Code Extension](https://marketplace.visualstudio.com/items?itemName=mdl.minecraft-datapack-language)** - Syntax highlighting, IntelliSense, and snippets
 
 ![CI](https://github.com/aaron777collins/MinecraftDatapackLanguage/workflows/CI/badge.svg)
 ![Test Examples](https://github.com/aaron777collins/MinecraftDatapackLanguage/workflows/Test%20Examples/badge.svg)
@@ -11,14 +12,36 @@ A tiny compiler that lets you write Minecraft datapacks in a simple language (`.
 ![PyPI](https://img.shields.io/pypi/v/minecraft-datapack-language?style=flat-square)
 ![Release](https://github.com/aaron777collins/MinecraftDatapackLanguage/workflows/Release/badge.svg)
 
-- ✅ Handles the directory renames from snapshots **24w19a** (tag subfolders) and **24w21a** (core registry folders) for you.
-- ✅ Easy hooks into `minecraft:tick` and `minecraft:load` via function tags.
-- ✅ Creates tags for `function`, `item`, `block`, `entity_type`, `fluid`, and `game_event`.
-- ✅ VS Code extension for syntax highlighting, linting, and quick compile.
-- ✅ **Conditional blocks** with proper if/else if/else logic and efficient execution.
-- ✅ **While and For loops** for repetitive execution and entity iteration.
+## 🆕 Version 10 - JavaScript-Style MDL Language
 
-> Default **pack_format** is **48** (Java 1.21). Set `--pack-format 47` to emit the legacy plural layout for older versions.
+**Version 10 introduces a completely new JavaScript-style MDL language format** with modern programming features:
+
+### ✨ New Features in v10
+- **🎯 JavaScript-style syntax** with curly braces `{}` and semicolons `;`
+- **📝 Modern comments** using `//` and `/* */`
+- **🔢 Variable system** with `num`, `str`, and `list` types
+- **🔄 Advanced control flow** including `switch`, `try-catch`, `break`, `continue`
+- **📦 Import system** for modular code organization
+- **🎨 VS Code extension** with full IntelliSense and snippets
+- **🧪 Comprehensive testing** with E2E validation
+- **📚 Extensive documentation** with examples for every feature
+
+### 🔄 Migration from v9
+- **Version 9 and below** used a different MDL format with indentation-based blocks
+- **Legacy documentation** is available for users still using the old format
+- **Automatic migration** tools are provided for converting old projects
+
+### 🏗️ Core Features
+- ✅ Handles the directory renames from snapshots **24w19a** (tag subfolders) and **24w21a** (core registry folders)
+- ✅ Easy hooks into `minecraft:tick` and `minecraft:load` via function tags
+- ✅ Creates tags for `function`, `item`, `block`, `entity_type`, `fluid`, and `game_event`
+- ✅ **Unlimited nesting** support for complex control flow structures
+- ✅ **Multi-file projects** with automatic merging and dependency resolution
+- ✅ **Error handling** with try-catch blocks and custom error messages
+- ✅ **Type system** with number, string, and list variables
+- ✅ **Function system** with parameters, return values, and recursion
+
+> **Note**: Version 10 uses **pack_format 82** by default for the new JavaScript-style syntax. Legacy projects can still use pack_format 48.
 
 ---
 
@@ -53,23 +76,30 @@ python -m pip install -e .
 
 - **pipx**: `pipx upgrade minecraft-datapack-language`  
 - **pip (venv)**: `pip install -U minecraft-datapack-language`  
-- Pin a version: `pipx install "minecraft-datapack-language==1.1.0"`
+- Pin a version: `pipx install "minecraft-datapack-language==10.0.0"`
 
 ---
 
 ## 💻 CLI
 
+### New JavaScript-style MDL (v10)
 ```bash
-mdl new my_pack --name "My Pack" --pack-format 48
-mdl check my_pack/mypack.mdl
-mdl build --mdl my_pack/mypack.mdl -o dist --wrapper mypack --pack-format 48
-# → dist/mypack/... and dist/mypack.zip
+# Create a new v10 project
+mdl new my_pack --name "My Pack" --pack-format 82
 
-# Multi-file examples
-mdl check my_pack/                    # Check entire directory
-mdl build --mdl my_pack/ -o dist      # Build from directory
+# Build JavaScript-style MDL files
+mdl build --mdl my_pack/mypack.mdl -o dist --wrapper mypack
+mdl check my_pack/mypack.mdl
+
+# Multi-file projects
+mdl build --mdl my_pack/ -o dist      # Build entire directory
 mdl build --mdl "file1.mdl file2.mdl" -o dist  # Build specific files
-mdl build --mdl my_pack/ -o dist --verbose  # With detailed output
+```
+
+### Legacy MDL (v9 and below)
+```bash
+# For legacy projects, use pack-format 48
+mdl build --mdl legacy_pack.mdl -o dist --pack-format 48
 ```
 
 ### Build a whole folder of `.mdl` files
@@ -89,6 +119,52 @@ mdl build --mdl "src/core.mdl src/features.mdl src/ui.mdl" -o dist
 ### Validate a folder (JSON diagnostics)
 ```bash
 mdl check --json src/
+```
+
+---
+
+## 📝 Quick Start - JavaScript-style MDL (v10)
+
+Create your first JavaScript-style MDL project:
+
+```mdl
+// my_pack.mdl
+pack "My First Pack" description "A simple example" pack_format 82;
+
+namespace "example";
+
+// Global variables
+var num counter = 0;
+var str message = "Hello World";
+
+function "init" {
+    say Initializing...;
+    counter = 0;
+    message = "Ready!";
+}
+
+function "tick" {
+    counter = counter + 1;
+    
+    if "score @s counter matches 10" {
+        say Counter reached 10!;
+        counter = 0;
+    }
+    
+    for player in @a {
+        effect give @s minecraft:speed 1 0;
+    }
+}
+
+// Lifecycle hooks
+on_load "example:init";
+on_tick "example:tick";
+```
+
+Build and test:
+```bash
+mdl build --mdl my_pack.mdl -o dist
+# → dist/my_pack/... and dist/my_pack.zip
 ```
 
 ---

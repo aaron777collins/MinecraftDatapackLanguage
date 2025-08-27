@@ -1,0 +1,218 @@
+pack "complete_system" description "Complete MDL system test" pack_format 82;
+
+namespace "complete";
+
+// Global variables
+var num global_score = 0;
+var str global_message = "Complete System Active";
+const num MAX_LEVEL = 100;
+
+function "weapon_system" {
+    // Local variables for weapon system
+    var num weapon_damage = 10;
+    var num weapon_durability = 100;
+    var str weapon_type = "sword";
+    
+    // For loop with variables
+    for player in @a {
+        var num player_health = 20;
+        var num player_armor = 0;
+        
+        // Nested conditionals with variables
+        if "entity @s[nbt={SelectedItem:{id:'minecraft:diamond_sword'}}]" {
+            weapon_damage = 15;
+            weapon_durability = 1561;
+            weapon_type = "diamond_sword";
+            
+            // Deep nesting with variable operations
+            if "entity @s[health=20.0]" {
+                player_health = player_health + 5;
+                weapon_damage = weapon_damage * 2;
+                
+                // While loop with variables
+                while "score @s complete:weapon_durability matches 1.." {
+                    weapon_durability = weapon_durability - 1;
+                    global_score = global_score + weapon_damage;
+                    
+                    // Conditional inside while loop
+                    if "score @s complete:weapon_durability matches 100.." {
+                        say Weapon in perfect condition!;
+                        weapon_damage = weapon_damage + 1;
+                    } else if "score @s complete:weapon_durability matches 50.." {
+                        say Weapon showing wear;
+                        weapon_damage = weapon_damage - 1;
+                    } else {
+                        say Weapon nearly broken!;
+                        weapon_damage = weapon_damage / 2;
+                    }
+                }
+            } else {
+                player_health = player_health - 5;
+                weapon_damage = weapon_damage - 2;
+            }
+        } else if "entity @s[nbt={SelectedItem:{id:'minecraft:golden_sword'}}]" {
+            weapon_damage = 12;
+            weapon_durability = 32;
+            weapon_type = "golden_sword";
+            
+            // Mathematical operations
+            var num gold_bonus = 5;
+            weapon_damage = weapon_damage + gold_bonus;
+            global_score = global_score + (weapon_damage * 2);
+        } else {
+            weapon_damage = 8;
+            weapon_durability = 250;
+            weapon_type = "default_sword";
+        }
+        
+        // String operations
+        var str status_message = "Player has " + weapon_type + " with " + weapon_damage + " damage";
+        global_message = status_message;
+    }
+}
+
+function "ui_system" {
+    // UI variables
+    var num ui_scale = 1;
+    var str ui_theme = "default";
+    var num message_count = 0;
+    
+    // For loop for UI updates
+    for player in @a {
+        var num player_level = 1;
+        var str player_title = "Adventurer";
+        
+        // Conditional UI updates
+        if "score @s complete:global_score matches 100.." {
+            player_level = 2;
+            player_title = "Warrior";
+            ui_scale = ui_scale + 0.1;
+            
+            // Nested conditionals
+            if "score @s complete:global_score matches 500.." {
+                player_level = 3;
+                player_title = "Hero";
+                ui_theme = "premium";
+                
+                if "score @s complete:global_score matches 1000.." {
+                    player_level = 4;
+                    player_title = "Legend";
+                    ui_scale = ui_scale * 1.5;
+                }
+            }
+        }
+        
+        // String concatenation for UI
+        var str level_message = "Level " + player_level + " " + player_title;
+        message_count = message_count + 1;
+        
+        // While loop for message display
+        while "score @s complete:message_count matches 1.." {
+            say Displaying: @s complete:level_message;
+            message_count = message_count - 1;
+        }
+    }
+}
+
+function "data_system" {
+    // Data management variables
+    var num data_version = 1;
+    var str data_format = "json";
+    var num backup_count = 0;
+    
+    // Array simulation
+    var num data_0 = 0;
+    var num data_1 = 0;
+    var num data_2 = 0;
+    var num data_3 = 0;
+    var num data_4 = 0;
+    
+    // For loop with array operations
+    for entity in @e {
+        var num entity_id = 0;
+        var str entity_type = "unknown";
+        
+        // Conditional data processing
+        if "entity @s[type=minecraft:player]" {
+            entity_type = "player";
+            entity_id = 1;
+            data_0 = data_0 + 1;
+            
+            // Nested processing
+            if "score @s complete:global_score matches 50.." {
+                data_1 = data_1 + 1;
+                backup_count = backup_count + 1;
+                
+                // While loop for backup processing
+                while "score @s complete:backup_count matches 1.." {
+                    data_version = data_version + 1;
+                    backup_count = backup_count - 1;
+                    
+                    // Conditional backup logic
+                    if "score @s complete:data_version matches 10.." {
+                        data_format = "compressed";
+                        say Data format upgraded to compressed;
+                    }
+                }
+            }
+        } else if "entity @s[type=minecraft:zombie]" {
+            entity_type = "zombie";
+            entity_id = 2;
+            data_2 = data_2 + 1;
+        } else if "entity @s[type=minecraft:skeleton]" {
+            entity_type = "skeleton";
+            entity_id = 3;
+            data_3 = data_3 + 1;
+        } else {
+            entity_id = 4;
+            data_4 = data_4 + 1;
+        }
+        
+        // String operations for data
+        var str entity_data = entity_type + "_" + entity_id;
+        global_message = "Processed: " + entity_data;
+    }
+}
+
+function "main_loop" {
+    // Main system variables
+    var num tick_count = 0;
+    var num system_status = 1;
+    var str current_time = "day";
+    
+    // Main system loop
+    while "score @s complete:system_status matches 1" {
+        tick_count = tick_count + 1;
+        
+        // Conditional system updates
+        if "score @s complete:tick_count matches 100.." {
+            say System running for 100+ ticks;
+            system_status = system_status + 1;
+            
+            // Nested system logic
+            if "score @s complete:tick_count matches 500.." {
+                current_time = "night";
+                say System running for 500+ ticks - Night mode;
+                
+                // Deep nesting with variables
+                if "score @s complete:tick_count matches 1000.." {
+                    var num maintenance_mode = 1;
+                    
+                    while "score @s complete:maintenance_mode matches 1" {
+                        say Performing system maintenance;
+                        maintenance_mode = maintenance_mode - 1;
+                        system_status = system_status - 1;
+                    }
+                }
+            }
+        }
+        
+        // Function calls with variables
+        function complete:weapon_system;
+        function complete:ui_system;
+        function complete:data_system;
+    }
+}
+
+// Hook into vanilla lifecycle
+on_tick "complete:main_loop";

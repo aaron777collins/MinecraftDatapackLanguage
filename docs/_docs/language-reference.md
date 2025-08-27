@@ -10,17 +10,17 @@ This is the complete reference for the Minecraft Datapack Language (MDL) syntax.
 
 ## Overview
 
-MDL is a simple language designed to make writing Minecraft datapacks easier. It compiles to standard `.mcfunction` files and follows the 1.21+ datapack structure.
+MDL is a simple language designed to make writing Minecraft datapacks easier. It compiles to standard `.mcfunction` files and follows the 1.21+ datapack structure. MDL uses JavaScript-style syntax with curly braces and semicolons for explicit block boundaries and unlimited nesting support.
 
 ## Basic Syntax
 
 ### Comments
 
-Comments start with `#` and continue to the end of the line:
+Comments start with `//` and continue to the end of the line:
 
 ```mdl
-# This is a comment
-pack "My Pack"  # Inline comments are also supported
+// This is a comment
+pack "My Pack";  // Inline comments are also supported
 ```
 
 **Important**: Comments inside function bodies are preserved in the output `.mcfunction` files, but full-line comments are stripped.
@@ -28,8 +28,9 @@ pack "My Pack"  # Inline comments are also supported
 ### Whitespace
 
 - Empty lines are ignored
-- Indentation must use **4 spaces** (tabs are not supported)
-- Indentation determines block structure
+- Indentation is optional (for readability only)
+- **Explicit block boundaries** using curly braces `{` and `}`
+- **Statement termination** using semicolons `;`
 
 ## Pack Declaration
 
@@ -38,11 +39,11 @@ pack "My Pack"  # Inline comments are also supported
 **Multi-file compilation**: Only the first file should have a pack declaration. All other files are treated as modules.
 
 ```mdl
-# Legacy format (pre-82)
-pack "Pack Name" [description "Description"] [pack_format N]
+// Legacy format (pre-82)
+pack "Pack Name" [description "Description"] [pack_format N];
 
-# Modern format (82+)
-pack "Pack Name" [description "Description"] [pack_format N] [min_format [major, minor]] [max_format [major, minor]] [min_engine_version "version"]
+// Modern format (82+)
+pack "Pack Name" [description "Description"] [pack_format N] [min_format [major, minor]] [max_format [major, minor]] [min_engine_version "version"];
 ```
 
 **Parameters:**
@@ -57,19 +58,20 @@ pack "Pack Name" [description "Description"] [pack_format N] [min_format [major,
 - **Single file**: Must have a pack declaration
 - **Multi-file projects**: Only the first file should have a pack declaration
 - **Module files**: Should NOT have pack declarations
+- **Statement termination**: All statements must end with semicolons `;`
 
 **Examples:**
 
 ```mdl
-# Legacy format (pre-82)
-pack "My Datapack"
-pack "My Datapack" description "A cool datapack"
-pack "My Datapack" description "For older versions" pack_format 47
+// Legacy format (pre-82)
+pack "My Datapack";
+pack "My Datapack" description "A cool datapack";
+pack "My Datapack" description "For older versions" pack_format 47;
 
-# Modern format (82+)
-pack "My Datapack" pack_format 82 min_format [82, 0] max_format [82, 1] min_engine_version "1.21.4"
-pack "My Datapack" description "A cool datapack" pack_format 82 min_format [82, 0] max_format [82, 1]
-pack "My Datapack" description "For newer versions" pack_format 83 min_format [83, 0] max_format [83, 2]
+// Modern format (82+)
+pack "My Datapack" pack_format 82 min_format [82, 0] max_format [82, 1] min_engine_version "1.21.4";
+pack "My Datapack" description "A cool datapack" pack_format 82 min_format [82, 0] max_format [82, 1];
+pack "My Datapack" description "For newer versions" pack_format 83 min_format [83, 0] max_format [83, 2];
 ```
 
 ## Namespaces
@@ -77,24 +79,27 @@ pack "My Datapack" description "For newer versions" pack_format 83 min_format [8
 Namespaces organize your functions and other resources:
 
 ```mdl
-namespace "namespace_name"
+namespace "namespace_name";
 ```
 
 **Rules:**
 - Namespace names should be lowercase
 - Use underscores or hyphens for multi-word names
 - The namespace applies to all following blocks until another namespace is declared
+- **Statement termination**: Namespace declarations must end with semicolons `;`
 
 **Example:**
 
 ```mdl
-namespace "combat"
-function "weapon_effects":
-    # This function will be combat:weapon_effects
+namespace "combat";
+function "weapon_effects" {
+    // This function will be combat:weapon_effects
+}
 
-namespace "ui"
-function "hud":
-    # This function will be ui:hud
+namespace "ui";
+function "hud" {
+    // This function will be ui:hud
+}
 ```
 
 ## Functions
@@ -102,115 +107,131 @@ function "hud":
 Functions contain Minecraft commands and are the core of your datapack:
 
 ```mdl
-function "function_name":
-    command1
-    command2
-    command3
+function "function_name" {
+    command1;
+    command2;
+    command3;
+}
 ```
 
 **Rules:**
 - Function names should be descriptive
-- Commands must be indented with 4 spaces
+- **Explicit block boundaries**: Functions use curly braces `{` and `}`
+- **Statement termination**: All commands must end with semicolons `;`
 - Each non-empty line becomes a Minecraft command
 - Comments are stripped from the output
+- **Unlimited nesting**: Functions can contain any combination of control structures
 
 **Example:**
 
 ```mdl
-function "welcome":
-    say Welcome to my datapack!
-    tellraw @a {"text":"Hello World!","color":"green"}
-    effect give @a minecraft:glowing 10 1
+function "welcome" {
+    say Welcome to my datapack!;
+    tellraw @a {"text":"Hello World!","color":"green"};
+    effect give @a minecraft:glowing 10 1;
+}
 ```
 
 ## Conditional Blocks
 
-MDL supports if/else if/else statements for conditional execution:
+MDL supports if/else if/else statements for conditional execution with unlimited nesting:
 
 ```mdl
-function "conditional_example":
-    if "entity @s[type=minecraft:player]":
-        say Player detected!
-        effect give @s minecraft:glowing 5 1
-    else if "entity @s[type=minecraft:zombie]":
-        say Zombie detected!
-        effect give @s minecraft:poison 5 1
-    else:
-        say Unknown entity
-        effect give @s minecraft:slowness 5 1
+function "conditional_example" {
+    if "entity @s[type=minecraft:player]" {
+        say Player detected!;
+        effect give @s minecraft:glowing 5 1;
+    } else if "entity @s[type=minecraft:zombie]" {
+        say Zombie detected!;
+        effect give @s minecraft:poison 5 1;
+    } else {
+        say Unknown entity;
+        effect give @s minecraft:slowness 5 1;
+    }
+}
 ```
 
 **Rules:**
 - Conditions must be valid Minecraft selector syntax (e.g., `entity @s[type=minecraft:player]`)
-- Commands inside conditional blocks must be indented with 4 spaces
+- **Explicit block boundaries**: Conditional blocks use curly braces `{` and `}`
+- **Statement termination**: All commands must end with semicolons `;`
 - You can have multiple `else if` blocks
 - The `else` block is optional
+- **Unlimited nesting**: Conditional blocks can be nested to any depth
 - Conditional blocks are compiled to separate functions and called with `execute` commands
 - Each conditional block becomes its own function with a generated name
 
 **Example with complex conditions:**
 
 ```mdl
-function "weapon_effects":
-    if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:'minecraft:diamond_sword'}}]":
-        say Diamond sword detected!
-        effect give @s minecraft:strength 10 1
-    else if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:'minecraft:golden_sword'}}]":
-        say Golden sword detected!
-        effect give @s minecraft:speed 10 1
-    else if "entity @s[type=minecraft:player]":
-        say Player without special sword
-        effect give @s minecraft:haste 5 0
-    else:
-        say No player found
+function "weapon_effects" {
+    if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:'minecraft:diamond_sword'}}]" {
+        say Diamond sword detected!;
+        effect give @s minecraft:strength 10 1;
+    } else if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:'minecraft:golden_sword'}}]" {
+        say Golden sword detected!;
+        effect give @s minecraft:speed 10 1;
+    } else if "entity @s[type=minecraft:player]" {
+        say Player without special sword;
+        effect give @s minecraft:haste 5 0;
+    } else {
+        say No player found;
+    }
+}
 ```
 
 **Advanced conditional examples:**
 
 ```mdl
-# Multiple conditions with different entity types
-function "entity_detection":
-    if "entity @s[type=minecraft:player]":
-        say Player detected!
-        effect give @s minecraft:glowing 5 1
-        tellraw @a {"text":"A player is nearby!","color":"green"}
-    else if "entity @s[type=minecraft:zombie]":
-        say Zombie detected!
-        effect give @s minecraft:poison 5 1
-        tellraw @a {"text":"A zombie is nearby!","color":"red"}
-    else if "entity @s[type=minecraft:creeper]":
-        say Creeper detected!
-        effect give @s minecraft:resistance 5 1
-        tellraw @a {"text":"A creeper is nearby!","color":"dark_red"}
-    else:
-        say Unknown entity detected
-        tellraw @a {"text":"Something unknown is nearby...","color":"gray"}
+// Multiple conditions with different entity types
+function "entity_detection" {
+    if "entity @s[type=minecraft:player]" {
+        say Player detected!;
+        effect give @s minecraft:glowing 5 1;
+        tellraw @a {"text":"A player is nearby!","color":"green"};
+    } else if "entity @s[type=minecraft:zombie]" {
+        say Zombie detected!;
+        effect give @s minecraft:poison 5 1;
+        tellraw @a {"text":"A zombie is nearby!","color":"red"};
+    } else if "entity @s[type=minecraft:creeper]" {
+        say Creeper detected!;
+        effect give @s minecraft:resistance 5 1;
+        tellraw @a {"text":"A creeper is nearby!","color":"dark_red"};
+    } else {
+        say Unknown entity detected;
+        tellraw @a {"text":"Something unknown is nearby...","color":"gray"};
+    }
+}
 
-# Conditional with function calls
-function "main_logic":
-    if "entity @s[type=minecraft:player]":
-        say Executing player logic
-        function example:player_effects
-        function example:player_ui
-    else if "entity @s[type=minecraft:zombie]":
-        say Executing zombie logic
-        function example:zombie_ai
-        function example:zombie_effects
-    else:
-        say Executing default logic
-        function example:default_behavior
+// Conditional with function calls
+function "main_logic" {
+    if "entity @s[type=minecraft:player]" {
+        say Executing player logic;
+        function example:player_effects;
+        function example:player_ui;
+    } else if "entity @s[type=minecraft:zombie]" {
+        say Executing zombie logic;
+        function example:zombie_ai;
+        function example:zombie_effects;
+    } else {
+        say Executing default logic;
+        function example:default_behavior;
+    }
+}
 
-# Conditional with complex NBT data
-function "item_detection":
-    if "entity @s[type=minecraft:player,nbt={Inventory:[{Slot:0b,id:\"minecraft:diamond_sword\",Count:1b}]}]":
-        say Player has diamond sword in first slot!
-        effect give @s minecraft:strength 10 1
-    else if "entity @s[type=minecraft:player,nbt={Inventory:[{Slot:0b,id:\"minecraft:golden_sword\",Count:1b}]}]":
-        say Player has golden sword in first slot!
-        effect give @s minecraft:speed 10 1
-    else if "entity @s[type=minecraft:player]":
-        say Player has no special sword
-        effect give @s minecraft:haste 5 0
+// Conditional with complex NBT data
+function "item_detection" {
+    if "entity @s[type=minecraft:player,nbt={Inventory:[{Slot:0b,id:\"minecraft:diamond_sword\",Count:1b}]}]" {
+        say Player has diamond sword in first slot!;
+        effect give @s minecraft:strength 10 1;
+    } else if "entity @s[type=minecraft:player,nbt={Inventory:[{Slot:0b,id:\"minecraft:golden_sword\",Count:1b}]}]" {
+        say Player has golden sword in first slot!;
+        effect give @s minecraft:speed 10 1;
+    } else if "entity @s[type=minecraft:player]" {
+        say Player has no special sword;
+        effect give @s minecraft:haste 5 0;
+    }
+}
 ```
 
 **How conditionals work:**
@@ -235,66 +256,79 @@ execute unless entity @s[type=minecraft:player,nbt={SelectedItem:{id:"minecraft:
 
 ### While Loops
 
-MDL supports while loops for repetitive execution based on conditions:
+MDL supports while loops for repetitive execution based on conditions with unlimited nesting:
 
 ```mdl
-function "while_example":
-    scoreboard players set @s counter 5
-    while "score @s counter matches 1..":
-        say Counter: @s counter
-        scoreboard players remove @s counter 1
-        say Decremented counter
+function "while_example" {
+    scoreboard players set @s counter 5;
+    while "score @s counter matches 1.." {
+        say Counter: @s counter;
+        scoreboard players remove @s counter 1;
+        say Decremented counter;
+    }
+}
 ```
 
 **Rules:**
 - Conditions must be valid Minecraft selector syntax
-- Commands inside while blocks must be indented with 4 spaces
+- **Explicit block boundaries**: While loops use curly braces `{` and `}`
+- **Statement termination**: All commands must end with semicolons `;`
 - While loops continue until the condition becomes false
 - **Important**: Ensure your loop body modifies the condition to avoid infinite loops
+- **Unlimited nesting**: While loops can be nested to any depth
 - While loops are compiled to separate functions and use recursive calls
 
 **Example with entity condition:**
 
 ```mdl
-function "entity_while":
-    while "entity @e[type=minecraft:zombie,distance=..10]":
-        say Zombie nearby!
-        effect give @e[type=minecraft:zombie,distance=..10,limit=1] minecraft:glowing 5 1
-        say Applied effect to zombie
+function "entity_while" {
+    while "entity @e[type=minecraft:zombie,distance=..10]" {
+        say Zombie nearby!;
+        effect give @e[type=minecraft:zombie,distance=..10,limit=1] minecraft:glowing 5 1;
+        say Applied effect to zombie;
+    }
+}
 ```
 
 ### For Loops
 
-MDL supports for loops for iterating over entity collections:
+MDL supports for loops for iterating over entity collections with unlimited nesting:
 
 ```mdl
-function "for_example":
-    tag @e[type=minecraft:player] add players
-    for player in @e[tag=players]:
-        say Processing player: @s
-        effect give @s minecraft:speed 10 1
-        tellraw @s {"text":"You got speed!","color":"green"}
+function "for_example" {
+    tag @e[type=minecraft:player] add players;
+    for player in @e[tag=players] {
+        say Processing player: @s;
+        effect give @s minecraft:speed 10 1;
+        tellraw @s {"text":"You got speed!","color":"green"};
+    }
+}
 ```
 
 **Rules:**
 - Variable name (e.g., `player`) is used for reference but doesn't affect execution
 - Collection must be a valid Minecraft entity selector
-- Commands inside for blocks must be indented with 4 spaces
+- **Explicit block boundaries**: For loops use curly braces `{` and `}`
+- **Statement termination**: All commands must end with semicolons `;`
 - For loops iterate over each entity in the collection
+- **Unlimited nesting**: For loops can be nested to any depth
 - For loops are compiled to separate functions using `execute as` commands
 
 **Example with complex selector:**
 
 ```mdl
-function "complex_for":
-    for player in @a[gamemode=survival]:
-        say Processing survival player: @s
-        if "entity @s[nbt={SelectedItem:{id:'minecraft:diamond_sword'}}]":
-            say Player has diamond sword!
-            effect give @s minecraft:strength 10 1
-        else:
-            say Player has no diamond sword
-            effect give @s minecraft:haste 5 0
+function "complex_for" {
+    for player in @a[gamemode=survival] {
+        say Processing survival player: @s;
+        if "entity @s[nbt={SelectedItem:{id:'minecraft:diamond_sword'}}]" {
+            say Player has diamond sword!;
+            effect give @s minecraft:strength 10 1;
+        } else {
+            say Player has no diamond sword;
+            effect give @s minecraft:haste 5 0;
+        }
+    }
+}
 ```
 
 **How loops work:**
@@ -318,16 +352,18 @@ This approach ensures proper execution flow and prevents infinite loops while ma
 Functions can call other functions using fully qualified names:
 
 ```mdl
-function "main":
-    say Starting main function
-    function example:helper
-    say Back in main function
+function "main" {
+    say Starting main function;
+    function example:helper;
+    say Back in main function;
+}
 ```
 
 **Rules:**
 - Use the format `namespace:function_name`
 - The called function must exist
 - Cross-namespace calls are supported
+- **Statement termination**: Function calls must end with semicolons `;`
 
 ## Lifecycle Hooks
 
@@ -338,7 +374,7 @@ MDL provides easy ways to hook into Minecraft's lifecycle:
 Runs when the datapack is loaded:
 
 ```mdl
-on_load "namespace:function_name"
+on_load "namespace:function_name";
 ```
 
 ### on_tick
@@ -346,20 +382,22 @@ on_load "namespace:function_name"
 Runs every tick (20 times per second):
 
 ```mdl
-on_tick "namespace:function_name"
+on_tick "namespace:function_name";
 ```
 
 **Example:**
 
 ```mdl
-function "init":
-    say Datapack loaded!
+function "init" {
+    say Datapack loaded!;
+}
 
-function "tick":
-    execute as @a run particle minecraft:end_rod ~ ~ ~ 0.1 0.1 0.1 0.01 1
+function "tick" {
+    execute as @a run particle minecraft:end_rod ~ ~ ~ 0.1 0.1 0.1 0.01 1;
+}
 
-on_load "example:init"
-on_tick "example:tick"
+on_load "example:init";
+on_tick "example:tick";
 ```
 
 ## Tags
@@ -367,9 +405,10 @@ on_tick "example:tick"
 Tags allow your functions to participate in vanilla tag systems:
 
 ```mdl
-tag registry "tag_name":
-    add "namespace:function_name"
-    add "another_namespace:another_function"
+tag registry "tag_name" {
+    add "namespace:function_name";
+    add "another_namespace:another_function";
+}
 ```
 
 **Supported Registries:**
@@ -383,23 +422,27 @@ tag registry "tag_name":
 **Examples:**
 
 ```mdl
-# Function tags
-tag function "minecraft:load":
-    add "example:init"
+// Function tags
+tag function "minecraft:load" {
+    add "example:init";
+}
 
-tag function "minecraft:tick":
-    add "example:tick"
-    add "ui:update_hud"
+tag function "minecraft:tick" {
+    add "example:tick";
+    add "ui:update_hud";
+}
 
-# Item tags
-tag item "example:swords":
-    add "minecraft:diamond_sword"
-    add "minecraft:netherite_sword"
+// Item tags
+tag item "example:swords" {
+    add "minecraft:diamond_sword";
+    add "minecraft:netherite_sword";
+}
 
-# Block tags
-tag block "example:glassy":
-    add "minecraft:glass"
-    add "minecraft:tinted_glass"
+// Block tags
+tag block "example:glassy" {
+    add "minecraft:glass";
+    add "minecraft:tinted_glass";
+}
 ```
 
 ### Tag Replacement
@@ -407,8 +450,9 @@ tag block "example:glassy":
 You can replace existing tags instead of adding to them:
 
 ```mdl
-tag function "minecraft:tick" replace:
-    add "example:my_tick_function"
+tag function "minecraft:tick" replace {
+    add "example:my_tick_function";
+}
 ```
 
 ## Multi-line Commands
@@ -416,11 +460,12 @@ tag function "minecraft:tick" replace:
 Long commands can be split across multiple lines using backslashes:
 
 ```mdl
-function "complex_command":
+function "complex_command" {
     tellraw @a \
         {"text":"This is a very long message",\
          "color":"gold",\
-         "bold":true}
+         "bold":true};
+}
 ```
 
 This compiles to a single line in the `.mcfunction` file.
@@ -430,59 +475,69 @@ This compiles to a single line in the `.mcfunction` file.
 Here's a complete example showing all the features:
 
 ```mdl
-# Complete example datapack
-pack "Example Pack" description "Shows all MDL features" pack_format 48
+// Complete example datapack
+pack "Example Pack" description "Shows all MDL features" pack_format 48;
 
-namespace "core"
+namespace "core";
 
-function "init":
-    say [core:init] Initializing datapack...
-    tellraw @a {"text":"Example Pack loaded!","color":"green"}
+function "init" {
+    say [core:init] Initializing datapack...;
+    tellraw @a {"text":"Example Pack loaded!","color":"green"};
+}
 
-function "tick":
-    say [core:tick] Running core systems...
-    execute as @a run particle minecraft:end_rod ~ ~ ~ 0.1 0.1 0.1 0.01 1
+function "tick" {
+    say [core:tick] Running core systems...;
+    execute as @a run particle minecraft:end_rod ~ ~ ~ 0.1 0.1 0.1 0.01 1;
+}
 
-# Hook into vanilla lifecycle
-on_load "core:init"
-on_tick "core:tick"
+// Hook into vanilla lifecycle
+on_load "core:init";
+on_tick "core:tick";
 
-namespace "combat"
+namespace "combat";
 
-function "weapon_effects":
-    say [combat:weapon_effects] Applying weapon effects...
+function "weapon_effects" {
+    say [combat:weapon_effects] Applying weapon effects...;
     execute as @a[nbt={SelectedItem:{id:"minecraft:diamond_sword"}}] \
-        run effect give @s minecraft:strength 1 0 true
+        run effect give @s minecraft:strength 1 0 true;
+}
 
-function "update_combat":
-    function core:tick
-    function combat:weapon_effects
+function "update_combat" {
+    function core:tick;
+    function combat:weapon_effects;
+}
 
-namespace "ui"
+namespace "ui";
 
-function "hud":
-    say [ui:hud] Updating HUD...
-    title @a actionbar {"text":"Example Pack Active","color":"gold"}
+function "hud" {
+    say [ui:hud] Updating HUD...;
+    title @a actionbar {"text":"Example Pack Active","color":"gold"};
+}
 
-function "update_ui":
-    function ui:hud
-    function combat:update_combat
+function "update_ui" {
+    function ui:hud;
+    function combat:update_combat;
+}
 
-# Function tags
-tag function "minecraft:load":
-    add "core:init"
+// Function tags
+tag function "minecraft:load" {
+    add "core:init";
+}
 
-tag function "minecraft:tick":
-    add "ui:update_ui"
+tag function "minecraft:tick" {
+    add "ui:update_ui";
+}
 
-# Data tags
-tag item "example:swords":
-    add "minecraft:diamond_sword"
-    add "minecraft:netherite_sword"
+// Data tags
+tag item "example:swords" {
+    add "minecraft:diamond_sword";
+    add "minecraft:netherite_sword";
+}
 
-tag block "example:glassy":
-    add "minecraft:glass"
-    add "minecraft:tinted_glass"
+tag block "example:glassy" {
+    add "minecraft:glass";
+    add "minecraft:tinted_glass";
+}
 ```
 
 ## Best Practices
@@ -516,67 +571,115 @@ tag block "example:glassy":
 ### Initialization Pattern
 
 ```mdl
-function "init":
-    # Set up global variables
-    scoreboard objectives add my_objective dummy
-    # Initialize systems
-    function example:setup_combat
-    function example:setup_ui
+function "init" {
+    // Set up global variables
+    scoreboard objectives add my_objective dummy;
+    // Initialize systems
+    function example:setup_combat;
+    function example:setup_ui;
+}
 
-on_load "example:init"
+on_load "example:init";
 ```
 
 ### Tick Pattern
 
 ```mdl
-function "tick":
-    # Update all systems
-    function example:update_combat
-    function example:update_ui
-    function example:update_data
+function "tick" {
+    // Update all systems
+    function example:update_combat;
+    function example:update_ui;
+    function example:update_data;
+}
 
-on_tick "example:tick"
+on_tick "example:tick";
 ```
 
 ### Conditional Execution
 
-MDL provides built-in support for if/else if/else statements:
+MDL provides built-in support for if/else if/else statements with unlimited nesting:
 
 ```mdl
-function "weapon_effects":
-    if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:'minecraft:diamond_sword'}}]":
-        say Diamond sword detected!
-        effect give @s minecraft:strength 10 1
-    else if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:'minecraft:golden_sword'}}]":
-        say Golden sword detected!
-        effect give @s minecraft:speed 10 1
-    else if "entity @s[type=minecraft:player]":
-        say Player without special sword
-        effect give @s minecraft:haste 5 0
-    else:
-        say No player found
+function "weapon_effects" {
+    if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:'minecraft:diamond_sword'}}]" {
+        say Diamond sword detected!;
+        effect give @s minecraft:strength 10 1;
+    } else if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:'minecraft:golden_sword'}}]" {
+        say Golden sword detected!;
+        effect give @s minecraft:speed 10 1;
+    } else if "entity @s[type=minecraft:player]" {
+        say Player without special sword;
+        effect give @s minecraft:haste 5 0;
+    } else {
+        say No player found;
+    }
+}
 ```
 
 This is equivalent to the traditional approach:
 
 ```mdl
-function "weapon_effects_traditional":
-    # Check if player has specific item
+function "weapon_effects_traditional" {
+    // Check if player has specific item
     execute as @a[nbt={SelectedItem:{id:"minecraft:diamond_sword"}}] \
-        run function example:sword_effects
-    # Check if player is in specific dimension
+        run function example:sword_effects;
+    // Check if player is in specific dimension
     execute as @a[dimension=minecraft:the_nether] \
-        run function example:nether_effects
+        run function example:nether_effects;
+}
+```
+
+## Language Implementation
+
+MDL uses a robust JavaScript-style lexer and parser for unlimited nesting support:
+
+### Lexer Features
+- **Token-based parsing**: Converts source code into structured tokens
+- **Explicit boundaries**: Handles curly braces, semicolons, and keywords
+- **Quoted string support**: Properly handles strings with spaces and special characters
+- **Comment handling**: Supports `//` style comments
+- **Keyword recognition**: Identifies all MDL keywords and control structures
+
+### Parser Features
+- **Recursive descent**: Handles unlimited nesting depth
+- **AST generation**: Creates structured Abstract Syntax Trees
+- **Error recovery**: Provides detailed error messages for debugging
+- **Block parsing**: Correctly parses nested blocks and control structures
+
+### Unlimited Nesting Support
+The JavaScript-style parser supports unlimited nesting of:
+- **Conditional blocks**: `if`, `else if`, `else` statements
+- **Loop structures**: `for` and `while` loops
+- **Function calls**: Nested function invocations
+- **Mixed structures**: Any combination of the above
+
+**Example of extreme nesting (29 levels deep):**
+```mdl
+function "extreme_nesting" {
+    for player in @a {
+        if "entity @s[type=minecraft:player]" {
+            for item in @s {
+                while "entity @s[type=minecraft:item]" {
+                    if "entity @s[nbt={Item:{id:'minecraft:diamond'}}]" {
+                        // ... 25 more levels of nesting ...
+                        say This is the deepest level!;
+                    }
+                }
+            }
+        }
+    }
+}
 ```
 
 ## Troubleshooting
 
 ### Common Errors
 
-1. **Indentation errors**: Make sure you're using exactly 4 spaces
-2. **Missing pack declaration**: Single files must have a pack declaration; multi-file projects only need one in the first file
-3. **Duplicate function names**: Function names must be unique within each namespace
-4. **Invalid namespace names**: Use only lowercase letters, numbers, and underscores
+1. **Missing semicolons**: All statements must end with semicolons `;`
+2. **Missing curly braces**: All blocks must use explicit curly braces `{` and `}`
+3. **Missing pack declaration**: Single files must have a pack declaration; multi-file projects only need one in the first file
+4. **Duplicate function names**: Function names must be unique within each namespace
+5. **Invalid namespace names**: Use only lowercase letters, numbers, and underscores
 
 ### Validation
 

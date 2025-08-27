@@ -1,0 +1,32 @@
+pack "complete_example" description "Shows complete translation" pack_format 82;
+
+namespace "demo";
+
+// Global variables
+var num global_counter = 0;
+var str global_message = "Hello World";
+
+function "main" {
+    // Local variables
+    var num local_counter = 10;
+    var str player_name = "Steve";
+    
+    // Variable operations
+    local_counter = local_counter + 5;
+    global_counter = global_counter + 1;
+    
+    // Conditional
+    if "score @s demo:local_counter matches 15" {
+        say Counter is 15!;
+        local_counter = local_counter - 5;
+    }
+    
+    // Loop
+    while "score @s demo:local_counter matches 1.." {
+        say Counter: @s demo:local_counter;
+        local_counter = local_counter - 1;
+    }
+}
+
+// Hook into Minecraft
+on_tick "demo:main";

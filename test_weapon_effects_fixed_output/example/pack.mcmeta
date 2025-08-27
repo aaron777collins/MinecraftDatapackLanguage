@@ -1,0 +1,15 @@
+{
+  "pack": {
+    "description": "Automatically applies effects and particles to players based on their equipped weapon",
+    "min_format": [
+      82,
+      0
+    ],
+    "max_format": [
+      82,
+      1
+    ],
+    "pack_format": 82,
+    "min_engine_version": "1.21.4"
+  }
+}

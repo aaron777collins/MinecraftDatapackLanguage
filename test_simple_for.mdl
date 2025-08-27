@@ -1,0 +1,10 @@
+pack "Simple For Test" description "Testing simple for loop" pack_format 48
+
+namespace "test"
+
+function "simple_for":
+    for player in @a:
+        say Hello player: @s
+        effect give @s minecraft:speed 5 0
+
+on_tick "test:simple_for"

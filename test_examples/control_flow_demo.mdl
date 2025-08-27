@@ -1,0 +1,172 @@
+pack "Control Flow Demo" description "Demonstrates all control flow features" pack_format 82;
+
+namespace "demo";
+
+function "conditional_demo" {
+    var num counter = 5;
+    
+    // If/else if/else statements
+    if "entity @s[type=minecraft:player]" {
+        say Player detected;
+        counter = counter + 1;
+    } else if "entity @s[type=minecraft:zombie]" {
+        say Zombie detected;
+        counter = counter - 1;
+    } else if "entity @s[type=minecraft:creeper]" {
+        say Creeper detected;
+        counter = counter * 2;
+    } else {
+        say Unknown entity;
+        counter = 0;
+    }
+    
+    // Nested conditionals
+    if "score @s demo:counter matches 10.." {
+        if "entity @s[type=minecraft:player]" {
+            say High counter and player;
+            effect give @s minecraft:strength 10 1;
+        } else {
+            say High counter but not player;
+            effect give @s minecraft:speed 10 1;
+        }
+    }
+}
+
+function "loop_demo" {
+    var num countdown = 5;
+    
+    // While loop
+    while "score @s demo:countdown matches 1.." {
+        say Countdown: @s demo:countdown;
+        countdown = countdown - 1;
+    }
+    
+    // For loop with entity iteration
+    for player in @a {
+        say Processing player: @s;
+        effect give @s minecraft:speed 10 1;
+        tellraw @s {"text":"You got speed!","color":"green"};
+    }
+    
+    // Nested loops
+    for player in @a {
+        if "entity @s[type=minecraft:player]" {
+            for item in @s {
+                if "entity @s[type=minecraft:item]" {
+                    say Player has item: @s;
+                }
+            }
+        }
+    }
+}
+
+function "switch_demo" {
+    var num choice = 2;
+    
+    // Switch statement
+    switch choice {
+        case 0:
+            say Choice is zero;
+            break;
+        case 1:
+            say Choice is one;
+            break;
+        case 2:
+            say Choice is two;
+            break;
+        default:
+            say Choice is something else;
+    }
+}
+
+function "error_handling_demo" {
+    // Try-catch blocks
+    try {
+        say Trying risky operation;
+        var num result = 10 / 0;
+        say This should not execute;
+    } catch (error) {
+        say Caught division error: error;
+    }
+    
+    try {
+        say Trying another operation;
+        throw "custom_error";
+    } catch (error) {
+        say Caught custom error: error;
+    }
+    
+    // Nested try-catch
+    try {
+        say Outer try block;
+        try {
+            say Inner try block;
+            throw "inner_error";
+        } catch (inner_error) {
+            say Caught inner error: inner_error;
+        }
+    } catch (outer_error) {
+        say Caught outer error: outer_error;
+    }
+}
+
+function "break_continue_demo" {
+    var num counter = 0;
+    
+    // Break in loops
+    while "score @s demo:counter matches 1..10" {
+        counter = counter + 1;
+        
+        if "score @s demo:counter matches 5" {
+            say Breaking at 5;
+            break;
+        }
+        
+        say Counter: @s demo:counter;
+    }
+    
+    // Continue in loops
+    for i in [1, 2, 3, 4, 5] {
+        if "score @s demo:i matches 3" {
+            say Skipping 3;
+            continue;
+        }
+        say Processing: @s demo:i;
+    }
+}
+
+function "complex_nesting_demo" {
+    var num level = 0;
+    
+    // Extreme nesting example
+    for player in @a {
+        if "entity @s[type=minecraft:player]" {
+            for item in @s {
+                while "entity @s[type=minecraft:item]" {
+                    if "entity @s[nbt={Item:{id:'minecraft:diamond'}}]" {
+                        for nearby in @e[distance=..5] {
+                            if "entity @s[type=minecraft:player]" {
+                                var num nested_counter = 10;
+                                while "score @s demo:nested_counter matches 1.." {
+                                    if "score @s demo:nested_counter matches 5" {
+                                        say Deep nesting works!;
+                                        break;
+                                    }
+                                    nested_counter = nested_counter - 1;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Hook into Minecraft's tick system
+on_tick "demo:conditional_demo";
+on_tick "demo:loop_demo";
+on_tick "demo:switch_demo";
+on_tick "demo:error_handling_demo";
+on_tick "demo:break_continue_demo";
+on_tick "demo:complex_nesting_demo";

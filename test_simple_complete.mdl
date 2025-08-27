@@ -1,0 +1,145 @@
+pack "simple_complete" description "Simple complete language test" pack_format 82;
+
+namespace "simple";
+
+// Global variables
+var num global_counter = 0;
+var str global_message = "Simple Complete Language";
+var list global_items = ["sword", "shield"];
+
+// Function with parameters
+function "calculate_damage" (base_damage, multiplier) {
+    var num final_damage = base_damage * multiplier;
+    return final_damage;
+}
+
+// Function with list operations
+function "process_items" {
+    var list items = ["diamond_sword", "iron_armor"];
+    var num count = 0;
+    
+    // Loop through list items
+    for item in items {
+        count = count + 1;
+        say Processing item @s simple:count;
+    }
+    
+    return count;
+}
+
+// Function with error handling
+function "safe_math" {
+    var num result = 0;
+    
+    try {
+        result = 100 / 2;
+        say Result: @s simple:result;
+    } catch (error) {
+        say Error occurred;
+        result = 0;
+    }
+    
+    return result;
+}
+
+// Function with complex control flow
+function "combat_system" {
+    var num player_health = 100;
+    var num enemy_health = 50;
+    
+    while "score @s simple:player_health > 0" {
+        say Combat round;
+        
+        // Player attacks
+        var num damage = calculate_damage(10, 1.5);
+        enemy_health = enemy_health - damage;
+        say Player deals @s simple:damage damage!;
+        
+        // Check if enemy is defeated
+        if "score @s simple:enemy_health <= 0" {
+            say Enemy defeated!;
+            break;
+        }
+        
+        // Enemy attacks
+        player_health = player_health - 8;
+        say Enemy deals 8 damage!;
+        
+        // Check if player is defeated
+        if "score @s simple:player_health <= 0" {
+            say Player defeated!;
+            break;
+        }
+        
+        continue;
+    }
+    
+    return player_health;
+}
+
+// Function with mathematical operations
+function "complex_math" {
+    var num a = 10;
+    var num b = 5;
+    var num c = 3;
+    
+    // Complex expressions
+    var num result1 = (a + b) * c;
+    var num result2 = a * b + c;
+    var num result3 = a - b;
+    var num result4 = a % b;
+    
+    // Comparison operations
+    if "score @s simple:result1 > 40" {
+        say Math checks out!;
+    }
+    
+    return result1 + result2;
+}
+
+// Function with string operations
+function "string_ops" {
+    var str player_name = "Steve";
+    var str title = "Warrior";
+    var str level = "10";
+    
+    // String concatenation
+    var str full_title = player_name + " the " + title;
+    var str status = "Level " + level + " " + full_title;
+    
+    say @s simple:status;
+    
+    return status;
+}
+
+// Main game loop
+function "main_loop" {
+    var num game_state = 1;
+    var num tick_count = 0;
+    
+    while "score @s simple:game_state == 1" {
+        tick_count = tick_count + 1;
+        
+        if "score @s simple:tick_count == 100" {
+            say Game running for 100 ticks;
+            process_items();
+        } else if "score @s simple:tick_count == 500" {
+            say Game running for 500 ticks;
+            safe_math();
+        } else if "score @s simple:tick_count == 1000" {
+            say Game running for 1000 ticks;
+            combat_system();
+        } else if "score @s simple:tick_count == 2000" {
+            say Game running for 2000 ticks;
+            complex_math();
+            string_ops();
+            game_state = 0;
+        }
+    }
+    
+    say Game completed!;
+    return tick_count;
+}
+
+// Hook into vanilla lifecycle
+on_tick "simple:main_loop";

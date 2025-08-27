@@ -2,78 +2,299 @@
   "Pack Declaration (Format 82+)": {
     "prefix": "pack82",
     "body": [
-      "pack \"${1:Pack Name}\" description \"${2:Description}\" pack_format 82 min_format [82, 0] max_format [82, 1] min_engine_version \"1.21.4\""
+      "pack \"${1:Pack Name}\" description \"${2:Description}\" pack_format 82;"
     ],
     "description": "Pack declaration with format 82+ metadata"
   },
   "Pack Declaration (Legacy)": {
     "prefix": "pack48",
     "body": [
-      "pack \"${1:Pack Name}\" description \"${2:Description}\" pack_format 48"
+      "pack \"${1:Pack Name}\" description \"${2:Description}\" pack_format 48;"
     ],
     "description": "Pack declaration with legacy format 48"
   },
   "Namespace": {
     "prefix": "namespace",
     "body": [
-      "namespace \"${1:namespace}\""
+      "namespace \"${1:namespace}\";"
     ],
     "description": "Namespace declaration"
   },
   "Function": {
     "prefix": "function",
     "body": [
-      "function \"${1:function_name}\":",
-      "    ${2:command}"
+      "function \"${1:function_name}\" {",
+      "    ${2:command};",
+      "}"
     ],
     "description": "Function declaration"
+  },
+  "Variable Declaration": {
+    "prefix": "var",
+    "body": [
+      "var ${1:num|str|list} ${2:variable_name} = ${3:value};"
+    ],
+    "description": "Variable declaration"
+  },
+  "Number Variable": {
+    "prefix": "varnum",
+    "body": [
+      "var num ${1:variable_name} = ${2:0};"
+    ],
+    "description": "Number variable declaration"
+  },
+  "String Variable": {
+    "prefix": "varstr",
+    "body": [
+      "var str ${1:variable_name} = \"${2:value}\";"
+    ],
+    "description": "String variable declaration"
+  },
+  "List Variable": {
+    "prefix": "varlist",
+    "body": [
+      "var list ${1:variable_name} = [${2:item1}, ${3:item2}];"
+    ],
+    "description": "List variable declaration"
   },
   "While Loop": {
     "prefix": "while",
     "body": [
-      "while \"${1:condition}\":",
-      "    ${2:command}"
+      "while \"${1:condition}\" {",
+      "    ${2:command};",
+      "}"
     ],
     "description": "While loop"
   },
   "For Loop": {
     "prefix": "for",
     "body": [
-      "for ${1:variable} in ${2:@e[tag=collection]}:",
-      "    ${3:command}"
+      "for ${1:variable} in ${2:@e[tag=collection]} {",
+      "    ${3:command};",
+      "}"
     ],
     "description": "For loop"
   },
   "If Statement": {
     "prefix": "if",
     "body": [
-      "if \"${1:condition}\":",
-      "    ${2:command}"
+      "if \"${1:condition}\" {",
+      "    ${2:command};",
+      "}"
     ],
     "description": "If statement"
   },
   "If-Else Statement": {
     "prefix": "ifelse",
     "body": [
-      "if \"${1:condition}\":",
-      "    ${2:command}",
-      "else:",
-      "    ${3:command}"
+      "if \"${1:condition}\" {",
+      "    ${2:command};",
+      "} else {",
+      "    ${3:command};",
+      "}"
     ],
     "description": "If-else statement"
+  },
+  "If-Else If-Else Statement": {
+    "prefix": "ifelseif",
+    "body": [
+      "if \"${1:condition}\" {",
+      "    ${2:command};",
+      "} else if \"${3:condition}\" {",
+      "    ${4:command};",
+      "} else {",
+      "    ${5:command};",
+      "}"
+    ],
+    "description": "If-else if-else statement"
+  },
+  "Switch Statement": {
+    "prefix": "switch",
+    "body": [
+      "switch (${1:expression}) {",
+      "    case ${2:value}:",
+      "        ${3:command};",
+      "        break;",
+      "    default:",
+      "        ${4:command};",
+      "        break;",
+      "}"
+    ],
+    "description": "Switch statement"
+  },
+  "Try-Catch Block": {
+    "prefix": "trycatch",
+    "body": [
+      "try {",
+      "    ${1:command};",
+      "} catch (${2:error}) {",
+      "    ${3:error_handling};",
+      "}"
+    ],
+    "description": "Try-catch error handling"
+  },
+  "Throw Statement": {
+    "prefix": "throw",
+    "body": [
+      "throw \"${1:error_message}\";"
+    ],
+    "description": "Throw error statement"
+  },
+  "Break Statement": {
+    "prefix": "break",
+    "body": [
+      "break;"
+    ],
+    "description": "Break statement"
+  },
+  "Continue Statement": {
+    "prefix": "continue",
+    "body": [
+      "continue;"
+    ],
+    "description": "Continue statement"
+  },
+  "Return Statement": {
+    "prefix": "return",
+    "body": [
+      "return ${1:value};"
+    ],
+    "description": "Return statement"
+  },
+  "Import Statement": {
+    "prefix": "import",
+    "body": [
+      "import ${1:module} from \"${2:path}\";"
+    ],
+    "description": "Import statement"
+  },
+  "Import As": {
+    "prefix": "importas",
+    "body": [
+      "import ${1:module} as ${2:alias} from \"${3:path}\";"
+    ],
+    "description": "Import with alias"
   },
   "On Tick Hook": {
     "prefix": "ontick",
     "body": [
-      "on_tick \"${1:namespace:function}\""
+      "on_tick \"${1:namespace:function}\";"
     ],
     "description": "On tick hook"
   },
   "On Load Hook": {
     "prefix": "onload",
     "body": [
-      "on_load \"${1:namespace:function}\""
+      "on_load \"${1:namespace:function}\";"
     ],
     "description": "On load hook"
+  },
+  "Tag Declaration": {
+    "prefix": "tag",
+    "body": [
+      "tag \"${1:function|item|block}\" \"${2:tag_name}\" values [${3:value1}, ${4:value2}];"
+    ],
+    "description": "Tag declaration"
+  },
+  "Execute Command": {
+    "prefix": "execute",
+    "body": [
+      "execute ${1:if|unless} ${2:condition} run ${3:command};"
+    ],
+    "description": "Execute command"
+  },
+  "Say Command": {
+    "prefix": "say",
+    "body": [
+      "say ${1:message};"
+    ],
+    "description": "Say command"
+  },
+  "Tellraw Command": {
+    "prefix": "tellraw",
+    "body": [
+      "tellraw @a {\"text\":\"${1:message}\",\"color\":\"${2:white}\"};"
+    ],
+    "description": "Tellraw command"
+  },
+  "Effect Command": {
+    "prefix": "effect",
+    "body": [
+      "effect give @a minecraft:${1:effect} ${2:duration} ${3:amplifier};"
+    ],
+    "description": "Effect command"
+  },
+  "Particle Command": {
+    "prefix": "particle",
+    "body": [
+      "particle minecraft:${1:particle} ~ ~ ~ ${2:dx} ${3:dy} ${4:dz} ${5:speed} ${6:count};"
+    ],
+    "description": "Particle command"
+  },
+  "Scoreboard Command": {
+    "prefix": "scoreboard",
+    "body": [
+      "scoreboard players ${1:set|add|remove} @s ${2:objective} ${3:value};"
+    ],
+    "description": "Scoreboard command"
+  },
+  "Function Call": {
+    "prefix": "function",
+    "body": [
+      "function ${1:namespace:function};"
+    ],
+    "description": "Function call"
+  },
+  "Comment Block": {
+    "prefix": "comment",
+    "body": [
+      "/*",
+      " * ${1:comment}",
+      " */"
+    ],
+    "description": "Comment block"
+  },
+  "Single Line Comment": {
+    "prefix": "//",
+    "body": [
+      "// ${1:comment}"
+    ],
+    "description": "Single line comment"
+  },
+  "Complete Example": {
+    "prefix": "example",
+    "body": [
+      "pack \"${1:Example Pack}\" description \"${2:Example description}\" pack_format 82;",
+      "",
+      "namespace \"${3:example}\";",
+      "",
+      "// Global variables",
+      "var num global_counter = 0;",
+      "var str global_message = \"Hello World\";",
+      "",
+      "function \"init\" {",
+      "    say Initializing...;",
+      "    global_counter = 0;",
+      "    global_message = \"Initialized\";",
+      "}",
+      "",
+      "function \"tick\" {",
+      "    global_counter = global_counter + 1;",
+      "    ",
+      "    if \"score @s ${3:global_counter} matches 10\" {",
+      "        say Counter reached 10!;",
+      "        global_counter = 0;",
+      "    }",
+      "    ",
+      "    for player in @a {",
+      "        effect give @s minecraft:speed 1 0;",
+      "    }",
+      "}",
+      "",
+      "// Lifecycle hooks",
+      "on_load \"${3:init}\";",
+      "on_tick \"${3:tick}\";"
+    ],
+    "description": "Complete MDL example with all features"
   }
 }

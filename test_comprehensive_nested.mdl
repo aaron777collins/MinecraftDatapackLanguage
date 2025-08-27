@@ -1,0 +1,300 @@
+pack "comprehensive" description "Comprehensive nested test" pack_format 82;
+
+namespace "core";
+
+// Core initialization function
+function "init" {
+    say [core:init] Initializing comprehensive datapack...;
+    tellraw @a {"text":"Comprehensive Pack loaded!","color":"green"};
+    scoreboard objectives add comprehensive_counter dummy;
+    scoreboard players set @a comprehensive_counter 0;
+}
+
+// Core tick function
+function "tick" {
+    say [core:tick] Running core systems...;
+    execute as @a run particle minecraft:end_rod ~ ~ ~ 0.1 0.1 0.1 0.01 1;
+}
+
+// Hook into vanilla lifecycle
+on_load "core:init";
+on_tick "core:tick";
+
+namespace "combat";
+
+// Helper functions for combat system
+function "weapon_check" {
+    say Checking weapon type...;
+    effect give @s minecraft:strength 10 0;
+}
+
+function "armor_check" {
+    say Checking armor...;
+    effect give @s minecraft:resistance 10 0;
+}
+
+function "combat_effects" {
+    say Applying combat effects...;
+    particle minecraft:firework ~ ~1 ~ 0.3 0.3 0.3 0.05 3;
+}
+
+// Main weapon effects with nested conditionals
+function "weapon_effects" {
+    say [combat:weapon_effects] Applying weapon effects...;
+    
+    // Level 1: For loop over all players
+    for player in @a {
+        // Level 2: If statement for diamond sword
+        if "entity @s[nbt={SelectedItem:{id:'minecraft:diamond_sword'}}]" {
+            say Diamond sword detected!;
+            effect give @s minecraft:strength 10 1;
+            effect give @s minecraft:glowing 10 0;
+            particle minecraft:enchanted_hit ~ ~1 ~ 0.5 0.5 0.5 0.1 10;
+            
+            // Level 3: While loop for health check
+            while "entity @s[health=20.0]" {
+                // Level 4: If statement for gamemode
+                if "entity @s[gamemode=survival]" {
+                    say Healthy survival player with diamond sword: @s;
+                    function combat:weapon_check;
+                    
+                    // Level 5: For loop over nearby entities
+                    for entity in @e[type=minecraft:area_effect_cloud,distance=..5] {
+                        // Level 6: If statement for cloud type
+                        if "entity @s[type=minecraft:area_effect_cloud]" {
+                            say Processing cloud: @s;
+                            particle minecraft:smoke ~ ~ ~ 0.2 0.2 0.2 0.05 3;
+                            
+                            // Level 7: While loop for cloud duration
+                            while "entity @s[type=minecraft:area_effect_cloud]" {
+                                // Level 8: If statement for cloud age
+                                if "entity @s[nbt={Age:0}]" {
+                                    say New cloud detected!;
+                                    effect give @s minecraft:night_vision 5 0;
+                                } else {
+                                    say Old cloud detected!;
+                                    effect give @s minecraft:blindness 5 0;
+                                }
+                            }
+                        } else {
+                            say Not a cloud entity!;
+                            effect give @s minecraft:levitation 5 0;
+                        }
+                    }
+                } else {
+                    say Creative player with diamond sword: @s;
+                    effect give @s minecraft:night_vision 10 0;
+                }
+            }
+        } else if "entity @s[nbt={SelectedItem:{id:'minecraft:golden_sword'}}]" {
+            say Golden sword detected!;
+            effect give @s minecraft:speed 10 1;
+            effect give @s minecraft:night_vision 10 0;
+            particle minecraft:firework ~ ~1 ~ 0.3 0.3 0.3 0.05 5;
+            
+            // Level 3: For loop over nearby items
+            for item in @e[type=minecraft:item,distance=..3] {
+                // Level 4: If statement for item type
+                if "entity @s[type=minecraft:item]" {
+                    say Processing nearby item: @s;
+                    
+                    // Level 5: While loop for item processing
+                    while "entity @s[type=minecraft:item]" {
+                        // Level 6: If statement for item NBT
+                        if "entity @s[nbt={Item:{id:'minecraft:gold_ingot'}}]" {
+                            say Found gold ingot!;
+                            function combat:combat_effects;
+                        } else {
+                            say Not a gold ingot!;
+                            effect give @s minecraft:haste 5 0;
+                        }
+                    }
+                }
+            }
+        } else if "entity @s[nbt={SelectedItem:{id:'minecraft:netherite_sword'}}]" {
+            say Netherite sword detected!;
+            effect give @s minecraft:resistance 10 1;
+            effect give @s minecraft:fire_resistance 10 0;
+            particle minecraft:flame ~ ~1 ~ 0.4 0.4 0.4 0.1 8;
+        } else if "entity @s[nbt={SelectedItem:{id:'minecraft:iron_sword'}}]" {
+            say Iron sword detected!;
+            effect give @s minecraft:haste 10 0;
+            particle minecraft:crit ~ ~1 ~ 0.3 0.3 0.3 0.05 3;
+        } else if "entity @s[nbt={SelectedItem:{id:'minecraft:wooden_sword'}}]" {
+            say Wooden sword detected!;
+            effect give @s minecraft:jump_boost 10 0;
+            particle minecraft:cloud ~ ~1 ~ 0.2 0.2 0.2 0.05 2;
+        } else {
+            say No special sword detected!;
+            effect give @s minecraft:haste 5 0;
+        }
+    }
+}
+
+// Combat update function
+function "update_combat" {
+    function core:tick;
+    function combat:weapon_effects;
+}
+
+namespace "ui";
+
+// UI helper functions
+function "hud_update" {
+    say Updating HUD...;
+    title @a actionbar {"text":"Comprehensive Pack Active","color":"gold"};
+}
+
+function "particle_effects" {
+    say Creating UI particles...;
+    particle minecraft:end_rod ~ ~ ~ 0.1 0.1 0.1 0.01 1;
+}
+
+// Main HUD function with nested loops
+function "hud" {
+    say [ui:hud] Updating HUD...;
+    
+    // Level 1: For loop over all players
+    for player in @a {
+        // Level 2: If statement for player state
+        if "entity @s[type=minecraft:player]" {
+            say Updating HUD for player: @s;
+            function ui:hud_update;
+            
+            // Level 3: While loop for continuous updates
+            while "entity @s[type=minecraft:player]" {
+                // Level 4: If statement for player health
+                if "entity @s[health=20.0]" {
+                    say Player at full health!;
+                    function ui:particle_effects;
+                    
+                    // Level 5: For loop over nearby particles
+                    for particle in @e[type=minecraft:area_effect_cloud,distance=..2] {
+                        // Level 6: If statement for particle type
+                        if "entity @s[type=minecraft:area_effect_cloud]" {
+                            say Processing UI particle: @s;
+                            
+                            // Level 7: While loop for particle effects
+                            while "entity @s[type=minecraft:area_effect_cloud]" {
+                                // Level 8: If statement for particle age
+                                if "entity @s[nbt={Age:0}]" {
+                                    say New UI particle!;
+                                    particle minecraft:firework ~ ~ ~ 0.2 0.2 0.2 0.05 2;
+                                } else {
+                                    say Old UI particle!;
+                                    particle minecraft:smoke ~ ~ ~ 0.1 0.1 0.1 0.01 1;
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    say Player not at full health!;
+                    effect give @s minecraft:glowing 5 0;
+                }
+            }
+        } else {
+            say Not a player entity!;
+            effect give @s minecraft:poison 5 0;
+        }
+    }
+}
+
+// UI update function
+function "update_ui" {
+    function ui:hud;
+    function combat:update_combat;
+}
+
+namespace "data";
+
+// Data management functions
+function "data_cleanup" {
+    say Cleaning up data...;
+    kill @e[type=minecraft:area_effect_cloud,age=6000];
+}
+
+function "data_backup" {
+    say Backing up data...;
+    scoreboard players operation @a backup_counter = @a comprehensive_counter;
+}
+
+// Main data management with nested conditionals
+function "data_management" {
+    say [data:data_management] Managing data...;
+    
+    // Level 1: For loop over all entities
+    for entity in @e {
+        // Level 2: If statement for entity type
+        if "entity @s[type=minecraft:player]" {
+            say Managing player data: @s;
+            function data:data_backup;
+            
+            // Level 3: While loop for data processing
+            while "entity @s[type=minecraft:player]" {
+                // Level 4: If statement for player score
+                if "score @s comprehensive_counter matches 100.." {
+                    say High score player detected!;
+                    effect give @s minecraft:glowing 10 0;
+                    
+                    // Level 5: For loop over player inventory
+                    for item in @s {
+                        // Level 6: If statement for item type
+                        if "entity @s[type=minecraft:item]" {
+                            say Processing player item: @s;
+                            
+                            // Level 7: While loop for item processing
+                            while "entity @s[type=minecraft:item]" {
+                                // Level 8: If statement for item value
+                                if "entity @s[nbt={Item:{id:'minecraft:diamond'}}]" {
+                                    say Valuable item found!;
+                                    function data:data_backup;
+                                } else {
+                                    say Regular item found!;
+                                    effect give @s minecraft:haste 5 0;
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    say Regular score player!;
+                    effect give @s minecraft:haste 5 0;
+                }
+            }
+        } else if "entity @s[type=minecraft:item]" {
+            say Managing item data: @s;
+            function data:data_cleanup;
+        } else {
+            say Managing other entity data: @s;
+        }
+    }
+}
+
+// Data update function
+function "update_data" {
+    function data:data_management;
+}
+
+// Function tags
+tag function "minecraft:load" {
+    add "core:init";
+}
+
+tag function "minecraft:tick" {
+    add "ui:update_ui";
+    add "data:update_data";
+}
+
+// Data tags
+tag item "comprehensive:swords" {
+    add "minecraft:diamond_sword";
+    add "minecraft:golden_sword";
+    add "minecraft:netherite_sword";
+    add "minecraft:iron_sword";
+    add "minecraft:wooden_sword";
+}
+
+tag block "comprehensive:glassy" {
+    add "minecraft:glass";
+    add "minecraft:tinted_glass";
+    add "minecraft:stained_glass";
+}

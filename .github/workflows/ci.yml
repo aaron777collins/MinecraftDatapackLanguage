@@ -38,6 +38,118 @@ jobs:
         run: |
           python -m build
 
+      - name: Test MDL JavaScript-style Parser
+        run: |
+          echo "Testing MDL JavaScript-style parser..."
+          python test_comprehensive_suite.py
+
+      - name: Test End-to-End Pipeline
+        run: |
+          echo "Testing end-to-end pipeline..."
+          python test_e2e_comprehensive.py
+
+      - name: Test Python API
+        run: |
+          echo "Testing Python API functionality..."
+          python -c "
+          from minecraft_datapack_language import Pack
+          p = Pack('test', 'Test pack', 82)
+          ns = p.namespace('test')
+          ns.function('test_func', 'say Hello World')
+          print('✅ Python API test passed')
+          "
+
+      - name: Test MDL Parsing
+        run: |
+          echo "Testing MDL parsing..."
+          python -c "
+          from minecraft_datapack_language.mdl_parser_js import parse_mdl_js
+          mdl = '''pack \"test\" description \"Test\" pack_format 82;
+          namespace \"test\";
+          function \"hello\" {
+              say Hello World;
+          }'''
+          ast = parse_mdl_js(mdl)
+          print('✅ MDL parsing test passed')
+          print(f'Parsed {len(ast[\"functions\"])} functions')
+          "
+
+      - name: Test Variable System
+        run: |
+          echo "Testing variable system..."
+          python -c "
+          from minecraft_datapack_language.mdl_parser_js import parse_mdl_js
+          mdl = '''pack \"test\" description \"Test\" pack_format 82;
+          namespace \"test\";
+          var num counter = 0;
+          function \"demo\" {
+              var num local = 10;
+              counter = counter + 1;
+          }'''
+          ast = parse_mdl_js(mdl)
+          print('✅ Variable system test passed')
+          "
+
+      - name: Test Control Flow
+        run: |
+          echo "Testing control flow..."
+          python -c "
+          from minecraft_datapack_language.mdl_parser_js import parse_mdl_js
+          mdl = '''pack \"test\" description \"Test\" pack_format 82;
+          namespace \"test\";
+          function \"demo\" {
+              if \"entity @s[type=minecraft:player]\" {
+                  say Player detected;
+              }
+              while \"score @s counter matches 1..\" {
+                  say Counter: @s counter;
+              }
+          }'''
+          ast = parse_mdl_js(mdl)
+          print('✅ Control flow test passed')
+          "
+
+      - name: Test Complex Nesting
+        run: |
+          echo "Testing complex nesting..."
+          python -c "
+          from minecraft_datapack_language.mdl_parser_js import parse_mdl_js
+          mdl = '''pack \"test\" description \"Test\" pack_format 82;
+          namespace \"test\";
+          function \"demo\" {
+              for player in @a {
+                  if \"entity @s[type=minecraft:player]\" {
+                      for item in @s {
+                          if \"entity @s[type=minecraft:item]\" {
+                              say Deep nesting works!;
+                          }
+                      }
+                  }
+              }
+          }'''
+          ast = parse_mdl_js(mdl)
+          print('✅ Complex nesting test passed')
+          "
+
+      - name: Test Error Handling
+        run: |
+          echo "Testing error handling..."
+          python -c "
+          from minecraft_datapack_language.mdl_parser_js import parse_mdl_js
+          mdl = '''pack \"test\" description \"Test\" pack_format 82;
+          namespace \"test\";
+          function \"demo\" {
+              try {
+                  say Trying operation;
+                  throw \"test_error\";
+              } catch (error) {
+                  say Caught error: error;
+              }
+          }'''
+          ast = parse_mdl_js(mdl)
+          print('✅ Error handling test passed')
+          "
+
       - name: Smoke test (tools/smoke_test.py)
         run: |
           python tools/smoke_test.py

@@ -1,0 +1,139 @@
+pack "variables_test" description "Test variable system" pack_format 82;
+
+namespace "vars";
+
+// Global variables (stored in scoreboard)
+var num global_counter = 0;
+var str global_message = "Hello World";
+const num MAX_PLAYERS = 10;
+
+function "variable_demo" {
+    // Local variables (function scope)
+    var num local_counter = 5;
+    var str player_name = "Steve";
+    let num temp_value = 0;
+    
+    // Variable assignments and operations
+    local_counter = local_counter + 1;
+    temp_value = local_counter * 2;
+    global_counter = global_counter + temp_value;
+    
+    // String operations
+    player_name = "Alex";
+    global_message = "Updated message";
+    
+    // Conditional with variables
+    if "score @s vars:local_counter matches 5.." {
+        say Counter is 5 or higher!;
+        local_counter = local_counter - 1;
+    }
+    
+    // Loop with variables
+    while "score @s vars:local_counter matches 1.." {
+        say Counter: @s vars:local_counter;
+        local_counter = local_counter - 1;
+        global_counter = global_counter + 1;
+    }
+    
+    // For loop with variables
+    for player in @a {
+        var num player_score = 0;
+        player_score = 10;
+        
+        if "score @s vars:player_score matches 10" {
+            say Player has max score!;
+            player_score = player_score + 5;
+        }
+    }
+}
+
+function "math_operations" {
+    // Mathematical operations
+    var num a = 10;
+    var num b = 5;
+    var num result = 0;
+    
+    result = a + b;  // 15
+    result = a - b;  // 5
+    result = a * b;  // 50
+    result = a / b;  // 2
+    result = a % b;  // 0
+    
+    // Complex expressions
+    result = (a + b) * 2;  // 30
+    result = a * b + 10;   // 60
+    
+    // String variables
+    var str greeting = "Hello";
+    var str name = "Player";
+    var str message = greeting + " " + name;
+}
+
+function "nested_scopes" {
+    // Outer scope variable
+    var num outer_var = 100;
+    
+    // First nested block
+    if "entity @s[type=minecraft:player]" {
+        var num inner_var = 50;
+        outer_var = outer_var + inner_var;
+        
+        // Deeper nesting
+        if "score @s vars:inner_var matches 50" {
+            var num deep_var = 25;
+            inner_var = inner_var + deep_var;
+            outer_var = outer_var + deep_var;
+        }
+    }
+    
+    // Second nested block (separate scope)
+    if "entity @s[type=minecraft:player]" {
+        var num inner_var = 75;  // Different variable, same name
+        outer_var = outer_var + inner_var;
+    }
+}
+
+function "array_simulation" {
+    // Simulate arrays using multiple variables
+    var num array_0 = 10;
+    var num array_1 = 20;
+    var num array_2 = 30;
+    var num array_3 = 40;
+    var num array_4 = 50;
+    
+    // Loop through "array"
+    var num index = 0;
+    while "score @s vars:index matches 0..4" {
+        // Access array element (simplified)
+        if "score @s vars:index matches 0" {
+            say Array[0] = @s vars:array_0;
+        } else if "score @s vars:index matches 1" {
+            say Array[1] = @s vars:array_1;
+        } else if "score @s vars:index matches 2" {
+            say Array[2] = @s vars:array_2;
+        } else if "score @s vars:index matches 3" {
+            say Array[3] = @s vars:array_3;
+        } else if "score @s vars:index matches 4" {
+            say Array[4] = @s vars:array_4;
+        }
+        
+        index = index + 1;
+    }
+}
+
+function "string_operations" {
+    // String variables
+    var str first_name = "John";
+    var str last_name = "Doe";
+    var str full_name = first_name + " " + last_name;
+    
+    // String concatenation
+    var str greeting = "Hello";
+    var str message = greeting + ", " + full_name + "!";
+    
+    // String with numbers
+    var num age = 25;
+    var str age_message = "Age: " + age;
+}
+
+on_tick "vars:variable_demo";

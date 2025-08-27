@@ -61,8 +61,180 @@ class Namespace:
     def function(self, name: str, *commands: str) -> Function:
         fn = self.functions.setdefault(name, Function(name, []))
         if commands:
-            fn.commands.extend([c.strip() for c in commands if c.strip()])
+            # Process control flow immediately when commands are added
+            processed_commands = self._process_control_flow(name, commands)
+            fn.commands.extend(processed_commands)
         return fn
+    
+    def _process_control_flow(self, func_name: str, commands: List[str]) -> List[str]:
+        """Process conditional blocks and loops in function commands and generate appropriate Minecraft commands."""
+        import re
+        
+        processed_commands = []
+        i = 0
+        
+        while i < len(commands):
+            cmd = commands[i].strip()
+            
+            # Check for if statement
+            if_match = re.match(r'^if\s+"([^"]+)"\s*:\s*$', cmd)
+            if if_match:
+                condition = if_match.group(1)
+                if_commands = []
+                i += 1
+                
+                # Collect commands for this if block (until next conditional or end)
+                while i < len(commands):
+                    next_cmd = commands[i].strip()
+                    # Stop if we hit another conditional or end of commands
+                    if (re.match(r'^else\s+if\s+"', next_cmd) or 
+                        next_cmd == "else:" or 
+                        re.match(r'^if\s+"', next_cmd) or
+                        re.match(r'^while\s+"', next_cmd) or
+                        re.match(r'^for\s+', next_cmd)):
+                        break
+                    if next_cmd:  # Skip empty lines
+                        if_commands.append(next_cmd)
+                    i += 1
+                
+                # Generate conditional function
+                conditional_func_name = f"{func_name}_if_{len(processed_commands)}"
+                self.function(conditional_func_name, *if_commands)
+                
+                # Add conditional execution command
+                processed_commands.append(f"execute if {condition} run function {self.name}:{conditional_func_name}")
+                continue
+            
+            # Check for else if statement
+            elif_match = re.match(r'^else\s+if\s+"([^"]+)"\s*:\s*$', cmd)
+            if elif_match:
+                condition = elif_match.group(1)
+                elif_commands = []
+                i += 1
+                
+                # Collect commands for this else if block
+                while i < len(commands):
+                    next_cmd = commands[i].strip()
+                    if (re.match(r'^else\s+if\s+"', next_cmd) or 
+                        next_cmd == "else:" or 
+                        re.match(r'^if\s+"', next_cmd) or
+                        re.match(r'^while\s+"', next_cmd) or
+                        re.match(r'^for\s+', next_cmd)):
+                        break
+                    if next_cmd:
+                        elif_commands.append(next_cmd)
+                    i += 1
+                
+                # Generate else if function
+                elif_func_name = f"{func_name}_elif_{len(processed_commands)}"
+                self.function(elif_func_name, *elif_commands)
+                
+                # Add else if execution command
+                processed_commands.append(f"execute if {condition} run function {self.name}:{elif_func_name}")
+                continue
+            
+            # Check for else statement
+            elif cmd == "else:":
+                else_commands = []
+                i += 1
+                
+                # Collect commands for this else block
+                while i < len(commands):
+                    next_cmd = commands[i].strip()
+                    if (re.match(r'^if\s+"', next_cmd) or
+                        re.match(r'^while\s+"', next_cmd) or
+                        re.match(r'^for\s+', next_cmd)):
+                        break
+                    if next_cmd:
+                        else_commands.append(next_cmd)
+                    i += 1
+                
+                # Generate else function
+                else_func_name = f"{func_name}_else_{len(processed_commands)}"
+                self.function(else_func_name, *else_commands)
+                
+                # Add else execution command
+                processed_commands.append(f"execute run function {self.name}:{else_func_name}")
+                continue
+            
+            # Check for while loop
+            while_match = re.match(r'^while\s+"([^"]+)"\s*:\s*$', cmd)
+            if while_match:
+                condition = while_match.group(1)
+                loop_commands = []
+                i += 1
+                
+                # Collect commands for this while block
+                while i < len(commands):
+                    next_cmd = commands[i].strip()
+                    if (re.match(r'^if\s+"', next_cmd) or
+                        re.match(r'^while\s+"', next_cmd) or
+                        re.match(r'^for\s+', next_cmd)):
+                        break
+                    if next_cmd:
+                        loop_commands.append(next_cmd)
+                    i += 1
+                
+                # Generate while loop function
+                loop_func_name = f"{func_name}_while_{len(processed_commands)}"
+                self.function(loop_func_name, *loop_commands)
+                
+                # Generate while loop control function
+                loop_control_func_name = f"{func_name}_while_control_{len(processed_commands)}"
+                loop_control_commands = [
+                    f"execute if {condition} run function {self.name}:{loop_func_name}",
+                    f"execute if {condition} run function {self.name}:{loop_control_func_name}"
+                ]
+                self.function(loop_control_func_name, *loop_control_commands)
+                
+                # Add initial while loop call
+                processed_commands.append(f"execute if {condition} run function {self.name}:{loop_control_func_name}")
+                continue
+            
+            # Check for for loop
+            for_match = re.match(r'^for\s+(\w+)\s+in\s+(.+?)\s*:\s*$', cmd)
+            if for_match:
+                var_name = for_match.group(1)
+                collection_name = for_match.group(2)
+                loop_commands = []
+                i += 1
+                
+                # Collect ALL commands for this for block (including nested control structures)
+                while i < len(commands):
+                    next_cmd = commands[i].strip()
+                    # Stop if we hit another top-level control structure
+                    if (re.match(r'^if\s+"', next_cmd) or
+                        re.match(r'^else\s+if\s+"', next_cmd) or
+                        next_cmd == "else:" or
+                        re.match(r'^while\s+"', next_cmd) or
+                        re.match(r'^for\s+', next_cmd)):
+                        break
+                    if next_cmd:  # Skip empty lines
+                        loop_commands.append(next_cmd)
+                    i += 1
+                
+                # Generate for loop function with processed conditionals
+                for_func_name = f"{func_name}_for_{len(processed_commands)}"
+                # Process the loop body commands to handle conditionals
+                processed_loop_commands = self._process_control_flow(for_func_name, loop_commands)
+                self.function(for_func_name, *processed_loop_commands)
+                
+                # Generate for loop control function that iterates through collection
+                for_control_func_name = f"{func_name}_for_control_{len(processed_commands)}"
+                for_control_commands = [
+                    f"execute as {collection_name} run function {self.name}:{for_func_name}"
+                ]
+                self.function(for_control_func_name, *for_control_commands)
+                
+                # Add initial for loop call
+                processed_commands.append(f"execute if entity {collection_name} run function {self.name}:{for_control_func_name}")
+                continue
+            
+            # Regular command
+            processed_commands.append(cmd)
+            i += 1
+        
+        return processed_commands
 
     def recipe(self, name: str, data: dict) -> Recipe:
         r = Recipe(name, data)
@@ -295,23 +467,25 @@ class Pack:
                 loop_commands = []
                 i += 1
                 
-                # Collect commands for this for block (until end or next control structure)
+                # Collect commands for this for block (including nested control structures)
                 while i < len(commands):
                     next_cmd = commands[i].strip()
-                    # Stop if we hit another control structure
+                    # Stop if we hit another top-level control structure (same indentation level)
                     if (re.match(r'^if\s+"', next_cmd) or
                         re.match(r'^else\s+if\s+"', next_cmd) or
                         next_cmd == "else:" or
                         re.match(r'^while\s+"', next_cmd) or
-                        re.match(r'^for\s+', next_cmd)):
+                        re.match(r'^for\s+', next_cmd)) and not next_cmd.startswith('    '):
                         break
                     if next_cmd:  # Skip empty lines
                         loop_commands.append(next_cmd)
                     i += 1
                 
-                # Generate for loop function
+                # Generate for loop function with processed conditionals
                 for_func_name = f"{func_name}_for_{len(processed_commands)}"
-                self.namespace(ns_name).function(for_func_name, *loop_commands)
+                # Process the loop body commands to handle conditionals
+                processed_loop_commands = self._process_conditionals(loop_commands, for_func_name, ns_name)
+                self.namespace(ns_name).function(for_func_name, *processed_loop_commands)
                 
                 # Generate for loop control function that iterates through collection
                 for_control_func_name = f"{func_name}_for_control_{len(processed_commands)}"

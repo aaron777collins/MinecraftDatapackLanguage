@@ -1,0 +1,28 @@
+pack "weapon_effects" description "Simple weapon effects test" pack_format 82;
+
+namespace "weapon";
+
+function "weapon_effects" {
+    for player in @a {
+        if "entity @s[nbt={SelectedItem:{id:'minecraft:diamond_sword'}}]" {
+            say Diamond sword detected!;
+            effect give @s minecraft:strength 10 1;
+            effect give @s minecraft:glowing 10 0;
+            particle minecraft:enchanted_hit ~ ~1 ~ 0.5 0.5 0.5 0.1 10;
+        } else if "entity @s[nbt={SelectedItem:{id:'minecraft:golden_sword'}}]" {
+            say Golden sword detected!;
+            effect give @s minecraft:speed 10 1;
+            effect give @s minecraft:night_vision 10 0;
+            particle minecraft:firework ~ ~1 ~ 0.3 0.3 0.3 0.05 5;
+        } else if "entity @s[nbt={SelectedItem:{id:'minecraft:iron_sword'}}]" {
+            say Iron sword detected!;
+            effect give @s minecraft:haste 10 0;
+            particle minecraft:crit ~ ~1 ~ 0.3 0.3 0.3 0.05 3;
+        } else {
+            say No special sword detected!;
+            effect give @s minecraft:haste 5 0;
+        }
+    }
+}
+
+on_tick "weapon:weapon_effects";

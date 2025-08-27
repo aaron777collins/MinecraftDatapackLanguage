@@ -1,0 +1,37 @@
+pack "variable_example" description "Shows how variables work" pack_format 82;
+
+namespace "example";
+
+// Global variables (stored in scoreboard)
+var num global_counter = 0;
+var str global_message = "Hello World";
+
+function "variable_demo" {
+    // Local variables (function scope)
+    var num local_counter = 10;
+    var str player_name = "Steve";
+    
+    // Variable operations
+    local_counter = local_counter + 5;
+    global_counter = global_counter + 1;
+    
+    // String operations
+    player_name = "Alex";
+    global_message = "Updated: " + player_name;
+    
+    // Conditional with variables
+    if "score @s example:local_counter matches 15" {
+        say Counter is 15!;
+        local_counter = local_counter - 5;
+    }
+    
+    // Loop with variables
+    while "score @s example:local_counter matches 1.." {
+        say Counter: @s example:local_counter;
+        local_counter = local_counter - 1;
+        global_counter = global_counter + 1;
+    }
+}
+
+// Hook into Minecraft's tick system
+on_tick "example:variable_demo";

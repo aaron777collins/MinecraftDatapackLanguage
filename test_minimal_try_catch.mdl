@@ -1,0 +1,11 @@
+pack "minimal" description "Minimal try-catch test" pack_format 82;
+
+namespace "test";
+
+function "test_try_catch" {
+    try {
+        say Test;
+    } catch (error) {
+        say Error;
+    }
+}
