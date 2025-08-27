@@ -2,6 +2,8 @@
 
 A tiny compiler that lets you write Minecraft datapacks in a simple language (`.mdl`) **or** via a clean Python API, and then compiles to the correct 1.21+ datapack folder layout (singular directories) automatically.
 
+📖 **[View Full Documentation](https://aaron777collins.github.io/MinecraftDatapackLanguage/)** - Complete guides, examples, and API reference
+
 - ✅ Handles the directory renames from snapshots **24w19a** (tag subfolders) and **24w21a** (core registry folders) for you.
 - ✅ Easy hooks into `minecraft:tick` and `minecraft:load` via function tags.
 - ✅ Creates tags for `function`, `item`, `block`, `entity_type`, `fluid`, and `game_event`.
