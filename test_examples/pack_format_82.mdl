@@ -1,0 +1,11 @@
+# pack_format_82.mdl - Test pack format 82 with additional metadata
+pack "Pack Format 82 Test" description "Testing pack format 82 metadata" pack_format 82 min_format [82, 0] max_format [82, 1] min_engine_version "1.21.4"
+
+namespace "test"
+
+function "hello":
+    say Hello from pack format 82!
+    tellraw @a {"text":"This pack uses format 82 with additional metadata","color":"green"}
+
+# Hook the function to run when the world loads
+on_load "test:hello"

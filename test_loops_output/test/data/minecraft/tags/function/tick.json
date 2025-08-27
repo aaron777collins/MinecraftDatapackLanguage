@@ -1,0 +1,13 @@
+{
+  "replace": false,
+  "values": [
+    "test:simple_while",
+    "test:entity_while",
+    "test:entity_for",
+    "test:item_for",
+    "test:mixed_control",
+    "test:nested_loops",
+    "test:complex_for",
+    "test:scoreboard_while"
+  ]
+}

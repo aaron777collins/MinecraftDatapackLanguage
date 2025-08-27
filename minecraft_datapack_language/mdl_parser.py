@@ -170,11 +170,37 @@ def parse_mdl(src: str, default_pack_format: int = 48, require_pack: bool = True
             flush_recipe()
             if p is not None:
                 raise ParseError(f"Line {lineno}: duplicate pack declaration")
-            m = re.match(r'pack\s+"([^"]+)"(?:\s+description\s+"([^"]*)")?(?:\s+pack_format\s+(\d+))?$', text)
+            m = re.match(r'pack\s+"([^"]+)"(?:\s+description\s+"([^"]*)")?(?:\s+pack_format\s+(\d+))?(?:\s+min_format\s+\[([^\]]+)\])?(?:\s+max_format\s+\[([^\]]+)\])?(?:\s+min_engine_version\s+"([^"]*)")?$', text)
             if not m:
                 raise ParseError(f"Line {lineno}: invalid pack declaration")
-            name, desc, pf = m.groups()
-            p = Pack(name=name, description=desc or name, pack_format=int(pf) if pf else default_pack_format)
+            name, desc, pf, minf, maxf, mev = m.groups()
+            
+            # Parse min_format if provided
+            min_format = None
+            if minf:
+                try:
+                    parts = [int(x.strip()) for x in minf.split(',')]
+                    min_format = parts[0] if len(parts) == 1 else parts
+                except ValueError:
+                    raise ParseError(f"Line {lineno}: invalid min_format format")
+            
+            # Parse max_format if provided
+            max_format = None
+            if maxf:
+                try:
+                    parts = [int(x.strip()) for x in maxf.split(',')]
+                    max_format = parts[0] if len(parts) == 1 else parts
+                except ValueError:
+                    raise ParseError(f"Line {lineno}: invalid max_format format")
+            
+            p = Pack(
+                name=name, 
+                description=desc or name, 
+                pack_format=int(pf) if pf else default_pack_format,
+                min_format=min_format,
+                max_format=max_format,
+                min_engine_version=mev
+            )
             continue
 
         if p is None:

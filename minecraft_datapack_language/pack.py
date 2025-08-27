@@ -102,10 +102,13 @@ class Tag:
     replace: bool = False
 
 class Pack:
-    def __init__(self, name: str, description: str = "", pack_format: int = 48):
+    def __init__(self, name: str, description: str = "", pack_format: int = 48, min_format: Optional[Union[int, List[int]]] = None, max_format: Optional[Union[int, List[int]]] = None, min_engine_version: Optional[str] = None):
         self.name = name
         self.description = description or name
         self.pack_format = pack_format
+        self.min_format = min_format
+        self.max_format = max_format
+        self.min_engine_version = min_engine_version
         self.namespaces: Dict[str, Namespace] = {}
         self.tags: List[Tag] = []
         # helpful shortcuts
@@ -358,9 +361,29 @@ class Pack:
         dm: DirMap = get_dir_map(self.pack_format)
 
         # pack.mcmeta
-        mcmeta = {
-            "pack": {"pack_format": self.pack_format, "description": self.description}
-        }
+        pack_meta = {"description": self.description}
+        
+        # Handle pack format metadata based on version
+        if self.pack_format < 82:
+            # For older formats, use pack_format and supported_formats
+            pack_meta["pack_format"] = self.pack_format
+            if hasattr(self, 'supported_formats') and self.supported_formats:
+                pack_meta["supported_formats"] = self.supported_formats
+        else:
+            # For format 82+, use min_format and max_format
+            if self.min_format is not None:
+                pack_meta["min_format"] = self.min_format
+            if self.max_format is not None:
+                pack_meta["max_format"] = self.max_format
+            # pack_format is optional for 82+
+            if self.pack_format:
+                pack_meta["pack_format"] = self.pack_format
+                
+        # Add engine version if specified
+        if self.min_engine_version:
+            pack_meta["min_engine_version"] = self.min_engine_version
+            
+        mcmeta = {"pack": pack_meta}
         write_json(os.path.join(out_dir, "pack.mcmeta"), mcmeta)
 
         data_root = os.path.join(out_dir, "data")
