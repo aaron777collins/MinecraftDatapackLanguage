@@ -73,12 +73,14 @@ mdl build --mdl my_pack/ -o dist --verbose  # With detailed output
 ```bash
 mdl build --mdl src/ -o dist
 # Recursively parses src/**/*.mdl, merges into one pack (errors on duplicate functions).
+# Only the first file should have a pack declaration - all others are modules.
 ```
 
 ### Build multiple specific `.mdl` files
 ```bash
 mdl build --mdl "src/core.mdl src/features.mdl src/ui.mdl" -o dist
 # Parses multiple specific files and merges them into one datapack.
+# Only the first file should have a pack declaration - all others are modules.
 ```
 
 ### Validate a folder (JSON diagnostics)
@@ -98,10 +100,12 @@ MDL supports building datapacks from multiple `.mdl` files. This is useful for o
 - **Conflict resolution**: Duplicate function names within the same namespace will cause an error
 - **Pack metadata**: Only the **first file** should have a pack declaration (name, description, format)
 - **Module files**: Subsequent files should **not** have pack declarations - they are treated as modules
+- **Single file compilation**: When compiling a single file, it **must** have a pack declaration
 
 ### Best practices
 - **One pack declaration per project**: Only the **first file** should have a pack declaration
 - **Module files**: All other files should **not** have pack declarations - they are treated as modules
+- **Single file requirement**: When compiling a single file, it **must** have a pack declaration
 - **Organize by namespace**: Consider splitting files by namespace or feature
 - **Use descriptive filenames**: `core.mdl`, `combat.mdl`, `ui.mdl` etc.
 - **Avoid conflicts**: Ensure function names are unique within each namespace

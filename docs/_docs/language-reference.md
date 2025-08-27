@@ -33,7 +33,9 @@ pack "My Pack"  # Inline comments are also supported
 
 ## Pack Declaration
 
-Every MDL file must start with a pack declaration:
+**Single file compilation**: Every MDL file must start with a pack declaration when compiled individually.
+
+**Multi-file compilation**: Only the first file should have a pack declaration. All other files are treated as modules.
 
 ```mdl
 pack "Pack Name" [description "Description"] [pack_format N]
@@ -43,6 +45,11 @@ pack "Pack Name" [description "Description"] [pack_format N]
 - `"Pack Name"` (required): The name of your datapack
 - `description "Description"` (optional): A description of your datapack
 - `pack_format N` (optional): Minecraft pack format version (default: 48 for 1.21+)
+
+**Important Rules:**
+- **Single file**: Must have a pack declaration
+- **Multi-file projects**: Only the first file should have a pack declaration
+- **Module files**: Should NOT have pack declarations
 
 **Examples:**
 
@@ -479,7 +486,7 @@ function "weapon_effects_traditional":
 ### Common Errors
 
 1. **Indentation errors**: Make sure you're using exactly 4 spaces
-2. **Missing pack declaration**: Every file must start with a pack declaration
+2. **Missing pack declaration**: Single files must have a pack declaration; multi-file projects only need one in the first file
 3. **Duplicate function names**: Function names must be unique within each namespace
 4. **Invalid namespace names**: Use only lowercase letters, numbers, and underscores
 

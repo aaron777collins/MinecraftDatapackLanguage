@@ -33,6 +33,7 @@ Multi-file projects allow you to:
 
 - ✅ **First file**: Must have `pack "Name"` declaration
 - ❌ **Module files**: Should NOT have pack declarations
+- ✅ **Single file compilation**: When compiling a single file, it **must** have a pack declaration
 
 ## Project Structure
 
@@ -298,9 +299,10 @@ function "set_gamerules":
 ### Common Errors
 
 1. **Multiple pack declarations**: Only the first file should have a pack declaration
-2. **Function conflicts**: Duplicate function names within the same namespace
-3. **Missing dependencies**: Functions called before they're defined
-4. **File not found**: Check file paths and extensions
+2. **Missing pack declaration**: The first file must have a pack declaration
+3. **Function conflicts**: Duplicate function names within the same namespace
+4. **Missing dependencies**: Functions called before they're defined
+5. **File not found**: Check file paths and extensions
 
 ### Error Messages
 

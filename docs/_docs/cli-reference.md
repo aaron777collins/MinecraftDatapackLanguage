@@ -154,11 +154,13 @@ MDL supports building datapacks from multiple `.mdl` files. This is useful for o
 3. **Conflict resolution**: Duplicate function names within the same namespace will cause an error
 4. **Pack metadata**: Only the **first file** should have a pack declaration (name, description, format)
 5. **Module files**: Subsequent files should **not** have pack declarations - they are treated as modules
+6. **Single file requirement**: When compiling a single file, it **must** have a pack declaration
 
 ### Best practices
 
 - **One pack declaration per project**: Only the **first file** should have a pack declaration
 - **Module files**: All other files should **not** have pack declarations - they are treated as modules
+- **Single file requirement**: When compiling a single file, it **must** have a pack declaration
 - **Organize by namespace**: Consider splitting files by namespace or feature
 - **Use descriptive filenames**: `core.mdl`, `combat.mdl`, `ui.mdl` etc.
 - **Avoid conflicts**: Ensure function names are unique within each namespace
@@ -207,6 +209,7 @@ mdl build --mdl my_datapack/ -o dist --verbose
 
 1. **Missing pack declaration**: Single files must have a pack declaration
 2. **Duplicate pack declarations**: Only the first file in a multi-file project should have a pack declaration
+3. **Single file compilation**: When compiling a single file, it must have a pack declaration
 3. **Function conflicts**: Duplicate function names within the same namespace will cause an error
 4. **Clear error messages**: Errors include file paths and line numbers for easy debugging
 

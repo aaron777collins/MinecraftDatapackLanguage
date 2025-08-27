@@ -23,6 +23,8 @@ pack = Pack(
 )
 ```
 
+**Note**: When using the Python API, you always create a pack with the required metadata. This is equivalent to having a pack declaration in MDL files. The Python API handles pack declarations automatically, so you don't need to worry about the single-file vs multi-file pack declaration rules that apply to MDL files.
+
 ### Adding Functions
 
 ```python

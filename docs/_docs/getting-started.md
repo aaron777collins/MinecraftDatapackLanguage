@@ -88,6 +88,8 @@ function "hello":
 on_load "example:hello"
 ```
 
+**Important**: Every MDL project must have a file starting with the `pack` declaration when compiled individually. This tells MDL the name, description, and format of your datapack. If you are compiling multiple MDL files together, you only need 1 file to define the pack info
+
 ### 2. Build the Datapack
 
 ```bash
