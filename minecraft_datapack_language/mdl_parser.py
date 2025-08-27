@@ -20,6 +20,12 @@ def parse_mdl(src: str, default_pack_format: int = 48, require_pack: bool = True
     tag_name = None
     tag_values = []
 
+    # Recipe block state
+    in_recipe = False
+    recipe_name = None
+    recipe_data = {}
+    recipe_indent = None
+
     # === Multi-line command joiner state (for function bodies) ===
     current_cmd = ""     # buffered logical command
     brace = 0            # '{' ... '}'
@@ -109,6 +115,20 @@ def parse_mdl(src: str, default_pack_format: int = 48, require_pack: bool = True
             tag_name = None
             tag_values = []
 
+    def flush_recipe():
+        nonlocal in_recipe, recipe_name, recipe_data
+        if in_recipe:
+            # finalize the open recipe block
+            try:
+                import json
+                recipe_json = json.loads(recipe_data)
+                p.namespace(current_ns).recipe(recipe_name, recipe_json)
+            except json.JSONDecodeError as e:
+                raise ParseError(f"Invalid JSON in recipe {recipe_name}: {e}")
+            in_recipe = False
+            recipe_name = None
+            recipe_data = {}
+
     # Preprocess: keep only full-line '#' comments; do not strip inline '#'
     cleaned = []
     for raw in lines:
@@ -147,6 +167,7 @@ def parse_mdl(src: str, default_pack_format: int = 48, require_pack: bool = True
         # Pack header
         if indent == 0 and text.startswith("pack "):
             flush_tag()
+            flush_recipe()
             if p is not None:
                 raise ParseError(f"Line {lineno}: duplicate pack declaration")
             m = re.match(r'pack\s+"([^"]+)"(?:\s+description\s+"([^"]*)")?(?:\s+pack_format\s+(\d+))?$', text)
@@ -166,6 +187,7 @@ def parse_mdl(src: str, default_pack_format: int = 48, require_pack: bool = True
         # namespace
         if indent == 0 and text.startswith("namespace "):
             flush_tag()
+            flush_recipe()
             flush_function()
             m = re.match(r'namespace\s+"([a-z0-9_\-\.]+)"$', text)
             if not m:
@@ -176,6 +198,7 @@ def parse_mdl(src: str, default_pack_format: int = 48, require_pack: bool = True
         # function start: function "name":
         if indent == 0 and text.startswith("function "):
             flush_tag()
+            flush_recipe()
             flush_function()
             m = re.match(r'function\s+"([^"]+)"\s*:\s*$', text)
             if not m:
@@ -197,6 +220,7 @@ def parse_mdl(src: str, default_pack_format: int = 48, require_pack: bool = True
         # hooks
         if indent == 0 and text.startswith("on_tick "):
             flush_tag()
+            flush_recipe()
             m = re.match(r'on_tick\s+"([^"]+:[^"]+)"$', text)
             if not m:
                 raise ParseError(f"Line {lineno}: on_tick requires a namespaced id")
@@ -205,15 +229,32 @@ def parse_mdl(src: str, default_pack_format: int = 48, require_pack: bool = True
 
         if indent == 0 and text.startswith("on_load "):
             flush_tag()
+            flush_recipe()
             m = re.match(r'on_load\s+"([^"]+:[^"]+)"$', text)
             if not m:
                 raise ParseError(f"Line {lineno}: on_load requires a namespaced id")
             p.on_load(m.group(1))
             continue
 
+        # recipe "name":
+        if indent == 0 and text.startswith("recipe "):
+            flush_tag()
+            flush_function()
+            m = re.match(r'recipe\s+"([^"]+)"\s*:\s*$', text)
+            if not m:
+                raise ParseError(f"Line {lineno}: invalid recipe declaration")
+            if not current_ns:
+                raise ParseError(f"Line {lineno}: recipe requires a current namespace")
+            recipe_name = m.group(1)
+            recipe_data = {}
+            in_recipe = True
+            recipe_indent = indent + 4
+            continue
+
         # tag <registry> "<ns:id>" [replace]:
         if indent == 0 and text.startswith("tag "):
             flush_tag()
+            flush_recipe()
             flush_function()
             m = re.match(r'tag\s+(function|item|block|entity_type|fluid|game_event)\s+"([^"]+:[^"]+)"(?:\s+replace)?\s*:\s*$', text)
             if not m:
@@ -234,6 +275,15 @@ def parse_mdl(src: str, default_pack_format: int = 48, require_pack: bool = True
             tag_values.append(m.group(1))
             continue
 
+        # Recipe data lines (JSON)
+        if in_recipe and indent >= recipe_indent:
+            # Accumulate JSON data
+            if recipe_data == {}:
+                recipe_data = text
+            else:
+                recipe_data += "\n" + text
+            continue
+
         # If we get here:
         # - indent == 0: unknown directive
         # - indent > 0: unexpected indentation outside any block
@@ -245,5 +295,6 @@ def parse_mdl(src: str, default_pack_format: int = 48, require_pack: bool = True
     # Finalize any open scopes
     flush_function()
     flush_tag()
+    flush_recipe()
 
     return p
