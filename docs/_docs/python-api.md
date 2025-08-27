@@ -256,6 +256,7 @@ namespace.function("hello",
 
 You can generate functions dynamically based on data:
 
+{% raw %}
 ```python
 def create_weapon_functions(pack, weapons):
     combat = pack.namespace("combat")
@@ -273,6 +274,7 @@ weapons = [
 
 create_weapon_functions(pack, weapons)
 ```
+{% endraw %}
 
 ### Conditional Logic
 
