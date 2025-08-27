@@ -276,6 +276,8 @@ class Pack:
             ns_root = os.path.join(data_root, ns_name)
             # Functions
             functions_to_process = list(ns.functions.items())
+            processed_functions = set()
+            
             for path, fn in functions_to_process:
                 fn_dir = os.path.join(ns_root, dm.function, os.path.dirname(path))
                 file_path = os.path.join(ns_root, dm.function, f"{path}.mcfunction")
@@ -284,13 +286,15 @@ class Pack:
                 # Process conditionals in function commands
                 processed_commands = self._process_conditionals(ns_name, path, fn.commands)
                 write_text(file_path, "\n".join(processed_commands))
+                processed_functions.add(path)
             
             # Write any additional functions created during conditional processing
             for path, fn in ns.functions.items():
-                if path not in [f[0] for f in functions_to_process]:  # Skip already processed functions
+                if path not in processed_functions:  # Skip already processed functions
                     fn_dir = os.path.join(ns_root, dm.function, os.path.dirname(path))
                     file_path = os.path.join(ns_root, dm.function, f"{path}.mcfunction")
                     ensure_dir(fn_dir)
+                    # Don't process conditionals for generated functions - they should already be clean
                     write_text(file_path, "\n".join(fn.commands))
 
             # Recipes, Advancements, etc.

@@ -150,6 +150,72 @@ function "weapon_effects":
         say No player found
 ```
 
+**Advanced conditional examples:**
+
+```mdl
+# Multiple conditions with different entity types
+function "entity_detection":
+    if "entity @s[type=minecraft:player]":
+        say Player detected!
+        effect give @s minecraft:glowing 5 1
+        tellraw @a {"text":"A player is nearby!","color":"green"}
+    else if "entity @s[type=minecraft:zombie]":
+        say Zombie detected!
+        effect give @s minecraft:poison 5 1
+        tellraw @a {"text":"A zombie is nearby!","color":"red"}
+    else if "entity @s[type=minecraft:creeper]":
+        say Creeper detected!
+        effect give @s minecraft:resistance 5 1
+        tellraw @a {"text":"A creeper is nearby!","color":"dark_red"}
+    else:
+        say Unknown entity detected
+        tellraw @a {"text":"Something unknown is nearby...","color":"gray"}
+
+# Conditional with function calls
+function "main_logic":
+    if "entity @s[type=minecraft:player]":
+        say Executing player logic
+        function example:player_effects
+        function example:player_ui
+    else if "entity @s[type=minecraft:zombie]":
+        say Executing zombie logic
+        function example:zombie_ai
+        function example:zombie_effects
+    else:
+        say Executing default logic
+        function example:default_behavior
+
+# Conditional with complex NBT data
+function "item_detection":
+    if "entity @s[type=minecraft:player,nbt={Inventory:[{Slot:0b,id:\"minecraft:diamond_sword\",Count:1b}]}]":
+        say Player has diamond sword in first slot!
+        effect give @s minecraft:strength 10 1
+    else if "entity @s[type=minecraft:player,nbt={Inventory:[{Slot:0b,id:\"minecraft:golden_sword\",Count:1b}]}]":
+        say Player has golden sword in first slot!
+        effect give @s minecraft:speed 10 1
+    else if "entity @s[type=minecraft:player]":
+        say Player has no special sword
+        effect give @s minecraft:haste 5 0
+```
+
+**How conditionals work:**
+
+When you write conditional blocks in MDL, they are automatically converted to separate functions and called using Minecraft's `execute` command. For example, the above `weapon_effects` function generates:
+
+**Main function (`weapon_effects.mcfunction`):**
+```mcfunction
+execute if entity @s[type=minecraft:player,nbt={SelectedItem:{id:"minecraft:diamond_sword"}}] run function example:weapon_effects_if_1
+execute unless entity @s[type=minecraft:player,nbt={SelectedItem:{id:"minecraft:diamond_sword"}}] if entity @s[type=minecraft:player,nbt={SelectedItem:{id:"minecraft:golden_sword"}}] run function example:weapon_effects_elif_2
+execute unless entity @s[type=minecraft:player,nbt={SelectedItem:{id:"minecraft:diamond_sword"}}] unless entity @s[type=minecraft:player,nbt={SelectedItem:{id:"minecraft:golden_sword"}}] if entity @s[type=minecraft:player] run function example:weapon_effects_elif_3
+execute unless entity @s[type=minecraft:player,nbt={SelectedItem:{id:"minecraft:diamond_sword"}}] unless entity @s[type=minecraft:player,nbt={SelectedItem:{id:"minecraft:golden_sword"}}] unless entity @s[type=minecraft:player] run function example:weapon_effects_else
+```
+
+**Generated conditional functions:**
+- `weapon_effects_if_1.mcfunction` - Diamond sword effects
+- `weapon_effects_elif_2.mcfunction` - Golden sword effects  
+- `weapon_effects_elif_3.mcfunction` - Default player effects
+- `weapon_effects_else.mcfunction` - No player found
+
 ## Function Calls
 
 Functions can call other functions using fully qualified names:

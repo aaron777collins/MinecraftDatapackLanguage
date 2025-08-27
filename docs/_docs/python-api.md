@@ -299,6 +299,7 @@ def create_feature_pack(features):
 # Usage
 pack = create_feature_pack(["combat", "ui"])
 pack.build("dist")
+```
 
 ### Implementing Conditional Logic
 
@@ -349,6 +350,218 @@ function "weapon_effects":
     else if "entity @s[type=minecraft:player]":
         say Default weapon detected
         effect give @s minecraft:haste 5 0
+```
+
+### Advanced Conditional Examples
+
+Here are more comprehensive examples of implementing conditional logic with the Python API:
+
+```python
+def create_advanced_conditional_pack():
+    pack = Pack(name="Advanced Conditional Example", pack_format=48)
+    ns = pack.namespace("advanced")
+    
+    # Entity type detection with multiple conditions
+    ns.function("entity_detection",
+        "execute if entity @s[type=minecraft:player] run function advanced:player_logic",
+        "execute unless entity @s[type=minecraft:player] if entity @s[type=minecraft:zombie] run function advanced:zombie_logic",
+        "execute unless entity @s[type=minecraft:player] unless entity @s[type=minecraft:zombie] if entity @s[type=minecraft:creeper] run function advanced:creeper_logic",
+        "execute unless entity @s[type=minecraft:player] unless entity @s[type=minecraft:zombie] unless entity @s[type=minecraft:creeper] run function advanced:unknown_logic"
+    )
+    
+    # Player logic
+    ns.function("player_logic",
+        "say Player detected!",
+        "effect give @s minecraft:glowing 5 1",
+        "tellraw @a {\"text\":\"A player is nearby!\",\"color\":\"green\"}"
+    )
+    
+    # Zombie logic
+    ns.function("zombie_logic",
+        "say Zombie detected!",
+        "effect give @s minecraft:poison 5 1",
+        "tellraw @a {\"text\":\"A zombie is nearby!\",\"color\":\"red\"}"
+    )
+    
+    # Creeper logic
+    ns.function("creeper_logic",
+        "say Creeper detected!",
+        "effect give @s minecraft:resistance 5 1",
+        "tellraw @a {\"text\":\"A creeper is nearby!\",\"color\":\"dark_red\"}"
+    )
+    
+    # Unknown entity logic
+    ns.function("unknown_logic",
+        "say Unknown entity detected",
+        "tellraw @a {\"text\":\"Something unknown is nearby...\",\"color\":\"gray\"}"
+    )
+    
+    pack.on_tick("advanced:entity_detection")
+    return pack
+```
+
+### Conditional with Function Calls
+
+You can create complex conditional systems that call different functions based on conditions:
+
+```python
+def create_conditional_function_calls():
+    pack = Pack(name="Conditional Function Calls", pack_format=48)
+    ns = pack.namespace("calls")
+    
+    # Main logic function with conditional calls
+    ns.function("main_logic",
+        "execute if entity @s[type=minecraft:player] run function calls:execute_player_logic",
+        "execute unless entity @s[type=minecraft:player] if entity @s[type=minecraft:zombie] run function calls:execute_zombie_logic",
+        "execute unless entity @s[type=minecraft:player] unless entity @s[type=minecraft:zombie] run function calls:execute_default_logic"
+    )
+    
+    # Player logic execution
+    ns.function("execute_player_logic",
+        "say Executing player logic",
+        "function calls:player_effects",
+        "function calls:player_ui"
+    )
+    
+    # Zombie logic execution
+    ns.function("execute_zombie_logic",
+        "say Executing zombie logic",
+        "function calls:zombie_ai",
+        "function calls:zombie_effects"
+    )
+    
+    # Default logic execution
+    ns.function("execute_default_logic",
+        "say Executing default logic",
+        "function calls:default_behavior"
+    )
+    
+    # Individual logic functions
+    ns.function("player_effects",
+        "effect give @s minecraft:night_vision 10 0",
+        "effect give @s minecraft:speed 5 0"
+    )
+    
+    ns.function("player_ui",
+        "title @s actionbar {\"text\":\"Player Mode Active\",\"color\":\"green\"}"
+    )
+    
+    ns.function("zombie_ai",
+        "effect give @s minecraft:slowness 5 0",
+        "particle minecraft:smoke ~ ~ ~ 0.5 0.5 0.5 0.1 10"
+    )
+    
+    ns.function("zombie_effects",
+        "effect give @s minecraft:poison 5 0"
+    )
+    
+    ns.function("default_behavior",
+        "say No special logic for this entity type"
+    )
+    
+    pack.on_tick("calls:main_logic")
+    return pack
+```
+
+### Dynamic Conditional Generation
+
+You can generate conditional logic dynamically based on configuration:
+
+```python
+def create_dynamic_conditional_pack(weapon_configs):
+    pack = Pack(name="Dynamic Conditional Example", pack_format=48)
+    ns = pack.namespace("dynamic")
+    
+    # Generate execute commands for each weapon
+    execute_commands = []
+    for i, weapon in enumerate(weapon_configs):
+        if i == 0:
+            # First condition
+            execute_commands.append(
+                f"execute if entity @s[type=minecraft:player,nbt={{SelectedItem:{{id:\"{weapon['id']}\"}}}}] run function dynamic:{weapon['name']}_effects"
+            )
+        else:
+            # Subsequent conditions need unless clauses
+            unless_clauses = " ".join([
+                f"unless entity @s[type=minecraft:player,nbt={{SelectedItem:{{id:\"{prev_weapon['id']}\"}}}}]"
+                for prev_weapon in weapon_configs[:i]
+            ])
+            execute_commands.append(
+                f"execute {unless_clauses} if entity @s[type=minecraft:player,nbt={{SelectedItem:{{id:\"{weapon['id']}\"}}}}] run function dynamic:{weapon['name']}_effects"
+            )
+    
+    # Add default case
+    unless_clauses = " ".join([
+        f"unless entity @s[type=minecraft:player,nbt={{SelectedItem:{{id:\"{weapon['id']}\"}}}}]"
+        for weapon in weapon_configs
+    ])
+    execute_commands.append(
+        f"execute {unless_clauses} if entity @s[type=minecraft:player] run function dynamic:default_effects"
+    )
+    
+    # Create main function
+    ns.function("weapon_effects", *execute_commands)
+    
+    # Create effect functions for each weapon
+    for weapon in weapon_configs:
+        ns.function(f"{weapon['name']}_effects",
+            f"say {weapon['name'].title()} detected!",
+            f"effect give @s {weapon['effect']} 10 1"
+        )
+    
+    # Create default effects
+    ns.function("default_effects",
+        "say No special weapon detected",
+        "effect give @s minecraft:haste 5 0"
+    )
+    
+    pack.on_tick("dynamic:weapon_effects")
+    return pack
+
+# Usage
+weapons = [
+    {"name": "diamond_sword", "id": "minecraft:diamond_sword", "effect": "minecraft:strength"},
+    {"name": "golden_sword", "id": "minecraft:golden_sword", "effect": "minecraft:speed"},
+    {"name": "iron_sword", "id": "minecraft:iron_sword", "effect": "minecraft:haste"}
+]
+
+pack = create_dynamic_conditional_pack(weapons)
+pack.build("dist")
+```
+
+### Conditional with Complex NBT Data
+
+For complex NBT conditions, you can create helper functions:
+
+```python
+def create_complex_nbt_conditional():
+    pack = Pack(name="Complex NBT Conditional", pack_format=48)
+    ns = pack.namespace("nbt")
+    
+    # Complex NBT conditions
+    ns.function("item_detection",
+        "execute if entity @s[type=minecraft:player,nbt={Inventory:[{Slot:0b,id:\"minecraft:diamond_sword\",Count:1b}]}] run function nbt:diamond_sword_effects",
+        "execute unless entity @s[type=minecraft:player,nbt={Inventory:[{Slot:0b,id:\"minecraft:diamond_sword\",Count:1b}]}] if entity @s[type=minecraft:player,nbt={Inventory:[{Slot:0b,id:\"minecraft:golden_sword\",Count:1b}]}] run function nbt:golden_sword_effects",
+        "execute unless entity @s[type=minecraft:player,nbt={Inventory:[{Slot:0b,id:\"minecraft:diamond_sword\",Count:1b}]}] unless entity @s[type=minecraft:player,nbt={Inventory:[{Slot:0b,id:\"minecraft:golden_sword\",Count:1b}]}] if entity @s[type=minecraft:player] run function nbt:default_effects"
+    )
+    
+    ns.function("diamond_sword_effects",
+        "say Player has diamond sword in first slot!",
+        "effect give @s minecraft:strength 10 1"
+    )
+    
+    ns.function("golden_sword_effects",
+        "say Player has golden sword in first slot!",
+        "effect give @s minecraft:speed 10 1"
+    )
+    
+    ns.function("default_effects",
+        "say Player has no special sword",
+        "effect give @s minecraft:haste 5 0"
+    )
+    
+    pack.on_tick("nbt:item_detection")
+    return pack
 ```
 
 ### Integration with CLI

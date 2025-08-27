@@ -116,9 +116,24 @@ function "hello":
     function example:inner
     tellraw @a {{"text":"Back in hello","color":"aqua"}}
 
+# Conditional example - detect different entity types
+function "conditional_demo":
+    if "entity @s[type=minecraft:player]":
+        say Player detected!
+        effect give @s minecraft:glowing 5 1
+        tellraw @a {{"text":"A player is nearby!","color":"green"}}
+    else if "entity @s[type=minecraft:zombie]":
+        say Zombie detected!
+        effect give @s minecraft:poison 5 1
+        tellraw @a {{"text":"A zombie is nearby!","color":"red"}}
+    else:
+        say Unknown entity detected
+        tellraw @a {{"text":"Something unknown is nearby...","color":"gray"}}
+
 # Hook the function into load and tick
 on_load "example:hello"
 on_tick "example:hello"
+on_tick "example:conditional_demo"
 
 # Second namespace with a cross-namespace call
 namespace "util"
@@ -140,6 +155,7 @@ tag function "minecraft:load":
 
 tag function "minecraft:tick":
     add "example:hello"
+    add "example:conditional_demo"
     add "util:boss"
 
 # Data tag examples across registries

@@ -116,6 +116,45 @@ Let's break down what we just created:
 - **`function "hello":`**: Defines a function that contains Minecraft commands
 - **`on_load "example:hello"`**: Automatically runs the function when the world loads
 
+## Adding Conditional Logic
+
+Now let's create a more advanced example that uses conditional blocks to detect different types of entities:
+
+```mdl
+# conditional.mdl - Conditional logic example
+pack "Conditional Demo" description "Shows if/else if/else functionality" pack_format 48
+
+namespace "demo"
+
+function "detect_entity":
+    if "entity @s[type=minecraft:player]":
+        say Player detected!
+        effect give @s minecraft:glowing 5 1
+        tellraw @a {"text":"A player is nearby!","color":"green"}
+    else if "entity @s[type=minecraft:zombie]":
+        say Zombie detected!
+        effect give @s minecraft:poison 5 1
+        tellraw @a {"text":"A zombie is nearby!","color":"red"}
+    else if "entity @s[type=minecraft:creeper]":
+        say Creeper detected!
+        effect give @s minecraft:slowness 5 1
+        tellraw @a {"text":"A creeper is nearby!","color":"dark_red"}
+    else:
+        say Unknown entity detected
+        tellraw @a {"text":"Something unknown is nearby...","color":"gray"}
+
+# Run the detection every tick
+on_tick "demo:detect_entity"
+```
+
+This example demonstrates:
+- **`if "condition":`** - Checks if the condition is true
+- **`else if "condition":`** - Checks another condition if the first was false
+- **`else:`** - Runs if none of the above conditions were true
+- **Indentation** - Commands inside conditional blocks must be indented with 4 spaces
+
+The conditional blocks are compiled into separate functions and called using Minecraft's `execute` command for efficient execution.
+
 ## Next Steps
 
 Now that you have the basics, explore:
