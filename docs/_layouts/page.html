@@ -7,14 +7,38 @@ layout: default
     <article class="post">
       <header class="post-header">
         <h1 class="post-title">{{ page.title | escape }}</h1>
+        {% if page.description %}
+          <p class="post-description">{{ page.description }}</p>
+        {% endif %}
       </header>
 
       <div class="post-content">
         {{ content }}
       </div>
+      
+      <!-- Page Navigation Footer -->
+      <footer class="post-footer">
+        <div class="post-navigation">
+          <a href="{{ "/" | relative_url }}" class="btn btn-primary">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="margin-right: 0.5rem;">
+              <path d="M8 0C3.6 0 0 3.6 0 8s3.6 8 8 8 8-3.6 8-8-3.6-8-8-8zm0 14c-3.3 0-6-2.7-6-6s2.7-6 6-6 6 2.7 6 6-2.7 6-6 6z"/>
+              <path d="M7 4h2v6H7z"/>
+              <path d="M4 7h6v2H4z"/>
+            </svg>
+            Back to Home
+          </a>
+        </div>
+      </footer>
     </article>
   </div>
 </div>
+
+<!-- Back to Top Button -->
+<button id="back-to-top" class="back-to-top" aria-label="Back to top">
+  <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+    <path d="M10 0L3 7h4v13h6V7h4L10 0z"/>
+  </svg>
+</button>
 
 <style>
 .page-content {
@@ -44,6 +68,12 @@ layout: default
   color: #24292e;
   font-size: 2rem;
   margin: 0;
+}
+
+.post-description {
+  color: #586069;
+  font-size: 1.1rem;
+  margin: 0.5rem 0 0 0;
 }
 
 .post-content {
@@ -132,6 +162,76 @@ layout: default
   margin: 0.5rem 0;
 }
 
+/* Post Footer Navigation */
+.post-footer {
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid #e1e4e8;
+}
+
+.post-navigation {
+  display: flex;
+  justify-content: center;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 500;
+  text-decoration: none;
+  border-radius: 6px;
+  transition: all 0.2s;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background: #0366d6;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #0256b3;
+  text-decoration: none;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* Back to Top Button */
+.back-to-top {
+  position: fixed;
+  bottom: 2rem;
+  left: 2rem;
+  background: #0366d6;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  transition: all 0.2s;
+  opacity: 0;
+  visibility: hidden;
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.back-to-top.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.back-to-top:hover {
+  background: #0256b3;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+}
+
 @media (max-width: 768px) {
   .wrapper {
     padding: 0 0.5rem;
@@ -144,5 +244,38 @@ layout: default
   .post-title {
     font-size: 1.5rem;
   }
+  
+  .back-to-top {
+    bottom: 1rem;
+    left: 1rem;
+    width: 40px;
+    height: 40px;
+  }
 }
 </style>
+
+<script>
+// Back to Top Button
+document.addEventListener('DOMContentLoaded', function() {
+  const backToTop = document.getElementById('back-to-top');
+  
+  if (backToTop) {
+    // Show/hide button based on scroll position
+    window.addEventListener('scroll', function() {
+      if (window.pageYOffset > 300) {
+        backToTop.classList.add('show');
+      } else {
+        backToTop.classList.remove('show');
+      }
+    });
+    
+    // Smooth scroll to top when clicked
+    backToTop.addEventListener('click', function() {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    });
+  }
+});
+</script>

@@ -7,6 +7,41 @@ title: Minecraft Datapack Language (MDL)
 
 A tiny compiler that lets you write Minecraft datapacks in a simple language (`.mdl`) **or** via a clean Python API, and then compiles to the correct 1.21+ datapack folder layout automatically.
 
+## Quick Navigation
+
+<div class="quick-nav">
+  <div class="nav-card">
+    <h3>🚀 Getting Started</h3>
+    <p>Install and create your first datapack</p>
+    <a href="{{ site.baseurl }}/docs/getting-started/" class="nav-link">Get Started →</a>
+  </div>
+  <div class="nav-card">
+    <h3>📖 Language Reference</h3>
+    <p>Complete MDL syntax guide</p>
+    <a href="{{ site.baseurl }}/docs/language-reference/" class="nav-link">Learn MDL →</a>
+  </div>
+  <div class="nav-card">
+    <h3>🐍 Python API</h3>
+    <p>Programmatic datapack creation</p>
+    <a href="{{ site.baseurl }}/docs/python-api/" class="nav-link">Python API →</a>
+  </div>
+  <div class="nav-card">
+    <h3>💻 CLI Reference</h3>
+    <p>Command-line tool usage</p>
+    <a href="{{ site.baseurl }}/docs/cli-reference/" class="nav-link">CLI Guide →</a>
+  </div>
+  <div class="nav-card">
+    <h3>🔧 VS Code Extension</h3>
+    <p>IDE integration and features</p>
+    <a href="{{ site.baseurl }}/docs/vscode-extension/" class="nav-link">VS Code →</a>
+  </div>
+  <div class="nav-card">
+    <h3>📚 Examples</h3>
+    <p>Complete working examples</p>
+    <a href="{{ site.baseurl }}/docs/examples/" class="nav-link">View Examples →</a>
+  </div>
+</div>
+
 <div class="features">
   <div class="feature">
     <h3>🚀 Easy to Use</h3>
@@ -93,6 +128,52 @@ mdl build --mdl hello.mdl -o dist
 This project is licensed under the GPL-3.0 License - see the [LICENSE](https://github.com/aaron777collins/MinecraftDatapackLanguage/blob/main/LICENSE) file for details.
 
 <style>
+.quick-nav {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
+
+.nav-card {
+  padding: 1.5rem;
+  border: 1px solid #e1e4e8;
+  border-radius: 8px;
+  background: white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: all 0.2s;
+}
+
+.nav-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.nav-card h3 {
+  margin-top: 0;
+  color: #24292e;
+  font-size: 1.2rem;
+}
+
+.nav-card p {
+  margin: 0.5rem 0 1rem 0;
+  color: #586069;
+}
+
+.nav-link {
+  display: inline-flex;
+  align-items: center;
+  color: #0366d6;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.nav-link:hover {
+  color: #0256b3;
+  text-decoration: none;
+}
+
 .features {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -115,5 +196,15 @@ This project is licensed under the GPL-3.0 License - see the [LICENSE](https://g
 .feature p {
   margin-bottom: 0;
   color: #586069;
+}
+
+@media (max-width: 768px) {
+  .quick-nav {
+    grid-template-columns: 1fr;
+  }
+  
+  .nav-card {
+    padding: 1rem;
+  }
 }
 </style>

@@ -1,3 +1,4 @@
+<!-- Main Navigation -->
 <nav class="nav-menu">
   <ul>
     {% for item in site.nav %}
@@ -5,3 +6,307 @@
     {% endfor %}
   </ul>
 </nav>
+
+<!-- Breadcrumb Navigation -->
+{% if page.url != "/" %}
+<nav class="breadcrumb-nav" aria-label="Breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item">
+      <a href="{{ "/" | relative_url }}" class="breadcrumb-link">
+        <svg class="breadcrumb-icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M8 0C3.6 0 0 3.6 0 8s3.6 8 8 8 8-3.6 8-8-3.6-8-8-8zm0 14c-3.3 0-6-2.7-6-6s2.7-6 6-6 6 2.7 6 6-2.7 6-6 6z"/>
+          <path d="M7 4h2v6H7z"/>
+          <path d="M4 7h6v2H4z"/>
+        </svg>
+        Home
+      </a>
+    </li>
+    {% if page.url contains "/docs/" %}
+      <li class="breadcrumb-item">
+        <a href="{{ "/docs/" | relative_url }}" class="breadcrumb-link">Documentation</a>
+      </li>
+    {% endif %}
+    <li class="breadcrumb-item active" aria-current="page">
+      {{ page.title }}
+    </li>
+  </ol>
+</nav>
+{% endif %}
+
+<!-- Floating Navigation Menu -->
+<div class="floating-nav">
+  <button class="floating-nav-toggle" aria-label="Toggle navigation menu">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+      <path d="M2 4h16v2H2V4zm0 5h16v2H2V9zm0 5h16v2H2v-2z"/>
+    </svg>
+  </button>
+  <div class="floating-nav-menu">
+    <div class="floating-nav-header">
+      <h3>Quick Navigation</h3>
+      <button class="floating-nav-close" aria-label="Close navigation menu">×</button>
+    </div>
+    <ul class="floating-nav-list">
+      <li><a href="{{ "/" | relative_url }}" class="floating-nav-link">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M8 0C3.6 0 0 3.6 0 8s3.6 8 8 8 8-3.6 8-8-3.6-8-8-8zm0 14c-3.3 0-6-2.7-6-6s2.7-6 6-6 6 2.7 6 6-2.7 6-6 6z"/>
+          <path d="M7 4h2v6H7z"/>
+          <path d="M4 7h6v2H4z"/>
+        </svg>
+        Home
+      </a></li>
+      {% for item in site.nav %}
+        {% if item.title != "Home" %}
+          <li><a href="{{ item.url | relative_url }}" class="floating-nav-link">{{ item.title }}</a></li>
+        {% endif %}
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+
+<style>
+/* Main Navigation Styles */
+.nav-menu {
+  background: #f6f8fa;
+  border-bottom: 1px solid #e1e4e8;
+  padding: 0.5rem 0;
+  margin-bottom: 2rem;
+}
+
+.nav-menu ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.nav-menu li {
+  margin: 0;
+}
+
+.nav-menu a {
+  color: #0366d6;
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  transition: background-color 0.2s;
+}
+
+.nav-menu a:hover {
+  background: #e1f5fe;
+  text-decoration: none;
+}
+
+/* Breadcrumb Styles */
+.breadcrumb-nav {
+  margin: 1rem 0 2rem 0;
+  padding: 0 1rem;
+}
+
+.breadcrumb {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.breadcrumb-item {
+  display: flex;
+  align-items: center;
+}
+
+.breadcrumb-item:not(:last-child)::after {
+  content: "›";
+  margin-left: 0.5rem;
+  color: #586069;
+}
+
+.breadcrumb-link {
+  color: #0366d6;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.breadcrumb-link:hover {
+  background: #e1f5fe;
+  text-decoration: none;
+}
+
+.breadcrumb-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.breadcrumb-item.active {
+  color: #586069;
+  font-weight: 500;
+}
+
+/* Floating Navigation Styles */
+.floating-nav {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 1000;
+}
+
+.floating-nav-toggle {
+  background: #0366d6;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 56px;
+  height: 56px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.floating-nav-toggle:hover {
+  background: #0256b3;
+  transform: scale(1.05);
+}
+
+.floating-nav-menu {
+  position: absolute;
+  bottom: 70px;
+  right: 0;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  min-width: 250px;
+  max-height: 400px;
+  overflow-y: auto;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(10px);
+  transition: all 0.2s;
+}
+
+.floating-nav-menu.show {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.floating-nav-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid #e1e4e8;
+}
+
+.floating-nav-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: #24292e;
+}
+
+.floating-nav-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #586069;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.floating-nav-close:hover {
+  color: #24292e;
+}
+
+.floating-nav-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.floating-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  color: #24292e;
+  text-decoration: none;
+  transition: background-color 0.2s;
+}
+
+.floating-nav-link:hover {
+  background: #f6f8fa;
+  text-decoration: none;
+}
+
+.floating-nav-link svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .nav-menu ul {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .breadcrumb {
+    font-size: 0.8rem;
+  }
+  
+  .floating-nav {
+    bottom: 1rem;
+    right: 1rem;
+  }
+  
+  .floating-nav-menu {
+    min-width: 200px;
+    max-height: 300px;
+  }
+}
+</style>
+
+<script>
+// Floating Navigation Toggle
+document.addEventListener('DOMContentLoaded', function() {
+  const toggle = document.querySelector('.floating-nav-toggle');
+  const menu = document.querySelector('.floating-nav-menu');
+  const close = document.querySelector('.floating-nav-close');
+  
+  if (toggle && menu && close) {
+    toggle.addEventListener('click', function() {
+      menu.classList.toggle('show');
+    });
+    
+    close.addEventListener('click', function() {
+      menu.classList.remove('show');
+    });
+    
+    // Close menu when clicking outside
+    document.addEventListener('click', function(event) {
+      if (!toggle.contains(event.target) && !menu.contains(event.target)) {
+        menu.classList.remove('show');
+      }
+    });
+  }
+});
+</script>
