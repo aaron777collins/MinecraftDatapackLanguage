@@ -1,136 +1,89 @@
-pack "conditionals" description "Comprehensive tests for if/else if/else functionality" pack_format 82;
+// conditionals.mdl - Test conditional logic and control flow
+pack "conditionals" description "Conditional logic test" pack_format 82;
 
 namespace "test";
 
-// Test 1: Simple if statement
-function "simple_if" {
-    say Testing simple if statement;
-    if "entity @s[type=minecraft:player]" {
-        say Player detected!;
-        effect give @s minecraft:glowing 5 1;
-    }
-}
-
-// Test 2: if/else statement
-function "if_else" {
-    say Testing if/else statement;
-    if "entity @s[type=minecraft:player]" {
-        say Player detected!;
-        effect give @s minecraft:glowing 5 1;
+function "basic_conditionals" {
+    var num player_level = 15;
+    var str player_class = "warrior";
+    var num experience = 75;
+    
+    if "score @s player_level >= 10" {
+        if "score @s player_class == 'warrior'" {
+            if "score @s experience >= 50" {
+                say Advanced warrior detected!;
+                effect give @s minecraft:strength 10 2;
+                effect give @s minecraft:glowing 10 0;
+            } else {
+                say Novice warrior;
+                effect give @s minecraft:haste 10 0;
+            }
+        } else if "score @s player_class == 'mage'" {
+            say Advanced mage detected!;
+            effect give @s minecraft:night_vision 10 0;
+            effect give @s minecraft:levitation 5 0;
+        } else {
+            say Unknown advanced class;
+            effect give @s minecraft:glowing 10 0;
+        }
+    } else if "score @s player_level >= 5" {
+        say Intermediate player;
+        effect give @s minecraft:speed 10 0;
     } else {
-        say No player found;
-        say This is the else block;
+        say Beginner player;
+        effect give @s minecraft:jump_boost 10 0;
     }
 }
 
-// Test 3: if/else if/else statement
-function "if_else_if_else" {
-    say Testing if/else if/else statement;
-    if "entity @s[type=minecraft:player]" {
-        say Player detected!;
-        effect give @s minecraft:glowing 5 1;
-    } else if "entity @s[type=minecraft:zombie]" {
-        say Zombie detected!;
-        effect give @s minecraft:poison 5 1;
-    } else if "entity @s[type=minecraft:creeper]" {
-        say Creeper detected!;
-        effect give @s minecraft:resistance 5 1;
-    } else {
-        say Unknown entity;
-        say This is the final else block;
-    }
-}
-
-// Test 4: Complex conditions with NBT
-function "complex_conditions" {
-    say Testing complex conditions;
-    if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:\"minecraft:diamond_sword\"}}]" {
-        say Player with diamond sword!;
+function "entity_conditionals" {
+    if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:'minecraft:diamond_sword'}}]" {
+        say Diamond sword detected!;
         effect give @s minecraft:strength 10 1;
-    } else if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:\"minecraft:golden_sword\"}}]" {
-        say Player with golden sword!;
+        effect give @s minecraft:glowing 10 0;
+    } else if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:'minecraft:golden_sword'}}]" {
+        say Golden sword detected!;
         effect give @s minecraft:speed 10 1;
+        effect give @s minecraft:night_vision 10 0;
+    } else if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:'minecraft:bow'}}]" {
+        say Bow detected!;
+        effect give @s minecraft:jump_boost 10 1;
     } else if "entity @s[type=minecraft:player]" {
-        say Player without special sword;
+        say Player without special weapon;
         effect give @s minecraft:haste 5 0;
     } else {
         say No player found;
     }
 }
 
-// Test 5: Mixed commands with conditionals
-function "mixed_commands" {
-    say Testing mixed commands with conditionals;
-    say This is before the conditional;
-    if "entity @s[type=minecraft:player]" {
-        say Inside if block;
-        effect give @s minecraft:glowing 5 1;
-    }
-    say This is after the conditional;
-    say Another command after;
-}
-
-// Test 6: Multiple else if blocks
-function "multiple_else_if" {
-    say Testing multiple else if blocks;
-    if "entity @s[type=minecraft:player]" {
-        say Player;
-    } else if "entity @s[type=minecraft:zombie]" {
-        say Zombie;
-    } else if "entity @s[type=minecraft:skeleton]" {
-        say Skeleton;
-    } else if "entity @s[type=minecraft:creeper]" {
-        say Creeper;
-    } else if "entity @s[type=minecraft:spider]" {
-        say Spider;
-    } else {
-        say Unknown entity;
-    }
-}
-
-// Test 7: Conditional with function calls
-function "conditional_with_calls" {
-    say Testing conditionals with function calls;
-    if "entity @s[type=minecraft:player]" {
-        say Calling player function;
-        function test:player_effects;
-    } else if "entity @s[type=minecraft:zombie]" {
-        say Calling zombie function;
-        function test:zombie_effects;
-    } else {
-        say Calling default function;
-        function test:default_effects;
-    }
-}
-
-// Test 8: Nested conditionals
-function "nested_conditionals" {
-    say Testing nested conditionals;
-    if "entity @s[type=minecraft:player]" {
-        say Player detected;
-        if "entity @s[gamemode=creative]" {
-            say Creative player;
+function "complex_conditionals" {
+    var num health = 15;
+    var num hunger = 8;
+    var str biome = "plains";
+    
+    if "score @s health < 10" {
+        if "score @s hunger < 5" {
+            say Player is in critical condition!;
+            effect give @s minecraft:regeneration 10 1;
+            effect give @s minecraft:saturation 5 0;
         } else {
-            say Survival player;
+            say Player is low on health;
+            effect give @s minecraft:regeneration 5 0;
         }
+    } else if "score @s hunger < 5" {
+        say Player is hungry;
+        effect give @s minecraft:saturation 10 0;
+    } else if "score @s biome == 'desert'" {
+        say Player in desert - hydration needed;
+        effect give @s minecraft:water_breathing 10 0;
+    } else if "score @s biome == 'nether'" {
+        say Player in nether - fire resistance;
+        effect give @s minecraft:fire_resistance 10 0;
+    } else {
+        say Player is healthy;
+        effect give @s minecraft:speed 5 0;
     }
 }
 
-// Helper functions for conditional_with_calls
-function "player_effects" {
-    say Applying player effects;
-    effect give @s minecraft:night_vision 10 0;
-}
-
-function "zombie_effects" {
-    say Applying zombie effects;
-    effect give @s minecraft:poison 5 1;
-}
-
-function "default_effects" {
-    say Applying default effects;
-    effect give @s minecraft:glowing 5 0;
-}
-
-// Hook into tick for testing
-on_tick "test:simple_if";
+on_tick "test:basic_conditionals";
+on_tick "test:entity_conditionals";
+on_tick "test:complex_conditionals";

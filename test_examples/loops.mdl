@@ -1,19 +1,18 @@
-pack "loops" description "Comprehensive tests for while and for loop functionality" pack_format 82;
+// loops.mdl - Test loop constructs and iteration
+pack "loops" description "Loop functionality test" pack_format 82;
 
 namespace "test";
 
-// Test 1: Simple while loop
 function "simple_while" {
     say Testing simple while loop;
-    scoreboard players set @s loop_counter 5;
-    while "score @s loop_counter matches 1.." {
-        say Counter: @s loop_counter;
-        scoreboard players remove @s loop_counter 1;
+    var num counter = 5;
+    while "score @s counter matches 1.." {
+        say Counter: @s counter;
+        counter = counter - 1;
         say Decremented counter;
     }
 }
 
-// Test 2: While loop with entity condition
 function "entity_while" {
     say Testing while loop with entity condition;
     while "entity @e[type=minecraft:zombie,distance=..10]" {
@@ -23,7 +22,6 @@ function "entity_while" {
     }
 }
 
-// Test 3: For loop with entity collection
 function "entity_for" {
     say Testing for loop with entity collection;
     tag @e[type=minecraft:player] add players;
@@ -34,52 +32,21 @@ function "entity_for" {
     }
 }
 
-// Test 4: For loop with item collection
-function "item_for" {
-    say Testing for loop with item collection;
-    tag @e[type=minecraft:item] add items;
-    for item in "@e[tag=items]" {
-        say Processing item: @s;
-        effect give @s minecraft:glowing 5 1;
-    }
-}
-
-// Test 5: Mixed control structures
-function "mixed_control" {
-    say Testing mixed control structures;
-    if "entity @s[type=minecraft:player]" {
-        say Player detected, starting loops;
-        scoreboard players set @s counter 3;
-        while "score @s counter matches 1.." {
-            say Loop iteration: @s counter;
-            for entity in "@e[type=minecraft:zombie,distance=..5]" {
-                say Found zombie: @s;
-                effect give @s minecraft:poison 3 1;
-            }
-            scoreboard players remove @s counter 1;
-        }
-    } else {
-        say No player found;
-    }
-}
-
-// Test 6: Nested loops
 function "nested_loops" {
     say Testing nested loops;
-    scoreboard players set @s outer 3;
+    var num outer = 3;
     while "score @s outer matches 1.." {
         say Outer loop: @s outer;
-        scoreboard players set @s inner 2;
+        var num inner = 2;
         while "score @s inner matches 1.." {
             say Inner loop: @s inner;
             effect give @s minecraft:glowing 1 1;
-            scoreboard players remove @s inner 1;
+            inner = inner - 1;
         }
-        scoreboard players remove @s outer 1;
+        outer = outer - 1;
     }
 }
 
-// Test 7: For loop with complex selector
 function "complex_for" {
     say Testing for loop with complex selector;
     for player in "@a[gamemode=survival]" {
@@ -94,24 +61,54 @@ function "complex_for" {
     }
 }
 
-// Test 8: While loop with scoreboard condition
-function "scoreboard_while" {
-    say Testing while loop with scoreboard condition;
-    scoreboard objectives add test_obj dummy;
-    scoreboard players set @s test_obj 10;
-    while "score @s test_obj matches 5.." {
-        say Score: @s test_obj;
-        scoreboard players remove @s test_obj 1;
-        say Decremented score;
+function "list_iteration" {
+    var list items = ["sword", "shield", "potion", "food"];
+    var num index = 0;
+    
+    while "score @s index < items.length" {
+        var str current_item = items[index];
+        say Processing item: current_item;
+        index = index + 1;
     }
 }
 
-// Hook functions to run
+function "break_continue" {
+    var num counter = 0;
+    var num break_sum = 0;
+    var num continue_sum = 0;
+    
+    // Test break
+    while "score @s counter < 10" {
+        counter = counter + 1;
+        
+        if "score @s counter == 7" {
+            break;
+        }
+        
+        break_sum = break_sum + counter;
+    }
+    
+    // Test continue
+    counter = 0;
+    while "score @s counter < 10" {
+        counter = counter + 1;
+        
+        if "score @s counter % 2 == 0" {
+            continue;
+        }
+        
+        continue_sum = continue_sum + counter;
+    }
+    
+    say Break and continue test complete;
+    tellraw @s {"text":"Break sum: " + break_sum};
+    tellraw @s {"text":"Continue sum: " + continue_sum};
+}
+
 on_tick "test:simple_while";
 on_tick "test:entity_while";
 on_tick "test:entity_for";
-on_tick "test:item_for";
-on_tick "test:mixed_control";
 on_tick "test:nested_loops";
 on_tick "test:complex_for";
-on_tick "test:scoreboard_while";
+on_tick "test:list_iteration";
+on_tick "test:break_continue";

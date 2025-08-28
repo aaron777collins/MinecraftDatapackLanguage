@@ -550,11 +550,19 @@ def _ast_to_commands(body: List[Any]) -> List[str]:
                     if node.value:
                         # Set initial value if provided
                         try:
-                            initial_value = int(node.value)
+                            if hasattr(node.value, 'value'):
+                                # It's a LiteralExpression
+                                initial_value = int(node.value.value)
+                            else:
+                                # It's a simple value
+                                initial_value = int(node.value)
                             commands.append(f"scoreboard players set @s {var_name} {initial_value}")
                         except (ValueError, TypeError):
                             # If not a simple number, set to 0
                             commands.append(f"scoreboard players set @s {var_name} 0")
+                    else:
+                        # No initial value, set to 0
+                        commands.append(f"scoreboard players set @s {var_name} 0")
                 elif var_type == 'str':
                     # String variables use NBT storage
                     commands.append(f"data modify storage mdl:variables {var_name} set value \"\"")

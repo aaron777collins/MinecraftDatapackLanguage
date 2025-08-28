@@ -1,0 +1,9 @@
+// debug_variables.mdl - Minimal test for variable handling
+pack "debug" description "Debug variables" pack_format 82;
+
+namespace "test";
+
+function "simple" {
+    var num counter = 5;
+    say Counter: counter;
+}

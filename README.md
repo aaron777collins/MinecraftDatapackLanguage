@@ -12,24 +12,19 @@ A powerful compiler that lets you write Minecraft datapacks in a modern JavaScri
 ![PyPI](https://img.shields.io/pypi/v/minecraft-datapack-language?style=flat-square)
 ![Release](https://github.com/aaron777collins/MinecraftDatapackLanguage/workflows/Release/badge.svg)
 
-## 🆕 Version 10 - JavaScript-Style MDL Language
+## 🆕 Version 10 - Modern JavaScript-Style MDL Language
 
 **Version 10 introduces a completely new JavaScript-style MDL language format** with modern programming features:
 
-### ✨ New Features in v10
+### ✨ Modern Features
 - **🎯 JavaScript-style syntax** with curly braces `{}` and semicolons `;`
 - **📝 Modern comments** using `//` and `/* */`
 - **🔢 Variable system** with `num`, `str`, and `list` types
-- **🔄 Advanced control flow** including `switch`, `try-catch`, `break`, `continue`
-- **📦 Import system** for modular code organization
+- **🔄 Advanced control flow** including `if/else`, `while`, `for`, `switch`, `try-catch`, `break`, `continue`
+- **📦 Namespace system** for modular code organization
 - **🎨 VS Code extension** with full IntelliSense and snippets
 - **🧪 Comprehensive testing** with E2E validation
 - **📚 Extensive documentation** with examples for every feature
-
-### 🔄 Migration from v9
-- **Version 9 and below** used a different MDL format with indentation-based blocks
-- **Legacy documentation** is available for users still using the old format
-- **Automatic migration** tools are provided for converting old projects
 
 ### 🏗️ Core Features
 - ✅ Handles the directory renames from snapshots **24w19a** (tag subfolders) and **24w21a** (core registry folders)
@@ -41,7 +36,7 @@ A powerful compiler that lets you write Minecraft datapacks in a modern JavaScri
 - ✅ **Type system** with number, string, and list variables
 - ✅ **Function system** with parameters, return values, and recursion
 
-> **Note**: Version 10 uses **pack_format 82** by default for the new JavaScript-style syntax. Legacy projects can still use pack_format 48.
+> **Note**: Version 10 uses **pack_format 82** by default for the modern JavaScript-style syntax.
 
 ---
 
@@ -82,7 +77,7 @@ python -m pip install -e .
 
 ## 💻 CLI
 
-### New JavaScript-style MDL (v10)
+### Modern JavaScript-style MDL (v10)
 ```bash
 # Create a new v10 project
 mdl new my_pack --name "My Pack" --pack-format 82
@@ -94,12 +89,6 @@ mdl check my_pack/mypack.mdl
 # Multi-file projects
 mdl build --mdl my_pack/ -o dist      # Build entire directory
 mdl build --mdl "file1.mdl file2.mdl" -o dist  # Build specific files
-```
-
-### Legacy MDL (v9 and below)
-```bash
-# For legacy projects, use pack-format 48
-mdl build --mdl legacy_pack.mdl -o dist --pack-format 48
 ```
 
 ### Build a whole folder of `.mdl` files
@@ -123,9 +112,9 @@ mdl check --json src/
 
 ---
 
-## 📝 Quick Start - JavaScript-style MDL (v10)
+## 📝 Quick Start - Modern JavaScript-style MDL
 
-Create your first JavaScript-style MDL project:
+Create your first modern MDL project:
 
 ```mdl
 // my_pack.mdl
@@ -136,11 +125,13 @@ namespace "example";
 // Global variables
 var num counter = 0;
 var str message = "Hello World";
+var list items = ["sword", "shield", "potion"];
 
 function "init" {
     say Initializing...;
     counter = 0;
     message = "Ready!";
+    items.append("golden_apple");
 }
 
 function "tick" {
@@ -153,6 +144,12 @@ function "tick" {
     
     for player in @a {
         effect give @s minecraft:speed 1 0;
+    }
+    
+    // List operations
+    var num item_count = items.length;
+    if "score @s item_count > 5" {
+        say Inventory getting full!;
     }
 }
 
@@ -233,9 +230,13 @@ Here's a complete example showing how to organize a datapack across multiple fil
 **`core.mdl`** (main file with pack declaration):
 ```mdl
 // core.mdl - Main pack and core systems
-pack "Adventure Pack" description "Multi-file example datapack" pack_format 82 min_format [82, 0] max_format [82, 1] min_engine_version "1.21.4";
+pack "Adventure Pack" description "Multi-file example datapack" pack_format 82;
 
 namespace "core";
+
+// Global state
+var num system_version = 1;
+var str system_status = "online";
 
 function "init" {
     say [core:init] Initializing Adventure Pack...;
@@ -300,37 +301,6 @@ function "update_ui" {
 }
 ```
 
-**`data/recipes.mdl`** (data module):
-```mdl
-// data/recipes.mdl - Custom recipes
-namespace "data";
-
-// Custom recipe for a special item
-recipe "special_sword" {
-    {
-        "type": "minecraft:crafting",
-        "pattern": [
-            " D ",
-            " D ",
-            " S "
-        ],
-        "key": {
-            "D": {"item": "minecraft:diamond"},
-            "S": {"item": "minecraft:stick"}
-        },
-        "result": {
-            "item": "minecraft:diamond_sword",
-            "count": 1
-        }
-    }
-}
-
-// Function tag to run UI updates
-tag function "minecraft:tick" {
-    add "ui:update_ui";
-}
-```
-
 **Project structure:**
 ```
 adventure_pack/
@@ -338,10 +308,8 @@ adventure_pack/
 ├── combat/
 │   ├── weapons.mdl       # ❌ NO pack declaration (module)
 │   └── armor.mdl         # ❌ NO pack declaration (module)
-├── ui/
-│   └── hud.mdl           # ❌ NO pack declaration (module)
-└── data/
-    └── recipes.mdl       # ❌ NO pack declaration (module)
+└── ui/
+    └── hud.mdl           # ❌ NO pack declaration (module)
 ```
 
 **Build the project:**
@@ -353,7 +321,6 @@ This will create a datapack with:
 - **Core systems** (initialization and tick functions)
 - **Combat features** (weapon and armor effects)
 - **UI elements** (HUD display)
-- **Custom data** (recipes and tags)
 - **Cross-module calls** (UI calls combat functions)
 
 ### CLI Options for Multi-file Builds
@@ -362,7 +329,7 @@ This will create a datapack with:
 - `--src <path>`: Alias for `--mdl` (same functionality)
 - `-o, --out <dir>`: Output directory for the built datapack
 - `--wrapper <name>`: Custom wrapper folder/zip name (default: first namespace or pack name slug)
-- `--pack-format <N>`: Minecraft pack format (default: 48 for 1.21+)
+- `--pack-format <N>`: Minecraft pack format (default: 82 for modern syntax)
 - `-v, --verbose`: Show detailed processing information including file merging
 - `--py-module <path>`: Alternative: build from Python module with `create_pack()` function
 
@@ -375,7 +342,7 @@ This will create a datapack with:
 
 ---
 
-## 📝 The `.mdl` language
+## 📝 The Modern `.mdl` Language
 
 ### Grammar you can rely on (based on the parser)
 - **pack header** (required once):
@@ -385,6 +352,12 @@ This will create a datapack with:
 - **namespace** (selects a namespace for following blocks):
   ```mdl
   namespace "example";
+  ```
+- **variable declarations** (with types):
+  ```mdl
+  var num counter = 0;
+  var str message = "Hello";
+  var list items = ["sword", "shield"];
   ```
 - **function** (curly braces + semicolons):
   ```mdl
@@ -410,10 +383,10 @@ This will create a datapack with:
 - **while loops** (repetitive execution):
   ```mdl
   function "countdown" {
-      scoreboard players set @s counter 5;
+      var num counter = 5;
       while "score @s counter matches 1.." {
           say Counter: @s counter;
-          scoreboard players remove @s counter 1;
+          counter = counter - 1;
       }
   }
   ```
@@ -444,7 +417,6 @@ This will create a datapack with:
       add "example:hello";
   }
   ```
-  The parser accepts an optional `replace` flag on the header (e.g. `tag function "minecraft:tick" replace {`) but replacement behavior is controlled by the pack writer.
 - **comments** start with `//` or `/* */`. Hashes inside **quoted strings** are preserved.
 - **whitespace**: empty lines are ignored; **explicit block boundaries** using curly braces `{` and `}`; **statement termination** using semicolons `;`.
 
@@ -488,6 +460,47 @@ Notice how the full-line `//` and block comments never make it into the `.mcfunc
 
 ---
 
+### Variables and Data Types
+
+MDL supports a modern variable system with three data types:
+
+#### Number Variables (`num`)
+```mdl
+var num counter = 0;
+var num health = 20;
+var num experience = 100;
+
+// Arithmetic operations
+counter = counter + 1;
+health = health - 5;
+experience = experience * 2;
+```
+
+#### String Variables (`str`)
+```mdl
+var str player_name = "Steve";
+var str message = "Hello World";
+var str status = "online";
+
+// String concatenation
+var str full_message = "Player " + player_name + " is " + status;
+```
+
+#### List Variables (`list`)
+```mdl
+var list items = ["sword", "shield", "potion"];
+var list players = ["Alice", "Bob", "Charlie"];
+
+// List operations
+items.append("golden_apple");
+items.insert(1, "enchanted_sword");
+var str first_item = items[0];
+var num item_count = items.length;
+items.remove("shield");
+items.pop();
+items.clear();
+```
+
 ### Control Flow
 
 MDL supports conditional blocks and loops for advanced control flow.
@@ -498,18 +511,25 @@ MDL supports if/else if/else statements for conditional execution:
 
 ```mdl
 function "conditional_example" {
-    if "entity @s[type=minecraft:player]" {
-        say Player detected!;
-        effect give @s minecraft:glowing 5 1;
-    } else if "entity @s[type=minecraft:zombie]" {
-        say Zombie detected!;
-        effect give @s minecraft:poison 5 1;
-    } else if "entity @s[type=minecraft:creeper]" {
-        say Creeper detected!;
-        effect give @s minecraft:resistance 5 1;
+    var num player_level = 15;
+    var str player_class = "warrior";
+    
+    if "score @s player_level >= 10" {
+        if "score @s player_class == 'warrior'" {
+            say Advanced warrior detected!;
+            effect give @s minecraft:strength 10 2;
+        } else if "score @s player_class == 'mage'" {
+            say Advanced mage detected!;
+            effect give @s minecraft:night_vision 10 0;
+        } else {
+            say Unknown advanced class;
+        }
+    } else if "score @s player_level >= 5" {
+        say Intermediate player;
+        effect give @s minecraft:speed 10 0;
     } else {
-        say Unknown entity;
-        effect give @s minecraft:slowness 5 1;
+        say Beginner player;
+        effect give @s minecraft:jump_boost 10 0;
     }
 }
 ```
@@ -529,10 +549,10 @@ MDL supports while loops for repetitive execution:
 
 ```mdl
 function "while_example" {
-    scoreboard players set @s counter 5;
+    var num counter = 5;
     while "score @s counter matches 1.." {
         say Counter: @s counter;
-        scoreboard players remove @s counter 1;
+        counter = counter - 1;
         say Decremented counter;
     }
 }
@@ -567,6 +587,65 @@ function "for_example" {
 - For loops iterate over each entity in the collection
 - **Efficient execution**: Each conditional block becomes a separate function for optimal performance
 
+#### Break and Continue
+
+MDL supports `break` and `continue` statements in loops:
+
+```mdl
+function "break_continue_example" {
+    var num counter = 0;
+    var num break_sum = 0;
+    var num continue_sum = 0;
+    
+    // Test break
+    while "score @s counter < 10" {
+        counter = counter + 1;
+        
+        if "score @s counter == 7" {
+            break;
+        }
+        
+        break_sum = break_sum + counter;
+    }
+    
+    // Test continue
+    counter = 0;
+    while "score @s counter < 10" {
+        counter = counter + 1;
+        
+        if "score @s counter % 2 == 0" {
+            continue;
+        }
+        
+        continue_sum = continue_sum + counter;
+    }
+}
+```
+
+### Error Handling
+
+MDL supports try-catch blocks for error handling:
+
+```mdl
+function "error_handling_example" {
+    var num dividend = 10;
+    var num divisor = 0;
+    var num result = 0;
+    
+    try {
+        if "score @s divisor != 0" {
+            result = dividend / divisor;
+        } else {
+            throw "Division by zero attempted";
+        }
+    } catch (error) {
+        say Caught error: error;
+        result = 0;
+        say Division by zero prevented;
+    }
+}
+```
+
 ---
 
 ### Multi-line Commands
@@ -600,20 +679,32 @@ tellraw @a {"text":"This text is really, really long so we split it","color":"go
 ## 🎯 FULL example (nested calls + multi-namespace)
 
 ```mdl
-// mypack.mdl - minimal example for Minecraft Datapack Language
-pack "Minecraft Datapack Language" description "Example datapack" pack_format 82 min_format [82, 0] max_format [82, 1] min_engine_version "1.21.4";
+// mypack.mdl - complete example for Minecraft Datapack Language
+pack "Minecraft Datapack Language" description "Example datapack" pack_format 82;
 
 namespace "example";
+
+// Global variables
+var num counter = 0;
+var str message = "Hello World";
+var list items = ["sword", "shield"];
 
 function "inner" {
     say [example:inner] This is the inner function;
     tellraw @a {"text":"Running inner","color":"yellow"};
+    counter = counter + 1;
 }
 
 function "hello" {
     say [example:hello] Outer says hi;
     function example:inner;
     tellraw @a {"text":"Back in hello","color":"aqua"};
+    
+    // Variable operations
+    message = "Updated message";
+    items.append("potion");
+    var num item_count = items.length;
+    say Item count: item_count;
 }
 
 // Hook the function into load and tick
@@ -625,6 +716,9 @@ namespace "util";
 
 function "helper" {
     say [util:helper] Helping out...;
+    var num helper_count = 0;
+    helper_count = helper_count + 1;
+    say Helper count: helper_count;
 }
 
 function "boss" {
@@ -664,6 +758,8 @@ tag block "example:glassy" {
 - **Lifecycle hooks** (`on_load`, `on_tick`) on both `example:hello` and `util:boss`.
 - **Function tags** to participate in vanilla tags (`minecraft:load`, `minecraft:tick`).
 - **Data tags** (`item`, `block`) in addition to function tags.
+- **Variable system** with numbers, strings, and lists.
+- **Modern syntax** with curly braces and semicolons.
 
 ---
 
@@ -675,7 +771,7 @@ from minecraft_datapack_language import Pack
 def build_pack():
     p = Pack(name="Minecraft Datapack Language",
              description="Example datapack",
-             pack_format=48)
+             pack_format=82)
 
     ex = p.namespace("example")
     ex.function("inner",
@@ -723,7 +819,7 @@ from my_pack_module import build_pack
 from minecraft_datapack_language.cli import main as M
 # write to dist/ with a wrapper folder name 'mypack'
 p = build_pack()
-M(['build', '--py-object', 'my_pack_module:build_pack', '-o', 'dist', '--wrapper', 'mypack', '--pack-format', '48'])
+M(['build', '--py-object', 'my_pack_module:build_pack', '-o', 'dist', '--wrapper', 'mypack', '--pack-format', '82'])
 PY
 ```
 

@@ -439,6 +439,8 @@ class MDLParser:
                 statements.append(self._parse_function_call())
             elif token.type == TokenType.COMMAND:
                 statements.append(self._parse_command())
+            elif token.type in [TokenType.VAR, TokenType.LET, TokenType.CONST]:
+                statements.append(self._parse_variable_declaration())
             elif token.type == TokenType.IDENTIFIER:
                 # Check if this is a variable assignment, function call, or list operation
                 next_token = self._peek_next()

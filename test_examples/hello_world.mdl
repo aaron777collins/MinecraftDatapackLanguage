@@ -1,4 +1,4 @@
-// hello_world.mdl
+// hello_world.mdl - Basic test for modern MDL syntax
 pack "hello_world" description "A simple example datapack" pack_format 82;
 
 namespace "example";

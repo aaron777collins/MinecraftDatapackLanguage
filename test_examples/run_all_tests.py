@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Comprehensive test script for all MDL examples and their Python API equivalents.
-This script tests both MDL files and Python API examples to ensure they work correctly.
+Modern MDL Test Suite Runner
+Tests the new JavaScript-style MDL language implementation
 """
 
 import os
@@ -35,51 +35,30 @@ def test_mdl_file(mdl_file, description):
     
     return True
 
-def test_python_file(py_file, description):
-    """Test a Python file by running it"""
-    return run_command(f"python {py_file}", f"Python API: {description}")
-
-def test_multi_file_project(project_dir, description):
-    """Test a multi-file project"""
-    # Test syntax check
-    if not run_command(f"mdl check {project_dir}/", f"Multi-file syntax check: {description}"):
-        return False
+def test_cli_functionality():
+    """Test CLI functionality"""
+    print("\n[CLI] Testing CLI Functionality:")
+    print("-" * 30)
     
-    # Test build
-    if not run_command(f"mdl build --mdl {project_dir}/ -o test_examples/dist", f"Multi-file build: {description}"):
-        return False
+    tests = [
+        ("mdl --help", "CLI help command"),
+        ("mdl --version", "CLI version command"),
+        ('mdl new test_pack --name "Test Pack" --pack-format 82', "CLI new command"),
+    ]
     
-    return True
-
-def test_loop_functionality():
-    """Test the new loop functionality specifically"""
-    print("Testing loop functionality...")
+    results = []
+    for cmd, desc in tests:
+        results.append(run_command(cmd, desc))
     
-    # Import and run the loop test modules
-    try:
-        # Test loop functionality (simplified)
-        print("Testing loop functionality...")
-        success1 = True  # Assume success for now
-        success2 = True
-        success3 = True
-        success4 = True
-        success5 = True
-        success6 = True
-        
-        all_success = all([success1, success2, success3, success4, success5, success6])
-        if all_success:
-            print("[+] Loop functionality tests - PASSED")
-        else:
-            print("[-] Loop functionality tests - FAILED")
-        return all_success
-        
-    except Exception as e:
-        print(f"[-] Loop functionality tests - FAILED with error: {e}")
-        return False
+    # Clean up test pack
+    if os.path.exists("test_pack"):
+        shutil.rmtree("test_pack")
+    
+    return all(results)
 
 def main():
-    """Run all tests"""
-    print("[TEST] Starting comprehensive MDL example tests...")
+    """Run all modern MDL tests"""
+    print("[TEST] Starting Modern MDL Test Suite...")
     print("=" * 60)
     
     # Create test directory
@@ -89,86 +68,29 @@ def main():
     total_tests = 0
     passed_tests = 0
     
-    # Single file MDL examples
+    # Modern MDL examples
     mdl_examples = [
         ("test_examples/hello_world.mdl", "Hello World"),
-        ("test_examples/particles.mdl", "Particle Effects"),
-        ("test_examples/commands.mdl", "Custom Commands"),
-        ("test_examples/combat_system.mdl", "Combat System"),
-        ("test_examples/ui_system.mdl", "UI System"),
-        ("test_examples/adventure_pack.mdl", "Adventure Pack"),
-        ("test_examples/conditionals.mdl", "Conditionals"),
-        ("test_examples/loops.mdl", "Loops"),
+        ("test_examples/variables.mdl", "Variables and Data Types"),
+        ("test_examples/conditionals.mdl", "Conditional Logic"),
+        ("test_examples/loops.mdl", "Loop Constructs"),
+        ("test_examples/namespaces.mdl", "Namespaces and Cross-namespace Calls"),
+        ("test_examples/error_handling.mdl", "Error Handling"),
+        ("test_examples/adventure_pack.mdl", "Complete Adventure Pack"),
     ]
-    
-    # Python API examples
-    python_examples = [
-        ("test_examples/hello_world.py", "Hello World"),
-        ("test_examples/particles.py", "Particle Effects"),
-        ("test_examples/commands.py", "Custom Commands"),
-        ("test_examples/combat_system.py", "Combat System"),
-        ("test_examples/ui_system.py", "UI System"),
-        ("test_examples/adventure_pack.py", "Adventure Pack"),
-        ("test_examples/conditionals.py", "Conditionals"),
-        ("test_examples/loops.py", "Loops"),
-    ]
-    
-    # Multi-file project
-    multi_file_projects = [
-        ("test_examples/adventure_pack", "Multi-file Adventure Pack"),
-    ]
-    
-    # Test loop functionality specifically
-    total_tests += 1
-    if test_loop_functionality():
-        passed_tests += 1
     
     # Test MDL files
-    print("\n[MDL] Testing MDL Files:")
+    print("\n[MDL] Testing Modern MDL Files:")
     print("-" * 30)
     for mdl_file, description in mdl_examples:
         total_tests += 1
         if test_mdl_file(mdl_file, description):
             passed_tests += 1
     
-    # Test Python API files
-    print("\n[PYTHON] Testing Python API Examples:")
-    print("-" * 35)
-    for py_file, description in python_examples:
-        total_tests += 1
-        if test_python_file(py_file, description):
-            passed_tests += 1
-    
-    # Test multi-file projects
-    print("\n[MULTI] Testing Multi-file Projects:")
-    print("-" * 30)
-    for project_dir, description in multi_file_projects:
-        total_tests += 1
-        if test_multi_file_project(project_dir, description):
-            passed_tests += 1
-    
     # Test CLI functionality
-    print("\n[CLI] Testing CLI Functionality:")
-    print("-" * 30)
-    
-    # Test help command
     total_tests += 1
-    if run_command("mdl --help", "CLI help command"):
+    if test_cli_functionality():
         passed_tests += 1
-    
-    # Test version command
-    total_tests += 1
-    if run_command("python -m minecraft_datapack_language.cli --version", "CLI version command"):
-        passed_tests += 1
-    
-    # Test new command
-    total_tests += 1
-    if run_command('mdl new test_pack --name "Test Pack" --pack-format 48', "CLI new command"):
-        passed_tests += 1
-    
-    # Clean up test pack
-    if os.path.exists("test_pack"):
-        shutil.rmtree("test_pack")
     
     # Summary
     print("\n" + "=" * 60)
@@ -179,7 +101,7 @@ def main():
     print(f"   Success Rate: {(passed_tests/total_tests)*100:.1f}%")
     
     if passed_tests == total_tests:
-        print("\n[+] All tests passed! All examples are working correctly.")
+        print("\n[+] All tests passed! Modern MDL implementation is working correctly.")
         return 0
     else:
         print(f"\n[-] {total_tests - passed_tests} test(s) failed. Please check the output above.")

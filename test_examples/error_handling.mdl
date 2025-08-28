@@ -1,0 +1,140 @@
+// error_handling.mdl - Test error handling and try-catch blocks
+pack "error_handling" description "Error handling test" pack_format 82;
+
+namespace "test";
+
+function "division_by_zero" {
+    say Testing division by zero handling;
+    var num dividend = 10;
+    var num divisor = 0;
+    var num result = 0;
+    
+    try {
+        if "score @s divisor != 0" {
+            result = dividend / divisor;
+        } else {
+            throw "Division by zero attempted";
+        }
+    } catch (error) {
+        say Caught error: error;
+        result = 0;
+        say Division by zero prevented;
+    }
+    
+    say Division result: result;
+}
+
+function "list_bounds_check" {
+    say Testing list bounds checking;
+    var list test_list = ["apple", "banana", "cherry"];
+    var num safe_index = 1;
+    var num unsafe_index = 10;
+    var str safe_value = "";
+    var str unsafe_value = "";
+    
+    try {
+        if "score @s safe_index < test_list.length" {
+            safe_value = test_list[safe_index];
+        } else {
+            throw "Safe index out of bounds";
+        }
+    } catch (error) {
+        say Caught error: error;
+        safe_value = "default";
+    }
+    
+    try {
+        if "score @s unsafe_index < test_list.length" {
+            unsafe_value = test_list[unsafe_index];
+        } else {
+            throw "Unsafe index out of bounds";
+        }
+    } catch (error) {
+        say Caught error: error;
+        unsafe_value = "default";
+        say List bounds check passed;
+    }
+    
+    say Safe value: safe_value;
+    say Unsafe value: unsafe_value;
+}
+
+function "entity_validation" {
+    say Testing entity validation;
+    
+    try {
+        if "entity @s[type=minecraft:player]" {
+            say Player entity validated;
+            effect give @s minecraft:speed 5 0;
+        } else {
+            throw "Invalid entity type";
+        }
+    } catch (error) {
+        say Caught error: error;
+        say Entity validation failed;
+    }
+}
+
+function "resource_cleanup" {
+    say Testing resource cleanup;
+    var list resources = ["memory", "storage", "network"];
+    
+    try {
+        say Allocating resources;
+        resources.append("database");
+        resources.append("cache");
+        
+        if "score @s resources.length > 5" {
+            throw "Too many resources allocated";
+        }
+        
+        say Resources allocated successfully;
+    } catch (error) {
+        say Caught error: error;
+        say Cleaning up resources;
+        resources.clear();
+        say Resources cleaned up;
+    }
+    
+    say Final resource count: resources.length;
+}
+
+function "nested_error_handling" {
+    say Testing nested error handling;
+    
+    try {
+        say Outer try block;
+        var num level1 = 10;
+        
+        try {
+            say Inner try block;
+            var num level2 = 5;
+            
+            if "score @s level2 == 0" {
+                throw "Inner error";
+            }
+            
+            say Inner block completed;
+        } catch (inner_error) {
+            say Caught inner error: inner_error;
+            level2 = 1;
+        }
+        
+        if "score @s level1 == 0" {
+            throw "Outer error";
+        }
+        
+        say Outer block completed;
+    } catch (outer_error) {
+        say Caught outer error: outer_error;
+        level1 = 1;
+    }
+    
+    say Nested error handling complete;
+}
+
+on_tick "test:division_by_zero";
+on_tick "test:list_bounds_check";
+on_tick "test:entity_validation";
+on_tick "test:resource_cleanup";
+on_tick "test:nested_error_handling";

@@ -1,0 +1,90 @@
+// namespaces.mdl - Test multiple namespaces and cross-namespace calls
+pack "namespaces" description "Namespace functionality test" pack_format 82;
+
+namespace "core";
+
+// Core system functions
+function "init" {
+    say [core:init] Initializing core system;
+    var num system_version = 1;
+    var str system_status = "online";
+    say Core system ready;
+}
+
+function "cleanup" {
+    say [core:cleanup] Cleaning up core system;
+    function mdl:garbage_collect;
+    say Core cleanup complete;
+}
+
+namespace "utils";
+
+// Utility functions
+function "helper" {
+    say [utils:helper] Helper function called;
+    var num helper_count = 0;
+    helper_count = helper_count + 1;
+    say Helper count: helper_count;
+}
+
+function "calculator" {
+    say [utils:calculator] Calculator function;
+    var num a = 10;
+    var num b = 5;
+    var num result = a + b;
+    say Calculation result: result;
+}
+
+namespace "game";
+
+// Game-specific functions
+function "start_game" {
+    say [game:start_game] Starting game;
+    function core:init;
+    function utils:helper;
+    say Game started successfully;
+}
+
+function "end_game" {
+    say [game:end_game] Ending game;
+    function core:cleanup;
+    say Game ended;
+}
+
+function "player_action" {
+    say [game:player_action] Player action detected;
+    if "entity @s[type=minecraft:player]" {
+        function utils:calculator;
+        effect give @s minecraft:speed 5 0;
+    }
+}
+
+namespace "ui";
+
+// UI system functions
+function "show_message" {
+    say [ui:show_message] Showing UI message;
+    tellraw @a {"text":"UI System Active","color":"blue"};
+}
+
+function "update_hud" {
+    say [ui:update_hud] Updating HUD;
+    function utils:helper;
+    title @a actionbar {"text":"HUD Updated","color":"green"};
+}
+
+// Cross-namespace orchestration
+function "main_loop" {
+    function core:init;
+    function game:start_game;
+    function ui:show_message;
+    function game:player_action;
+    function ui:update_hud;
+    function game:end_game;
+}
+
+// Hooks to run the system
+on_load "core:init";
+on_tick "game:player_action";
+on_tick "ui:update_hud";
+on_tick "utils:helper";

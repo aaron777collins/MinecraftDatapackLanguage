@@ -1,0 +1,77 @@
+// variables.mdl - Test variable declarations and operations
+pack "variables" description "Variable operations test" pack_format 82;
+
+namespace "test";
+
+// Global variables
+var num global_counter = 0;
+var str global_message = "System Ready";
+var list global_items = ["sword", "shield", "potion"];
+
+function "variable_demo" {
+    // Local variable declarations
+    var num local_counter = 10;
+    var str player_name = "Steve";
+    var list local_items = ["apple", "bread", "steak"];
+    
+    // Number operations
+    local_counter = local_counter + 5;
+    global_counter = global_counter + 1;
+    
+    // String operations
+    player_name = "Alex";
+    global_message = "Updated: " + player_name;
+    var str full_name = player_name + " Minecraft";
+    
+    // List operations
+    local_items.append("golden_apple");
+    local_items.insert(1, "enchanted_sword");
+    var num first_item = local_items[0];
+    var num item_count = local_items.length;
+    
+    // Complex calculations
+    var num result = (local_counter * 2) + global_counter;
+    var num modulo_result = result % 7;
+    
+    // String concatenation with variables
+    var str status = player_name + " has " + item_count + " items";
+    
+    say Variable demo complete;
+    tellraw @s {"text":"Result: " + result};
+    tellraw @s {"text":"Modulo: " + modulo_result};
+    tellraw @s {"text":"Status: " + status};
+}
+
+function "list_operations" {
+    var list weapons = ["diamond_sword", "golden_sword", "bow"];
+    var list armor = ["diamond_helmet", "diamond_chestplate"];
+    
+    // Append operations
+    weapons.append("crossbow");
+    armor.append("diamond_leggings");
+    
+    // Insert operations
+    weapons.insert(1, "netherite_sword");
+    armor.insert(0, "netherite_helmet");
+    
+    // Access operations
+    var str primary_weapon = weapons[0];
+    var num weapon_count = weapons.length;
+    var num armor_count = armor.length;
+    
+    // Remove operations
+    weapons.remove("golden_sword");
+    armor.remove("diamond_helmet");
+    
+    // Pop operations
+    weapons.pop();
+    armor.pop();
+    
+    say List operations complete;
+    tellraw @s {"text":"Weapon count: " + weapon_count};
+    tellraw @s {"text":"Armor count: " + armor_count};
+    tellraw @s {"text":"Primary weapon: " + primary_weapon};
+}
+
+on_tick "test:variable_demo";
+on_tick "test:list_operations";
