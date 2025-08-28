@@ -24,18 +24,18 @@ def test_build_with_loops():
     with tempfile.TemporaryDirectory() as temp_dir:
         try:
             p.build(temp_dir)
-            print(f"✅ Build completed successfully in {temp_dir}")
+            print(f"[+] Build completed successfully in {temp_dir}")
             
             # Check that the output directory was created
             if os.path.exists(temp_dir):
-                print("✅ Output directory created")
+                print("[+] Output directory created")
                 return True
             else:
-                print("❌ Output directory not created")
+                print("[-] Output directory not created")
                 return False
                 
         except Exception as e:
-            print(f"❌ Build failed with error: {e}")
+            print(f"[-] Build failed with error: {e}")
             return False
 
 def test_build_with_mixed_control_flow():
@@ -58,14 +58,14 @@ def test_build_with_mixed_control_flow():
     with tempfile.TemporaryDirectory() as temp_dir:
         try:
             p.build(temp_dir)
-            print(f"✅ Mixed control flow build completed successfully in {temp_dir}")
+            print(f"[+] Mixed control flow build completed successfully in {temp_dir}")
             return True
         except Exception as e:
-            print(f"❌ Mixed control flow build failed with error: {e}")
+            print(f"[-] Mixed control flow build failed with error: {e}")
             return False
 
 if __name__ == "__main__":
-    print("🧪 Testing Build Process with Loops")
+    print("[TEST] Testing Build Process with Loops")
     print("=" * 45)
     
     success1 = test_build_with_loops()
@@ -74,6 +74,6 @@ if __name__ == "__main__":
     success2 = test_build_with_mixed_control_flow()
     
     if success1 and success2:
-        print("\n✅ All build tests passed!")
+        print("\n[+] All build tests passed!")
     else:
-        print("\n❌ Some build tests failed!")
+        print("\n[-] Some build tests failed!")

@@ -69,11 +69,11 @@ def test_scenarios():
     try:
         files = [os.path.join(temp_dir, "main.mdl"), os.path.join(temp_dir, "utils.mdl")]
         pack = _parse_many(files, default_pack_format=48, verbose=True)
-        print(f"✅ SUCCESS: Pack name = '{pack.name}', Format = {pack.pack_format}")
+        print(f"[+] SUCCESS: Pack name = '{pack.name}', Format = {pack.pack_format}")
         print(f"   Namespaces: {list(pack.namespaces.keys())}")
         print()
     except Exception as e:
-        print(f"❌ FAILED: {e}")
+        print(f"[-] FAILED: {e}")
         print()
     
     # Scenario 2: Invalid multi-file (both have pack declarations)
@@ -82,9 +82,9 @@ def test_scenarios():
     try:
         files = [os.path.join(temp_dir, "main.mdl"), os.path.join(temp_dir, "conflict.mdl")]
         pack = _parse_many(files, default_pack_format=48, verbose=True)
-        print(f"❌ UNEXPECTED SUCCESS: {pack.name}")
+        print(f"[-] UNEXPECTED SUCCESS: {pack.name}")
     except Exception as e:
-        print(f"✅ EXPECTED ERROR: {e}")
+        print(f"[+] EXPECTED ERROR: {e}")
         print()
     
     # Scenario 3: No pack declaration in any file
@@ -93,9 +93,9 @@ def test_scenarios():
     try:
         files = [os.path.join(temp_dir, "utils.mdl")]
         pack = _parse_many(files, default_pack_format=48, verbose=True)
-        print(f"❌ UNEXPECTED SUCCESS: {pack.name}")
+        print(f"[-] UNEXPECTED SUCCESS: {pack.name}")
     except Exception as e:
-        print(f"✅ EXPECTED ERROR: {e}")
+        print(f"[+] EXPECTED ERROR: {e}")
         print()
     
     # Scenario 4: Multiple files without pack, but with default
@@ -104,10 +104,10 @@ def test_scenarios():
     try:
         files = [os.path.join(temp_dir, "utils.mdl")]
         pack = _parse_many(files, default_pack_format=48, verbose=True)
-        print(f"✅ SUCCESS: Pack name = '{pack.name}', Format = {pack.pack_format}")
+        print(f"[+] SUCCESS: Pack name = '{pack.name}', Format = {pack.pack_format}")
         print()
     except Exception as e:
-        print(f"❌ FAILED: {e}")
+        print(f"[-] FAILED: {e}")
         print()
 
 if __name__ == "__main__":

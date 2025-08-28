@@ -58,12 +58,12 @@ function "simple_for":
     return has_while_body and has_while_decrement and has_for_body and has_for_effect
 
 if __name__ == "__main__":
-    print("🧪 Testing MDL Parser with Loop Commands")
+    print("[TEST] Testing MDL Parser with Loop Commands")
     print("=" * 50)
     
     success = test_parser_stores_loop_commands()
     
     if success:
-        print("\n✅ Parser correctly stores loop commands!")
+        print("\n[+] Parser correctly stores loop commands!")
     else:
-        print("\n❌ Parser has issues with loop commands!")
+        print("\n[-] Parser has issues with loop commands!")

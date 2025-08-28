@@ -93,7 +93,7 @@ def run_mdl_command(args):
     
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, check=True, cwd=os.getcwd())
-        print(f"✅ SUCCESS")
+        print(f"[+] SUCCESS")
         print(f"STDOUT: {result.stdout}")
         return True, result.stdout, result.stderr
     except subprocess.CalledProcessError as e:

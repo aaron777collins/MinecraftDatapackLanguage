@@ -23,18 +23,18 @@ def test_loop_regex_patterns():
     for i, cmd in enumerate(commands):
         match = re.match(while_pattern, cmd.strip())
         if match:
-            print(f"  ✅ Line {i}: '{cmd}' -> MATCH: {match.group(1)}")
+            print(f"  [+] Line {i}: '{cmd}' -> MATCH: {match.group(1)}")
         else:
-            print(f"  ❌ Line {i}: '{cmd}' -> NO MATCH")
+            print(f"  [-] Line {i}: '{cmd}' -> NO MATCH")
     
     print("\nTesting for loop regex patterns...")
     for_pattern = r'^for\s+(\w+)\s+in\s+(.+?)\s*:\s*$'
     for i, cmd in enumerate(commands):
         match = re.match(for_pattern, cmd.strip())
         if match:
-            print(f"  ✅ Line {i}: '{cmd}' -> MATCH: var={match.group(1)}, collection={match.group(2)}")
+            print(f"  [+] Line {i}: '{cmd}' -> MATCH: var={match.group(1)}, collection={match.group(2)}")
         else:
-            print(f"  ❌ Line {i}: '{cmd}' -> NO MATCH")
+            print(f"  [-] Line {i}: '{cmd}' -> NO MATCH")
 
 def test_loop_processing():
     """Test that loop processing generates correct functions"""
@@ -65,7 +65,7 @@ def test_loop_processing():
     return len(processed) > 0 and len(ns.functions) > 0
 
 if __name__ == "__main__":
-    print("🧪 Testing Loop Processing Functionality")
+    print("[TEST] Testing Loop Processing Functionality")
     print("=" * 50)
     
     test_loop_regex_patterns()
@@ -73,6 +73,6 @@ if __name__ == "__main__":
     
     success = test_loop_processing()
     if success:
-        print("\n✅ All loop processing tests passed!")
+        print("\n[+] All loop processing tests passed!")
     else:
-        print("\n❌ Some loop processing tests failed!")
+        print("\n[-] Some loop processing tests failed!")
