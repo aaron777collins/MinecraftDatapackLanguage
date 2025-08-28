@@ -631,9 +631,11 @@ def _ast_to_commands(body: List[Any], current_namespace: str = "test", current_p
                     # Initialize the variable based on type
                     if var_type == 'num':
                         commands.append(f"scoreboard objectives add {var_name} dummy")
-                    elif var_type == 'str':
+                    elif var_type == 'str' and not node.value:
+                        # Only initialize empty string if no value is provided
                         commands.append(f"data modify storage mdl:variables {var_name} set value \"\"")
-                    elif var_type == 'list':
+                    elif var_type == 'list' and not node.value:
+                        # Only initialize empty list if no value is provided
                         commands.append(f"data modify storage mdl:variables {var_name} set value []")
                     
                     # Handle the value using expression processor

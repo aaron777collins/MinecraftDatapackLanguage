@@ -149,17 +149,38 @@ class ExpressionProcessor:
     
     def generate_binary_operation(self, operator: str, left: str, right: str, target: str) -> str:
         """Generate a binary operation command"""
+        # Check if right is a numeric literal
+        try:
+            right_num = int(right)
+            is_right_literal = True
+        except (ValueError, TypeError):
+            is_right_literal = False
+        
         if operator == '+':
-            return f"scoreboard players operation @s {target} = @s {left}\nscoreboard players add @s {target} {right}"
+            if is_right_literal:
+                return f"scoreboard players operation @s {target} = @s {left}\nscoreboard players add @s {target} {right}"
+            else:
+                return f"scoreboard players operation @s {target} = @s {left}\nscoreboard players operation @s {target} += @s {right}"
         elif operator == '-':
-            return f"scoreboard players operation @s {target} = @s {left}\nscoreboard players remove @s {target} {right}"
+            if is_right_literal:
+                return f"scoreboard players operation @s {target} = @s {left}\nscoreboard players remove @s {target} {right}"
+            else:
+                return f"scoreboard players operation @s {target} = @s {left}\nscoreboard players operation @s {target} -= @s {right}"
         elif operator == '*':
-            return f"scoreboard players operation @s {target} = @s {left}\nscoreboard players operation @s {target} *= @s {right}"
+            if is_right_literal:
+                return f"scoreboard players operation @s {target} = @s {left}\nscoreboard players operation @s {target} *= @s {right}"
+            else:
+                return f"scoreboard players operation @s {target} = @s {left}\nscoreboard players operation @s {target} *= @s {right}"
         elif operator == '/':
             return f"scoreboard players operation @s {target} = @s {left}\nscoreboard players operation @s {target} /= @s {right}"
+        elif operator == '%':
+            return f"scoreboard players operation @s {target} = @s {left}\nscoreboard players operation @s {target} %= @s {right}"
         else:
             # Default to addition for unknown operators
-            return f"scoreboard players operation @s {target} = @s {left}\nscoreboard players add @s {target} {right}"
+            if is_right_literal:
+                return f"scoreboard players operation @s {target} = @s {left}\nscoreboard players add @s {target} {right}"
+            else:
+                return f"scoreboard players operation @s {target} = @s {left}\nscoreboard players operation @s {target} += @s {right}"
     
     def process_string_concatenation(self, parts: List, target_var: str) -> ProcessedExpression:
         """Process string concatenation like "a" + b + "c" """
@@ -168,25 +189,20 @@ class ExpressionProcessor:
         
         for part in parts:
             if self.is_literal_string(part):
-                # Literal string
+                # Literal string - direct append
                 value = part.value.strip('"').strip("'")
                 commands.append(f"data modify storage mdl:variables {target_var} append value \"{value}\"")
             elif hasattr(part, 'name'):
-                # Variable reference
-                commands.extend([
-                    f"execute store result storage mdl:temp concat string 1 run data get storage mdl:variables {part.name}",
-                    f"data modify storage mdl:variables {target_var} append value storage mdl:temp concat"
-                ])
+                # Variable reference - directly copy from storage
+                # For string variables, copy directly; for numeric, use macro
+                commands.append(f"data modify storage mdl:variables {target_var} append from storage mdl:variables {part.name}")
             elif self.is_complex_expression(part):
-                # Complex expression - break it down
+                # Complex expression - evaluate first
                 temp_var = self.generate_temp_var("concat")
                 temp_vars.append(temp_var)
                 part_result = self.process_expression(part, temp_var)
                 commands.extend(part_result.temp_assignments)
-                commands.extend([
-                    f"execute store result storage mdl:temp concat string 1 run data get storage mdl:variables {temp_var}",
-                    f"data modify storage mdl:variables {target_var} append value storage mdl:temp concat"
-                ])
+                commands.append(f"data modify storage mdl:variables {target_var} append from storage mdl:variables {temp_var}")
             else:
                 # Simple value
                 value = str(part).strip('"').strip("'")
