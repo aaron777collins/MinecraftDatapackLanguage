@@ -265,6 +265,18 @@ def _ast_to_pack(ast: Dict[str, Any], default_pack_format: int) -> Pack:
         min_engine_version=min_engine_version
     )
     
+    # Add garbage collection function
+    gc_namespace = pack.namespace("mdl")
+    gc_function = gc_namespace.functions.setdefault("garbage_collect", Function("garbage_collect", []))
+    gc_function.commands.extend([
+        "# Garbage collection for MDL variables",
+        "# Clear temporary storage",
+        "data remove storage mdl:temp",
+        "# Reset scoreboard objectives (optional - uncomment if needed)",
+        "# scoreboard objectives remove temp dummy",
+        "# scoreboard objectives remove temp2 dummy"
+    ])
+    
     # Process functions by their namespace
     for func in ast.get('functions', []):
         if hasattr(func, 'name'):
@@ -374,9 +386,10 @@ def _ast_to_commands(body: List[Any]) -> List[str]:
                                         # String concatenation (e.g., "Updated: " + player_name)
                                         left_value = node.value.left.value
                                         right_var = node.value.right.name
+                                        commands.append(f"# String concatenation: '{left_value}' + {right_var}")
                                         commands.append(f"data modify storage mdl:variables {var_name} set value \"{left_value}\"")
-                                        # For now, we'll need a more sophisticated approach for string concatenation
-                                        # This is a simplified version
+                                        commands.append(f"execute store result storage mdl:temp concat string 1 run data get storage mdl:variables {right_var}")
+                                        commands.append(f"data modify storage mdl:variables {var_name} append value storage mdl:temp concat")
                                     else:
                                         # Complex addition - for now, set to 0
                                         commands.append(f"scoreboard players set @s {var_name} 0")
@@ -442,6 +455,20 @@ def _ast_to_commands(body: List[Any]) -> List[str]:
                         elif expr_class == 'Identifier':
                             # Variable reference - for now, assume it's a number variable
                             commands.append(f"scoreboard players operation @s {var_name} = @s {node.value.name}")
+                            
+                        elif expr_class == 'ListAccessExpression':
+                            # Handle list access like local_str = local_list[0]
+                            list_name = node.value.list_name
+                            if hasattr(node.value.index, 'value'):
+                                index = node.value.index.value
+                                # For now, we'll use a simple approach - store the list element in a temporary variable
+                                commands.append(f"# Access element at index {index} from {list_name}")
+                                commands.append(f"data modify storage mdl:temp element set from storage mdl:variables {list_name}[{index}]")
+                                # Then copy to the target variable (assuming it's a string for now)
+                                commands.append(f"data modify storage mdl:variables {var_name} set from storage mdl:temp element")
+                            else:
+                                # Complex index expression - skip for now
+                                continue
                             
                         else:
                             # Unknown expression type - skip for now
@@ -558,9 +585,82 @@ def _ast_to_commands(body: List[Any]) -> List[str]:
                     
             elif class_name == 'ListRemoveOperation':
                 # Convert list remove operations to Minecraft NBT commands
-                # Note: Direct "remove by value" is complex in NBT, so we'll use a TODO for now
                 list_name = node.list_name
-                commands.append(f"# TODO: Implement remove operation for {list_name}")
+                if hasattr(node.value, 'value'):
+                    # Handle string literals
+                    if hasattr(node.value, 'type') and node.value.type == 'string':
+                        value = node.value.value.strip('"')
+                        # Use a temporary storage to find and remove the item
+                        commands.append(f"# Remove '{value}' from {list_name}")
+                        commands.append(f"execute store result storage mdl:temp index int 1 run data get storage mdl:variables {list_name}")
+                        commands.append(f"execute if data storage mdl:variables {list_name}[{{value:\"{value}\"}}] run data remove storage mdl:variables {list_name}[{{value:\"{value}\"}}]")
+                    elif hasattr(node.value, 'type') and node.value.type == 'number':
+                        value = node.value.value
+                        commands.append(f"# Remove {value} from {list_name}")
+                        commands.append(f"execute if data storage mdl:variables {list_name}[{{value:{value}}}] run data remove storage mdl:variables {list_name}[{{value:{value}}}]")
+                    else:
+                        # Try to determine type from value
+                        try:
+                            value = int(node.value.value)
+                            commands.append(f"# Remove {value} from {list_name}")
+                            commands.append(f"execute if data storage mdl:variables {list_name}[{{value:{value}}}] run data remove storage mdl:variables {list_name}[{{value:{value}}}]")
+                        except (ValueError, TypeError):
+                            # Assume string
+                            value = node.value.value.strip('"')
+                            commands.append(f"# Remove '{value}' from {list_name}")
+                            commands.append(f"execute if data storage mdl:variables {list_name}[{{value:\"{value}\"}}] run data remove storage mdl:variables {list_name}[{{value:\"{value}\"}}]")
+                else:
+                    # Unknown value type - skip
+                    continue
+                    
+            elif class_name == 'ListInsertOperation':
+                # Convert list insert operations to Minecraft NBT commands
+                list_name = node.list_name
+                if hasattr(node.index, 'value') and hasattr(node.value, 'value'):
+                    index = node.index.value
+                    if hasattr(node.value, 'type') and node.value.type == 'string':
+                        value = node.value.value.strip('"')
+                        commands.append(f"# Insert '{value}' at index {index} in {list_name}")
+                        commands.append(f"data modify storage mdl:variables {list_name} insert {index} value \"{value}\"")
+                    elif hasattr(node.value, 'type') and node.value.type == 'number':
+                        value = node.value.value
+                        commands.append(f"# Insert {value} at index {index} in {list_name}")
+                        commands.append(f"data modify storage mdl:variables {list_name} insert {index} value {value}")
+                    else:
+                        # Try to determine type from value
+                        try:
+                            value = int(node.value.value)
+                            commands.append(f"# Insert {value} at index {index} in {list_name}")
+                            commands.append(f"data modify storage mdl:variables {list_name} insert {index} value {value}")
+                        except (ValueError, TypeError):
+                            # Assume string
+                            value = node.value.value.strip('"')
+                            commands.append(f"# Insert '{value}' at index {index} in {list_name}")
+                            commands.append(f"data modify storage mdl:variables {list_name} insert {index} value \"{value}\"")
+                else:
+                    # Unknown value type - skip
+                    continue
+                    
+            elif class_name == 'ListPopOperation':
+                # Convert list pop operations to Minecraft NBT commands
+                list_name = node.list_name
+                if node.index:
+                    # Pop at specific index
+                    if hasattr(node.index, 'value'):
+                        index = node.index.value
+                        commands.append(f"# Pop element at index {index} from {list_name}")
+                        commands.append(f"data remove storage mdl:variables {list_name}[{index}]")
+                else:
+                    # Pop last element
+                    commands.append(f"# Pop last element from {list_name}")
+                    commands.append(f"execute store result storage mdl:temp last_index int 1 run data get storage mdl:variables {list_name}")
+                    commands.append(f"execute if data storage mdl:variables {list_name} run data remove storage mdl:variables {list_name}[storage mdl:temp last_index]")
+                    
+            elif class_name == 'ListClearOperation':
+                # Convert list clear operations to Minecraft NBT commands
+                list_name = node.list_name
+                commands.append(f"# Clear all elements from {list_name}")
+                commands.append(f"data modify storage mdl:variables {list_name} set value []")
                 
             elif class_name == 'ReturnStatement':
                 # Skip return statements for now

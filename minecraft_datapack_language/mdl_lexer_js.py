@@ -88,6 +88,9 @@ class TokenType(Enum):
     # List operations
     APPEND = "APPEND"
     REMOVE = "REMOVE"
+    INSERT = "INSERT"
+    POP = "POP"
+    CLEAR = "CLEAR"
 
 @dataclass
 class Token:
@@ -574,6 +577,12 @@ class MDLLexer:
                 self.tokens.append(Token(TokenType.APPEND, "append", line_num, 0))
             elif part == "remove":
                 self.tokens.append(Token(TokenType.REMOVE, "remove", line_num, 0))
+            elif part == "insert":
+                self.tokens.append(Token(TokenType.INSERT, "insert", line_num, 0))
+            elif part == "pop":
+                self.tokens.append(Token(TokenType.POP, "pop", line_num, 0))
+            elif part == "clear":
+                self.tokens.append(Token(TokenType.CLEAR, "clear", line_num, 0))
             elif re.match(r'^[a-zA-Z_][a-zA-Z0-9_:]*$', part):
                 self.tokens.append(Token(TokenType.IDENTIFIER, part, line_num, 0))
             else:

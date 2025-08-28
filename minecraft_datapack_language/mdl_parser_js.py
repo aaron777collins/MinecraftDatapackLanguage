@@ -174,6 +174,21 @@ class ListRemoveOperation(ASTNode):
     list_name: str
     value: 'Expression'
 
+@dataclass
+class ListInsertOperation(ASTNode):
+    list_name: str
+    index: 'Expression'
+    value: 'Expression'
+
+@dataclass
+class ListPopOperation(ASTNode):
+    list_name: str
+    index: Optional['Expression'] = None  # Optional index, if not provided pops last element
+
+@dataclass
+class ListClearOperation(ASTNode):
+    list_name: str
+
 class MDLParser:
     """Parser for JavaScript-style MDL language with curly braces."""
     
@@ -861,8 +876,8 @@ class MDLParser:
         
         return FunctionCall(function_name, arguments)
 
-    def _parse_list_operation(self) -> Union[ListAppendOperation, ListRemoveOperation]:
-        """Parse list operation like items.append("value") or items.remove("value")."""
+    def _parse_list_operation(self) -> Union[ListAppendOperation, ListRemoveOperation, ListInsertOperation, ListPopOperation, ListClearOperation]:
+        """Parse list operation like items.append("value"), items.remove("value"), items.insert(0, "value"), items.pop(), items.clear()."""
         list_name = self._match(TokenType.IDENTIFIER).value
         self._match(TokenType.DOT)  # consume .
         
@@ -872,23 +887,63 @@ class MDLParser:
             self._match(TokenType.APPEND)
         elif operation_token.type == TokenType.REMOVE:
             self._match(TokenType.REMOVE)
+        elif operation_token.type == TokenType.INSERT:
+            self._match(TokenType.INSERT)
+        elif operation_token.type == TokenType.POP:
+            self._match(TokenType.POP)
+        elif operation_token.type == TokenType.CLEAR:
+            self._match(TokenType.CLEAR)
         else:
-            raise ValueError(f"Expected 'append' or 'remove', got {operation_token.type}")
+            raise ValueError(f"Expected 'append', 'remove', 'insert', 'pop', or 'clear', got {operation_token.type}")
         
-        # Parse the value in parentheses
-        self._match(TokenType.LPAREN)
-        value = self._parse_expression()
-        self._match(TokenType.RPAREN)
+        # Parse arguments based on operation type
+        if operation_token.type == TokenType.CLEAR:
+            # clear() takes no arguments
+            self._match(TokenType.LPAREN)
+            self._match(TokenType.RPAREN)
+            if self._peek() and self._peek().type == TokenType.SEMICOLON:
+                self._advance()
+            return ListClearOperation(list_name)
         
-        # Expect semicolon
-        if self._peek() and self._peek().type == TokenType.SEMICOLON:
-            self._advance()
+        elif operation_token.type == TokenType.POP:
+            # pop() or pop(index)
+            self._match(TokenType.LPAREN)
+            if self._peek() and self._peek().type != TokenType.RPAREN:
+                index = self._parse_expression()
+                self._match(TokenType.RPAREN)
+                if self._peek() and self._peek().type == TokenType.SEMICOLON:
+                    self._advance()
+                return ListPopOperation(list_name, index)
+            else:
+                self._match(TokenType.RPAREN)
+                if self._peek() and self._peek().type == TokenType.SEMICOLON:
+                    self._advance()
+                return ListPopOperation(list_name)
         
-        # Return appropriate operation
-        if operation_token.type == TokenType.APPEND:
-            return ListAppendOperation(list_name, value)
+        elif operation_token.type == TokenType.INSERT:
+            # insert(index, value)
+            self._match(TokenType.LPAREN)
+            index = self._parse_expression()
+            self._match(TokenType.COMMA)
+            value = self._parse_expression()
+            self._match(TokenType.RPAREN)
+            if self._peek() and self._peek().type == TokenType.SEMICOLON:
+                self._advance()
+            return ListInsertOperation(list_name, index, value)
+        
         else:
-            return ListRemoveOperation(list_name, value)
+            # append(value) or remove(value)
+            self._match(TokenType.LPAREN)
+            value = self._parse_expression()
+            self._match(TokenType.RPAREN)
+            if self._peek() and self._peek().type == TokenType.SEMICOLON:
+                self._advance()
+            
+            # Return appropriate operation
+            if operation_token.type == TokenType.APPEND:
+                return ListAppendOperation(list_name, value)
+            else:
+                return ListRemoveOperation(list_name, value)
 
 def parse_mdl_js(source: str) -> Dict[str, Any]:
     """Parse JavaScript-style MDL source code."""
