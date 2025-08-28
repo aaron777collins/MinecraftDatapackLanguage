@@ -710,7 +710,7 @@ class MDLParser:
         if self._peek() and self._peek().type == TokenType.SEMICOLON:
             self._advance()
         
-        return ImportStatement(module_name, imports)
+        return ImportStatement(module_name, None, imports)
     
     def _parse_export_statement(self) -> ExportStatement:
         """Parse export statement."""
