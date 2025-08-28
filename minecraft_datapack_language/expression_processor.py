@@ -103,40 +103,40 @@ class ExpressionProcessor:
         ]
         return ProcessedExpression(commands, "", [])
     
-                    def process_binary_expression(self, expr, target_var: str) -> ProcessedExpression:
-                    """Process binary expressions like a + b, a * b, etc."""
-                    commands = []
-                    temp_vars = []
-                    
-                    # Check if this is string concatenation
-                    if expr.operator == '+' and self.is_string_operation(expr):
-                        return self.process_string_concatenation([expr.left, expr.right], target_var)
-                    
-                    # Process left operand
-                    if self.is_complex_expression(expr.left):
-                        left_temp = self.generate_temp_var("left")
-                        temp_vars.append(left_temp)
-                        left_result = self.process_expression(expr.left, left_temp)
-                        commands.extend(left_result.temp_assignments)
-                        left_var = left_temp
-                    else:
-                        left_var = self.extract_simple_value(expr.left)
-                    
-                    # Process right operand
-                    if self.is_complex_expression(expr.right):
-                        right_temp = self.generate_temp_var("right")
-                        temp_vars.append(right_temp)
-                        right_result = self.process_expression(expr.right, right_temp)
-                        commands.extend(right_result.temp_assignments)
-                        right_var = right_temp
-                    else:
-                        right_var = self.extract_simple_value(expr.right)
-                    
-                    # Generate operation command
-                    op_command = self.generate_binary_operation(expr.operator, left_var, right_var, target_var)
-                    commands.append(op_command)
-                    
-                    return ProcessedExpression(commands, "", temp_vars)
+    def process_binary_expression(self, expr, target_var: str) -> ProcessedExpression:
+        """Process binary expressions like a + b, a * b, etc."""
+        commands = []
+        temp_vars = []
+        
+        # Check if this is string concatenation
+        if expr.operator == '+' and self.is_string_operation(expr):
+            return self.process_string_concatenation([expr.left, expr.right], target_var)
+        
+        # Process left operand
+        if self.is_complex_expression(expr.left):
+            left_temp = self.generate_temp_var("left")
+            temp_vars.append(left_temp)
+            left_result = self.process_expression(expr.left, left_temp)
+            commands.extend(left_result.temp_assignments)
+            left_var = left_temp
+        else:
+            left_var = self.extract_simple_value(expr.left)
+        
+        # Process right operand
+        if self.is_complex_expression(expr.right):
+            right_temp = self.generate_temp_var("right")
+            temp_vars.append(right_temp)
+            right_result = self.process_expression(expr.right, right_temp)
+            commands.extend(right_result.temp_assignments)
+            right_var = right_temp
+        else:
+            right_var = self.extract_simple_value(expr.right)
+        
+        # Generate operation command
+        op_command = self.generate_binary_operation(expr.operator, left_var, right_var, target_var)
+        commands.append(op_command)
+        
+        return ProcessedExpression(commands, "", temp_vars)
     
     def extract_simple_value(self, expr) -> str:
         """Extract a simple value from an expression"""
@@ -161,60 +161,60 @@ class ExpressionProcessor:
             # Default to addition for unknown operators
             return f"scoreboard players operation @s {target} = @s {left}\nscoreboard players add @s {target} {right}"
     
-                    def process_string_concatenation(self, parts: List, target_var: str) -> ProcessedExpression:
-                    """Process string concatenation like "a" + b + "c" """
-                    commands = [f"data modify storage mdl:variables {target_var} set value \"\""]
-                    temp_vars = []
-                    
-                    for part in parts:
-                        if self.is_literal_string(part):
-                            # Literal string
-                            value = part.value.strip('"').strip("'")
-                            commands.append(f"data modify storage mdl:variables {target_var} append value \"{value}\"")
-                        elif hasattr(part, 'name'):
-                            # Variable reference
-                            commands.extend([
-                                f"execute store result storage mdl:temp concat string 1 run data get storage mdl:variables {part.name}",
-                                f"data modify storage mdl:variables {target_var} append value storage mdl:temp concat"
-                            ])
-                        elif self.is_complex_expression(part):
-                            # Complex expression - break it down
-                            temp_var = self.generate_temp_var("concat")
-                            temp_vars.append(temp_var)
-                            part_result = self.process_expression(part, temp_var)
-                            commands.extend(part_result.temp_assignments)
-                            commands.extend([
-                                f"execute store result storage mdl:temp concat string 1 run data get storage mdl:variables {temp_var}",
-                                f"data modify storage mdl:variables {target_var} append value storage mdl:temp concat"
-                            ])
-                        else:
-                            # Simple value
-                            value = str(part).strip('"').strip("'")
-                            commands.append(f"data modify storage mdl:variables {target_var} append value \"{value}\"")
-                    
-                    return ProcessedExpression(commands, "", temp_vars)
+    def process_string_concatenation(self, parts: List, target_var: str) -> ProcessedExpression:
+        """Process string concatenation like "a" + b + "c" """
+        commands = [f"data modify storage mdl:variables {target_var} set value \"\""]
+        temp_vars = []
+        
+        for part in parts:
+            if self.is_literal_string(part):
+                # Literal string
+                value = part.value.strip('"').strip("'")
+                commands.append(f"data modify storage mdl:variables {target_var} append value \"{value}\"")
+            elif hasattr(part, 'name'):
+                # Variable reference
+                commands.extend([
+                    f"execute store result storage mdl:temp concat string 1 run data get storage mdl:variables {part.name}",
+                    f"data modify storage mdl:variables {target_var} append value storage mdl:temp concat"
+                ])
+            elif self.is_complex_expression(part):
+                # Complex expression - break it down
+                temp_var = self.generate_temp_var("concat")
+                temp_vars.append(temp_var)
+                part_result = self.process_expression(part, temp_var)
+                commands.extend(part_result.temp_assignments)
+                commands.extend([
+                    f"execute store result storage mdl:temp concat string 1 run data get storage mdl:variables {temp_var}",
+                    f"data modify storage mdl:variables {target_var} append value storage mdl:temp concat"
+                ])
+            else:
+                # Simple value
+                value = str(part).strip('"').strip("'")
+                commands.append(f"data modify storage mdl:variables {target_var} append value \"{value}\"")
+        
+        return ProcessedExpression(commands, "", temp_vars)
     
-                    def is_literal_string(self, expr) -> bool:
-                    """Check if expression is a literal string"""
-                    if isinstance(expr, str):
-                        return expr.startswith('"') and expr.endswith('"') or expr.startswith("'") and expr.endswith("'")
-                    elif hasattr(expr, 'type') and expr.type == 'string':
-                        return True
-                    return False
-                
-                def is_string_operation(self, expr) -> bool:
-                    """Check if this is a string concatenation operation"""
-                    # Check if either operand is a string literal
-                    if self.is_literal_string(expr.left) or self.is_literal_string(expr.right):
-                        return True
-                    
-                    # Check if either operand is a string variable
-                    if hasattr(expr.left, 'name') and expr.left.name in ['item', 'message']:  # Known string variables
-                        return True
-                    if hasattr(expr.right, 'name') and expr.right.name in ['item', 'message']:  # Known string variables
-                        return True
-                    
-                    return False
+    def is_literal_string(self, expr) -> bool:
+        """Check if expression is a literal string"""
+        if isinstance(expr, str):
+            return expr.startswith('"') and expr.endswith('"') or expr.startswith("'") and expr.endswith("'")
+        elif hasattr(expr, 'type') and expr.type == 'string':
+            return True
+        return False
+    
+    def is_string_operation(self, expr) -> bool:
+        """Check if this is a string concatenation operation"""
+        # Check if either operand is a string literal
+        if self.is_literal_string(expr.left) or self.is_literal_string(expr.right):
+            return True
+        
+        # Check if either operand is a string variable
+        if hasattr(expr.left, 'name') and expr.left.name in ['item', 'message']:  # Known string variables
+            return True
+        if hasattr(expr.right, 'name') and expr.right.name in ['item', 'message']:  # Known string variables
+            return True
+        
+        return False
     
     def process_expression(self, expr, target_var: str) -> ProcessedExpression:
         """Main entry point for processing any expression"""
@@ -224,15 +224,15 @@ class ExpressionProcessor:
             return ProcessedExpression(commands, "", [])
         
         class_name = expr.__class__.__name__
-        print(f"DEBUG: Processing expression {class_name}: {expr}")
+        print(f"DEBUG: Processing expression {class_name}: {expr}") # Debug added
         
         if class_name == 'ListAccessExpression':
-            print(f"DEBUG: Processing ListAccessExpression: {expr.list_name}[{expr.index}]")
+            print(f"DEBUG: Processing ListAccessExpression: {expr.list_name}[{expr.index}]") # Debug added
             return self.process_list_access(expr.list_name, expr.index, target_var)
         elif class_name == 'ListLengthExpression':
             return self.process_list_length(expr.list_name, target_var)
         elif class_name == 'BinaryExpression':
-            print(f"DEBUG: Processing BinaryExpression: {expr.left} {expr.operator} {expr.right}")
+            print(f"DEBUG: Processing BinaryExpression: {expr.left} {expr.operator} {expr.right}") # Debug added
             return self.process_binary_expression(expr, target_var)
         elif class_name == 'LiteralExpression':
             if hasattr(expr, 'type'):
@@ -272,25 +272,25 @@ class ExpressionProcessor:
             # Variable reference
             commands = [f"scoreboard players operation @s {target_var} = @s {expr.name}"]
             return ProcessedExpression(commands, "", [])
-                            elif class_name == 'ListExpression':
-                        # Handle list assignments
-                        commands = [f"data modify storage mdl:variables {target_var} set value []"]
-                        if hasattr(expr, 'elements'):
-                            for item in expr.elements:
-                                if hasattr(item, 'value'):
-                                    # Handle string literals in lists
-                                    item_value = item.value.strip('"').strip("'")
-                                    commands.append(f"data modify storage mdl:variables {target_var} append value \"{item_value}\"")
-                                elif hasattr(item, 'elements'):
-                                    # Handle nested lists
-                                    temp_nested = self.generate_temp_var("nested")
-                                    nested_result = self.process_expression(item, temp_nested)
-                                    commands.extend(nested_result.temp_assignments)
-                                    commands.append(f"data modify storage mdl:variables {target_var} append value storage mdl:variables {temp_nested}")
-                                else:
-                                    # Handle other types - convert to string for now
-                                    commands.append(f"data modify storage mdl:variables {target_var} append value \"unknown\"")
-                        return ProcessedExpression(commands, "", [])
+        elif class_name == 'ListExpression':
+            # Handle list assignments
+            commands = [f"data modify storage mdl:variables {target_var} set value []"]
+            if hasattr(expr, 'elements'):
+                for item in expr.elements:
+                    if hasattr(item, 'value'):
+                        # Handle string literals in lists
+                        item_value = item.value.strip('"').strip("'")
+                        commands.append(f"data modify storage mdl:variables {target_var} append value \"{item_value}\"")
+                    elif hasattr(item, 'elements'):
+                        # Handle nested lists
+                        temp_nested = self.generate_temp_var("nested")
+                        nested_result = self.process_expression(item, temp_nested)
+                        commands.extend(nested_result.temp_assignments)
+                        commands.append(f"data modify storage mdl:variables {target_var} append value storage mdl:variables {temp_nested}")
+                    else:
+                        # Handle other types - convert to string for now
+                        commands.append(f"data modify storage mdl:variables {target_var} append value \"unknown\"")
+            return ProcessedExpression(commands, "", [])
         elif class_name == 'FunctionCall':
             # Handle built-in function calls
             if expr.function_name == 'length':
