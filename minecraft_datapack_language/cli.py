@@ -424,6 +424,101 @@ def _ast_to_commands(body: List[Any]) -> List[str]:
                 
     return commands
 
+def _convert_arithmetic_expression(var_name: str, expr: Any) -> List[str]:
+    """Convert arithmetic expressions to Minecraft scoreboard commands."""
+    commands = []
+    
+    if hasattr(expr, 'operator'):
+        op = expr.operator
+        left = expr.left
+        right = expr.right
+        
+        # Handle simple cases first
+        if op == '+':
+            if isinstance(left, (int, float)) and isinstance(right, (int, float)):
+                result = left + right
+                commands.append(f"scoreboard players set @s {var_name} {result}")
+            elif isinstance(left, (int, float)):
+                commands.append(f"scoreboard players set @s {var_name} {left}")
+                if isinstance(right, (int, float)):
+                    commands.append(f"scoreboard players add @s {var_name} {right}")
+            elif isinstance(right, (int, float)):
+                commands.append(f"scoreboard players set @s {var_name} {right}")
+                if isinstance(left, (int, float)):
+                    commands.append(f"scoreboard players add @s {var_name} {left}")
+            else:
+                # Both are variables - use operation
+                commands.append(f"scoreboard players operation @s {var_name} = @s {left}")
+                commands.append(f"scoreboard players add @s {var_name} {right}")
+        elif op == '-':
+            if isinstance(left, (int, float)) and isinstance(right, (int, float)):
+                result = left - right
+                commands.append(f"scoreboard players set @s {var_name} {result}")
+            elif isinstance(left, (int, float)):
+                commands.append(f"scoreboard players set @s {var_name} {left}")
+                if isinstance(right, (int, float)):
+                    commands.append(f"scoreboard players remove @s {var_name} {right}")
+            elif isinstance(right, (int, float)):
+                commands.append(f"scoreboard players set @s {var_name} {left}")
+                commands.append(f"scoreboard players remove @s {var_name} {right}")
+            else:
+                commands.append(f"scoreboard players operation @s {var_name} = @s {left}")
+                commands.append(f"scoreboard players remove @s {var_name} {right}")
+        elif op == '*':
+            if isinstance(left, (int, float)) and isinstance(right, (int, float)):
+                result = left * right
+                commands.append(f"scoreboard players set @s {var_name} {result}")
+            else:
+                # For complex multiplication, set to 0 for now
+                commands.append(f"scoreboard players set @s {var_name} 0")
+        elif op == '/':
+            if isinstance(left, (int, float)) and isinstance(right, (int, float)) and right != 0:
+                result = left // right  # Integer division
+                commands.append(f"scoreboard players set @s {var_name} {result}")
+            else:
+                commands.append(f"scoreboard players set @s {var_name} 0")
+        else:
+            # Unknown operator, set to 0
+            commands.append(f"scoreboard players set @s {var_name} 0")
+    else:
+        # Simple value assignment
+        if isinstance(expr, (int, float)):
+            commands.append(f"scoreboard players set @s {var_name} {expr}")
+        else:
+            commands.append(f"scoreboard players set @s {var_name} 0")
+    
+    return commands
+
+def _convert_string_expression(var_name: str, expr: Any) -> List[str]:
+    """Convert string expressions to Minecraft NBT commands."""
+    commands = []
+    
+    if hasattr(expr, 'operator') and expr.operator == '+':
+        # String concatenation
+        left = expr.left
+        right = expr.right
+        
+        if isinstance(left, str) and isinstance(right, str):
+            result = left.strip('"') + right.strip('"')
+            commands.append(f"data modify storage mdl:variables {var_name} set value \"{result}\"")
+        elif isinstance(left, str):
+            left_val = left.strip('"')
+            commands.append(f"data modify storage mdl:variables {var_name} set value \"{left_val}\"")
+        elif isinstance(right, str):
+            right_val = right.strip('"')
+            commands.append(f"data modify storage mdl:variables {var_name} set value \"{right_val}\"")
+        else:
+            commands.append(f"data modify storage mdl:variables {var_name} set value \"\"")
+    else:
+        # Simple string assignment
+        if isinstance(expr, str):
+            value = expr.strip('"')
+            commands.append(f"data modify storage mdl:variables {var_name} set value \"{value}\"")
+        else:
+            commands.append(f"data modify storage mdl:variables {var_name} set value \"\"")
+    
+    return commands
+
 def _determine_wrapper(pack: Pack, override: str | None):
     if override:
         return override
