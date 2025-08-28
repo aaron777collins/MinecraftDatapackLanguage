@@ -313,6 +313,29 @@ class Pack:
         self.tags.append(t)
         return t
 
+    def _process_list_access_in_condition(self, condition: str, ns_name: str, func_name: str, cmd_index: int) -> str:
+        """Process list access expressions in conditions and convert them to valid Minecraft syntax."""
+        import re
+        
+        # Pattern to match list access expressions like list_name[index]
+        list_access_pattern = r'(\w+)\[(\w+)\]'
+        
+        def replace_list_access(match):
+            list_name = match.group(1)
+            index_var = match.group(2)
+            
+            # Create a temporary variable for the list access result
+            temp_var = f"temp_list_access_{cmd_index}_{len(match.groups())}"
+            
+            # Generate commands to access the list element
+            # This will be handled by the main command processing
+            return f"${{{temp_var}}}"
+        
+        # Replace list access expressions in the condition
+        processed_condition = re.sub(list_access_pattern, replace_list_access, condition)
+        
+        return processed_condition
+
     def _process_control_flow(self, ns_name: str, func_name: str, commands: List[str]) -> List[str]:
         """Process conditional blocks and loops in function commands and generate appropriate Minecraft commands."""
         import re
@@ -328,6 +351,10 @@ class Pack:
             if_match = re.match(r'^if\s+"([^"]+)"\s*:\s*$', cmd)
             if if_match:
                 condition = if_match.group(1)
+                
+                # Process list access expressions in conditions
+                condition = self._process_list_access_in_condition(condition, ns_name, func_name, len(processed_commands))
+                
                 if_commands = []
                 i += 1
                 

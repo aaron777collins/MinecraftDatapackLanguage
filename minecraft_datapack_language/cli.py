@@ -541,7 +541,64 @@ def _ast_to_commands(body: List[Any]) -> List[str]:
             if class_name == 'Command':
                 # Remove semicolon from command and clean up
                 command = node.command.rstrip(';').strip()
-                commands.append(command)
+                
+                # Handle tellraw commands with string concatenation
+                if command.startswith('tellraw ') and '+ ' in command:
+                    # Extract the tellraw parts
+                    parts = command.split(' ', 2)  # Split into ['tellraw', '@s', '{"text":"..."}']
+                    if len(parts) >= 3:
+                        selector = parts[1]
+                        json_part = parts[2]
+                        
+                        # Check if this is a tellraw with string concatenation
+                        if '"text":"' in json_part and '+ ' in json_part:
+                            # Extract the text part and build it properly
+                            text_start = json_part.find('"text":"') + 8
+                            text_end = json_part.find('"', text_start)
+                            if text_end != -1:
+                                text_content = json_part[text_start:text_end]
+                                
+                                # Split by + to get the parts
+                                text_parts = text_content.split(' + ')
+                                if len(text_parts) > 1:
+                                    # Create a temporary variable for the concatenated string
+                                    temp_var = f"temp_msg_{len(commands)}"
+                                    
+                                    # Build the string step by step
+                                    commands.append(f"# Build concatenated string for tellraw")
+                                    commands.append(f"data modify storage mdl:variables {temp_var} set value \"{text_parts[0].strip()}\"")
+                                    
+                                    for i, part in enumerate(text_parts[1:], 1):
+                                        part = part.strip()
+                                        if part.startswith('"') and part.endswith('"'):
+                                            # It's a literal string
+                                            literal = part[1:-1]
+                                            commands.append(f"data modify storage mdl:variables {temp_var} append value \"{literal}\"")
+                                        else:
+                                            # It's a variable
+                                            commands.append(f"execute store result storage mdl:temp concat string 1 run data get storage mdl:variables {part}")
+                                            commands.append(f"data modify storage mdl:variables {temp_var} append value storage mdl:temp concat")
+                                    
+                                    # Create the tellraw command with the built string
+                                    color_part = ""
+                                    if '"color":"' in json_part:
+                                        color_start = json_part.find('"color":"') + 9
+                                        color_end = json_part.find('"', color_start)
+                                        if color_end != -1:
+                                            color = json_part[color_start:color_end]
+                                            color_part = f',"color":"{color}"'
+                                    
+                                    commands.append(f"tellraw {selector} {{\"text\":\"${{{temp_var}}}\"{color_part}}}")
+                                else:
+                                    commands.append(command)
+                            else:
+                                commands.append(command)
+                        else:
+                            commands.append(command)
+                    else:
+                        commands.append(command)
+                else:
+                    commands.append(command)
                 
             elif class_name == 'FunctionCall':
                 # Convert function call to Minecraft function command
@@ -657,6 +714,15 @@ def _ast_to_commands(body: List[Any]) -> List[str]:
                                         commands.append(f"data modify storage mdl:variables {var_name} set from storage mdl:variables {left_var}")
                                         commands.append(f"execute store result storage mdl:temp concat string 1 run data get storage mdl:variables {right_var}")
                                         commands.append(f"data modify storage mdl:variables {var_name} append value storage mdl:temp concat")
+                                    elif hasattr(node.value.left, 'value') and hasattr(node.value.right, 'name'):
+                                        # String concatenation (e.g., "Hello " + player_name)
+                                        left_value = node.value.left.value
+                                        right_var = node.value.right.name
+                                        left_str = str(left_value).strip('"').strip("'")
+                                        commands.append(f"# String concatenation: '{left_str}' + {right_var}")
+                                        commands.append(f"data modify storage mdl:variables {var_name} set value \"{left_str}\"")
+                                        commands.append(f"execute store result storage mdl:temp concat string 1 run data get storage mdl:variables {right_var}")
+                                        commands.append(f"data modify storage mdl:variables {var_name} append value storage mdl:temp concat")
                                     else:
                                         # Complex addition - for now, set to 0
                                         commands.append(f"scoreboard players set @s {var_name} 0")
@@ -749,8 +815,8 @@ def _ast_to_commands(body: List[Any]) -> List[str]:
                             # Handle list length like var num count = items.length
                             list_name = node.value.list_name
                             commands.append(f"# Get length of {list_name}")
+                            # Count the number of elements in the list
                             commands.append(f"execute store result score @s {var_name} run data get storage mdl:variables {list_name}")
-                            # This gives us the number of elements in the list
                             
                         else:
                             # Unknown expression type - skip for now
