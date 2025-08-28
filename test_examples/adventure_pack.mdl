@@ -73,13 +73,13 @@ function "quest_system" {
     var list available_quests = ["kill_zombies", "collect_iron", "explore_cave"];
     var num quest_index = 0;
     
-    while "score @s quest_index < available_quests.length" {
+    while "score @s quest_index < length(available_quests)" {
         var str current_quest = available_quests[quest_index];
         
         // Check if quest is completed
         var num is_completed = 0;
         var num completed_index = 0;
-        while "score @s completed_index < completed_quests.length" {
+        while "score @s completed_index < length(completed_quests)" {
             if "score @s completed_quests[completed_index] == current_quest" {
                 is_completed = 1;
                 break;
@@ -109,7 +109,7 @@ function "quest_system" {
 }
 
 function "inventory_management" {
-    var num inventory_size = player_inventory.length;
+    var num inventory_size = length(player_inventory);
     var str status_message = "Inventory: " + inventory_size + " items";
     
     if "score @s inventory_size > 10" {
@@ -127,10 +127,10 @@ function "inventory_management" {
         say Auto-organizing inventory;
         // Remove duplicate items
         var num i = 0;
-        while "score @s i < player_inventory.length" {
+        while "score @s i < length(player_inventory)" {
             var str current_item = player_inventory[i];
             var num j = i + 1;
-            while "score @s j < player_inventory.length" {
+            while "score @s j < length(player_inventory)" {
                 if "score @s player_inventory[j] == current_item" {
                     player_inventory.remove(current_item);
                     j = j - 1;

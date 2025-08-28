@@ -210,8 +210,9 @@ class ListAccessExpression(Expression):
     index: Expression
 
 @dataclass
-class ListLengthExpression(Expression):
-    list_name: str
+class BuiltInFunctionCall(Expression):
+    function_name: str
+    arguments: List[Expression]
 
 @dataclass
 class UnaryExpression(Expression):
@@ -1005,7 +1006,7 @@ class MDLParser:
         
         return TryCatchStatement(try_body, catch_body, error_variable)
     
-    def _parse_function_call_from_identifier(self) -> FunctionCall:
+    def _parse_function_call_from_identifier(self) -> Union[FunctionCall, BuiltInFunctionCall]:
         """Parse function call that starts with an identifier."""
         function_name = self._match(TokenType.IDENTIFIER).value
         
@@ -1024,7 +1025,11 @@ class MDLParser:
         if self._peek() and self._peek().type == TokenType.SEMICOLON:
             self._advance()
         
-        return FunctionCall(function_name, arguments)
+        # Check if this is a built-in function
+        if function_name == "length":
+            return BuiltInFunctionCall(function_name, arguments)
+        else:
+            return FunctionCall(function_name, arguments)
 
     def _parse_list_operation(self) -> Union[ListAppendOperation, ListRemoveOperation, ListInsertOperation, ListPopOperation, ListClearOperation]:
         """Parse list operation like items.append("value"), items.remove("value"), items.insert(0, "value"), items.pop(), items.clear()."""

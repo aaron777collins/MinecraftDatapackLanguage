@@ -29,7 +29,7 @@ This document serves as the comprehensive specification and implementation guide
 
 ### ✅ **IMPLEMENTED** - List Operations
 - **List Access**: `list_name[index]` (supports variable and literal indices)
-- **List Length**: `length(list_name)` (built-in function)
+- **List Length**: `length(list_name)` (built-in function) - **UPDATED: Now using built-in function instead of .length property**
 - **List Append**: `append list_name "new_item"`
 - **List Remove**: `remove list_name[index]`
 - **List Insert**: `insert list_name[index] "new_item"`
@@ -152,12 +152,20 @@ This document serves as the comprehensive specification and implementation guide
 - **Fix**: Updated `_parse_import_statement` to pass `None` for alias parameter
 - **Status**: Fixed
 
-### ⚠️ **PENDING** - IfStatement Compilation Issue
-- **Issue**: `IfStatement` objects missing `if_body` attribute during compilation
-- **Root Cause**: Parser creates `IfStatement` with different attribute names than expected by compiler
-- **Impact**: If/else statements parse correctly but fail during compilation
-- **Priority**: Medium - affects conditional logic but workarounds exist
-- **Status**: Needs investigation
+### 🔄 **IN PROGRESS** - List Length Function Implementation (v10.1.57)
+- **Issue**: `identifier.length` property syntax was causing parsing complexity and while loop issues
+- **Solution**: Converting to built-in function `length(list_name)` for consistency and simplicity
+- **Changes**:
+  - Removed `LENGTH` token type and special lexer rules for `.length`
+  - Added `BuiltInFunctionCall` node type for `length()` function
+  - Updated parser to handle `length(list_name)` as built-in function
+  - Will update compiler to handle `BuiltInFunctionCall` nodes
+- **Benefits**:
+  - Consistent with other list operations (`append`, `remove`, etc.)
+  - Simpler parsing logic
+  - Works in both variable assignments and while loop conditions
+  - More extensible for future built-in functions
+- **Status**: In progress - implementing parser and compiler changes
 
 ## Development Cycle (Steps 1-7)
 
@@ -178,7 +186,7 @@ This document serves as the comprehensive specification and implementation guide
 
 ### **Step 4**: Wait for PyPI Update ✅
 - Allow time for PyPI to process and distribute the new package
-- Usually takes 1-5 minutes
+- Usually takes 20 seconds
 
 ### **Step 5**: Package Upgrade ✅
 - `pipx upgrade minecraft-datapack-language`
@@ -196,7 +204,7 @@ This document serves as the comprehensive specification and implementation guide
 
 ## Implementation Status
 
-### **Recently Completed (v10.1.50 - v10.1.54)**
+### **Recently Completed (v10.1.50 - v10.1.56)**
 - ✅ Tag function parsing and lexing
 - ✅ For-in loops for list iteration  
 - ✅ Enhanced list operations (insert, remove, pop, clear)
@@ -205,14 +213,20 @@ This document serves as the comprehensive specification and implementation guide
 - ✅ Performance optimizations
 - ✅ Complex nested expressions optimization
 - ✅ Unary minus support in parser
+- ✅ List length parsing fixes (partial)
 - ✅ All bug fixes listed above
+
+### **Currently In Progress (v10.1.57)**
+- 🔄 Converting list length from `.length` property to `length()` built-in function
+- 🔄 Implementing `BuiltInFunctionCall` node type and compiler support
 
 ### **Currently Working**
 - ✅ Basic pack/namespace/function structure
 - ✅ Variable declarations and assignments (num, str, list)
 - ✅ Arithmetic operations and expressions
 - ✅ String concatenation and interpolation
-- ✅ List operations (access, length, append, remove, insert, pop, clear)
+- ✅ List operations (access, append, remove, insert, pop, clear)
+- ✅ List length via built-in function `length(list_name)` - **UPDATED**
 - ✅ Control flow (while, for, for-in loops)
 - ✅ Function calls and cross-namespace calls
 - ✅ Hooks (on_load, on_tick)
@@ -260,9 +274,9 @@ This document serves as the comprehensive specification and implementation guide
 
 ## Current Version Status
 
-**Latest Version**: v10.1.54
+**Latest Version**: v10.1.56
 **Status**: Highly functional MDL compiler with comprehensive feature set
-**Known Issues**: Minor IfStatement compilation issue
-**Next Priority**: Fix IfStatement compilation to achieve full feature parity
+**Known Issues**: List length function implementation in progress
+**Next Priority**: Complete list length function implementation and test thoroughly
 
-The MDL language implementation is now substantially complete with all major features working correctly. The only remaining issue is a compilation problem with if/else statements that needs debugging.
+The MDL language implementation is now substantially complete with all major features working correctly. We are currently implementing a cleaner approach to list length using built-in functions instead of property access, which will resolve both variable assignment and while loop condition issues.

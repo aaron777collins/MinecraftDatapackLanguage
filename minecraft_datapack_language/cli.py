@@ -768,13 +768,18 @@ def _ast_to_commands(body: List[Any], current_namespace: str = "test", current_p
                         commands.append(f"# Access element from {list_name} (complex index)")
                         commands.append(f"data modify storage mdl:temp element set from storage mdl:variables {list_name}[0]")
                         
-                elif class_name == 'ListLengthExpression':
-                    # Convert list length to Minecraft commands
-                    list_name = node.list_name
-                    commands.append(f"# Get length of {list_name}")
-                    commands.append(f"execute store result score @s {list_name}_length run data get storage mdl:variables {list_name}")
-                    commands.append(f"# Store length in a more accessible variable")
-                    commands.append(f"scoreboard players operation @s list_length = @s {list_name}_length")
+                elif class_name == 'BuiltInFunctionCall':
+                    # Handle built-in function calls like length(list_name)
+                    if node.function_name == 'length' and len(node.arguments) == 1:
+                        # Handle length(list_name) function call
+                        list_name = node.arguments[0].name if hasattr(node.arguments[0], 'name') else str(node.arguments[0])
+                        commands.append(f"# Get length of {list_name}")
+                        commands.append(f"execute store result score @s {list_name}_length run data get storage mdl:variables {list_name}")
+                        commands.append(f"# Store length in a more accessible variable")
+                        commands.append(f"scoreboard players operation @s list_length = @s {list_name}_length")
+                    else:
+                        # Unknown built-in function - skip
+                        continue
                     
                 elif class_name == 'ListAppendOperation':
                     # Convert list append operations to Minecraft NBT commands

@@ -92,7 +92,6 @@ class TokenType(Enum):
     INSERT = "INSERT"
     POP = "POP"
     CLEAR = "CLEAR"
-    LENGTH = "LENGTH"
 
 @dataclass
 class Token:
@@ -172,7 +171,7 @@ class MDLLexer:
             (r'^as\b', TokenType.AS),
             (r'^append\b', TokenType.APPEND),
             (r'^remove\b', TokenType.REMOVE),
-            (r'^length\b', TokenType.LENGTH),
+            (r'^length\b', TokenType.IDENTIFIER),
         ]
         
         # Check for tag function (special case where function is an identifier)
@@ -184,17 +183,7 @@ class MDLLexer:
                 self._tokenize_remaining(remaining, line_num)
             return
         
-        # Check for identifier.length pattern (special case for list length)
-        length_match = re.match(r'^([a-zA-Z_][a-zA-Z0-9_]*)\s*\.\s*length\b', line.strip())
-        if length_match:
-            identifier = length_match.group(1)
-            self.tokens.append(Token(TokenType.IDENTIFIER, identifier, line_num, 0))
-            self.tokens.append(Token(TokenType.DOT, ".", line_num, 0))
-            self.tokens.append(Token(TokenType.LENGTH, "length", line_num, 0))
-            remaining = line[length_match.end():].strip()
-            if remaining:
-                self._tokenize_remaining(remaining, line_num)
-            return
+
         
         # Check for keywords first (but handle for loops specially)
         if line.startswith('for '):
