@@ -1,0 +1,13 @@
+pack "test" description "Simple tag test" pack_format 82;
+
+namespace "test";
+
+function "main" {
+    say "Hello World";
+}
+
+tag function minecraft:load {
+    add "test:main";
+}
+
+on_tick "test:main";

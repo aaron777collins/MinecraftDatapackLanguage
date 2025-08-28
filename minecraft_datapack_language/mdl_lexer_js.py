@@ -173,6 +173,15 @@ class MDLLexer:
             (r'^remove\b', TokenType.REMOVE),
         ]
         
+        # Check for tag function (special case where function is an identifier)
+        if line.startswith('tag function'):
+            self.tokens.append(Token(TokenType.TAG, "tag", line_num, 0))
+            self.tokens.append(Token(TokenType.IDENTIFIER, "function", line_num, 0))
+            remaining = line[13:].strip()
+            if remaining:
+                self._tokenize_remaining(remaining, line_num)
+            return
+        
         # Check for keywords first (but handle for loops specially)
         if line.startswith('for '):
             self.tokens.append(Token(TokenType.FOR, "for", line_num, 0))
@@ -197,15 +206,6 @@ class MDLLexer:
         if line.startswith('else if'):
             self.tokens.append(Token(TokenType.ELSE_IF, "else if", line_num, 0))
             remaining = line[8:].strip()
-            if remaining:
-                self._tokenize_remaining(remaining, line_num)
-            return
-        
-        # Check for tag function (special case where function is an identifier)
-        if line.startswith('tag function'):
-            self.tokens.append(Token(TokenType.TAG, "tag", line_num, 0))
-            self.tokens.append(Token(TokenType.IDENTIFIER, "function", line_num, 0))
-            remaining = line[13:].strip()
             if remaining:
                 self._tokenize_remaining(remaining, line_num)
             return
