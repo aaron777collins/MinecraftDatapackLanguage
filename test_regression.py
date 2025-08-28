@@ -16,10 +16,10 @@ def run_command(cmd, description):
     print(f"Testing: {description}")
     try:
         result = subprocess.run(cmd, shell=True, capture_output=True, text=True, check=True)
-        print(f"✅ {description} - PASSED")
+        print(f"[+] {description} - PASSED")
         return True
     except subprocess.CalledProcessError as e:
-        print(f"❌ {description} - FAILED")
+        print(f"[-] {description} - FAILED")
         print(f"Error: {e.stderr}")
         return False
 
@@ -285,13 +285,13 @@ function "invalid":
         try:
             result = subprocess.run(f"mdl check {test_file}", shell=True, capture_output=True, text=True, check=False)
             if result.returncode == 0:
-                print(f"✅ Invalid syntax test {i} - Correctly handled as regular command")
-            else:
-                print(f"❌ Invalid syntax test {i} - Should have passed but failed")
+                        print(f"[+] Invalid syntax test {i} - Correctly handled as regular command")
+    else:
+        print(f"[-] Invalid syntax test {i} - Should have passed but failed")
                 os.remove(test_file)
                 return False
         except Exception as e:
-            print(f"❌ Invalid syntax test {i} - Unexpected error: {e}")
+            print(f"[-] Invalid syntax test {i} - Unexpected error: {e}")
             os.remove(test_file)
             return False
         
@@ -302,7 +302,7 @@ function "invalid":
 
 def main():
     """Run all regression tests"""
-    print("🚀 Starting MDL conditional regression tests...")
+    print("[TEST] Starting MDL conditional regression tests...")
     print("=" * 60)
     
     # Create test directory
@@ -325,23 +325,23 @@ def main():
     
     # Run tests
     for test_name, test_func in test_functions:
-        print(f"\n📝 Testing: {test_name}")
+        print(f"\n[TEST] Testing: {test_name}")
         print("-" * 40)
         total_tests += 1
         if test_func():
             passed_tests += 1
         else:
-            print(f"❌ {test_name} failed!")
+            print(f"[-] {test_name} failed!")
     
     # Summary
     print("\n" + "=" * 60)
-    print(f"📊 Test Results: {passed_tests}/{total_tests} tests passed")
+    print(f"[SUMMARY] Test Results: {passed_tests}/{total_tests} tests passed")
     
     if passed_tests == total_tests:
-        print("🎉 All tests passed! Conditional functionality is working correctly.")
+        print("[+] All tests passed! Conditional functionality is working correctly.")
         return 0
     else:
-        print("❌ Some tests failed. Please check the implementation.")
+        print("[-] Some tests failed. Please check the implementation.")
         return 1
 
 if __name__ == "__main__":

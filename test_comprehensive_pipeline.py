@@ -696,18 +696,18 @@ function "performance_test" {
         print(f"\nOverall: {passed}/{total} tests passed")
         
         if passed == total:
-            print("\n🎉 ALL TESTS PASSED!")
+            print("\n[+] ALL TESTS PASSED!")
             print("\nMDL Language Analysis:")
             print("=" * 50)
-            print("✅ PARSING: JavaScript-style syntax with unlimited nesting")
-            print("✅ VARIABLES: Scoreboard-based storage with scoping")
-            print("✅ CONTROL FLOW: If/else, loops, switch statements")
-            print("✅ FUNCTIONS: Parameters, return values, calls")
-            print("✅ DATA STORAGE: Scoreboard objectives, NBT, tags")
-            print("✅ CODE GENERATION: AST to mcfunction translation")
-            print("✅ MEMORY: Automatic cleanup via scope boundaries")
-            print("✅ GARBAGE COLLECTION: Not needed - Minecraft handles cleanup")
-            print("✅ PERFORMANCE: Efficient parsing and generation")
+            print("[+] PARSING: JavaScript-style syntax with unlimited nesting")
+            print("[+] VARIABLES: Scoreboard-based storage with scoping")
+            print("[+] CONTROL FLOW: If/else, loops, switch statements")
+            print("[+] FUNCTIONS: Parameters, return values, calls")
+            print("[+] DATA STORAGE: Scoreboard objectives, NBT, tags")
+            print("[+] CODE GENERATION: AST to mcfunction translation")
+            print("[+] MEMORY: Automatic cleanup via scope boundaries")
+            print("[+] GARBAGE COLLECTION: Not needed - Minecraft handles cleanup")
+            print("[+] PERFORMANCE: Efficient parsing and generation")
             print("\n📊 STORAGE MECHANISMS:")
             print("  - Numbers: scoreboard objectives")
             print("  - Strings: NBT data or scoreboard with string mapping")
@@ -721,7 +721,7 @@ function "performance_test" {
             print("  - NBT: Automatically managed by Minecraft")
             print("  - Tags: Automatically managed by Minecraft")
         else:
-            print(f"\n❌ {total - passed} tests failed")
+            print(f"\n[-] {total - passed} tests failed")
         
         print("=" * 80)
     

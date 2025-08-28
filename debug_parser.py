@@ -48,7 +48,7 @@ on_tick "test:debug_for"
                 for i, cmd in enumerate(func.commands):
                     print(f"    {i+1}: {cmd}")
                 if not func.commands:
-                    print("    ⚠️  EMPTY!")
+                    print("    [-] EMPTY!")
         
     except Exception as e:
         print(f"Error: {e}")

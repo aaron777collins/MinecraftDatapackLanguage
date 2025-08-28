@@ -71,7 +71,7 @@ def test_for_loop_processing():
     return len(processed) > 0 and has_for_control and has_for_body
 
 if __name__ == "__main__":
-    print("🧪 Testing Loop Processing")
+    print("[TEST] Testing Loop Processing")
     print("=" * 40)
     
     success1 = test_loop_processing_direct()
@@ -80,6 +80,6 @@ if __name__ == "__main__":
     success2 = test_for_loop_processing()
     
     if success1 and success2:
-        print("\n✅ All loop processing tests passed!")
+        print("\n[+] All loop processing tests passed!")
     else:
-        print("\n❌ Some loop processing tests failed!")
+        print("\n[-] Some loop processing tests failed!")

@@ -69,7 +69,7 @@ tag block "example:glassy":
         # Parse the MDL
         pack = parse_mdl(weapon_effects_mdl)
         
-        print(f"✅ Successfully parsed MDL!")
+        print(f"[+] Successfully parsed MDL!")
         print(f"Pack name: {pack.name}")
         print(f"Pack description: {pack.description}")
         print(f"Pack format: {pack.pack_format}")
@@ -106,9 +106,9 @@ tag block "example:glassy":
                         print(f"  ⚠️  WARNING: Function '{func_name}' is empty!")
                 
             else:
-                print("❌ Main function 'globalweaponeffects' not found!")
+                print("[-] Main function 'globalweaponeffects' not found!")
         else:
-            print("❌ Namespace 'example' not found!")
+            print("[-] Namespace 'example' not found!")
         
         # Check hooks
         print(f"Tick functions: {pack._tick_functions}")
@@ -120,7 +120,7 @@ tag block "example:glassy":
             print(f"  {tag.registry}:{tag.name} -> {tag.values}")
         
         print("\n" + "=" * 60)
-        print("✅ Parser test completed successfully!")
+        print("[+] Parser test completed successfully!")
         
         return True
         
@@ -217,12 +217,12 @@ on_tick "test:for_with_conditionals"
                     print(f"  {i+1}: {cmd}")
                 
                 # Check all generated functions
-                for func_name, func in test_ns.functions.items():
-                    print(f"Function '{func_name}' has {len(func.commands)} commands")
-                    if func.commands:
-                        print(f"  Commands: {func.commands}")
-                    else:
-                        print(f"  ⚠️  WARNING: Function '{func_name}' is empty!")
+                        for func_name, func in test_ns.functions.items():
+            print(f"Function '{func_name}' has {len(func.commands)} commands")
+            if func.commands:
+                print(f"  Commands: {func.commands}")
+            else:
+                print(f"  [-] WARNING: Function '{func_name}' is empty!")
         
         print("✅ For loop with conditionals test completed!")
         return True

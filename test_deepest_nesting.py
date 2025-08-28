@@ -60,7 +60,7 @@ on_tick "test:deepest_nesting"
                 for i, cmd in enumerate(func.commands):
                     print(f"    {i+1}: {cmd}")
                 if not func.commands:
-                    print("    ⚠️  EMPTY!")
+                    print("    [-] EMPTY!")
             
             # Check if the deepest function has content
             deepest_funcs = [name for name in test_ns.functions.keys() if "for" in name and len(name.split('_')) > 3]
@@ -72,9 +72,9 @@ on_tick "test:deepest_nesting"
                 if func.commands:
                     print(f"  Commands: {func.commands}")
                 else:
-                    print(f"  ⚠️  WARNING: Deepest function '{func_name}' is empty!")
+                    print(f"  [-] WARNING: Deepest function '{func_name}' is empty!")
         
-        print("\n✅ Deepest nesting test completed!")
+        print("\n[+] Deepest nesting test completed!")
         return True
         
     except Exception as e:
@@ -131,7 +131,7 @@ on_tick "test:alternate_deep"
                 for i, cmd in enumerate(func.commands):
                     print(f"    {i+1}: {cmd}")
                 if not func.commands:
-                    print("    ⚠️  EMPTY!")
+                    print("    [-] EMPTY!")
             
             # Check if the deepest function has content
             deepest_funcs = [name for name in test_ns.functions.keys() if "for" in name and len(name.split('_')) > 3]
@@ -143,9 +143,9 @@ on_tick "test:alternate_deep"
                 if func.commands:
                     print(f"  Commands: {func.commands}")
                 else:
-                    print(f"  ⚠️  WARNING: Deepest function '{func_name}' is empty!")
+                    print(f"  [-] WARNING: Deepest function '{func_name}' is empty!")
         
-        print("\n✅ Alternate deep nesting test completed!")
+        print("\n[+] Alternate deep nesting test completed!")
         return True
         
     except Exception as e:
@@ -240,13 +240,13 @@ if __name__ == "__main__":
     
     print("\n" + "=" * 80)
     print("Test Results Summary:")
-    print(f"Deepest nesting: {'✅ PASS' if test1 else '❌ FAIL'}")
-    print(f"Alternate deep nesting: {'✅ PASS' if test2 else '❌ FAIL'}")
-    print(f"Weapon effects deep nesting: {'✅ PASS' if test3 else '❌ FAIL'}")
+    print(f"Deepest nesting: {'[+] PASS' if test1 else '[-] FAIL'}")
+    print(f"Alternate deep nesting: {'[+] PASS' if test2 else '[-] FAIL'}")
+    print(f"Weapon effects deep nesting: {'[+] PASS' if test3 else '[-] FAIL'}")
     
     if all([test1, test2, test3]):
-        print("\n🎉 All deepest nesting tests passed!")
+        print("\n[+] All deepest nesting tests passed!")
         print("The parser can handle the most complex nested control structures!")
     else:
-        print("\n⚠️  Some deepest nesting tests failed.")
+        print("\n[-] Some deepest nesting tests failed.")
         print("The parser has limitations with deeply nested control structures.")

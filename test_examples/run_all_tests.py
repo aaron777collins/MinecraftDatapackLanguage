@@ -16,10 +16,10 @@ def run_command(cmd, description):
     print(f"Testing: {description}")
     try:
         result = subprocess.run(cmd, shell=True, capture_output=True, text=True, check=True)
-        print(f"✅ {description} - PASSED")
+        print(f"[+] {description} - PASSED")
         return True
     except subprocess.CalledProcessError as e:
-        print(f"❌ {description} - FAILED")
+        print(f"[-] {description} - FAILED")
         print(f"Error: {e.stderr}")
         return False
 
@@ -78,18 +78,18 @@ def test_loop_functionality():
         
         all_success = all([success1, success2, success3, success4, success5, success6])
         if all_success:
-            print("✅ Loop functionality tests - PASSED")
-        else:
-            print("❌ Loop functionality tests - FAILED")
+                print("[+] Loop functionality tests - PASSED")
+else:
+    print("[-] Loop functionality tests - FAILED")
         return all_success
         
     except Exception as e:
-        print(f"❌ Loop functionality tests - FAILED with error: {e}")
+        print(f"[-] Loop functionality tests - FAILED with error: {e}")
         return False
 
 def main():
     """Run all tests"""
-    print("🚀 Starting comprehensive MDL example tests...")
+    print("[TEST] Starting comprehensive MDL example tests...")
     print("=" * 60)
     
     # Create test directory
@@ -134,7 +134,7 @@ def main():
         passed_tests += 1
     
     # Test MDL files
-    print("\n📝 Testing MDL Files:")
+    print("\n[MDL] Testing MDL Files:")
     print("-" * 30)
     for mdl_file, description in mdl_examples:
         total_tests += 1
@@ -142,7 +142,7 @@ def main():
             passed_tests += 1
     
     # Test Python API files
-    print("\n🐍 Testing Python API Examples:")
+    print("\n[PYTHON] Testing Python API Examples:")
     print("-" * 35)
     for py_file, description in python_examples:
         total_tests += 1
@@ -150,7 +150,7 @@ def main():
             passed_tests += 1
     
     # Test multi-file projects
-    print("\n📁 Testing Multi-file Projects:")
+    print("\n[MULTI] Testing Multi-file Projects:")
     print("-" * 30)
     for project_dir, description in multi_file_projects:
         total_tests += 1
@@ -158,7 +158,7 @@ def main():
             passed_tests += 1
     
     # Test CLI functionality
-    print("\n🔧 Testing CLI Functionality:")
+    print("\n[CLI] Testing CLI Functionality:")
     print("-" * 30)
     
     # Test help command
@@ -182,17 +182,17 @@ def main():
     
     # Summary
     print("\n" + "=" * 60)
-    print(f"📊 Test Summary:")
+    print(f"[SUMMARY] Test Summary:")
     print(f"   Total Tests: {total_tests}")
     print(f"   Passed: {passed_tests}")
     print(f"   Failed: {total_tests - passed_tests}")
     print(f"   Success Rate: {(passed_tests/total_tests)*100:.1f}%")
     
     if passed_tests == total_tests:
-        print("\n🎉 All tests passed! All examples are working correctly.")
+        print("\n[+] All tests passed! All examples are working correctly.")
         return 0
     else:
-        print(f"\n❌ {total_tests - passed_tests} test(s) failed. Please check the output above.")
+        print(f"\n[-] {total_tests - passed_tests} test(s) failed. Please check the output above.")
         return 1
 
 if __name__ == "__main__":

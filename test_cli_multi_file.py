@@ -97,7 +97,7 @@ def run_mdl_command(args):
         print(f"STDOUT: {result.stdout}")
         return True, result.stdout, result.stderr
     except subprocess.CalledProcessError as e:
-        print(f"❌ FAILED (exit code: {e.returncode})")
+        print(f"[-] FAILED (exit code: {e.returncode})")
         print(f"STDOUT: {e.stdout}")
         print(f"STDERR: {e.stderr}")
         return False, e.stdout, e.stderr
