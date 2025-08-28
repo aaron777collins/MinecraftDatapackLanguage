@@ -346,7 +346,7 @@ This document serves as the comprehensive specification and implementation guide
 
 ## Current Version Status
 
-**Latest Version**: v10.1.60
+**Latest Version**: v10.1.64
 **Status**: Highly functional MDL compiler with comprehensive feature set
 **Known Issues**: All major issues resolved!
 **Next Priority**: Continue testing and documentation improvements
@@ -386,11 +386,12 @@ The MDL language implementation is now substantially complete with all major fea
    - **Impact**: Inefficient, potentially unreliable
    - **Fix**: Simplify list operations to use direct NBT manipulation
 
-6. **Tellraw Command Issues**
+6. **Tellraw Command Issues** ✅ **FIXED**
    - **Issue**: Tellraw commands use string concatenation that doesn't work in Minecraft
    - **Example**: `tellraw @s {"text":"Result: " + result}` - Minecraft doesn't support `+` in JSON
    - **Impact**: Commands will fail in-game
    - **Fix**: Use proper Minecraft JSON format with arrays or separate text components
+   - **Status**: Fixed in v10.1.64 - Updated test files to use proper JSON format
 
 7. **Scoreboard Operation Complexity**
    - **Issue**: Simple arithmetic operations generate complex scoreboard operations
@@ -403,10 +404,11 @@ The MDL language implementation is now substantially complete with all major fea
    - **Impact**: Commands may fail silently or produce unexpected results
    - **Fix**: Add proper error checking and validation
 
-9. **Debug Comments in Output**
+9. **Debug Comments in Output** ✅ **FIXED**
    - **Issue**: Debug comments like `# If statement:` and `# Else statement:` appear in final output
    - **Impact**: Clutters the output, not needed in production
    - **Fix**: Remove debug comments from final command generation
+   - **Status**: Fixed in v10.1.64 - Removed all debug comments from CLI output
 
 10. **Inefficient Expression Processing**
     - **Issue**: Complex expressions generate many temporary variables and operations
@@ -415,6 +417,6 @@ The MDL language implementation is now substantially complete with all major fea
 
 ### 🔧 **PRIORITY FIX ORDER**
 
-1. **High Priority (Critical)**: Issues 6, 8, 9 - These affect functionality and usability
+1. **High Priority (Critical)**: Issues 6 ✅, 8, 9 ✅ - These affect functionality and usability
 2. **Medium Priority (Performance)**: Issues 2, 3, 4, 7, 10 - These affect efficiency
 3. **Low Priority (Cleanup)**: Issues 1, 5 - These are warnings and optimizations
