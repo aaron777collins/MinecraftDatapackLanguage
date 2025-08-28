@@ -1,0 +1,24 @@
+pack "test_systematic" description "Test systematic expression processing" pack_format 82;
+    namespace "test";
+        function "test_complex_expressions" {
+            // Test list operations
+            var list items = ["apple", "banana", "cherry"];
+            var num index = 1;
+            var str item = items[index];
+            var num count = items.length;
+            
+            // Test string concatenation
+            var str message = "Found " + item + " at index " + index;
+            tellraw @s {"text":message,"color":"green"};
+            
+            // Test arithmetic
+            var num result = (count + 5) * 2;
+            say Result: $result;
+            
+            // Test nested list access
+            var list nested = [["a", "b"], ["c", "d"]];
+            var str nested_item = nested[0][1];
+            say Nested item: $nested_item;
+        }
+    }
+}
