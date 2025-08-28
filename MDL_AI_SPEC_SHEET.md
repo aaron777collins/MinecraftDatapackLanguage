@@ -166,15 +166,25 @@ This document serves as the comprehensive specification and implementation guide
   - Simpler parsing logic
   - Works correctly in variable assignments
   - More extensible for future built-in functions
-- **Status**: Fixed for variable assignments, but while loop conditions still need work
+- **Status**: Fixed - both variable assignments and while loop conditions now work correctly
 
-### ⚠️ **PENDING** - While Loop Condition Expression Parsing
-- **Issue**: While loop conditions like `"score @s i < length(player_inventory)"` are treated as string literals
-- **Root Cause**: Parser treats entire condition as string literal instead of parsing expression inside
-- **Impact**: While loops with list length comparisons don't work correctly
-- **Priority**: High - affects core control flow functionality
-- **Status**: Needs parser modification to parse expressions inside string literals
-- **Example**: `while "score @s index < length(items)"` generates `execute if score @s index < length(items)` instead of proper length calculation
+### ✅ **FIXED** - While Loop Condition Expression Parsing (v10.1.59)
+- **Issue**: While loop conditions like `"score @s i < length(player_inventory)"` were treated as string literals
+- **Root Cause**: Parser was treating entire condition as string literal instead of parsing expression inside
+- **Solution**: Created `ConditionExpression` dataclass and modified parser to handle condition strings with regex pattern matching for `length()` functions
+- **Implementation**: 
+  - Added `ConditionExpression` AST node type
+  - Modified `_parse_while_loop` to create `ConditionExpression` instead of treating as string literal
+  - Updated compiler to detect `length()` function calls in conditions and convert them to proper score comparisons
+  - Added regex pattern matching to find and replace `length(list_name)` with `@s list_name_length`
+- **Result**: `while "score @s index < length(items)"` now correctly generates:
+  ```
+  # Calculate length of items
+  execute store result score @s items_length run data get storage mdl:variables items
+  # While loop: score @s index < @s items_length
+  execute if score @s index < @s items_length run ...
+  ```
+- **Status**: Fixed - while loops with list length comparisons now work correctly
 
 ## Development Cycle (Steps 1-7)
 
@@ -225,9 +235,11 @@ This document serves as the comprehensive specification and implementation guide
 - ✅ List length parsing fixes (partial)
 - ✅ All bug fixes listed above
 
-### **Currently In Progress (v10.1.57)**
-- 🔄 Converting list length from `.length` property to `length()` built-in function
-- 🔄 Implementing `BuiltInFunctionCall` node type and compiler support
+### **Recently Completed (v10.1.57 - v10.1.59)**
+- ✅ Converting list length from `.length` property to `length()` built-in function
+- ✅ Implementing `BuiltInFunctionCall` node type and compiler support
+- ✅ Fixing while loop condition expression parsing with `ConditionExpression`
+- ✅ All major language features now working correctly
 
 ### **Currently Working**
 - ✅ Basic pack/namespace/function structure
@@ -283,9 +295,9 @@ This document serves as the comprehensive specification and implementation guide
 
 ## Current Version Status
 
-**Latest Version**: v10.1.57
+**Latest Version**: v10.1.59
 **Status**: Highly functional MDL compiler with comprehensive feature set
-**Known Issues**: While loop condition expression parsing needs work
-**Next Priority**: Fix while loop condition parsing to handle expressions inside string literals
+**Known Issues**: All major issues resolved!
+**Next Priority**: Continue testing and documentation improvements
 
 The MDL language implementation is now substantially complete with all major features working correctly. We are currently implementing a cleaner approach to list length using built-in functions instead of property access, which will resolve both variable assignment and while loop condition issues.

@@ -576,6 +576,13 @@ def _ast_to_pack(ast: Dict[str, Any], default_pack_format: int) -> Pack:
     
     return pack
 
+def _add_final_command(commands: List[str], final_command: str):
+    """Helper function to add final command, splitting on newlines if needed"""
+    if '\n' in final_command:
+        commands.extend(final_command.split('\n'))
+    else:
+        commands.append(final_command)
+
 def _ast_to_commands(body: List[Any], current_namespace: str = "test", current_pack: Any = None) -> List[str]:
     """Convert AST function body to list of valid Minecraft commands."""
     print(f"DEBUG: _ast_to_commands called with {len(body)} nodes")
@@ -621,7 +628,7 @@ def _ast_to_commands(body: List[Any], current_namespace: str = "test", current_p
                         
                         # If there's a final command, add it
                         if processed.final_command:
-                            commands.append(processed.final_command)
+                            _add_final_command(commands, processed.final_command)
                                 
                 elif class_name == 'VariableAssignment':
                     # Convert variable assignments to appropriate Minecraft commands
@@ -634,7 +641,7 @@ def _ast_to_commands(body: List[Any], current_namespace: str = "test", current_p
                         
                         # If there's a final command, add it
                         if processed.final_command:
-                            commands.append(processed.final_command)
+                            _add_final_command(commands, processed.final_command)
                             
                 elif class_name == 'IfStatement':
                     # Convert if statements to Minecraft conditional commands
@@ -648,19 +655,123 @@ def _ast_to_commands(body: List[Any], current_namespace: str = "test", current_p
                     if node.else_body:
                         else_commands = _ast_to_commands(node.else_body, current_namespace, current_pack)
                     
-                    # Generate conditional execution
-                    if if_commands:
-                        # Add if condition and commands
-                        commands.append(f"# If statement: {condition}")
-                        for cmd in if_commands:
-                            commands.append(f"execute if {condition} run {cmd}")
-                    
-                    if else_commands:
-                        # Add else commands with inverted condition
-                        unless_conditions = condition.replace('==', '!=').replace('!=', '==')
-                        commands.append(f"# Else statement")
-                        for cmd in else_commands:
-                            commands.append(f"execute {unless_conditions} run {cmd}")
+                    # Handle different types of conditions
+                    if "[" in condition and "==" in condition:
+                        # List access comparison - convert to data command
+                        # Example: "score @s completed_quests[completed_index] == current_quest" -> "data storage mdl:variables completed_quests[score @s completed_index] matches current_quest"
+                        parts = condition.split("==")
+                        if len(parts) == 2:
+                            left_part = parts[0].strip()
+                            right_part = parts[1].strip()
+                            
+                            if "score @s" in left_part and "[" in left_part:
+                                # Extract list name and index
+                                list_part = left_part.replace("score @s", "").strip()
+                                if "[" in list_part and "]" in list_part:
+                                    list_name = list_part.split("[")[0].strip()
+                                    index_var = list_part.split("[")[1].split("]")[0].strip()
+                                    
+                                    # Create data condition for list access
+                                    data_condition = f"data storage mdl:variables {list_name}[score @s {index_var}] matches {right_part}"
+                                    
+                                    # Generate conditional execution
+                                    if if_commands:
+                                        commands.append(f"# If statement: {condition}")
+                                        for cmd in if_commands:
+                                            commands.append(f"execute if {data_condition} run {cmd}")
+                                    
+                                    if else_commands:
+                                        commands.append(f"# Else statement")
+                                        for cmd in else_commands:
+                                            commands.append(f"execute unless {data_condition} run {cmd}")
+                                else:
+                                    # Fallback to original condition
+                                    if if_commands:
+                                        commands.append(f"# If statement: {condition}")
+                                        for cmd in if_commands:
+                                            commands.append(f"execute if {condition} run {cmd}")
+                                    
+                                    if else_commands:
+                                        commands.append(f"# Else statement")
+                                        for cmd in else_commands:
+                                            commands.append(f"execute unless {condition} run {cmd}")
+                            else:
+                                # Fallback to original condition
+                                if if_commands:
+                                    commands.append(f"# If statement: {condition}")
+                                    for cmd in if_commands:
+                                        commands.append(f"execute if {condition} run {cmd}")
+                                
+                                if else_commands:
+                                    commands.append(f"# Else statement")
+                                    for cmd in else_commands:
+                                        commands.append(f"execute unless {condition} run {cmd}")
+                        else:
+                            # Fallback to original condition
+                            if if_commands:
+                                commands.append(f"# If statement: {condition}")
+                                for cmd in if_commands:
+                                    commands.append(f"execute if {condition} run {cmd}")
+                            
+                            if else_commands:
+                                commands.append(f"# Else statement")
+                                for cmd in else_commands:
+                                    commands.append(f"execute unless {condition} run {cmd}")
+                    elif "==" in condition and "'" in condition:
+                        # String comparison - convert to data command
+                        # Example: "score @s current_quest == 'kill_zombies'" -> "data storage mdl:variables current_quest matches 'kill_zombies'"
+                        parts = condition.split("==")
+                        if len(parts) == 2:
+                            left_part = parts[0].strip()
+                            right_part = parts[1].strip().strip("'")
+                            
+                            if "score @s" in left_part:
+                                var_name = left_part.replace("score @s", "").strip()
+                                data_condition = f"data storage mdl:variables {var_name} matches '{right_part}'"
+                                
+                                # Generate conditional execution
+                                if if_commands:
+                                    commands.append(f"# If statement: {condition}")
+                                    for cmd in if_commands:
+                                        commands.append(f"execute if {data_condition} run {cmd}")
+                                
+                                if else_commands:
+                                    commands.append(f"# Else statement")
+                                    for cmd in else_commands:
+                                        commands.append(f"execute unless {data_condition} run {cmd}")
+                            else:
+                                # Fallback to original condition
+                                if if_commands:
+                                    commands.append(f"# If statement: {condition}")
+                                    for cmd in if_commands:
+                                        commands.append(f"execute if {condition} run {cmd}")
+                                
+                                if else_commands:
+                                    commands.append(f"# Else statement")
+                                    for cmd in else_commands:
+                                        commands.append(f"execute unless {condition} run {cmd}")
+                        else:
+                            # Fallback to original condition
+                            if if_commands:
+                                commands.append(f"# If statement: {condition}")
+                                for cmd in if_commands:
+                                    commands.append(f"execute if {condition} run {cmd}")
+                            
+                            if else_commands:
+                                commands.append(f"# Else statement")
+                                for cmd in else_commands:
+                                    commands.append(f"execute unless {condition} run {cmd}")
+                    else:
+                        # Regular scoreboard condition
+                        if if_commands:
+                            commands.append(f"# If statement: {condition}")
+                            for cmd in if_commands:
+                                commands.append(f"execute if {condition} run {cmd}")
+                        
+                        if else_commands:
+                            commands.append(f"# Else statement")
+                            for cmd in else_commands:
+                                commands.append(f"execute unless {condition} run {cmd}")
                             
                 elif class_name == 'ForLoop':
                     # Convert for loops to Minecraft iteration commands
