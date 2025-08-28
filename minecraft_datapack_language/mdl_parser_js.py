@@ -646,7 +646,11 @@ class MDLParser:
         """Parse tag declaration."""
         self._match(TokenType.TAG)
         tag_type = self._match(TokenType.IDENTIFIER).value
-        name = self._match(TokenType.STRING).value
+        # Handle both quoted and unquoted tag names
+        if self._peek().type == TokenType.STRING:
+            name = self._match(TokenType.STRING).value
+        else:
+            name = self._match(TokenType.IDENTIFIER).value
         self._match(TokenType.LBRACE)
         
         values = []
@@ -660,7 +664,11 @@ class MDLParser:
                 break
             
             self._match(TokenType.ADD)
-            values.append(self._match(TokenType.STRING).value)
+            # Handle both quoted and unquoted values
+            if self._peek().type == TokenType.STRING:
+                values.append(self._match(TokenType.STRING).value)
+            else:
+                values.append(self._match(TokenType.IDENTIFIER).value)
             
             # Expect semicolon
             if self._peek() and self._peek().type == TokenType.SEMICOLON:
