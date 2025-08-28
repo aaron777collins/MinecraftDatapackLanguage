@@ -4,6 +4,7 @@ from typing import Dict, Any, List
 from .pack import Pack, Function
 from .utils import ensure_dir
 from .mdl_parser_js import parse_mdl_js
+from .expression_processor import expression_processor, ProcessedExpression
 from . import __version__
 
 def _slug(s: str) -> str:
@@ -673,159 +674,13 @@ def _ast_to_commands(body: List[Any]) -> List[str]:
                 var_name = node.name
                 
                 if hasattr(node, 'value'):
-                    # Handle different types of expressions
-                    if hasattr(node.value, '__class__'):
-                        expr_class = node.value.__class__.__name__
-                        
-                        if expr_class == 'BinaryExpression':
-                            # Handle arithmetic operations
-                            if node.value.operator in ['+', '-', '*', '/']:
-                                # Handle different types of binary expressions
-                                if node.value.operator == '+':
-                                    # Addition
-                                    if hasattr(node.value.left, 'name') and hasattr(node.value.right, 'value'):
-                                        # Variable + literal (e.g., local_counter + 5)
-                                        right_value = node.value.right.value
-                                        commands.append(f"scoreboard players add @s {var_name} {right_value}")
-                                    elif hasattr(node.value.left, 'value') and hasattr(node.value.right, 'name'):
-                                        # Literal + variable (e.g., 5 + local_counter)
-                                        left_value = node.value.left.value
-                                        commands.append(f"scoreboard players add @s {var_name} {left_value}")
-                                    elif hasattr(node.value.left, 'value') and hasattr(node.value.right, 'name'):
-                                        # String concatenation (e.g., "Updated: " + player_name)
-                                        left_value = node.value.left.value
-                                        right_var = node.value.right.name
-                                        commands.append(f"# String concatenation: '{left_value}' + {right_var}")
-                                        commands.append(f"data modify storage mdl:variables {var_name} set value \"{left_value}\"")
-                                        commands.append(f"execute store result storage mdl:temp concat string 1 run data get storage mdl:variables {right_var}")
-                                        commands.append(f"data modify storage mdl:variables {var_name} append value storage mdl:temp concat")
-                                    elif hasattr(node.value.left, 'name') and hasattr(node.value.right, 'value'):
-                                        # String concatenation (e.g., player_name + " is online")
-                                        left_var = node.value.left.name
-                                        right_value = node.value.right.value
-                                        commands.append(f"# String concatenation: {left_var} + '{right_value}'")
-                                        commands.append(f"data modify storage mdl:variables {var_name} set from storage mdl:variables {left_var}")
-                                        commands.append(f"data modify storage mdl:variables {var_name} append value \"{right_value}\"")
-                                    elif hasattr(node.value.left, 'name') and hasattr(node.value.right, 'name'):
-                                        # String concatenation (e.g., first_name + last_name)
-                                        left_var = node.value.left.name
-                                        right_var = node.value.right.name
-                                        commands.append(f"# String concatenation: {left_var} + {right_var}")
-                                        commands.append(f"data modify storage mdl:variables {var_name} set from storage mdl:variables {left_var}")
-                                        commands.append(f"execute store result storage mdl:temp concat string 1 run data get storage mdl:variables {right_var}")
-                                        commands.append(f"data modify storage mdl:variables {var_name} append value storage mdl:temp concat")
-                                    elif hasattr(node.value.left, 'value') and hasattr(node.value.right, 'name'):
-                                        # String concatenation (e.g., "Hello " + player_name)
-                                        left_value = node.value.left.value
-                                        right_var = node.value.right.name
-                                        left_str = str(left_value).strip('"').strip("'")
-                                        commands.append(f"# String concatenation: '{left_str}' + {right_var}")
-                                        commands.append(f"data modify storage mdl:variables {var_name} set value \"{left_str}\"")
-                                        commands.append(f"execute store result storage mdl:temp concat string 1 run data get storage mdl:variables {right_var}")
-                                        commands.append(f"data modify storage mdl:variables {var_name} append value storage mdl:temp concat")
-                                    else:
-                                        # Complex addition - for now, set to 0
-                                        commands.append(f"scoreboard players set @s {var_name} 0")
-                                elif node.value.operator == '-':
-                                    # Subtraction
-                                    if hasattr(node.value.right, 'value'):
-                                        right_value = node.value.right.value
-                                        commands.append(f"scoreboard players remove @s {var_name} {right_value}")
-                                    else:
-                                        commands.append(f"scoreboard players set @s {var_name} 0")
-                                else:
-                                    # Complex arithmetic - for now, set to 0
-                                    commands.append(f"scoreboard players set @s {var_name} 0")
-                            else:
-                                # Unknown operator
-                                commands.append(f"scoreboard players set @s {var_name} 0")
-                                
-                        elif expr_class == 'StringLiteral':
-                            # String assignment
-                            value = node.value.value.strip('"')
-                            commands.append(f"data modify storage mdl:variables {var_name} set value \"{value}\"")
-                            
-                        elif expr_class == 'NumericLiteral':
-                            # Number assignment
-                            value = node.value.value
-                            commands.append(f"scoreboard players set @s {var_name} {value}")
-                            
-                        elif expr_class == 'LiteralExpression':
-                            # Handle LiteralExpression (which can be string or number)
-                            if hasattr(node.value, 'type'):
-                                if node.value.type == 'string':
-                                    value = node.value.value.strip('"')
-                                    commands.append(f"data modify storage mdl:variables {var_name} set value \"{value}\"")
-                                elif node.value.type == 'number':
-                                    value = node.value.value
-                                    commands.append(f"scoreboard players set @s {var_name} {value}")
-                                else:
-                                    # Unknown type - skip
-                                    continue
-                            else:
-                                # No type info - try to determine from value
-                                try:
-                                    value = int(node.value.value)
-                                    commands.append(f"scoreboard players set @s {var_name} {value}")
-                                except (ValueError, TypeError):
-                                    # Assume string
-                                    value = str(node.value.value).strip('"')
-                                    commands.append(f"data modify storage mdl:variables {var_name} set value \"{value}\"")
-                                    
-                        elif expr_class == 'ListExpression':
-                            # Handle list assignments
-                            commands.append(f"data modify storage mdl:variables {var_name} set value []")
-                            if hasattr(node.value, 'elements'):
-                                for item in node.value.elements:
-                                    if hasattr(item, 'value'):
-                                        # Handle string literals in lists
-                                        item_value = item.value.strip('"')
-                                        commands.append(f"data modify storage mdl:variables {var_name} append value \"{item_value}\"")
-                                    else:
-                                        # Handle other types - convert to string for now
-                                        commands.append(f"data modify storage mdl:variables {var_name} append value \"unknown\"")
-                            
-                        elif expr_class == 'Identifier':
-                            # Variable reference - for now, assume it's a number variable
-                            commands.append(f"scoreboard players operation @s {var_name} = @s {node.value.name}")
-                            
-                        elif expr_class == 'ListAccessExpression':
-                            # Handle list access like local_str = local_list[0] or local_list[index]
-                            list_name = node.value.list_name
-                            if hasattr(node.value.index, 'value'):
-                                # Simple literal index
-                                index = node.value.index.value
-                                commands.append(f"# Access element at index {index} from {list_name}")
-                                commands.append(f"data modify storage mdl:temp element set from storage mdl:variables {list_name}[{index}]")
-                                commands.append(f"data modify storage mdl:variables {var_name} set from storage mdl:temp element")
-                            elif hasattr(node.value.index, 'name'):
-                                # Variable index
-                                index_var = node.value.index.name
-                                commands.append(f"# Access element at variable index {index_var} from {list_name}")
-                                # For variable indices, we need to use a different approach
-                                # Create a temporary storage to hold the index
-                                commands.append(f"execute store result storage mdl:temp index int 1 run scoreboard players get @s {index_var}")
-                                # Use the temporary index to access the list
-                                commands.append(f"data modify storage mdl:temp element set from storage mdl:variables {list_name}[storage mdl:temp index]")
-                                commands.append(f"data modify storage mdl:variables {var_name} set from storage mdl:temp element")
-                            else:
-                                # Complex expression - evaluate and store in temp
-                                commands.append(f"# Complex index expression for {list_name}")
-                                commands.append(f"# TODO: Implement complex index evaluation")
-                                continue
-                                
-                        elif expr_class == 'ListLengthExpression':
-                            # Handle list length like var num count = items.length
-                            list_name = node.value.list_name
-                            commands.append(f"# Get length of {list_name}")
-                            # Count the number of elements in the list
-                            commands.append(f"execute store result score @s {var_name} run data get storage mdl:variables {list_name}")
-                            # The above command gets the array size, but we need to ensure it's properly converted
-                            commands.append(f"execute store result score @s {var_name} run data get storage mdl:variables {list_name}")
-                            
-                        else:
-                            # Unknown expression type - skip for now
-                            continue
+                    # Use systematic expression processing
+                    processed = expression_processor.process_expression(node.value, var_name)
+                    commands.extend(processed.temp_assignments)
+                    
+                    # If there's a final command, add it
+                    if processed.final_command:
+                        commands.append(processed.final_command)
                     else:
                         # Simple value assignment
                         if isinstance(node.value, (int, float)):
