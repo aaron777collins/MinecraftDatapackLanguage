@@ -641,7 +641,7 @@ def _ast_to_commands(body: List[Any], current_namespace: str = "test", current_p
                     condition = node.condition.strip('"')
                     
                     # Convert if body to commands
-                    if_commands = _ast_to_commands(node.if_body, current_namespace, current_pack)
+                    if_commands = _ast_to_commands(node.body, current_namespace, current_pack)
                     
                     # Convert else body to commands (if it exists)
                     else_commands = []

@@ -1,0 +1,115 @@
+pack "Core Features Test" description "Testing all core MDL features" pack_format 82;
+
+namespace "core";
+
+// Test global variables
+var num global_counter = 0;
+var str global_message = "Hello from global!";
+var list global_items = ["apple", "banana", "cherry"];
+
+function "main" {
+    // Test variable declarations
+    var num counter = 0;
+    var str message = "Hello, MDL!";
+    var list items = ["sword", "shield", "potion"];
+    
+    // Test basic commands
+    say "Starting core features test";
+    tellraw @a {"text":"Testing core MDL features","color":"green"};
+    
+    // Test variable assignments
+    counter = 42;
+    message = "Updated message";
+    
+    // Test list operations
+    append items "axe";
+    say "List length: " + length(items);
+    
+    // Test list access
+    var str first_item = items[0];
+    var str second_item = items[1];
+    say "First item: " + first_item;
+    say "Second item: " + second_item;
+    
+    // Test arithmetic operations
+    var num result = (counter + 10) * 2;
+    say "Result: " + result;
+    
+    // Test if/else statements
+    if "score @s counter > 40" {
+        say "Counter is greater than 40";
+        counter = counter - 10;
+    } else {
+        say "Counter is 40 or less";
+        counter = counter + 10;
+    }
+    
+    // Test while loop
+    while "score @s counter > 0" {
+        say "Counter: " + counter;
+        counter = counter - 1;
+    }
+    
+    // Test for loop (entity iteration)
+    for player in @a {
+        tellraw @s {"text":"Hello player!","color":"blue"};
+    }
+    
+    // Test for-in loop (list iteration)
+    for (var item in items) {
+        say "Processing item: " + item;
+    }
+    
+    // Test complex expressions
+    var num complex_result = (counter + 5) * 2 - 10;
+    say "Complex result: " + complex_result;
+    
+    // Test string concatenation
+    var str full_message = "Items: " + items[0] + " and " + items[1];
+    say full_message;
+    
+    // Test list operations
+    insert items[1] "new_item";
+    say "After insert: " + length(items);
+    
+    remove items[2];
+    say "After remove: " + length(items);
+    
+    pop items;
+    say "After pop: " + length(items);
+    
+    // Test bounds checking with if
+    var num index = 5;
+    if "score @s index < length(items)" {
+        var str safe_item = items[index];
+        say "Safe access: " + safe_item;
+    } else {
+        say "Index out of bounds!";
+    }
+    
+    // Test list clearing
+    clear items;
+    say "List cleared!";
+    
+    tellraw @a {"text":"All core features tested successfully!","color":"green"};
+}
+
+// Test helper function
+function "helper" {
+    say "Helper function called!";
+    var num helper_var = 100;
+    say "Helper value: " + helper_var;
+}
+
+// Test hooks
+on_load "core:main";
+on_tick "core:helper";
+
+// Test tags
+tag function minecraft:load {
+    add "core:main";
+}
+
+tag function minecraft:tick {
+    add "core:helper";
+}
