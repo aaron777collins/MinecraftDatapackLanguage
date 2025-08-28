@@ -721,13 +721,39 @@ def _ast_to_commands(body: List[Any], current_namespace: str = "test", current_p
                     
                 elif class_name == 'WhileLoop':
                     # Convert while loops to Minecraft conditional commands
-                    condition = node.condition.strip('"')
                     loop_body = _ast_to_commands(node.body, current_namespace, current_pack)
                     
+                    # Handle condition expression
+                    if hasattr(node.condition, 'left') and hasattr(node.condition, 'operator') and hasattr(node.condition, 'right'):
+                        # Binary expression like "score @s index < length(items)"
+                        left = node.condition.left
+                        operator = node.condition.operator
+                        right = node.condition.right
+                        
+                        # Build the condition string
+                        if hasattr(left, 'name') and hasattr(right, 'function_name'):
+                            # Handle "score @s index < length(items)" pattern
+                            if right.function_name == 'length' and len(right.arguments) == 1:
+                                list_name = right.arguments[0].name if hasattr(right.arguments[0], 'name') else str(right.arguments[0])
+                                condition_str = f"score @s {left.name} {operator} @s {list_name}_length"
+                                
+                                # Add length calculation before the loop
+                                commands.append(f"# Calculate length of {list_name}")
+                                commands.append(f"execute store result score @s {list_name}_length run data get storage mdl:variables {list_name}")
+                            else:
+                                # Fallback for other expressions
+                                condition_str = f"score @s {left.name} {operator} {right}"
+                        else:
+                            # Fallback for other expression types
+                            condition_str = str(node.condition)
+                    else:
+                        # Fallback for non-binary expressions
+                        condition_str = str(node.condition)
+                    
                     # Generate loop commands
-                    commands.append(f"# While loop: {condition}")
+                    commands.append(f"# While loop: {condition_str}")
                     for cmd in loop_body:
-                        commands.append(f"execute if {condition} run {cmd}")
+                        commands.append(f"execute if {condition_str} run {cmd}")
                         
                 elif class_name == 'BreakStatement':
                     # Handle break statements in loops

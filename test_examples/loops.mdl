@@ -65,7 +65,7 @@ function "list_iteration" {
     var list items = ["sword", "shield", "potion", "food"];
     var num index = 0;
     
-    while "score @s index < items.length" {
+    while "score @s index < length(items)" {
         var str current_item = items[index];
         say Processing item: current_item;
         index = index + 1;

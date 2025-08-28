@@ -27,7 +27,7 @@ function "variable_demo" {
     local_items.append("golden_apple");
     local_items.insert(1, "enchanted_sword");
     var num first_item = local_items[0];
-    var num item_count = local_items.length;
+    var num item_count = length(local_items);
     
     // Complex calculations
     var num result = (local_counter * 2) + global_counter;
@@ -56,8 +56,8 @@ function "list_operations" {
     
     // Access operations
     var str primary_weapon = weapons[0];
-    var num weapon_count = weapons.length;
-    var num armor_count = armor.length;
+    var num weapon_count = length(weapons);
+    var num armor_count = length(armor);
     
     // Remove operations
     weapons.remove("golden_sword");

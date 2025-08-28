@@ -152,20 +152,29 @@ This document serves as the comprehensive specification and implementation guide
 - **Fix**: Updated `_parse_import_statement` to pass `None` for alias parameter
 - **Status**: Fixed
 
-### 🔄 **IN PROGRESS** - List Length Function Implementation (v10.1.57)
+### ✅ **FIXED** - List Length Function Implementation (v10.1.57)
 - **Issue**: `identifier.length` property syntax was causing parsing complexity and while loop issues
-- **Solution**: Converting to built-in function `length(list_name)` for consistency and simplicity
+- **Solution**: Converted to built-in function `length(list_name)` for consistency and simplicity
 - **Changes**:
   - Removed `LENGTH` token type and special lexer rules for `.length`
   - Added `BuiltInFunctionCall` node type for `length()` function
   - Updated parser to handle `length(list_name)` as built-in function
-  - Will update compiler to handle `BuiltInFunctionCall` nodes
+  - Updated compiler to handle `BuiltInFunctionCall` nodes
+  - Updated all example files to use `length()` function syntax
 - **Benefits**:
   - Consistent with other list operations (`append`, `remove`, etc.)
   - Simpler parsing logic
-  - Works in both variable assignments and while loop conditions
+  - Works correctly in variable assignments
   - More extensible for future built-in functions
-- **Status**: In progress - implementing parser and compiler changes
+- **Status**: Fixed for variable assignments, but while loop conditions still need work
+
+### ⚠️ **PENDING** - While Loop Condition Expression Parsing
+- **Issue**: While loop conditions like `"score @s i < length(player_inventory)"` are treated as string literals
+- **Root Cause**: Parser treats entire condition as string literal instead of parsing expression inside
+- **Impact**: While loops with list length comparisons don't work correctly
+- **Priority**: High - affects core control flow functionality
+- **Status**: Needs parser modification to parse expressions inside string literals
+- **Example**: `while "score @s index < length(items)"` generates `execute if score @s index < length(items)` instead of proper length calculation
 
 ## Development Cycle (Steps 1-7)
 
@@ -274,9 +283,9 @@ This document serves as the comprehensive specification and implementation guide
 
 ## Current Version Status
 
-**Latest Version**: v10.1.56
+**Latest Version**: v10.1.57
 **Status**: Highly functional MDL compiler with comprehensive feature set
-**Known Issues**: List length function implementation in progress
-**Next Priority**: Complete list length function implementation and test thoroughly
+**Known Issues**: While loop condition expression parsing needs work
+**Next Priority**: Fix while loop condition parsing to handle expressions inside string literals
 
 The MDL language implementation is now substantially complete with all major features working correctly. We are currently implementing a cleaner approach to list length using built-in functions instead of property access, which will resolve both variable assignment and while loop condition issues.

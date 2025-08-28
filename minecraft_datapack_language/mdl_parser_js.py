@@ -66,7 +66,7 @@ class ForInLoop(ASTNode):
 
 @dataclass
 class WhileLoop(ASTNode):
-    condition: str
+    condition: 'Expression'  # Changed from str to Expression
     body: List[ASTNode]
 
 @dataclass
@@ -579,13 +579,26 @@ class MDLParser:
     def _parse_while_loop(self) -> WhileLoop:
         """Parse while loop with curly braces."""
         self._match(TokenType.WHILE)
-        condition = self._match(TokenType.STRING).value
+        
+        # Parse condition as an expression instead of a string literal
+        # First, we need to parse the string content as an expression
+        condition_token = self._match(TokenType.STRING)
+        condition_string = condition_token.value
+        
+        # Create a temporary lexer to parse the condition string
+        from .mdl_lexer_js import lex_mdl_js
+        condition_tokens = lex_mdl_js(condition_string)
+        
+        # Create a temporary parser to parse the condition expression
+        temp_parser = MDLParser(condition_tokens)
+        condition_expression = temp_parser._parse_expression()
+        
         self._match(TokenType.LBRACE)
         
         body = self._parse_block()
         self._match(TokenType.RBRACE)
         
-        return WhileLoop(condition, body)
+        return WhileLoop(condition_expression, body)
     
     def _parse_function_call(self) -> FunctionCall:
         """Parse function call."""

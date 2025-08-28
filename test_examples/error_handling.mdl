@@ -33,7 +33,7 @@ function "list_bounds_check" {
     var str unsafe_value = "";
     
     try {
-        if "score @s safe_index < test_list.length" {
+        if "score @s safe_index < length(test_list)" {
             safe_value = test_list[safe_index];
         } else {
             throw "Safe index out of bounds";
@@ -44,7 +44,7 @@ function "list_bounds_check" {
     }
     
     try {
-        if "score @s unsafe_index < test_list.length" {
+        if "score @s unsafe_index < length(test_list)" {
             unsafe_value = test_list[unsafe_index];
         } else {
             throw "Unsafe index out of bounds";
@@ -84,7 +84,7 @@ function "resource_cleanup" {
         resources.append("database");
         resources.append("cache");
         
-        if "score @s resources.length > 5" {
+        if "score @s length(resources) > 5" {
             throw "Too many resources allocated";
         }
         
@@ -96,7 +96,7 @@ function "resource_cleanup" {
         say Resources cleaned up;
     }
     
-    say Final resource count: resources.length;
+    say Final resource count: length(resources);
 }
 
 function "nested_error_handling" {
