@@ -589,7 +589,7 @@ def _add_final_command(commands: List[str], final_command: str):
 
 
 
-def _ast_to_commands(body: List[Any], current_namespace: str = "test", current_pack: Any = None) -> List[str]:
+def _ast_to_commands(body: List[Any], current_namespace: str = "test", current_pack: Any = None, execute_prefix: str = "") -> List[str]:
     """Convert AST function body to list of valid Minecraft commands."""
     print(f"DEBUG: _ast_to_commands called with {len(body)} nodes")
     commands = []
@@ -607,7 +607,10 @@ def _ast_to_commands(body: List[Any], current_namespace: str = "test", current_p
                 if class_name == 'Command':
                     # Remove semicolon from command and clean up
                     command = node.command.rstrip(';').strip()
-                    commands.append(command)
+                    if execute_prefix and not command.startswith('#'):
+                        commands.append(f"{execute_prefix} {command}")
+                    else:
+                        commands.append(command)
                     
                 elif class_name == 'FunctionCall':
                     # Convert function call to Minecraft function command
@@ -630,11 +633,17 @@ def _ast_to_commands(body: List[Any], current_namespace: str = "test", current_p
                     # Handle the value using expression processor
                     if node.value:
                         processed = expression_processor.process_expression(node.value, var_name)
-                        commands.extend(processed.temp_assignments)
                         
-                        # If there's a final command, add it
+                        # Apply execute prefix to temp assignments
+                        for temp_cmd in processed.temp_assignments:
+                            if execute_prefix and not temp_cmd.startswith('#'):
+                                commands.append(f"{execute_prefix} {temp_cmd}")
+                            else:
+                                commands.append(temp_cmd)
+                        
+                        # If there's a final command, add it with execute prefix
                         if processed.final_command:
-                            _add_final_command(commands, processed.final_command)
+                            _add_final_command(commands, processed.final_command, execute_prefix)
                                 
                 elif class_name == 'VariableAssignment':
                     # Convert variable assignments to appropriate Minecraft commands
@@ -643,11 +652,17 @@ def _ast_to_commands(body: List[Any], current_namespace: str = "test", current_p
                     # Handle the value using expression processor
                     if node.value:
                         processed = expression_processor.process_expression(node.value, var_name)
-                        commands.extend(processed.temp_assignments)
                         
-                        # If there's a final command, add it
+                        # Apply execute prefix to temp assignments
+                        for temp_cmd in processed.temp_assignments:
+                            if execute_prefix and not temp_cmd.startswith('#'):
+                                commands.append(f"{execute_prefix} {temp_cmd}")
+                            else:
+                                commands.append(temp_cmd)
+                        
+                        # If there's a final command, add it with execute prefix
                         if processed.final_command:
-                            _add_final_command(commands, processed.final_command)
+                            _add_final_command(commands, processed.final_command, execute_prefix)
                             
                 elif class_name == 'IfStatement':
                     # Convert if statements to Minecraft conditional commands
@@ -684,51 +699,21 @@ def _ast_to_commands(body: List[Any], current_namespace: str = "test", current_p
                                     if if_commands:
                                         commands.append(f"# If statement: {condition}")
                                         for cmd in if_commands:
-                                            # Handle multi-line commands by wrapping each line
-                                            if '\n' in cmd:
-                                                lines = cmd.split('\n')
-                                                for line in lines:
-                                                    if line.strip():
-                                                        commands.append(f"execute if {data_condition} run {line}")
-                                            else:
-                                                commands.append(f"execute if {data_condition} run {cmd}")
+                                            commands.append(f"execute if {data_condition} run {cmd}")
                                     
                                     if else_commands:
                                         commands.append(f"# Else statement")
                                         for cmd in else_commands:
-                                            # Handle multi-line commands by wrapping each line
-                                            if '\n' in cmd:
-                                                lines = cmd.split('\n')
-                                                for line in lines:
-                                                    if line.strip():
-                                                        commands.append(f"execute unless {data_condition} run {line}")
-                                            else:
-                                                commands.append(f"execute unless {data_condition} run {cmd}")
+                                            commands.append(f"execute unless {data_condition} run {cmd}")
                                 else:
                                     # Fallback to original condition
                                     if if_commands:
                                         commands.append(f"# If statement: {condition}")
-                                        for cmd in if_commands:
-                                            # Handle multi-line commands by wrapping each line
-                                            if '\n' in cmd:
-                                                lines = cmd.split('\n')
-                                                for line in lines:
-                                                    if line.strip():
-                                                        commands.append(f"execute if {condition} run {line}")
-                                            else:
-                                                commands.append(f"execute if {condition} run {cmd}")
+                                        commands.extend(if_commands)
                                     
                                     if else_commands:
                                         commands.append(f"# Else statement")
-                                        for cmd in else_commands:
-                                            # Handle multi-line commands by wrapping each line
-                                            if '\n' in cmd:
-                                                lines = cmd.split('\n')
-                                                for line in lines:
-                                                    if line.strip():
-                                                        commands.append(f"execute unless {condition} run {line}")
-                                            else:
-                                                commands.append(f"execute unless {condition} run {cmd}")
+                                        commands.extend(else_commands)
                             else:
                                 # Fallback to original condition
                                 if if_commands:
