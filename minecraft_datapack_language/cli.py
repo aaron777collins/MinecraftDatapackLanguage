@@ -724,30 +724,36 @@ def _ast_to_commands(body: List[Any], current_namespace: str = "test", current_p
                     loop_body = _ast_to_commands(node.body, current_namespace, current_pack)
                     
                     # Handle condition expression
-                    if hasattr(node.condition, 'left') and hasattr(node.condition, 'operator') and hasattr(node.condition, 'right'):
-                        # Binary expression like "score @s index < length(items)"
-                        left = node.condition.left
-                        operator = node.condition.operator
-                        right = node.condition.right
+                    if hasattr(node.condition, 'condition_string'):
+                        # ConditionExpression - parse the condition string to handle length() functions
+                        condition_string = node.condition.condition_string
                         
-                        # Build the condition string
-                        if hasattr(left, 'name') and hasattr(right, 'function_name'):
-                            # Handle "score @s index < length(items)" pattern
-                            if right.function_name == 'length' and len(right.arguments) == 1:
-                                list_name = right.arguments[0].name if hasattr(right.arguments[0], 'name') else str(right.arguments[0])
-                                condition_str = f"score @s {left.name} {operator} @s {list_name}_length"
-                                
+                        # Check if the condition contains length() function calls
+                        if 'length(' in condition_string:
+                            # Parse the condition to extract list names and build proper condition
+                            # Example: "score @s index < length(items)" -> "score @s index < @s items_length"
+                            
+                            # Find all length() function calls in the condition
+                            import re
+                            length_pattern = r'length\(([^)]+)\)'
+                            matches = re.findall(length_pattern, condition_string)
+                            
+                            # Replace each length() call with the corresponding score
+                            modified_condition = condition_string
+                            for list_name in matches:
                                 # Add length calculation before the loop
                                 commands.append(f"# Calculate length of {list_name}")
                                 commands.append(f"execute store result score @s {list_name}_length run data get storage mdl:variables {list_name}")
-                            else:
-                                # Fallback for other expressions
-                                condition_str = f"score @s {left.name} {operator} {right}"
+                                
+                                # Replace length(list_name) with @s list_name_length
+                                modified_condition = modified_condition.replace(f'length({list_name})', f'@s {list_name}_length')
+                            
+                            condition_str = modified_condition
                         else:
-                            # Fallback for other expression types
-                            condition_str = str(node.condition)
+                            # No length() functions, use condition as-is
+                            condition_str = condition_string
                     else:
-                        # Fallback for non-binary expressions
+                        # Fallback for other expression types
                         condition_str = str(node.condition)
                     
                     # Generate loop commands

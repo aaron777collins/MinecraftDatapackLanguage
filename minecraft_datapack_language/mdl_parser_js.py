@@ -215,6 +215,11 @@ class BuiltInFunctionCall(Expression):
     arguments: List[Expression]
 
 @dataclass
+class ConditionExpression(Expression):
+    """Special expression for while loop conditions that contain Minecraft command syntax."""
+    condition_string: str
+
+@dataclass
 class UnaryExpression(Expression):
     operator: str
     operand: Expression
@@ -580,18 +585,12 @@ class MDLParser:
         """Parse while loop with curly braces."""
         self._match(TokenType.WHILE)
         
-        # Parse condition as an expression instead of a string literal
-        # First, we need to parse the string content as an expression
+        # Parse condition as a string literal (Minecraft command syntax)
         condition_token = self._match(TokenType.STRING)
         condition_string = condition_token.value
         
-        # Create a temporary lexer to parse the condition string
-        from .mdl_lexer_js import lex_mdl_js
-        condition_tokens = lex_mdl_js(condition_string)
-        
-        # Create a temporary parser to parse the condition expression
-        temp_parser = MDLParser(condition_tokens)
-        condition_expression = temp_parser._parse_expression()
+        # Create a special condition object that can be processed by the compiler
+        condition_expression = ConditionExpression(condition_string)
         
         self._match(TokenType.LBRACE)
         
