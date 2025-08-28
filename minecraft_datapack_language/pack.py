@@ -324,12 +324,9 @@ class Pack:
             list_name = match.group(1)
             index_var = match.group(2)
             
-            # Create a temporary variable for the list access result
-            temp_var = f"temp_list_access_{cmd_index}_{len(match.groups())}"
-            
-            # Generate commands to access the list element
-            # This will be handled by the main command processing
-            return f"${{{temp_var}}}"
+            # For now, just return the list name since we can't easily process this in conditions
+            # The actual list access will need to be handled in the CLI when processing variable assignments
+            return list_name
         
         # Replace list access expressions in the condition
         processed_condition = re.sub(list_access_pattern, replace_list_access, condition)

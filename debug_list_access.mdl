@@ -1,0 +1,6 @@
+pack "test" description "Test" pack_format 82;
+namespace "test";
+
+var list items = ["apple", "banana", "cherry"];
+var num index = 0;
+var str item = items[index];
