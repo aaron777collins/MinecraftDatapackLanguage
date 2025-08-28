@@ -346,7 +346,7 @@ This document serves as the comprehensive specification and implementation guide
 
 ## Current Version Status
 
-**Latest Version**: v10.1.66
+**Latest Version**: v10.1.67
 **Status**: Highly functional MDL compiler with comprehensive feature set
 **Known Issues**: All major issues resolved!
 **Next Priority**: Continue testing and documentation improvements
@@ -354,6 +354,19 @@ This document serves as the comprehensive specification and implementation guide
 The MDL language implementation is now substantially complete with all major features working correctly. We are currently implementing a cleaner approach to list length using built-in functions instead of property access, which will resolve both variable assignment and while loop condition issues.
 
 ## Known Issues and Limitations
+
+### ✅ **LINTING SYSTEM IMPLEMENTED**
+
+**New Feature**: Comprehensive mcfunction linter with `check-advanced` command
+- **Command**: `mdl check-advanced <file.mdl>` - Builds and analyzes generated mcfunction files
+- **Features**: 7 rule categories detecting redundant operations, inefficient storage, temporary variables, complex operations, potential errors, performance issues, and style problems
+- **Output**: Detailed reports with severity levels (error/warning/info) and suggestions
+- **Status**: Implemented in v10.1.67
+
+**Linter Analysis Results** (from test files):
+- **38 total issues identified** in variables.mdl and list_operations.mdl
+- **15 warnings** - Redundant operations, generated temp variables, complex storage operations
+- **23 info items** - Performance suggestions, style improvements, optimization opportunities
 
 ### ❌ **CRITICAL ISSUES TO FIX**
 
@@ -419,5 +432,34 @@ The MDL language implementation is now substantially complete with all major fea
 ### 🔧 **PRIORITY FIX ORDER**
 
 1. **High Priority (Critical)**: Issues 6 ✅, 8 ✅, 9 ✅ - These affect functionality and usability
-2. **Medium Priority (Performance)**: Issues 2, 3, 4, 7, 10 - These affect efficiency
+2. **Medium Priority (Performance)**: Issues 2, 3, 4, 7, 10 - These affect efficiency  
 3. **Low Priority (Cleanup)**: Issues 1, 5 - These are warnings and optimizations
+
+### 🔍 **LINTER-IDENTIFIED ISSUES TO ADDRESS**
+
+**From check-advanced analysis of generated mcfunction files:**
+
+1. **Redundant Scoreboard Operations** ⚠️
+   - **Issue**: `scoreboard players operation @s var = @s var` (variable assigned to itself)
+   - **Impact**: Unnecessary commands, performance overhead
+   - **Fix**: Remove redundant self-assignment operations
+
+2. **Generated Temporary Variables** ⚠️
+   - **Issue**: `left_0`, `left_2`, `concat_1` variables from complex expressions
+   - **Impact**: Cluttered output, hard to debug
+   - **Fix**: Optimize expression processing to reduce temp variables
+
+3. **Complex Temporary Storage Operations** ⚠️
+   - **Issue**: `execute store result storage mdl:temp` operations
+   - **Impact**: Performance overhead, complex debugging
+   - **Fix**: Use direct storage operations where possible
+
+4. **Empty String Initializations** ℹ️
+   - **Issue**: `set value ""` followed by immediate assignment
+   - **Impact**: Redundant operations
+   - **Fix**: Skip empty initialization when value is provided
+
+5. **Expensive Storage Operations** ℹ️
+   - **Issue**: `execute store result score @s` for list length operations
+   - **Impact**: Performance overhead
+   - **Fix**: Optimize list operations and length calculations
