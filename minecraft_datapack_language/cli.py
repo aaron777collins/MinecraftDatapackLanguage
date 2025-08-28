@@ -532,6 +532,36 @@ def _ast_to_commands(body: List[Any]) -> List[str]:
                 # Skip continue statements for now
                 continue
                 
+            elif class_name == 'ListAppendOperation':
+                # Convert list append operations to Minecraft NBT commands
+                list_name = node.list_name
+                if hasattr(node.value, 'value'):
+                    # Handle string literals
+                    if hasattr(node.value, 'type') and node.value.type == 'string':
+                        value = node.value.value.strip('"')
+                        commands.append(f"data modify storage mdl:variables {list_name} append value \"{value}\"")
+                    elif hasattr(node.value, 'type') and node.value.type == 'number':
+                        value = node.value.value
+                        commands.append(f"data modify storage mdl:variables {list_name} append value {value}")
+                    else:
+                        # Try to determine type from value
+                        try:
+                            value = int(node.value.value)
+                            commands.append(f"data modify storage mdl:variables {list_name} append value {value}")
+                        except (ValueError, TypeError):
+                            # Assume string
+                            value = node.value.value.strip('"')
+                            commands.append(f"data modify storage mdl:variables {list_name} append value \"{value}\"")
+                else:
+                    # Unknown value type - skip
+                    continue
+                    
+            elif class_name == 'ListRemoveOperation':
+                # Convert list remove operations to Minecraft NBT commands
+                # Note: Direct "remove by value" is complex in NBT, so we'll use a TODO for now
+                list_name = node.list_name
+                commands.append(f"# TODO: Implement remove operation for {list_name}")
+                
             elif class_name == 'ReturnStatement':
                 # Skip return statements for now
                 continue
