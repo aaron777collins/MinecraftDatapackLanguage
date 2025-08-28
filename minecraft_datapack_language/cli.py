@@ -390,6 +390,21 @@ def _ast_to_commands(body: List[Any]) -> List[str]:
                                         commands.append(f"data modify storage mdl:variables {var_name} set value \"{left_value}\"")
                                         commands.append(f"execute store result storage mdl:temp concat string 1 run data get storage mdl:variables {right_var}")
                                         commands.append(f"data modify storage mdl:variables {var_name} append value storage mdl:temp concat")
+                                    elif hasattr(node.value.left, 'name') and hasattr(node.value.right, 'value'):
+                                        # String concatenation (e.g., player_name + " is online")
+                                        left_var = node.value.left.name
+                                        right_value = node.value.right.value
+                                        commands.append(f"# String concatenation: {left_var} + '{right_value}'")
+                                        commands.append(f"data modify storage mdl:variables {var_name} set from storage mdl:variables {left_var}")
+                                        commands.append(f"data modify storage mdl:variables {var_name} append value \"{right_value}\"")
+                                    elif hasattr(node.value.left, 'name') and hasattr(node.value.right, 'name'):
+                                        # String concatenation (e.g., first_name + last_name)
+                                        left_var = node.value.left.name
+                                        right_var = node.value.right.name
+                                        commands.append(f"# String concatenation: {left_var} + {right_var}")
+                                        commands.append(f"data modify storage mdl:variables {var_name} set from storage mdl:variables {left_var}")
+                                        commands.append(f"execute store result storage mdl:temp concat string 1 run data get storage mdl:variables {right_var}")
+                                        commands.append(f"data modify storage mdl:variables {var_name} append value storage mdl:temp concat")
                                     else:
                                         # Complex addition - for now, set to 0
                                         commands.append(f"scoreboard players set @s {var_name} 0")
@@ -457,17 +472,25 @@ def _ast_to_commands(body: List[Any]) -> List[str]:
                             commands.append(f"scoreboard players operation @s {var_name} = @s {node.value.name}")
                             
                         elif expr_class == 'ListAccessExpression':
-                            # Handle list access like local_str = local_list[0]
+                            # Handle list access like local_str = local_list[0] or local_list[index]
                             list_name = node.value.list_name
                             if hasattr(node.value.index, 'value'):
+                                # Simple literal index
                                 index = node.value.index.value
-                                # For now, we'll use a simple approach - store the list element in a temporary variable
                                 commands.append(f"# Access element at index {index} from {list_name}")
                                 commands.append(f"data modify storage mdl:temp element set from storage mdl:variables {list_name}[{index}]")
-                                # Then copy to the target variable (assuming it's a string for now)
+                                commands.append(f"data modify storage mdl:variables {var_name} set from storage mdl:temp element")
+                            elif hasattr(node.value.index, 'name'):
+                                # Variable index
+                                index_var = node.value.index.name
+                                commands.append(f"# Access element at variable index {index_var} from {list_name}")
+                                commands.append(f"execute store result storage mdl:temp index int 1 run scoreboard players get @s {index_var}")
+                                commands.append(f"data modify storage mdl:temp element set from storage mdl:variables {list_name}[storage mdl:temp index]")
                                 commands.append(f"data modify storage mdl:variables {var_name} set from storage mdl:temp element")
                             else:
-                                # Complex index expression - skip for now
+                                # Complex expression - evaluate and store in temp
+                                commands.append(f"# Complex index expression for {list_name}")
+                                commands.append(f"# TODO: Implement complex index evaluation")
                                 continue
                                 
                         elif expr_class == 'ListLengthExpression':
@@ -475,7 +498,7 @@ def _ast_to_commands(body: List[Any]) -> List[str]:
                             list_name = node.value.list_name
                             commands.append(f"# Get length of {list_name}")
                             commands.append(f"execute store result score @s {var_name} run data get storage mdl:variables {list_name}")
-                            # Note: This gives us the number of elements in the list
+                            # This gives us the number of elements in the list
                             
                         else:
                             # Unknown expression type - skip for now
@@ -669,6 +692,16 @@ def _ast_to_commands(body: List[Any]) -> List[str]:
                 commands.append(f"# Clear all elements from {list_name}")
                 commands.append(f"data modify storage mdl:variables {list_name} set value []")
                 
+            elif class_name == 'BreakStatement':
+                # Handle break statements in loops
+                commands.append(f"# Break statement - exit current loop")
+                commands.append(f"execute unless score @s break_flag matches 1.. run scoreboard players set @s break_flag 1")
+                
+            elif class_name == 'ContinueStatement':
+                # Handle continue statements in loops
+                commands.append(f"# Continue statement - skip to next iteration")
+                commands.append(f"execute unless score @s continue_flag matches 1.. run scoreboard players set @s continue_flag 1")
+                
             elif class_name == 'ReturnStatement':
                 # Skip return statements for now
                 continue
@@ -736,6 +769,24 @@ def _convert_arithmetic_expression(var_name: str, expr: Any) -> List[str]:
             if isinstance(left, (int, float)) and isinstance(right, (int, float)) and right != 0:
                 result = left % right  # Modulo
                 commands.append(f"scoreboard players set @s {var_name} {result}")
+            elif isinstance(left, (int, float)) and hasattr(right, 'name'):
+                # Constant % variable
+                commands.append(f"scoreboard players set @s {var_name} {left}")
+                commands.append(f"execute store result storage mdl:temp remainder int 1 run scoreboard players get @s {right.name}")
+                commands.append(f"execute if score @s {right.name} matches 0.. run scoreboard players set @s {var_name} 0")
+                commands.append(f"execute unless score @s {right.name} matches 0.. run scoreboard players operation @s {var_name} %= @s {right.name}")
+            elif hasattr(left, 'name') and isinstance(right, (int, float)):
+                # Variable % constant
+                if right != 0:
+                    commands.append(f"scoreboard players operation @s {var_name} = @s {left.name}")
+                    commands.append(f"scoreboard players set @s temp_mod {right}")
+                    commands.append(f"scoreboard players operation @s {var_name} %= @s temp_mod")
+                else:
+                    commands.append(f"scoreboard players set @s {var_name} 0")
+            elif hasattr(left, 'name') and hasattr(right, 'name'):
+                # Variable % variable
+                commands.append(f"scoreboard players operation @s {var_name} = @s {left.name}")
+                commands.append(f"scoreboard players operation @s {var_name} %= @s {right.name}")
             else:
                 commands.append(f"scoreboard players set @s {var_name} 0")
         else:

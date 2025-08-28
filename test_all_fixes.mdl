@@ -1,0 +1,131 @@
+// test_all_fixes.mdl - Test all fixed features
+pack "All Fixes Test" description "Testing all fixed MDL features" pack_format 82;
+namespace "fixes";
+
+// Test variables
+var num counter = 0;
+var num result = 0;
+var num index = 2;
+var list test_list = [10, 20, 30, 40, 50];
+var str message = "Testing";
+var str player_name = "Steve";
+
+function "test_list_access" {
+    // Test list access with literal indices
+    var num first_item = test_list[0];
+    var num second_item = test_list[1];
+    var num third_item = test_list[2];
+    
+    // Test list access with variable indices
+    var num dynamic_item = test_list[index];
+    var num last_index = 4;
+    var num last_item = test_list[last_index];
+    
+    // Test list length
+    var num list_length = test_list.length;
+    
+    say List access test;
+    tellraw @s {"text":"First item: " + first_item};
+    tellraw @s {"text":"Dynamic item: " + dynamic_item};
+    tellraw @s {"text":"List length: " + list_length};
+}
+
+function "test_modulo_operations" {
+    // Test modulo with constants
+    var num mod_result = 17 % 5;
+    var num even_check = counter % 2;
+    
+    // Test modulo with variables
+    counter = 15;
+    var num mod_var = counter % 3;
+    var num mod_var2 = 20 % counter;
+    
+    // Test complex modulo
+    var num complex_mod = (counter + 5) % 7;
+    
+    say Modulo test;
+    tellraw @s {"text":"17 % 5 = " + mod_result};
+    tellraw @s {"text":"15 % 3 = " + mod_var};
+    tellraw @s {"text":"20 % 15 = " + mod_var2};
+    tellraw @s {"text":"Complex mod = " + complex_mod};
+}
+
+function "test_string_concatenation" {
+    // Test string + string
+    message = "Hello " + "World";
+    
+    // Test string + variable
+    var str greeting = "Hello " + player_name;
+    
+    // Test variable + string
+    var str status = player_name + " is online";
+    
+    // Test variable + variable
+    var str full_name = player_name + " Minecraft";
+    
+    say String concatenation test;
+    tellraw @s {"text":message};
+    tellraw @s {"text":greeting};
+    tellraw @s {"text":status};
+    tellraw @s {"text":full_name};
+}
+
+function "test_break_continue" {
+    // Test break statement
+    var num i = 0;
+    while "i < 10" {
+        if "i == 5" {
+            break;
+        }
+        i = i + 1;
+    }
+    
+    // Test continue statement
+    var num j = 0;
+    var num sum = 0;
+    while "j < 10" {
+        j = j + 1;
+        if "j % 2 == 0" {
+            continue;
+        }
+        sum = sum + j;
+    }
+    
+    say Break/Continue test;
+    tellraw @s {"text":"Break test - i stopped at: " + i};
+    tellraw @s {"text":"Continue test - sum of odds: " + sum};
+}
+
+function "test_complex_operations" {
+    // Test complex list operations
+    test_list.append(60);
+    test_list.append(70);
+    
+    var num new_length = test_list.length;
+    var num last_item = test_list[new_length - 1];
+    
+    // Test complex modulo with list length
+    var num mod_length = new_length % 3;
+    
+    // Test string concatenation with numbers
+    var str list_info = "List has " + new_length + " items";
+    var str last_info = "Last item is " + last_item;
+    
+    say Complex operations test;
+    tellraw @s {"text":list_info};
+    tellraw @s {"text":last_info};
+    tellraw @s {"text":"Length mod 3: " + mod_length};
+}
+
+function "test" {
+    say All Fixes Test;
+    function "fixes:test_list_access";
+    function "fixes:test_modulo_operations";
+    function "fixes:test_string_concatenation";
+    function "fixes:test_break_continue";
+    function "fixes:test_complex_operations";
+    say All tests complete;
+}
+
+// Auto-start
+on_tick "fixes:test";

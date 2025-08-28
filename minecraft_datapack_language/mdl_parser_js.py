@@ -198,6 +198,14 @@ class ListAccessExpression(Expression):
 class ListLengthExpression(Expression):
     list_name: str
 
+@dataclass
+class BreakStatement(ASTNode):
+    pass
+
+@dataclass
+class ContinueStatement(ASTNode):
+    pass
+
 class MDLParser:
     """Parser for JavaScript-style MDL language with curly braces."""
     
@@ -443,6 +451,18 @@ class MDLParser:
                     statements.append(self._parse_function_call_from_identifier())
                 else:
                     self._advance()  # Skip unknown tokens
+            elif token.type == TokenType.BREAK:
+                self._advance()  # consume 'break'
+                # Expect semicolon
+                if self._peek() and self._peek().type == TokenType.SEMICOLON:
+                    self._advance()
+                statements.append(BreakStatement())
+            elif token.type == TokenType.CONTINUE:
+                self._advance()  # consume 'continue'
+                # Expect semicolon
+                if self._peek() and self._peek().type == TokenType.SEMICOLON:
+                    self._advance()
+                statements.append(ContinueStatement())
             else:
                 self._advance()  # Skip unknown tokens
         
