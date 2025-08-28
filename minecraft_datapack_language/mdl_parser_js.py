@@ -181,6 +181,8 @@ class MDLParser:
             'tags': []
         }
         
+        current_namespace = None
+        
         while self.current < len(self.tokens):
             token = self._peek()
             if not token:
@@ -189,9 +191,14 @@ class MDLParser:
             if token.type == TokenType.PACK:
                 ast['pack'] = self._parse_pack_declaration()
             elif token.type == TokenType.NAMESPACE:
-                ast['namespaces'].append(self._parse_namespace_declaration())
+                namespace_decl = self._parse_namespace_declaration()
+                current_namespace = namespace_decl.name
+                ast['namespaces'].append(namespace_decl)
             elif token.type == TokenType.FUNCTION:
-                ast['functions'].append(self._parse_function_declaration())
+                func_decl = self._parse_function_declaration()
+                # Associate function with current namespace
+                func_decl.namespace = current_namespace
+                ast['functions'].append(func_decl)
             elif token.type in [TokenType.ON_TICK, TokenType.ON_LOAD]:
                 ast['hooks'].append(self._parse_hook_declaration())
             elif token.type == TokenType.TAG:
@@ -203,6 +210,7 @@ class MDLParser:
                 else:
                     # Create a global function to hold top-level variables
                     global_func = FunctionDeclaration("_global_vars", [], [self._parse_variable_declaration()])
+                    global_func.namespace = current_namespace
                     ast['functions'].append(global_func)
             else:
                 self._advance()  # Skip unknown tokens

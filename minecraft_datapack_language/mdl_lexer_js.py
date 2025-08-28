@@ -279,22 +279,120 @@ class MDLLexer:
             self.tokens.append(Token(TokenType.CATCH, "catch", line_num, 0))
             return
         
-        # Check for single braces
-        if line.strip() == '{':
+        # Check for control flow constructs
+        stripped_line = line.strip()
+        
+        # Check for "} else if" pattern
+        if stripped_line.startswith('} else if '):
+            self.tokens.append(Token(TokenType.RBRACE, "}", line_num, 0))
+            self.tokens.append(Token(TokenType.ELSE_IF, "else if", line_num, 0))
+            # Extract the condition (everything between "else if " and " {")
+            condition_start = stripped_line.find('else if ') + 8
+            condition_end = stripped_line.rfind(' {')
+            if condition_end > condition_start:
+                condition = stripped_line[condition_start:condition_end].strip()
+                self.tokens.append(Token(TokenType.STRING, condition, line_num, 0))
+                self.tokens.append(Token(TokenType.LBRACE, "{", line_num, 0))
+            return
+            
+        # Check for "} else {" pattern
+        elif stripped_line == '} else {':
+            self.tokens.append(Token(TokenType.RBRACE, "}", line_num, 0))
+            self.tokens.append(Token(TokenType.ELSE, "else", line_num, 0))
             self.tokens.append(Token(TokenType.LBRACE, "{", line_num, 0))
             return
-        elif line.strip() == '}':
+            
+        # Check for single braces
+        elif stripped_line == '{':
+            self.tokens.append(Token(TokenType.LBRACE, "{", line_num, 0))
+            return
+        elif stripped_line == '}':
             self.tokens.append(Token(TokenType.RBRACE, "}", line_num, 0))
             return
         
-        # Otherwise, treat as a command
-        # Remove trailing semicolon if present
-        command_line = line.rstrip(';').strip()
-        if command_line:
-            self.tokens.append(Token(TokenType.COMMAND, command_line, line_num, 0))
-        # Add semicolon token if the line ended with one
-        if line.rstrip().endswith(';'):
-            self.tokens.append(Token(TokenType.SEMICOLON, ";", line_num, 0))
+        # Check if this looks like a variable assignment (identifier = expression)
+        assignment_pattern = r'^([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*(.+)$'
+        match = re.match(assignment_pattern, line.strip())
+        
+        if match:
+            # This is a variable assignment - tokenize it properly
+            var_name = match.group(1)
+            expression = match.group(2).rstrip(';').strip()
+            
+            # Add identifier token
+            self.tokens.append(Token(TokenType.IDENTIFIER, var_name, line_num, 0))
+            # Add assignment token
+            self.tokens.append(Token(TokenType.ASSIGN, "=", line_num, 0))
+            # Tokenize the expression
+            self._tokenize_expression(expression, line_num)
+        else:
+            # Otherwise, treat as a command
+            # Remove trailing semicolon if present
+            command_line = line.rstrip(';').strip()
+            if command_line:
+                self.tokens.append(Token(TokenType.COMMAND, command_line, line_num, 0))
+            # Add semicolon token if the line ended with one
+            if line.rstrip().endswith(';'):
+                self.tokens.append(Token(TokenType.SEMICOLON, ";", line_num, 0))
+    
+    def _tokenize_expression(self, expression: str, line_num: int):
+        """Tokenize an expression (right side of assignment)."""
+        # Handle quoted strings first
+        import re
+        
+        # Find all quoted strings
+        quoted_strings = re.findall(r'"([^"]*)"', expression)
+        remaining_expr = expression
+        
+        # Replace quoted strings with placeholders
+        for i, quoted in enumerate(quoted_strings):
+            placeholder = f"__QUOTED_{i}__"
+            remaining_expr = remaining_expr.replace(f'"{quoted}"', placeholder, 1)
+        
+        # Handle Minecraft selectors
+        selector_pattern = r'@[a-zA-Z]+\[[^\]]+\]'
+        selectors = re.findall(selector_pattern, remaining_expr)
+        
+        # Replace selectors with placeholders
+        for i, selector in enumerate(selectors):
+            placeholder = f"__SELECTOR_{i}__"
+            remaining_expr = remaining_expr.replace(selector, placeholder, 1)
+        
+        # Add spaces around operators
+        remaining_expr = re.sub(r'([+\-*/%<>!&|=])', r' \1 ', remaining_expr)
+        
+        # Split the expression
+        parts = remaining_expr.split()
+        
+        # Process each part
+        quoted_index = 0
+        selector_index = 0
+        for part in parts:
+            if part.startswith("__QUOTED_") and part.endswith("__"):
+                # This is a placeholder for a quoted string
+                self.tokens.append(Token(TokenType.STRING, quoted_strings[quoted_index], line_num, 0))
+                quoted_index += 1
+            elif part.startswith("__SELECTOR_") and part.endswith("__"):
+                # This is a placeholder for a Minecraft selector
+                self.tokens.append(Token(TokenType.STRING, selectors[selector_index], line_num, 0))
+                selector_index += 1
+            elif part.isdigit():
+                self.tokens.append(Token(TokenType.NUMBER, part, line_num, 0))
+            elif re.match(r'^[a-zA-Z_][a-zA-Z0-9_:]*$', part):
+                self.tokens.append(Token(TokenType.IDENTIFIER, part, line_num, 0))
+            elif part == "+":
+                self.tokens.append(Token(TokenType.PLUS, "+", line_num, 0))
+            elif part == "-":
+                self.tokens.append(Token(TokenType.MINUS, "-", line_num, 0))
+            elif part == "*":
+                self.tokens.append(Token(TokenType.MULTIPLY, "*", line_num, 0))
+            elif part == "/":
+                self.tokens.append(Token(TokenType.DIVIDE, "/", line_num, 0))
+            elif part == "=":
+                self.tokens.append(Token(TokenType.ASSIGN, "=", line_num, 0))
+            else:
+                # Unknown token - treat as string
+                self.tokens.append(Token(TokenType.STRING, part, line_num, 0))
     
     def _tokenize_remaining(self, line: str, line_num: int):
         """Tokenize remaining parts of a line."""

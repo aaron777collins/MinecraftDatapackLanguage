@@ -265,22 +265,20 @@ def _ast_to_pack(ast: Dict[str, Any], default_pack_format: int) -> Pack:
         min_engine_version=min_engine_version
     )
     
-    # Process namespaces and functions
-    current_namespace = "minecraft"  # Default namespace
-    for namespace in ast.get('namespaces', []):
-        current_namespace = namespace.name
-        ns = pack.namespace(current_namespace)
-        
-        # Process functions in this namespace
-        for func in ast.get('functions', []):
-            if hasattr(func, 'name'):
-                func_name = func.name
-                # Convert function body to commands
-                commands = _ast_to_commands(func.body)
-                if commands:
-                    # Create function directly without going through old processing pipeline
-                    fn = ns.functions.setdefault(func_name, Function(func_name, []))
-                    fn.commands.extend(commands)
+    # Process functions by their namespace
+    for func in ast.get('functions', []):
+        if hasattr(func, 'name'):
+            func_name = func.name
+            # Get the namespace for this function
+            namespace_name = getattr(func, 'namespace', 'minecraft')  # Default to minecraft if no namespace
+            ns = pack.namespace(namespace_name)
+            
+            # Convert function body to commands
+            commands = _ast_to_commands(func.body)
+            if commands:
+                # Create function directly without going through old processing pipeline
+                fn = ns.functions.setdefault(func_name, Function(func_name, []))
+                fn.commands.extend(commands)
     
     # Process hooks (on_load, on_tick)
     for hook in ast.get('hooks', []):
@@ -346,44 +344,145 @@ def _ast_to_commands(body: List[Any]) -> List[str]:
             elif class_name == 'VariableAssignment':
                 # Convert variable assignments to appropriate Minecraft commands
                 var_name = node.name
-                # For now, we'll need to determine the variable type from context
-                # This is a simplified approach - in a real implementation, you'd track variable types
+                
                 if hasattr(node, 'value'):
-                    if isinstance(node.value, (int, float)) or (hasattr(node.value, 'value') and isinstance(node.value.value, (int, float))):
-                        # Number assignment
-                        value = node.value if isinstance(node.value, (int, float)) else node.value.value
-                        commands.append(f"scoreboard players set @s {var_name} {value}")
-                    elif isinstance(node.value, str) or (hasattr(node.value, 'value') and isinstance(node.value.value, str)):
-                        # String assignment
-                        value = node.value if isinstance(node.value, str) else node.value.value
-                        value = value.strip('"')
-                        commands.append(f"data modify storage mdl:variables {var_name} set value \"{value}\"")
+                    # Handle different types of expressions
+                    if hasattr(node.value, '__class__'):
+                        expr_class = node.value.__class__.__name__
+                        
+                        if expr_class == 'BinaryExpression':
+                            # Handle arithmetic operations
+                            if node.value.operator in ['+', '-', '*', '/']:
+                                # Handle different types of binary expressions
+                                if node.value.operator == '+':
+                                    # Addition
+                                    if hasattr(node.value.left, 'name') and hasattr(node.value.right, 'value'):
+                                        # Variable + literal (e.g., local_counter + 5)
+                                        right_value = node.value.right.value
+                                        commands.append(f"scoreboard players add @s {var_name} {right_value}")
+                                    elif hasattr(node.value.left, 'value') and hasattr(node.value.right, 'name'):
+                                        # Literal + variable (e.g., 5 + local_counter)
+                                        left_value = node.value.left.value
+                                        commands.append(f"scoreboard players add @s {var_name} {left_value}")
+                                    elif hasattr(node.value.left, 'value') and hasattr(node.value.right, 'name'):
+                                        # String concatenation (e.g., "Updated: " + player_name)
+                                        left_value = node.value.left.value
+                                        right_var = node.value.right.name
+                                        commands.append(f"data modify storage mdl:variables {var_name} set value \"{left_value}\"")
+                                        # For now, we'll need a more sophisticated approach for string concatenation
+                                        # This is a simplified version
+                                    else:
+                                        # Complex addition - for now, set to 0
+                                        commands.append(f"scoreboard players set @s {var_name} 0")
+                                elif node.value.operator == '-':
+                                    # Subtraction
+                                    if hasattr(node.value.right, 'value'):
+                                        right_value = node.value.right.value
+                                        commands.append(f"scoreboard players remove @s {var_name} {right_value}")
+                                    else:
+                                        commands.append(f"scoreboard players set @s {var_name} 0")
+                                else:
+                                    # Complex arithmetic - for now, set to 0
+                                    commands.append(f"scoreboard players set @s {var_name} 0")
+                            else:
+                                # Unknown operator
+                                commands.append(f"scoreboard players set @s {var_name} 0")
+                                
+                        elif expr_class == 'StringLiteral':
+                            # String assignment
+                            value = node.value.value.strip('"')
+                            commands.append(f"data modify storage mdl:variables {var_name} set value \"{value}\"")
+                            
+                        elif expr_class == 'NumericLiteral':
+                            # Number assignment
+                            value = node.value.value
+                            commands.append(f"scoreboard players set @s {var_name} {value}")
+                            
+                        elif expr_class == 'LiteralExpression':
+                            # Handle LiteralExpression (which can be string or number)
+                            if hasattr(node.value, 'type'):
+                                if node.value.type == 'string':
+                                    value = node.value.value.strip('"')
+                                    commands.append(f"data modify storage mdl:variables {var_name} set value \"{value}\"")
+                                elif node.value.type == 'number':
+                                    value = node.value.value
+                                    commands.append(f"scoreboard players set @s {var_name} {value}")
+                                else:
+                                    # Unknown type - skip
+                                    continue
+                            else:
+                                # No type info - try to determine from value
+                                try:
+                                    value = int(node.value.value)
+                                    commands.append(f"scoreboard players set @s {var_name} {value}")
+                                except (ValueError, TypeError):
+                                    # Assume string
+                                    value = node.value.value.strip('"')
+                                    commands.append(f"data modify storage mdl:variables {var_name} set value \"{value}\"")
+                            
+                        elif expr_class == 'Identifier':
+                            # Variable reference - for now, assume it's a number variable
+                            commands.append(f"scoreboard players operation @s {var_name} = @s {node.value.name}")
+                            
+                        else:
+                            # Unknown expression type - skip for now
+                            continue
                     else:
-                        # Complex expression - for now, skip
-                        continue
+                        # Simple value assignment
+                        if isinstance(node.value, (int, float)):
+                            commands.append(f"scoreboard players set @s {var_name} {node.value}")
+                        elif isinstance(node.value, str):
+                            value = node.value.strip('"')
+                            commands.append(f"data modify storage mdl:variables {var_name} set value \"{value}\"")
+                        else:
+                            # Unknown type - skip
+                            continue
                         
             elif class_name == 'IfStatement':
                 # Convert if statements to Minecraft conditional commands
                 condition = node.condition.strip('"')
                 if_body = _ast_to_commands(node.body)
                 
-                # Generate conditional commands
+                # Generate conditional commands for if block
                 for cmd in if_body:
                     commands.append(f"execute if {condition} run {cmd}")
                 
-                # Handle elif branches
-                for elif_branch in node.elif_branches:
-                    elif_condition = elif_branch.condition.strip('"')
-                    elif_body = _ast_to_commands(elif_branch.body)
+                # Handle elif branches - each elif needs to check its condition AND that previous conditions were false
+                if hasattr(node, 'elif_branches') and node.elif_branches:
+                    # For the first elif, we need to check its condition AND that the if condition was false
+                    first_elif = node.elif_branches[0]
+                    elif_condition = first_elif.condition.strip('"')
+                    elif_body = _ast_to_commands(first_elif.body)
                     
                     for cmd in elif_body:
-                        commands.append(f"execute if {elif_condition} run {cmd}")
+                        commands.append(f"execute if {elif_condition} unless {condition} run {cmd}")
+                    
+                    # For subsequent elif branches, we need to check their condition AND that all previous conditions were false
+                    for i in range(1, len(node.elif_branches)):
+                        elif_branch = node.elif_branches[i]
+                        elif_condition = elif_branch.condition.strip('"')
+                        elif_body = _ast_to_commands(elif_branch.body)
+                        
+                        # Build condition that checks this elif condition AND that all previous conditions were false
+                        previous_conditions = [condition] + [branch.condition.strip('"') for branch in node.elif_branches[:i]]
+                        unless_conditions = " ".join([f"unless {cond}" for cond in previous_conditions])
+                        
+                        for cmd in elif_body:
+                            commands.append(f"execute if {elif_condition} {unless_conditions} run {cmd}")
                 
-                # Handle else branch
-                if node.else_body:
+                # Handle else branch - only execute if all previous conditions were false
+                if hasattr(node, 'else_body') and node.else_body:
                     else_body = _ast_to_commands(node.else_body)
+                    
+                    # Build condition that checks that all previous conditions were false
+                    all_conditions = [condition]
+                    if hasattr(node, 'elif_branches') and node.elif_branches:
+                        all_conditions.extend([branch.condition.strip('"') for branch in node.elif_branches])
+                    
+                    unless_conditions = " ".join([f"unless {cond}" for cond in all_conditions])
+                    
                     for cmd in else_body:
-                        commands.append(f"execute unless {condition} run {cmd}")
+                        commands.append(f"execute {unless_conditions} run {cmd}")
                         
             elif class_name == 'ForLoop':
                 # Convert for loops to Minecraft iteration commands
