@@ -871,14 +871,14 @@ def _ast_to_commands(body: List[Any], current_namespace: str = "test", current_p
                     commands.append(f"# Clear list {list_name}")
                     commands.append(f"data modify storage mdl:variables {list_name} set value []")
                     
-            else:
-                # Unknown node type - skip for now
+                else:
+                    # Unknown node type - skip for now
+                    continue
+                    
+            except Exception as e:
+                print(f"ERROR: Failed to process node {i} of type {class_name}: {str(e)}")
+                commands.append(f"# ERROR: Failed to process {class_name} - {str(e)}")
                 continue
-                
-        except Exception as e:
-            print(f"ERROR: Failed to process node {i} of type {class_name}: {str(e)}")
-            commands.append(f"# ERROR: Failed to process {class_name} - {str(e)}")
-            continue
                 
     return commands
 
