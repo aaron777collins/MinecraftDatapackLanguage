@@ -1,0 +1,335 @@
+// mypack.mdl - Advanced example showcasing ALL MDL features
+pack "Minecraft Datapack Language" description "Example datapack" pack_format 82 min_format [82, 0] max_format [82, 1] min_engine_version "1.21.4";
+namespace "example";
+
+// Global state variables
+var num global_counter = 0;
+var str global_message = "System Ready";
+var list global_numbers = [1, 2, 3, 4, 5];
+var list global_strings = ["apple", "banana", "cherry"];
+
+function "inner" {
+    say [example:inner] This is the inner function;
+    tellraw @a {"text":"Running inner","color":"yellow"};
+}
+
+function "hello" {
+    say [example:hello] Outer says hi;
+    function example:inner;
+    tellraw @a {"text":"Back in hello","color":"aqua"};
+}
+
+// Advanced variable operations with all data types
+function "variable_demo" {
+    var num local_counter = 10;
+    var str player_name = "Steve";
+    var list local_items = ["sword", "shield", "potion"];
+    
+    // Number operations
+    local_counter = local_counter + 5;
+    global_counter = global_counter + 1;
+    
+    // String operations
+    player_name = "Alex";
+    global_message = "Updated: " + player_name;
+    var str full_name = player_name + " Minecraft";
+    
+    // List operations
+    local_items.append("bow");
+    local_items.insert(1, "armor");
+    var num first_item = local_items[0];
+    var num item_count = local_items.length;
+    
+    // Complex calculations
+    var num result = (local_counter * 2) + global_counter;
+    var num modulo_result = result % 7;
+    
+    // String concatenation with variables
+    var str status = player_name + " has " + item_count + " items";
+    
+    say Variable demo complete;
+    tellraw @s {"text":"Result: " + result};
+    tellraw @s {"text":"Modulo: " + modulo_result};
+    tellraw @s {"text":"Status: " + status};
+}
+
+// Advanced conditional logic with nested structures
+function "conditional_demo" {
+    var num player_level = 15;
+    var str player_class = "warrior";
+    var num experience = 75;
+    
+    if "score @s player_level >= 10" {
+        if "score @s player_class == 'warrior'" {
+            if "score @s experience >= 50" {
+                say Advanced warrior detected!;
+                effect give @s minecraft:strength 10 2;
+                effect give @s minecraft:glowing 10 0;
+            } else {
+                say Novice warrior;
+                effect give @s minecraft:haste 10 0;
+            }
+        } else if "score @s player_class == 'mage'" {
+            say Advanced mage detected!;
+            effect give @s minecraft:night_vision 10 0;
+            effect give @s minecraft:levitation 5 0;
+        } else {
+            say Unknown advanced class;
+            effect give @s minecraft:glowing 10 0;
+        }
+    } else if "score @s player_level >= 5" {
+        say Intermediate player;
+        effect give @s minecraft:speed 10 0;
+    } else {
+        say Beginner player;
+        effect give @s minecraft:jump_boost 10 0;
+    }
+}
+
+// Advanced weapon effects with list operations
+function "weapon_effects" {
+    var list weapons = ["diamond_sword", "golden_sword", "bow"];
+    var num weapon_index = 0;
+    
+    if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:'minecraft:diamond_sword'}}]" {
+        weapon_index = 0;
+        say Diamond sword detected!;
+        effect give @s minecraft:strength 10 1;
+        effect give @s minecraft:glowing 10 0;
+    } else if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:'minecraft:golden_sword'}}]" {
+        weapon_index = 1;
+        say Golden sword detected!;
+        effect give @s minecraft:speed 10 1;
+        effect give @s minecraft:night_vision 10 0;
+    } else if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:'minecraft:bow'}}]" {
+        weapon_index = 2;
+        say Bow detected!;
+        effect give @s minecraft:jump_boost 10 1;
+    } else if "entity @s[type=minecraft:player]" {
+        say Player without special weapon;
+        effect give @s minecraft:haste 5 0;
+    } else {
+        say No player found;
+    }
+    
+    // Use list to get weapon name
+    if "score @s weapon_index < weapons.length" {
+        var str current_weapon = weapons[weapon_index];
+        tellraw @s {"text":"Using weapon: " + current_weapon};
+    }
+}
+
+// Advanced loop patterns with break and continue
+function "loop_demo" {
+    var num outer_count = 0;
+    var num inner_count = 0;
+    var num total_iterations = 0;
+    
+    // Nested loops
+    while "score @s outer_count < 3" {
+        inner_count = 0;
+        
+        while "score @s inner_count < 2" {
+            total_iterations = total_iterations + 1;
+            
+            // Complex calculation within loop
+            var num calculation = (outer_count * 10) + inner_count;
+            var num modulo_result = calculation % 5;
+            
+            if "score @s modulo_result == 0" {
+                say Perfect calculation: calculation;
+            } else {
+                say Calculation: calculation (mod 5 = modulo_result);
+            }
+            
+            inner_count = inner_count + 1;
+        }
+        
+        outer_count = outer_count + 1;
+    }
+    
+    // Loop with break and continue
+    var num break_counter = 0;
+    var num continue_counter = 0;
+    var num break_sum = 0;
+    var num continue_sum = 0;
+    
+    while "score @s break_counter < 10" {
+        break_counter = break_counter + 1;
+        
+        if "score @s break_counter == 7" {
+            break;
+        }
+        
+        break_sum = break_sum + break_counter;
+    }
+    
+    while "score @s continue_counter < 10" {
+        continue_counter = continue_counter + 1;
+        
+        if "score @s continue_counter % 2 == 0" {
+            continue;
+        }
+        
+        continue_sum = continue_sum + continue_counter;
+    }
+    
+    say Loop demo complete;
+    tellraw @s {"text":"Total iterations: " + total_iterations};
+    tellraw @s {"text":"Break sum: " + break_sum};
+    tellraw @s {"text":"Continue sum: " + continue_sum};
+}
+
+// Mathematical algorithms
+function "calculate_fibonacci" {
+    var num n = 10;
+    var num a = 0;
+    var num b = 1;
+    var num i = 2;
+    var num temp = 0;
+    
+    while "score @s i <= n" {
+        temp = a + b;
+        a = b;
+        b = temp;
+        i = i + 1;
+    }
+    
+    say Fibonacci result: b;
+    tellraw @s {"text":"Fibonacci(" + n + ") = " + b};
+}
+
+// Data processing with lists
+function "process_data" {
+    var list scores = [85, 92, 78, 96, 88];
+    var list names = ["Alice", "Bob", "Charlie", "Diana", "Eve"];
+    var num total_score = 0;
+    var num highest_score = 0;
+    var str best_player = "";
+    
+    // Calculate total and find highest
+    var num i = 0;
+    while "score @s i < scores.length" {
+        var num current_score = scores[i];
+        var str current_name = names[i];
+        
+        total_score = total_score + current_score;
+        
+        if "score @s current_score > highest_score" {
+            highest_score = current_score;
+            best_player = current_name;
+        }
+        i = i + 1;
+    }
+    
+    var num average_score = total_score / scores.length;
+    
+    say Data processing complete;
+    tellraw @s {"text":"Total score: " + total_score};
+    tellraw @s {"text":"Average score: " + average_score};
+    tellraw @s {"text":"Best player: " + best_player + " (" + highest_score + ")"};
+}
+
+// Error handling and edge cases
+function "error_handling" {
+    // Test division by zero handling
+    var num dividend = 10;
+    var num divisor = 0;
+    var num result = 0;
+    
+    if "score @s divisor != 0" {
+        result = dividend / divisor;
+    } else {
+        result = 0;
+        say Division by zero prevented;
+    }
+    
+    // Test list bounds checking
+    var list test_list = [1, 2, 3];
+    var num safe_index = 1;
+    var num unsafe_index = 10;
+    var num safe_value = 0;
+    var num unsafe_value = 0;
+    
+    if "score @s safe_index < test_list.length" {
+        safe_value = test_list[safe_index];
+    }
+    
+    if "score @s unsafe_index < test_list.length" {
+        unsafe_value = test_list[unsafe_index];
+    } else {
+        unsafe_value = -1;
+        say List bounds check passed;
+    }
+    
+    say Error handling complete;
+    tellraw @s {"text":"Safe value: " + safe_value};
+    tellraw @s {"text":"Unsafe value: " + unsafe_value};
+}
+
+// Hook the functions into load and tick
+on_load "example:hello";
+on_tick "example:hello";
+on_tick "example:variable_demo";
+on_tick "example:conditional_demo";
+on_tick "example:weapon_effects";
+on_tick "example:loop_demo";
+on_tick "example:calculate_fibonacci";
+on_tick "example:process_data";
+on_tick "example:error_handling";
+
+// Second namespace with cross-namespace calls
+namespace "util";
+
+function "helper" {
+    say [util:helper] Helping out...;
+}
+
+function "boss" {
+    say [util:boss] Calling example functions;
+    function example:hello;
+    function example:variable_demo;
+    function example:loop_demo;
+    function util:helper;
+}
+
+// Run boss every tick
+on_tick "util:boss";
+
+// Function tag examples
+tag function "minecraft:load" {
+    add "example:hello";
+}
+
+tag function "minecraft:tick" {
+    add "example:hello";
+    add "example:variable_demo";
+    add "example:conditional_demo";
+    add "example:weapon_effects";
+    add "example:loop_demo";
+    add "example:calculate_fibonacci";
+    add "example:process_data";
+    add "example:error_handling";
+    add "util:boss";
+}
+
+// Data tag examples across registries
+tag item "example:swords" {
+    add "minecraft:diamond_sword";
+    add "minecraft:netherite_sword";
+    add "minecraft:golden_sword";
+}
+
+tag block "example:glassy" {
+    add "minecraft:glass";
+    add "minecraft:tinted_glass";
+    add "minecraft:white_stained_glass";
+}
+
+// Garbage collection
+function "cleanup" {
+    function mdl:garbage_collect;
+    say Cleanup complete;
+}
+
+on_tick "example:cleanup";

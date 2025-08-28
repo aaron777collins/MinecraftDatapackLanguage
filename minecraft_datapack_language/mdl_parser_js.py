@@ -214,6 +214,11 @@ class ListLengthExpression(Expression):
     list_name: str
 
 @dataclass
+class UnaryExpression(Expression):
+    operator: str
+    operand: Expression
+
+@dataclass
 class BreakStatement(ASTNode):
     pass
 
@@ -855,6 +860,15 @@ class MDLParser:
         elif token.type == TokenType.LBRACKET:
             # List literal (square brackets)
             return self._parse_list_literal()
+        elif token.type == TokenType.MINUS:
+            # Handle unary minus (negative numbers)
+            self._advance()
+            expr = self._parse_primary_expression()
+            if isinstance(expr, LiteralExpression) and expr.type == "number":
+                return LiteralExpression(-float(expr.value), "number")
+            else:
+                # For non-number expressions, create a unary expression
+                return UnaryExpression("-", expr)
         else:
             raise ValueError(f"Unexpected token in expression: {token.type}")
     

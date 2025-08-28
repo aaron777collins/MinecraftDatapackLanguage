@@ -178,6 +178,8 @@ When testing changes to the MDL language, follow this exact workflow:
 - **First upgrade** often fails, second one works
 - **Version numbers** increment automatically with patch releases
 - **Remove all old features you come across** We want to remove old features in the docs, examples, tests, etc. For example: we stopped supporting try catch and switch statements.
+- **Fix core features and test them** We want core features like mdl new <name> to work. Test them to make sure it works.
+- **Check mdl version when doubting** use mdl --version to check the version we have locally. Upload our changes, release, wait, upgrade mdl then test.
 
 ## Quality Assurance
 
