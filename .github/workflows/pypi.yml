@@ -13,7 +13,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      # 🔎 Sanity: ensure we're building in the directory that has pyproject.toml
+      # [SEARCH] Sanity: ensure we're building in the directory that has pyproject.toml
       - name: Assert pyproject.toml is here
         run: |
           pwd
@@ -28,14 +28,14 @@ jobs:
       - name: Clean dist
         run: rm -rf dist
 
-      # 🛠️ Build in isolated env using the pyproject's [build-system]
+      # [BUILD] Build in isolated env using the pyproject's [build-system]
       - name: Build (PEP 517)
         run: |
           python -m pip install --upgrade pip
           python -m pip install build twine
           python -m build
 
-      # 🧾 Show the top of the wheel METADATA so we SEE Name/Version
+      # [INFO] Show the top of the wheel METADATA so we SEE Name/Version
       - name: Show wheel METADATA
         run: |
           python - <<'PY'
@@ -54,7 +54,7 @@ jobs:
                   print(line)
           PY
 
-      # ✅ Only check distributions (no stray folders)
+      # [+] Only check distributions (no stray folders)
       - name: Twine check
         run: |
           shopt -s nullglob

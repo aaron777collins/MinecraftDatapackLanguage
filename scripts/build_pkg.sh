@@ -8,5 +8,5 @@ python -m pip install build
 
 python -m build
 
-echo "✅ Built distributions in ./dist"
+echo "[+] Built distributions in ./dist"
 ls -1 dist

@@ -2,5 +2,5 @@
 python -m pip install --upgrade pip
 python -m pip install build
 python -m build
-Write-Host "✅ Built distributions in .\dist"
+Write-Host "[+] Built distributions in .\dist"
 Get-ChildItem dist

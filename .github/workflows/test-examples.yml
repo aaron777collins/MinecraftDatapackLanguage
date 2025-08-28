@@ -97,7 +97,7 @@ jobs:
         p = Pack('test', 'Test pack', 82)
         ns = p.namespace('test')
         ns.function('test_func', 'say Hello World')
-        print('✅ Basic Pack creation works')
+        print('[+] Basic Pack creation works')
         "
         
         # Test function calls
@@ -107,7 +107,7 @@ jobs:
         ns = p.namespace('test')
         ns.function('helper', 'say Helper function')
         ns.function('main', 'say Main function', 'function test:helper')
-        print('✅ Function calls work')
+        print('[+] Function calls work')
         "
         
         # Test lifecycle hooks
@@ -118,7 +118,7 @@ jobs:
         ns.function('init', 'say Initializing')
         p.on_load('test:init')
         p.on_tick('test:init')
-        print('✅ Lifecycle hooks work')
+        print('[+] Lifecycle hooks work')
         "
         
         # Test tags
@@ -127,7 +127,7 @@ jobs:
         p = Pack('test', 'Test pack', 82)
         p.tag('function', 'minecraft:load', values=['test:init'])
         p.tag('function', 'minecraft:tick', values=['test:tick'])
-        print('✅ Tags work')
+        print('[+] Tags work')
         "
         
     - name: Test MDL to Python API Translation
@@ -165,8 +165,8 @@ jobs:
         with open('test_mdl.mdl', 'r') as f:
             mdl = f.read()
         ast = parse_mdl_js(mdl)
-        print(f'✅ Parsed MDL with {len(ast[\"functions\"])} functions')
-        print(f'✅ Found {len(ast[\"namespaces\"])} namespaces')
+        print(f'[+] Parsed MDL with {len(ast[\"functions\"])} functions')
+        print(f'[+] Found {len(ast[\"namespaces\"])} namespaces')
         "
         
         # Clean up
@@ -185,17 +185,17 @@ jobs:
             
             # Check for pack.mcmeta
             if [[ -f "$dir/pack.mcmeta" ]]; then
-              echo "✅ pack.mcmeta found in $dir"
+              echo "[+] pack.mcmeta found in $dir"
             else
-              echo "❌ pack.mcmeta missing in $dir"
+                              echo "[-] pack.mcmeta missing in $dir"
               exit 1
             fi
             
             # Check for data directory
             if [[ -d "$dir/data" ]]; then
-              echo "✅ data directory found in $dir"
+              echo "[+] data directory found in $dir"
             else
-              echo "❌ data directory missing in $dir"
+                              echo "[-] data directory missing in $dir"
               exit 1
             fi
           fi

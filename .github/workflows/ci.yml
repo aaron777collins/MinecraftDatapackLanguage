@@ -56,7 +56,7 @@ jobs:
           p = Pack('test', 'Test pack', 82)
           ns = p.namespace('test')
           ns.function('test_func', 'say Hello World')
-          print('✅ Python API test passed')
+          print('[+] Python API test passed')
           "
 
       - name: Test MDL Parsing
@@ -70,7 +70,7 @@ jobs:
               say Hello World;
           }'''
           ast = parse_mdl_js(mdl)
-          print('✅ MDL parsing test passed')
+          print('[+] MDL parsing test passed')
           print(f'Parsed {len(ast[\"functions\"])} functions')
           "
 
@@ -87,7 +87,7 @@ jobs:
               counter = counter + 1;
           }'''
           ast = parse_mdl_js(mdl)
-          print('✅ Variable system test passed')
+          print('[+] Variable system test passed')
           "
 
       - name: Test Control Flow
@@ -106,7 +106,7 @@ jobs:
               }
           }'''
           ast = parse_mdl_js(mdl)
-          print('✅ Control flow test passed')
+          print('[+] Control flow test passed')
           "
 
       - name: Test Complex Nesting
@@ -128,7 +128,7 @@ jobs:
               }
           }'''
           ast = parse_mdl_js(mdl)
-          print('✅ Complex nesting test passed')
+          print('[+] Complex nesting test passed')
           "
 
       - name: Test Error Handling
@@ -147,7 +147,7 @@ jobs:
               }
           }'''
           ast = parse_mdl_js(mdl)
-          print('✅ Error handling test passed')
+          print('[+] Error handling test passed')
           "
 
       - name: Smoke test (tools/smoke_test.py)

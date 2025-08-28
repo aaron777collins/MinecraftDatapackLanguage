@@ -20,6 +20,6 @@ source .venv/Scripts/activate 2>/dev/null || source .venv/bin/activate
 python -m pip install --upgrade pip
 pip install -e .
 
-echo "✅ Virtualenv ready."
+echo "[+] Virtualenv ready."
 echo "   To activate later: source .venv/Scripts/activate (Windows Git Bash) or .venv/bin/activate (POSIX)"
-echo "✅ Try: mdl --help"
+echo "[+] Try: mdl --help"

@@ -1,10 +1,12 @@
-# ui/hud.mdl - User interface functions
-namespace "ui"
+// ui/hud.mdl - User interface functions
+namespace "ui";
 
-function "show_hud":
-    title @a actionbar {"text":"Adventure Pack Active","color":"gold"}
+function "show_hud" {
+    title @a actionbar {"text":"Adventure Pack Active","color":"gold"};
+}
 
-function "update_ui":
-    function ui:show_hud
-    function combat:update_combat
-    function combat:update_armor
+function "update_ui" {
+    function ui:show_hud;
+    function combat:update_combat;
+    function combat:update_armor;
+}

@@ -20,4 +20,4 @@ mdl check tmp_mdl_test/mypack.mdl
 mdl build --mdl tmp_mdl_test/mypack.mdl -o tmp_mdl_test/dist --pack-format 48
 
 test -f tmp_mdl_test/dist/pack.mcmeta
-echo "✅ CLI smoke test OK"
+echo "[+] CLI smoke test OK"

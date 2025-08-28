@@ -15,4 +15,4 @@ mdl build --mdl tmp_mdl_test/mypack.mdl -o tmp_mdl_test/dist --pack-format 48
 test -f tmp_mdl_test/dist/pack.mcmeta
 test -f tmp_mdl_test/dist/data/minecraft/tags/function/tick.json || true
 
-echo "✅ CLI smoke test OK"
+echo "[+] CLI smoke test OK"

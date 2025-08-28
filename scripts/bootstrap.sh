@@ -10,5 +10,5 @@ source .venv/bin/activate
 python -m pip install --upgrade pip
 pip install -e .
 
-echo "✅ Virtualenv ready. Activate with: source .venv/bin/activate"
-echo "✅ Try: mdl --help"
+echo "[+] Virtualenv ready. Activate with: source .venv/bin/activate"
+echo "[+] Try: mdl --help"

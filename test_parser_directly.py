@@ -125,7 +125,7 @@ tag block "example:glassy":
         return True
         
     except Exception as e:
-        print(f"❌ Parser test failed with error: {e}")
+        print(f"[-] Parser test failed with error: {e}")
         import traceback
         traceback.print_exc()
         return False

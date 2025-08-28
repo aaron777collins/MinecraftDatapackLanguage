@@ -1,10 +1,11 @@
-# hello_world.mdl
-pack "Hello World" description "A simple example datapack" pack_format 48
+// hello_world.mdl
+pack "hello_world" description "A simple example datapack" pack_format 82;
 
-namespace "example"
+namespace "example";
 
-function "hello":
-    say Hello, Minecraft!
-    tellraw @a {"text":"Welcome to my datapack!","color":"green"}
+function "hello" {
+    say Hello, Minecraft!;
+    tellraw @a {"text":"Welcome to my datapack!","color":"green"};
+}
 
-on_load "example:hello"
+on_load "example:hello";

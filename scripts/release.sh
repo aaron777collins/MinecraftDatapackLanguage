@@ -61,7 +61,7 @@ git tag -a "$NEW_TAG" -m "Release $NEW_TAG"
 git push origin "$NEW_TAG"
 git push || true
 
-# 🔥 Clean old local artifacts so we never upload stale files
+# [CLEAN] Clean old local artifacts so we never upload stale files
 rm -rf dist
 
 # OPTIONAL local build (handy if you want to attach artifacts right now)
@@ -88,4 +88,4 @@ else
   echo "Note: 'gh' not installed — tag pushed. CI will create the GitHub Release."
 fi
 
-echo "✅ Tagged and released $NEW_TAG"
+echo "[+] Tagged and released $NEW_TAG"
