@@ -469,6 +469,13 @@ def _ast_to_commands(body: List[Any]) -> List[str]:
                             else:
                                 # Complex index expression - skip for now
                                 continue
+                                
+                        elif expr_class == 'ListLengthExpression':
+                            # Handle list length like var num count = items.length
+                            list_name = node.value.list_name
+                            commands.append(f"# Get length of {list_name}")
+                            commands.append(f"execute store result score @s {var_name} run data get storage mdl:variables {list_name}")
+                            # Note: This gives us the number of elements in the list
                             
                         else:
                             # Unknown expression type - skip for now
@@ -722,6 +729,12 @@ def _convert_arithmetic_expression(var_name: str, expr: Any) -> List[str]:
         elif op == '/':
             if isinstance(left, (int, float)) and isinstance(right, (int, float)) and right != 0:
                 result = left // right  # Integer division
+                commands.append(f"scoreboard players set @s {var_name} {result}")
+            else:
+                commands.append(f"scoreboard players set @s {var_name} 0")
+        elif op == '%':
+            if isinstance(left, (int, float)) and isinstance(right, (int, float)) and right != 0:
+                result = left % right  # Modulo
                 commands.append(f"scoreboard players set @s {var_name} {result}")
             else:
                 commands.append(f"scoreboard players set @s {var_name} 0")

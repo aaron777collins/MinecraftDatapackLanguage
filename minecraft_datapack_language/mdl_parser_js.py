@@ -189,6 +189,15 @@ class ListPopOperation(ASTNode):
 class ListClearOperation(ASTNode):
     list_name: str
 
+@dataclass
+class ListAccessExpression(Expression):
+    list_name: str
+    index: Expression
+
+@dataclass
+class ListLengthExpression(Expression):
+    list_name: str
+
 class MDLParser:
     """Parser for JavaScript-style MDL language with curly braces."""
     
@@ -252,6 +261,12 @@ class MDLParser:
         """Look at the token after the next one without consuming it."""
         if self.current + 1 < len(self.tokens):
             return self.tokens[self.current + 1]
+        return None
+    
+    def _peek_next_n(self, n: int) -> Optional[Token]:
+        """Look at the token n positions ahead without consuming it."""
+        if self.current + n < len(self.tokens):
+            return self.tokens[self.current + n]
         return None
     
     def _advance(self) -> Token:
@@ -712,11 +727,17 @@ class MDLParser:
         elif token.type == TokenType.IDENTIFIER:
             self._advance()
             # Check if this is a list access (identifier followed by [)
-            if self._peek() and self._peek().type == TokenType.LBRACE:
+            if self._peek() and self._peek().type == TokenType.LBRACKET:
                 self._advance()  # consume [
                 index = self._parse_expression()
-                self._match(TokenType.RBRACE)
+                self._match(TokenType.RBRACKET)
                 return ListAccessExpression(token.value, index)
+            # Check if this is a list length (identifier.length)
+            elif self._peek() and self._peek().type == TokenType.DOT:
+                self._advance()  # consume .
+                if self._peek() and self._peek().type == TokenType.LENGTH:
+                    self._advance()  # consume length
+                    return ListLengthExpression(token.value)
             return VariableExpression(token.value)
         elif token.type == TokenType.LPAREN:
             self._advance()  # consume (

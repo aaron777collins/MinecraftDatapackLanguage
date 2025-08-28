@@ -1,0 +1,404 @@
+// test_calculator.mdl - Advanced Calculator Implementation
+// This tests Turing completeness with complex logic, loops, and state management
+pack "Advanced Calculator" description "A Turing-complete calculator implementation" pack_format 82;
+namespace "calculator";
+
+// Global state variables
+var num current_result = 0;
+var num operation_mode = 0;  // 0=add, 1=subtract, 2=multiply, 3=divide, 4=power
+var num input_buffer = 0;
+var num decimal_places = 0;
+var num is_negative = 0;
+var str display_text = "0";
+var list operation_history = [];
+var list memory_stack = [];
+var num loop_counter = 0;
+var num max_iterations = 1000;
+
+// Calculator state machine
+function "initialize_calculator" {
+    // Reset all state
+    current_result = 0;
+    operation_mode = 0;
+    input_buffer = 0;
+    decimal_places = 0;
+    is_negative = 0;
+    display_text = "0";
+    operation_history.clear();
+    memory_stack.clear();
+    
+    // Initialize scoreboard objectives
+    say Calculator initialized;
+    tellraw @s {"text":"Calculator Ready", "color":"green"};
+}
+
+function "process_number_input" {
+    // Simulate number input processing
+    var num input_digit = 5;  // Simulated input
+    
+    if "input_buffer == 0" {
+        input_buffer = input_digit;
+    } else {
+        // Multiply by 10 and add new digit
+        input_buffer = input_buffer * 10 + input_digit;
+    }
+    
+    // Update display
+    display_text = "Number: " + input_buffer;
+    
+    // Add to history
+    operation_history.append("input");
+}
+
+function "process_operation" {
+    // Simulate operation selection
+    var num selected_op = 1;  // 0=add, 1=subtract, 2=multiply, 3=divide
+    
+    operation_mode = selected_op;
+    
+    // Store current input in memory
+    memory_stack.append(input_buffer);
+    
+    // Reset input buffer
+    input_buffer = 0;
+    
+    // Update display
+    if "selected_op == 0" {
+        display_text = "Operation: +";
+    } else if "selected_op == 1" {
+        display_text = "Operation: -";
+    } else if "selected_op == 2" {
+        display_text = "Operation: *";
+    } else if "selected_op == 3" {
+        display_text = "Operation: /";
+    }
+    
+    operation_history.append("operation");
+}
+
+function "calculate_result" {
+    // Perform the calculation based on operation mode
+    var num operand1 = memory_stack[0];
+    var num operand2 = input_buffer;
+    var num result = 0;
+    
+    if "operation_mode == 0" {
+        // Addition
+        result = operand1 + operand2;
+        display_text = "Result: " + result;
+    } else if "operation_mode == 1" {
+        // Subtraction
+        result = operand1 - operand2;
+        display_text = "Result: " + result;
+    } else if "operation_mode == 2" {
+        // Multiplication using repeated addition (since we don't have native multiplication)
+        result = 0;
+        loop_counter = 0;
+        
+        while "loop_counter < operand2" {
+            result = result + operand1;
+            loop_counter = loop_counter + 1;
+            
+            // Safety check to prevent infinite loops
+            if "loop_counter > max_iterations" {
+                display_text = "Error: Overflow";
+                break;
+            }
+        }
+        display_text = "Result: " + result;
+    } else if "operation_mode == 3" {
+        // Division using repeated subtraction
+        result = 0;
+        var num remainder = operand1;
+        loop_counter = 0;
+        
+        while "remainder >= operand2" {
+            remainder = remainder - operand2;
+            result = result + 1;
+            loop_counter = loop_counter + 1;
+            
+            // Safety check
+            if "loop_counter > max_iterations" {
+                display_text = "Error: Overflow";
+                break;
+            }
+        }
+        display_text = "Result: " + result;
+    }
+    
+    // Store result
+    current_result = result;
+    
+    // Clear memory and update history
+    memory_stack.clear();
+    memory_stack.append(result);
+    operation_history.append("calculate");
+    
+    say Calculation complete;
+}
+
+function "advanced_operations" {
+    // Test more complex operations
+    
+    // Power function using repeated multiplication
+    function "calculate_power";
+    
+    // Factorial function
+    function "calculate_factorial";
+    
+    // GCD calculation using Euclidean algorithm
+    function "calculate_gcd";
+    
+    // Fibonacci sequence
+    function "calculate_fibonacci";
+}
+
+function "calculate_power" {
+    var num base = 2;
+    var num exponent = 3;
+    var num result = 1;
+    loop_counter = 0;
+    
+    while "loop_counter < exponent" {
+        // Multiply result by base using repeated addition
+        var num temp_result = 0;
+        var num inner_counter = 0;
+        
+        while "inner_counter < result" {
+            temp_result = temp_result + base;
+            inner_counter = inner_counter + 1;
+            
+            if "inner_counter > max_iterations" {
+                display_text = "Error: Power overflow";
+                break;
+            }
+        }
+        
+        result = temp_result;
+        loop_counter = loop_counter + 1;
+        
+        if "loop_counter > max_iterations" {
+            display_text = "Error: Power overflow";
+            break;
+        }
+    }
+    
+    display_text = "Power result: " + result;
+    operation_history.append("power");
+}
+
+function "calculate_factorial" {
+    var num n = 5;
+    var num result = 1;
+    loop_counter = 1;
+    
+    while "loop_counter <= n" {
+        // Multiply result by loop_counter using repeated addition
+        var num temp_result = 0;
+        var num inner_counter = 0;
+        
+        while "inner_counter < result" {
+            temp_result = temp_result + loop_counter;
+            inner_counter = inner_counter + 1;
+            
+            if "inner_counter > max_iterations" {
+                display_text = "Error: Factorial overflow";
+                break;
+            }
+        }
+        
+        result = temp_result;
+        loop_counter = loop_counter + 1;
+        
+        if "loop_counter > max_iterations" {
+            display_text = "Error: Factorial overflow";
+            break;
+        }
+    }
+    
+    display_text = "Factorial result: " + result;
+    operation_history.append("factorial");
+}
+
+function "calculate_gcd" {
+    var num a = 48;
+    var num b = 18;
+    var num temp = 0;
+    
+    // Euclidean algorithm
+    while "b != 0" {
+        temp = b;
+        b = a - b;
+        
+        // Calculate a - b using repeated subtraction
+        var num temp_a = a;
+        var num temp_b = b;
+        b = 0;
+        
+        while "temp_a > temp_b" {
+            temp_a = temp_a - 1;
+            b = b + 1;
+        }
+        
+        a = temp;
+        
+        // Safety check
+        if "a > max_iterations" {
+            display_text = "Error: GCD overflow";
+            break;
+        }
+    }
+    
+    display_text = "GCD result: " + a;
+    operation_history.append("gcd");
+}
+
+function "calculate_fibonacci" {
+    var num n = 10;
+    var num a = 0;
+    var num b = 1;
+    var num i = 2;
+    var num temp = 0;
+    
+    // Generate Fibonacci sequence
+    while "i <= n" {
+        temp = a + b;
+        a = b;
+        b = temp;
+        i = i + 1;
+        
+        if "i > max_iterations" {
+            display_text = "Error: Fibonacci overflow";
+            break;
+        }
+    }
+    
+    display_text = "Fibonacci result: " + b;
+    operation_history.append("fibonacci");
+}
+
+function "memory_operations" {
+    // Test memory stack operations
+    
+    // Push multiple values
+    memory_stack.append(10);
+    memory_stack.append(20);
+    memory_stack.append(30);
+    
+    // Pop and process
+    var num value1 = memory_stack[0];
+    var num value2 = memory_stack[1];
+    var num value3 = memory_stack[2];
+    
+    // Complex calculation using memory
+    var num sum = value1 + value2 + value3;
+    var num average = sum / 3;
+    
+    display_text = "Memory sum: " + sum;
+    operation_history.append("memory_sum");
+    
+    // Clear memory
+    memory_stack.clear();
+    memory_stack.append(average);
+    
+    display_text = "Memory average: " + average;
+    operation_history.append("memory_avg");
+}
+
+function "conditional_logic_test" {
+    // Test complex conditional logic
+    
+    var num test_value = 15;
+    var num result = 0;
+    
+    // Complex nested conditions
+    if "test_value > 20" {
+        result = test_value * 2;
+        display_text = "Large number: " + result;
+    } else if "test_value > 10" {
+        if "test_value % 2 == 0" {
+            result = test_value + 5;
+            display_text = "Even medium: " + result;
+        } else {
+            result = test_value - 3;
+            display_text = "Odd medium: " + result;
+        }
+    } else if "test_value > 0" {
+        result = test_value * test_value;
+        display_text = "Small squared: " + result;
+    } else {
+        result = 0;
+        display_text = "Zero or negative";
+    }
+    
+    operation_history.append("conditional");
+}
+
+function "loop_complexity_test" {
+    // Test complex loop patterns
+    
+    var num outer_loop = 0;
+    var num inner_loop = 0;
+    var num result = 0;
+    
+    // Nested loops
+    while "outer_loop < 5" {
+        inner_loop = 0;
+        
+        while "inner_loop < 3" {
+            result = result + (outer_loop * inner_loop);
+            inner_loop = inner_loop + 1;
+        }
+        
+        outer_loop = outer_loop + 1;
+    }
+    
+    display_text = "Nested loop result: " + result;
+    operation_history.append("nested_loops");
+}
+
+function "run_calculator_demo" {
+    // Main calculator demonstration
+    
+    say Starting Calculator Demo;
+    
+    // Initialize
+    function "calculator:initialize_calculator";
+    
+    // Test basic operations
+    function "calculator:process_number_input";
+    function "calculator:process_operation";
+    function "calculator:process_number_input";
+    function "calculator:calculate_result";
+    
+    // Test advanced operations
+    function "calculator:advanced_operations";
+    
+    // Test memory operations
+    function "calculator:memory_operations";
+    
+    // Test conditional logic
+    function "calculator:conditional_logic_test";
+    
+    // Test loop complexity
+    function "calculator:loop_complexity_test";
+    
+    // Display final results
+    say Calculator demo complete;
+    tellraw @s {"text":"All operations completed successfully!", "color":"gold"};
+    
+    // Show operation history
+    var num history_count = operation_history.length;
+    display_text = "Operations performed: " + history_count;
+    
+    // Cleanup
+    function "mdl:garbage_collect";
+}
+
+function "test" {
+    say Advanced Calculator Test;
+    function "calculator:run_calculator_demo";
+}
+
+// Auto-start the calculator
+on_tick "calculator:test";

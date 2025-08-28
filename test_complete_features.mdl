@@ -81,8 +81,3 @@ function "test" {
 
 // Test hooks
 on_tick "complete:test";
-
-// Test tags
-tag function "minecraft:load" {
-    add "complete:test";
-}

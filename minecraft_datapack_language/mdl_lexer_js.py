@@ -91,6 +91,7 @@ class TokenType(Enum):
     INSERT = "INSERT"
     POP = "POP"
     CLEAR = "CLEAR"
+    LENGTH = "LENGTH"
 
 @dataclass
 class Token:
@@ -583,6 +584,12 @@ class MDLLexer:
                 self.tokens.append(Token(TokenType.POP, "pop", line_num, 0))
             elif part == "clear":
                 self.tokens.append(Token(TokenType.CLEAR, "clear", line_num, 0))
+            elif part == "length":
+                self.tokens.append(Token(TokenType.LENGTH, "length", line_num, 0))
+            elif part == "break":
+                self.tokens.append(Token(TokenType.BREAK, "break", line_num, 0))
+            elif part == "continue":
+                self.tokens.append(Token(TokenType.CONTINUE, "continue", line_num, 0))
             elif re.match(r'^[a-zA-Z_][a-zA-Z0-9_:]*$', part):
                 self.tokens.append(Token(TokenType.IDENTIFIER, part, line_num, 0))
             else:

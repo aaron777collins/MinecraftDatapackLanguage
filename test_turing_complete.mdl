@@ -1,0 +1,76 @@
+// test_turing_complete.mdl - Test Turing completeness features
+pack "Turing Complete Test" description "Testing Turing completeness features" pack_format 82;
+namespace "turing";
+
+// Test variables
+var num counter = 0;
+var num result = 0;
+var list test_list = [10, 20, 30, 40, 50];
+var str message = "Testing";
+
+function "test_list_access" {
+    // Test list access
+    var num first_item = test_list[0];
+    var num second_item = test_list[1];
+    var num third_item = test_list[2];
+    
+    // Test list length
+    var num list_length = test_list.length;
+    
+    // Test modulo operations
+    var num mod_result = 17 % 5;
+    var num even_check = counter % 2;
+    
+    // Complex calculation using all features
+    result = first_item + second_item + third_item;
+    result = result % list_length;
+    
+    // Update display
+    message = "List access test complete";
+    
+    say List access test;
+    tellraw @s {"text":"First item: " + first_item};
+    tellraw @s {"text":"List length: " + list_length};
+    tellraw @s {"text":"Modulo result: " + mod_result};
+}
+
+function "test_advanced_operations" {
+    // Test more complex operations
+    
+    // Fibonacci with modulo
+    var num a = 0;
+    var num b = 1;
+    var num i = 0;
+    var num fib_result = 0;
+    
+    while "i < 10" {
+        fib_result = (a + b) % 100;  // Keep it manageable
+        a = b;
+        b = fib_result;
+        i = i + 1;
+    }
+    
+    // Test list operations with access
+    test_list.append(60);
+    test_list.append(70);
+    
+    var num new_length = test_list.length;
+    var num last_item = test_list[new_length - 1];
+    
+    message = "Advanced operations complete";
+    
+    say Advanced operations test;
+    tellraw @s {"text":"Fibonacci result: " + fib_result};
+    tellraw @s {"text":"New list length: " + new_length};
+    tellraw @s {"text":"Last item: " + last_item};
+}
+
+function "test" {
+    say Turing Complete Test;
+    function "turing:test_list_access";
+    function "turing:test_advanced_operations";
+    say All tests complete;
+}
+
+// Auto-start
+on_tick "turing:test";
