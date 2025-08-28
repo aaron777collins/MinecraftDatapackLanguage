@@ -168,9 +168,9 @@ function "variable_demo" {
     var str status = player_name + " has " + item_count + " items";
     
     say Variable demo complete;
-    tellraw @s {"text":"Result: " + result};
-    tellraw @s {"text":"Modulo: " + modulo_result};
-    tellraw @s {"text":"Status: " + status};
+    tellraw @s [{"text":"Result: "},{"score":{"name":"@s","objective":"result"}}];
+    tellraw @s [{"text":"Modulo: "},{"score":{"name":"@s","objective":"modulo_result"}}];
+    tellraw @s [{"text":"Status: "},{"nbt":"status","storage":"mdl:variables"}];
 }
 
 // Advanced conditional logic with nested structures
@@ -235,7 +235,7 @@ function "weapon_effects" {
     // Use list to get weapon name
     if "score @s weapon_index < weapons.length" {
         var str current_weapon = weapons[weapon_index];
-        tellraw @s {"text":"Using weapon: " + current_weapon};
+        tellraw @s [{"text":"Using weapon: "},{"nbt":"current_weapon","storage":"mdl:variables"}];
     }
 }
 
@@ -295,9 +295,9 @@ function "loop_demo" {
     }
     
     say Loop demo complete;
-    tellraw @s {"text":"Total iterations: " + total_iterations};
-    tellraw @s {"text":"Break sum: " + break_sum};
-    tellraw @s {"text":"Continue sum: " + continue_sum};
+    tellraw @s [{"text":"Total iterations: "},{"score":{"name":"@s","objective":"total_iterations"}}];
+    tellraw @s [{"text":"Break sum: "},{"score":{"name":"@s","objective":"break_sum"}}];
+    tellraw @s [{"text":"Continue sum: "},{"score":{"name":"@s","objective":"continue_sum"}}];
 }
 
 // Mathematical algorithms
@@ -308,15 +308,15 @@ function "calculate_fibonacci" {
     var num i = 2;
     var num temp = 0;
     
-    while "score @s i <= n" {
+    while "score @s i <= @s n" {
         temp = a + b;
         a = b;
         b = temp;
         i = i + 1;
     }
     
-    say Fibonacci result: b;
-    tellraw @s {"text":"Fibonacci(" + n + ") = " + b};
+    tellraw @s [{"text":"Fibonacci result: "},{"score":{"name":"@s","objective":"b"}}];
+    tellraw @s [{"text":"Fibonacci("},{"score":{"name":"@s","objective":"n"}},{"text":") = "},{"score":{"name":"@s","objective":"b"}}];
 }
 
 // Data processing with lists
@@ -345,9 +345,9 @@ function "process_data" {
     var num average_score = total_score / scores.length;
     
     say Data processing complete;
-    tellraw @s {"text":"Total score: " + total_score};
-    tellraw @s {"text":"Average score: " + average_score};
-    tellraw @s {"text":"Best player: " + best_player + " (" + highest_score + ")"};
+    tellraw @s [{"text":"Total score: "},{"score":{"name":"@s","objective":"total_score"}}];
+    tellraw @s [{"text":"Average score: "},{"score":{"name":"@s","objective":"average_score"}}];
+    tellraw @s [{"text":"Best player: "},{"nbt":"best_player","storage":"mdl:variables"},{"text":" ("},{"score":{"name":"@s","objective":"highest_score"}},{"text":")"}];
 }
 
 // Error handling and edge cases
@@ -383,8 +383,8 @@ function "error_handling" {
     }
     
     say Error handling complete;
-    tellraw @s {"text":"Safe value: " + safe_value};
-    tellraw @s {"text":"Unsafe value: " + unsafe_value};
+    tellraw @s [{"text":"Safe value: "},{"score":{"name":"@s","objective":"safe_value"}}];
+    tellraw @s [{"text":"Unsafe value: "},{"score":{"name":"@s","objective":"unsafe_value"}}];
 }
 
 // Hook the functions into load and tick
@@ -614,6 +614,51 @@ def _ast_to_commands(body: List[Any], current_namespace: str = "test", current_p
                 if class_name == 'Command':
                     # Remove semicolon from command and clean up
                     command = node.command.rstrip(';').strip()
+                    
+                    # Fix tellraw commands with string concatenation
+                    if command.startswith('tellraw') and '{"text":"' in command and '+' in command:
+                        # Convert string concatenation to proper JSON format
+                        # Example: tellraw @s {"text":"Fibonacci(" + n + ") = " + b}
+                        # Should become: tellraw @s [{"text":"Fibonacci("},{"score":{"name":"@s","objective":"n"}},{"text":") = "},{"score":{"name":"@s","objective":"b"}}]
+                        
+                        # Extract the JSON part
+                        json_start = command.find('{"text":"')
+                        if json_start != -1:
+                            json_part = command[json_start:]
+                            
+                            # Simple fix for common patterns
+                            if '+ n +' in json_part:
+                                json_part = json_part.replace('+ n +', '","score":{"name":"@s","objective":"n"},"text":"')
+                            if '+ b}' in json_part:
+                                json_part = json_part.replace('+ b}', '","score":{"name":"@s","objective":"b"}}')
+                            if '+ total_score}' in json_part:
+                                json_part = json_part.replace('+ total_score}', '","score":{"name":"@s","objective":"total_score"}}')
+                            if '+ average_score}' in json_part:
+                                json_part = json_part.replace('+ average_score}', '","score":{"name":"@s","objective":"average_score"}}')
+                            if '+ highest_score}' in json_part:
+                                json_part = json_part.replace('+ highest_score}', '","score":{"name":"@s","objective":"highest_score"}}')
+                            if '+ safe_value}' in json_part:
+                                json_part = json_part.replace('+ safe_value}', '","score":{"name":"@s","objective":"safe_value"}}')
+                            if '+ unsafe_value}' in json_part:
+                                json_part = json_part.replace('+ unsafe_value}', '","score":{"name":"@s","objective":"unsafe_value"}}')
+                            
+                            # Convert to array format
+                            if json_part.startswith('{"text":"'):
+                                json_part = '[' + json_part.replace('{"text":"', '{"text":"').replace('"}', '"}') + ']'
+                            
+                            command = command[:json_start] + json_part
+                    
+                    # Fix say commands with variables
+                    if command.startswith('say ') and ':' in command:
+                        # Convert say commands with variables to tellraw
+                        # Example: say Fibonacci result: b
+                        # Should become: tellraw @s [{"text":"Fibonacci result: "},{"score":{"name":"@s","objective":"b"}}]
+                        parts = command.split(':')
+                        if len(parts) == 2:
+                            prefix = parts[0].replace('say ', '').strip()
+                            var_name = parts[1].strip()
+                            command = f'tellraw @s [{{"text":"{prefix}: "}},{{"score":{{"name":"@s","objective":"{var_name}"}}}}]'
+                    
                     if execute_prefix and not command.startswith('#'):
                         commands.append(f"{execute_prefix} {command}")
                     else:
