@@ -5,7 +5,6 @@ from .pack import Pack, Function
 from .utils import ensure_dir
 from .mdl_parser_js import parse_mdl_js
 from .expression_processor import expression_processor, ProcessedExpression
-print(f"DEBUG: Expression processor imported: {expression_processor}")
 from . import __version__
 
 def _slug(s: str) -> str:
@@ -106,6 +105,13 @@ def _parse_many(files, default_pack_format: int, verbose: bool = False):
 def cmd_new(args):
     # Create a sample project
     root = os.path.abspath(args.path)
+    
+    # Check if the path already exists
+    if os.path.exists(root):
+        print(f"ERROR: Path {root} already exists")
+        return 1
+    
+    # Create the directory
     ensure_dir(root)
     
     # Create the pack declaration separately to avoid f-string issues with array literals
@@ -447,9 +453,50 @@ function "cleanup" {
 
 on_tick "example:cleanup";
 """
-    with open(os.path.join(root, "mypack.mdl"), "w", encoding="utf-8") as f:
+    # Create the main MDL file with a better name
+    mdl_filename = f"{args.name.lower().replace(' ', '_')}.mdl"
+    with open(os.path.join(root, mdl_filename), "w", encoding="utf-8") as f:
         f.write(sample.strip() + os.linesep)
-    print(f"Created sample at {root}")
+    
+    # Create a README file
+    readme_content = f"""# {args.name}
+
+This is a sample MDL (Minecraft Datapack Language) project.
+
+## Usage
+
+1. Build the datapack:
+   ```bash
+   mdl build --mdl {mdl_filename} -o dist
+   ```
+
+2. Copy the generated `dist` folder to your Minecraft world's `datapacks` directory.
+
+3. Enable the datapack in-game with `/reload` and `/datapack enable`.
+
+## Features
+
+This sample demonstrates:
+- Variable declarations and assignments
+- List operations
+- Control flow (if/else, while, for loops)
+- Function calls
+- String concatenation
+- Arithmetic operations
+- And more!
+
+## Files
+
+- `{mdl_filename}` - Main MDL source file
+- `dist/` - Generated datapack (after building)
+"""
+    
+    with open(os.path.join(root, "README.md"), "w", encoding="utf-8") as f:
+        f.write(readme_content)
+    
+    print(f"Created sample project at {root}")
+    print(f"Main file: {mdl_filename}")
+    print(f"Build with: mdl build --mdl {mdl_filename} -o dist")
 
 def _ast_to_pack(ast: Dict[str, Any], default_pack_format: int) -> Pack:
     """Convert JavaScript-style AST to Pack object."""

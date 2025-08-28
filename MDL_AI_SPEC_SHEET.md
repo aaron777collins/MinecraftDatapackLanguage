@@ -253,9 +253,49 @@ When testing changes to the MDL language, follow this exact workflow:
 - Performance optimizations (further command reduction)
 - IDE integration improvements
 
-## Technical Requirements
+## Bug Tracking & Issues
 
-### Development Environment
+### 🐛 Known Bugs & Issues
+
+#### High Priority (Fix ASAP)
+1. **`mdl new` command creates redundant directory structure**
+   - **Issue**: Creates `example/example` instead of just `example`
+   - **Status**: ✅ FIXED - Now creates proper directory structure with better file naming
+   - **Solution**: Fixed directory creation logic and improved file naming
+
+2. **Expression processor import debug message**
+   - **Issue**: Shows debug message on every command execution
+   - **Status**: 🔄 IN PROGRESS - Should be removed or made optional
+   - **Impact**: Clutters output, not user-friendly
+
+#### Medium Priority
+3. **Switch statements and try-catch not fully implemented**
+   - **Issue**: Parser supports them but compiler doesn't handle them properly
+   - **Status**: ✅ RESOLVED - Removed from spec as not needed at this stage
+   - **Solution**: Simplified to focus on core features
+
+4. **For-in loops need better error handling**
+   - **Issue**: No bounds checking for list iteration
+   - **Status**: 🔄 IN PROGRESS - Basic implementation exists, needs enhancement
+
+#### Low Priority
+5. **Performance optimization needed**
+   - **Issue**: Generated commands could be more efficient
+   - **Status**: 📋 PLANNED - Basic optimizations implemented, more needed
+
+### 🚀 Feature Requests
+1. **Source maps for debugging**
+2. **Step-through debugging support**
+3. **Advanced variable types (objects)**
+4. **IDE integration improvements**
+
+### 📝 Bug Reporting Guidelines
+- Always include the exact command that caused the issue
+- Include the MDL source code that reproduces the bug
+- Specify the expected vs actual behavior
+- Include any error messages or debug output
+
+## Technical Requirements
 - **Python 3.8+**: Core language implementation
 - **Git**: Version control and collaboration
 - **pipx**: Package management for development
