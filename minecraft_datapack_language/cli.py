@@ -579,9 +579,15 @@ def _ast_to_pack(ast: Dict[str, Any], default_pack_format: int) -> Pack:
 def _add_final_command(commands: List[str], final_command: str):
     """Helper function to add final command, splitting on newlines if needed"""
     if '\n' in final_command:
-        commands.extend(final_command.split('\n'))
+        # Split the command and add each part separately
+        parts = final_command.split('\n')
+        for part in parts:
+            if part.strip():  # Skip empty lines
+                commands.append(part)
     else:
         commands.append(final_command)
+
+
 
 def _ast_to_commands(body: List[Any], current_namespace: str = "test", current_pack: Any = None) -> List[str]:
     """Convert AST function body to list of valid Minecraft commands."""
@@ -678,23 +684,51 @@ def _ast_to_commands(body: List[Any], current_namespace: str = "test", current_p
                                     if if_commands:
                                         commands.append(f"# If statement: {condition}")
                                         for cmd in if_commands:
-                                            commands.append(f"execute if {data_condition} run {cmd}")
+                                            # Handle multi-line commands by wrapping each line
+                                            if '\n' in cmd:
+                                                lines = cmd.split('\n')
+                                                for line in lines:
+                                                    if line.strip():
+                                                        commands.append(f"execute if {data_condition} run {line}")
+                                            else:
+                                                commands.append(f"execute if {data_condition} run {cmd}")
                                     
                                     if else_commands:
                                         commands.append(f"# Else statement")
                                         for cmd in else_commands:
-                                            commands.append(f"execute unless {data_condition} run {cmd}")
+                                            # Handle multi-line commands by wrapping each line
+                                            if '\n' in cmd:
+                                                lines = cmd.split('\n')
+                                                for line in lines:
+                                                    if line.strip():
+                                                        commands.append(f"execute unless {data_condition} run {line}")
+                                            else:
+                                                commands.append(f"execute unless {data_condition} run {cmd}")
                                 else:
                                     # Fallback to original condition
                                     if if_commands:
                                         commands.append(f"# If statement: {condition}")
                                         for cmd in if_commands:
-                                            commands.append(f"execute if {condition} run {cmd}")
+                                            # Handle multi-line commands by wrapping each line
+                                            if '\n' in cmd:
+                                                lines = cmd.split('\n')
+                                                for line in lines:
+                                                    if line.strip():
+                                                        commands.append(f"execute if {condition} run {line}")
+                                            else:
+                                                commands.append(f"execute if {condition} run {cmd}")
                                     
                                     if else_commands:
                                         commands.append(f"# Else statement")
                                         for cmd in else_commands:
-                                            commands.append(f"execute unless {condition} run {cmd}")
+                                            # Handle multi-line commands by wrapping each line
+                                            if '\n' in cmd:
+                                                lines = cmd.split('\n')
+                                                for line in lines:
+                                                    if line.strip():
+                                                        commands.append(f"execute unless {condition} run {line}")
+                                            else:
+                                                commands.append(f"execute unless {condition} run {cmd}")
                             else:
                                 # Fallback to original condition
                                 if if_commands:
