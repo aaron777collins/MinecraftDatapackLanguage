@@ -1,7 +1,7 @@
 
 import argparse, os, sys, json, traceback, re, zipfile, shutil, glob
 from typing import Dict, Any, List
-from .pack import Pack
+from .pack import Pack, Function
 from .utils import ensure_dir
 from .mdl_parser_js import parse_mdl_js
 from . import __version__
@@ -266,9 +266,10 @@ def _ast_to_pack(ast: Dict[str, Any], default_pack_format: int) -> Pack:
     )
     
     # Process namespaces and functions
+    current_namespace = "minecraft"  # Default namespace
     for namespace in ast.get('namespaces', []):
-        ns_name = namespace.name
-        ns = pack.namespace(ns_name)
+        current_namespace = namespace.name
+        ns = pack.namespace(current_namespace)
         
         # Process functions in this namespace
         for func in ast.get('functions', []):
@@ -277,20 +278,150 @@ def _ast_to_pack(ast: Dict[str, Any], default_pack_format: int) -> Pack:
                 # Convert function body to commands
                 commands = _ast_to_commands(func.body)
                 if commands:
-                    ns.function(func_name, *commands)
+                    # Create function directly without going through old processing pipeline
+                    fn = ns.functions.setdefault(func_name, Function(func_name, []))
+                    fn.commands.extend(commands)
+    
+    # Process hooks (on_load, on_tick)
+    for hook in ast.get('hooks', []):
+        if hook.hook_type == 'load':
+            pack.on_load(hook.function_name)
+        elif hook.hook_type == 'tick':
+            pack.on_tick(hook.function_name)
+    
+    # Process tags
+    for tag in ast.get('tags', []):
+        pack.tag(tag.tag_type, tag.name, tag.values)
     
     return pack
 
 def _ast_to_commands(body: List[Any]) -> List[str]:
-    """Convert AST function body to list of commands."""
+    """Convert AST function body to list of valid Minecraft commands."""
     commands = []
     for node in body:
-        if hasattr(node, 'command'):
-            commands.append(node.command)
-        elif hasattr(node, '__class__'):
-            # Handle other AST nodes (if statements, loops, etc.)
-            # For now, just skip complex structures
-            continue
+        if hasattr(node, '__class__'):
+            class_name = node.__class__.__name__
+            
+            if class_name == 'Command':
+                # Remove semicolon from command and clean up
+                command = node.command.rstrip(';').strip()
+                commands.append(command)
+                
+            elif class_name == 'FunctionCall':
+                # Convert function call to Minecraft function command
+                function_name = node.function_name
+                commands.append(f"function {function_name}")
+                
+            elif class_name == 'VariableDeclaration':
+                # Convert variable declarations to scoreboard commands
+                var_type = node.data_type
+                var_name = node.name
+                
+                if var_type == 'num':
+                    # Number variables use scoreboard
+                    commands.append(f"scoreboard objectives add {var_name} dummy")
+                    if node.value:
+                        # Set initial value if provided
+                        try:
+                            initial_value = int(node.value)
+                            commands.append(f"scoreboard players set @s {var_name} {initial_value}")
+                        except (ValueError, TypeError):
+                            # If not a simple number, set to 0
+                            commands.append(f"scoreboard players set @s {var_name} 0")
+                elif var_type == 'str':
+                    # String variables use NBT storage
+                    commands.append(f"data modify storage mdl:variables {var_name} set value \"\"")
+                    if node.value:
+                        # Set initial value if provided
+                        initial_value = str(node.value).strip('"')
+                        commands.append(f"data modify storage mdl:variables {var_name} set value \"{initial_value}\"")
+                elif var_type == 'list':
+                    # List variables use NBT storage with array
+                    commands.append(f"data modify storage mdl:variables {var_name} set value []")
+                    if node.value and hasattr(node.value, 'values'):
+                        # Add initial values if provided
+                        for i, item in enumerate(node.value.values):
+                            commands.append(f"data modify storage mdl:variables {var_name} append value \"{item}\"")
+                            
+            elif class_name == 'VariableAssignment':
+                # Convert variable assignments to appropriate Minecraft commands
+                var_name = node.name
+                # For now, we'll need to determine the variable type from context
+                # This is a simplified approach - in a real implementation, you'd track variable types
+                if hasattr(node, 'value'):
+                    if isinstance(node.value, (int, float)) or (hasattr(node.value, 'value') and isinstance(node.value.value, (int, float))):
+                        # Number assignment
+                        value = node.value if isinstance(node.value, (int, float)) else node.value.value
+                        commands.append(f"scoreboard players set @s {var_name} {value}")
+                    elif isinstance(node.value, str) or (hasattr(node.value, 'value') and isinstance(node.value.value, str)):
+                        # String assignment
+                        value = node.value if isinstance(node.value, str) else node.value.value
+                        value = value.strip('"')
+                        commands.append(f"data modify storage mdl:variables {var_name} set value \"{value}\"")
+                    else:
+                        # Complex expression - for now, skip
+                        continue
+                        
+            elif class_name == 'IfStatement':
+                # Convert if statements to Minecraft conditional commands
+                condition = node.condition.strip('"')
+                if_body = _ast_to_commands(node.body)
+                
+                # Generate conditional commands
+                for cmd in if_body:
+                    commands.append(f"execute if {condition} run {cmd}")
+                
+                # Handle elif branches
+                for elif_branch in node.elif_branches:
+                    elif_condition = elif_branch.condition.strip('"')
+                    elif_body = _ast_to_commands(elif_branch.body)
+                    
+                    for cmd in elif_body:
+                        commands.append(f"execute if {elif_condition} run {cmd}")
+                
+                # Handle else branch
+                if node.else_body:
+                    else_body = _ast_to_commands(node.else_body)
+                    for cmd in else_body:
+                        commands.append(f"execute unless {condition} run {cmd}")
+                        
+            elif class_name == 'ForLoop':
+                # Convert for loops to Minecraft iteration commands
+                variable = node.variable
+                selector = node.selector.strip('"')
+                loop_body = _ast_to_commands(node.body)
+                
+                # Generate loop commands
+                for cmd in loop_body:
+                    # Replace @s with the loop variable selector
+                    modified_cmd = cmd.replace('@s', selector)
+                    commands.append(f"execute as {selector} run {modified_cmd}")
+                    
+            elif class_name == 'WhileLoop':
+                # Convert while loops to Minecraft conditional commands
+                condition = node.condition.strip('"')
+                loop_body = _ast_to_commands(node.body)
+                
+                # Generate loop commands (simplified - in practice you'd need more complex logic)
+                for cmd in loop_body:
+                    commands.append(f"execute if {condition} run {cmd}")
+                    
+            elif class_name == 'BreakStatement':
+                # Skip break statements for now
+                continue
+                
+            elif class_name == 'ContinueStatement':
+                # Skip continue statements for now
+                continue
+                
+            elif class_name == 'ReturnStatement':
+                # Skip return statements for now
+                continue
+                
+            else:
+                # Unknown node type - skip for now
+                continue
+                
     return commands
 
 def _determine_wrapper(pack: Pack, override: str | None):

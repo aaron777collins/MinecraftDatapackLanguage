@@ -581,7 +581,13 @@ class Pack:
                 
                 # Process conditionals in function commands
                 print(f"Processing function: {ns_name}:{path}")
-                processed_commands = self._process_control_flow(ns_name, path, fn.commands)
+                # Check if commands are already in new format (no semicolons, no old-style control flow)
+                if any(cmd.endswith(';') for cmd in fn.commands):
+                    # Old format - process with control flow
+                    processed_commands = self._process_control_flow(ns_name, path, fn.commands)
+                else:
+                    # New format - commands are already processed
+                    processed_commands = fn.commands
                 write_text(file_path, "\n".join(processed_commands))
                 processed_functions.add(path)
                 
@@ -597,7 +603,12 @@ class Pack:
                     file_path = os.path.join(ns_root, dm.function, f"{path}.mcfunction")
                     ensure_dir(fn_dir)
                     # Process loops in generated functions (conditionals are already processed)
-                    processed_commands = self._process_control_flow(ns_name, path, fn.commands)
+                    if any(cmd.endswith(';') for cmd in fn.commands):
+                        # Old format - process with control flow
+                        processed_commands = self._process_control_flow(ns_name, path, fn.commands)
+                    else:
+                        # New format - commands are already processed
+                        processed_commands = fn.commands
                     write_text(file_path, "\n".join(processed_commands))
 
             # Recipes, Advancements, etc.

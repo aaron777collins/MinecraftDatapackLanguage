@@ -288,7 +288,13 @@ class MDLLexer:
             return
         
         # Otherwise, treat as a command
-        self.tokens.append(Token(TokenType.COMMAND, line, line_num, 0))
+        # Remove trailing semicolon if present
+        command_line = line.rstrip(';').strip()
+        if command_line:
+            self.tokens.append(Token(TokenType.COMMAND, command_line, line_num, 0))
+        # Add semicolon token if the line ended with one
+        if line.rstrip().endswith(';'):
+            self.tokens.append(Token(TokenType.SEMICOLON, ";", line_num, 0))
     
     def _tokenize_remaining(self, line: str, line_num: int):
         """Tokenize remaining parts of a line."""
