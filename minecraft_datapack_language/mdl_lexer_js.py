@@ -505,6 +505,32 @@ class MDLLexer:
                 self.tokens.append(Token(TokenType.NUMBER, part, line_num, 0))
             elif part == "in":
                 self.tokens.append(Token(TokenType.IN, "in", line_num, 0))
+            elif part == "list":
+                self.tokens.append(Token(TokenType.LIST, "list", line_num, 0))
+            elif part == "num":
+                self.tokens.append(Token(TokenType.NUM, "num", line_num, 0))
+            elif part == "str":
+                self.tokens.append(Token(TokenType.STR, "str", line_num, 0))
+            elif part == "var":
+                self.tokens.append(Token(TokenType.VAR, "var", line_num, 0))
+            elif part == "let":
+                self.tokens.append(Token(TokenType.LET, "let", line_num, 0))
+            elif part == "const":
+                self.tokens.append(Token(TokenType.CONST, "const", line_num, 0))
+            elif part == "if":
+                self.tokens.append(Token(TokenType.IF, "if", line_num, 0))
+            elif part == "else":
+                self.tokens.append(Token(TokenType.ELSE, "else", line_num, 0))
+            elif part == "while":
+                self.tokens.append(Token(TokenType.WHILE, "while", line_num, 0))
+            elif part == "for":
+                self.tokens.append(Token(TokenType.FOR, "for", line_num, 0))
+            elif part == "function":
+                self.tokens.append(Token(TokenType.FUNCTION, "function", line_num, 0))
+            elif part == "namespace":
+                self.tokens.append(Token(TokenType.NAMESPACE, "namespace", line_num, 0))
+            elif part == "pack":
+                self.tokens.append(Token(TokenType.PACK, "pack", line_num, 0))
             elif re.match(r'^[a-zA-Z_][a-zA-Z0-9_:]*$', part):
                 self.tokens.append(Token(TokenType.IDENTIFIER, part, line_num, 0))
             else:

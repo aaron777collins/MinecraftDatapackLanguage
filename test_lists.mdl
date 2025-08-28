@@ -1,0 +1,77 @@
+// test_lists.mdl - Comprehensive test for variables and lists
+pack "List Test Pack" description "Testing list functionality" pack_format 82;
+namespace "test";
+
+// Test all variable types
+var num counter = 0;
+var str message = "Hello World";
+var list items = ["sword", "shield", "potion"];
+
+function "list_test" {
+    // Test number variables
+    var num local_num = 42;
+    local_num = local_num + 10;
+    counter = counter + 1;
+    
+    // Test string variables
+    var str local_str = "Test String";
+    message = "Updated: " + local_str;
+    
+    // Test list variables
+    var list local_list = ["apple", "banana", "cherry"];
+    items = ["diamond", "emerald", "gold"];
+    
+    // Test list access (if supported)
+    // local_str = local_list[0];  // This would be ideal
+    
+    // Test list operations
+    // items.append("ruby");  // This would be ideal
+    
+    // Test conditional with variables
+    if "score @s test:local_num matches 52" {
+        say Number is correct!;
+    }
+    
+    // Test string concatenation
+    message = "Final: " + local_str + " and " + counter;
+}
+
+function "complex_test" {
+    // Test nested expressions
+    var num x = 5;
+    var num y = 10;
+    var num result = x + y * 2;
+    
+    // Test string operations
+    var str name = "Player";
+    var str greeting = "Hello " + name + "!";
+    
+    // Test list with different types (if supported)
+    var list mixed = ["text", 42, "more text"];
+    
+    // Test variable scope
+    if "score @s test:x matches 5" {
+        var num temp = 100;
+        temp = temp + x;
+        say Temp value: + temp;
+    }
+}
+
+// Test global variables
+var num global_score = 0;
+var str global_name = "Default";
+var list global_inventory = ["empty"];
+
+function "global_test" {
+    global_score = global_score + 10;
+    global_name = "Updated Player";
+    global_inventory = ["sword", "shield", "food"];
+    
+    say Global score: + global_score;
+    say Global name: + global_name;
+}
+
+// Hook functions
+on_load "test:list_test";
+on_tick "test:complex_test";
+on_tick "test:global_test";

@@ -1,0 +1,10 @@
+// test_simple_lists.mdl - Simple list test
+pack "Simple List Test" description "Testing list functionality" pack_format 82;
+namespace "test";
+
+// Test list variable declarations
+var list items = ["sword", "shield", "potion"];
+
+function "test" {
+    say List test;
+}

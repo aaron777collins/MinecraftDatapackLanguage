@@ -698,16 +698,26 @@ class MDLParser:
         elif token.type == TokenType.LBRACE:
             # List literal
             return self._parse_list_literal()
+        elif token.type == TokenType.LBRACKET:
+            # List literal (square brackets)
+            return self._parse_list_literal()
         else:
             raise ValueError(f"Unexpected token in expression: {token.type}")
     
     def _parse_list_literal(self) -> ListExpression:
         """Parse list literal [expr1, expr2, ...]."""
-        self._match(TokenType.LBRACE)
+        # Handle both LBRACE and LBRACKET for list literals
+        if self._peek().type == TokenType.LBRACE:
+            self._match(TokenType.LBRACE)
+            closing_token = TokenType.RBRACE
+        else:
+            self._match(TokenType.LBRACKET)
+            closing_token = TokenType.RBRACKET
+            
         elements = []
         
         # Parse first element
-        if self._peek() and self._peek().type != TokenType.RBRACE:
+        if self._peek() and self._peek().type != closing_token:
             elements.append(self._parse_expression())
             
             # Parse remaining elements
@@ -715,7 +725,12 @@ class MDLParser:
                 self._advance()  # consume comma
                 elements.append(self._parse_expression())
         
-        self._match(TokenType.RBRACE)
+        # Match the closing bracket/brace
+        if closing_token == TokenType.RBRACE:
+            self._match(TokenType.RBRACE)
+        else:
+            self._match(TokenType.RBRACKET)
+            
         return ListExpression(elements)
     
     def _parse_break_statement(self) -> BreakStatement:

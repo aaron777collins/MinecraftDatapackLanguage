@@ -336,10 +336,16 @@ def _ast_to_commands(body: List[Any]) -> List[str]:
                 elif var_type == 'list':
                     # List variables use NBT storage with array
                     commands.append(f"data modify storage mdl:variables {var_name} set value []")
-                    if node.value and hasattr(node.value, 'values'):
+                    if node.value and hasattr(node.value, 'elements'):
                         # Add initial values if provided
-                        for i, item in enumerate(node.value.values):
-                            commands.append(f"data modify storage mdl:variables {var_name} append value \"{item}\"")
+                        for i, item in enumerate(node.value.elements):
+                            if hasattr(item, 'value'):
+                                # Handle string literals in lists
+                                item_value = item.value.strip('"')
+                                commands.append(f"data modify storage mdl:variables {var_name} append value \"{item_value}\"")
+                            else:
+                                # Handle other types - convert to string for now
+                                commands.append(f"data modify storage mdl:variables {var_name} append value \"unknown\"")
                             
             elif class_name == 'VariableAssignment':
                 # Convert variable assignments to appropriate Minecraft commands
@@ -419,6 +425,19 @@ def _ast_to_commands(body: List[Any]) -> List[str]:
                                     # Assume string
                                     value = node.value.value.strip('"')
                                     commands.append(f"data modify storage mdl:variables {var_name} set value \"{value}\"")
+                                    
+                        elif expr_class == 'ListExpression':
+                            # Handle list assignments
+                            commands.append(f"data modify storage mdl:variables {var_name} set value []")
+                            if hasattr(node.value, 'elements'):
+                                for item in node.value.elements:
+                                    if hasattr(item, 'value'):
+                                        # Handle string literals in lists
+                                        item_value = item.value.strip('"')
+                                        commands.append(f"data modify storage mdl:variables {var_name} append value \"{item_value}\"")
+                                    else:
+                                        # Handle other types - convert to string for now
+                                        commands.append(f"data modify storage mdl:variables {var_name} append value \"unknown\"")
                             
                         elif expr_class == 'Identifier':
                             # Variable reference - for now, assume it's a number variable
