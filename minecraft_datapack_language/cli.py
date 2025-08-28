@@ -802,7 +802,10 @@ def _ast_to_commands(body: List[Any]) -> List[str]:
                                 # Variable index
                                 index_var = node.value.index.name
                                 commands.append(f"# Access element at variable index {index_var} from {list_name}")
+                                # For variable indices, we need to use a different approach
+                                # Create a temporary storage to hold the index
                                 commands.append(f"execute store result storage mdl:temp index int 1 run scoreboard players get @s {index_var}")
+                                # Use the temporary index to access the list
                                 commands.append(f"data modify storage mdl:temp element set from storage mdl:variables {list_name}[storage mdl:temp index]")
                                 commands.append(f"data modify storage mdl:variables {var_name} set from storage mdl:temp element")
                             else:
@@ -816,6 +819,8 @@ def _ast_to_commands(body: List[Any]) -> List[str]:
                             list_name = node.value.list_name
                             commands.append(f"# Get length of {list_name}")
                             # Count the number of elements in the list
+                            commands.append(f"execute store result score @s {var_name} run data get storage mdl:variables {list_name}")
+                            # The above command gets the array size, but we need to ensure it's properly converted
                             commands.append(f"execute store result score @s {var_name} run data get storage mdl:variables {list_name}")
                             
                         else:
