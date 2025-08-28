@@ -66,7 +66,6 @@ class ExpressionProcessor:
             # Variable index - use directly
             index_var = index_expr.name
             commands.extend([
-                f"# Access element at variable index {index_var} from {list_name}",
                 f"execute store result storage mdl:temp index int 1 run scoreboard players get @s {index_var}",
                 f"data modify storage mdl:temp element set from storage mdl:variables {list_name}[storage mdl:temp index]",
                 f"data modify storage mdl:variables {target_var} set from storage mdl:temp element"
@@ -75,7 +74,6 @@ class ExpressionProcessor:
             # Literal index - use directly
             index = index_expr.value
             commands.extend([
-                f"# Access element at index {index} from {list_name}",
                 f"data modify storage mdl:temp element set from storage mdl:variables {list_name}[{index}]",
                 f"data modify storage mdl:variables {target_var} set from storage mdl:temp element"
             ])
@@ -86,7 +84,6 @@ class ExpressionProcessor:
             index_commands = self.process_expression(index_expr, temp_index_var)
             commands.extend(index_commands.temp_assignments)
             commands.extend([
-                f"# Access element at complex index from {list_name}",
                 f"execute store result storage mdl:temp index int 1 run scoreboard players get @s {temp_index_var}",
                 f"data modify storage mdl:temp element set from storage mdl:variables {list_name}[storage mdl:temp index]",
                 f"data modify storage mdl:variables {target_var} set from storage mdl:temp element"
@@ -98,7 +95,6 @@ class ExpressionProcessor:
     def process_list_length(self, list_name: str, target_var: str) -> ProcessedExpression:
         """Process list length expressions like list.length"""
         commands = [
-            f"# Get length of {list_name}",
             f"execute store result score @s {target_var} run data get storage mdl:variables {list_name}"
         ]
         return ProcessedExpression(commands, "", [])

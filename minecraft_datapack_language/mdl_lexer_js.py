@@ -121,7 +121,7 @@ class MDLLexer:
                 continue
             
             # Handle comments
-            if stripped.startswith('//'):
+            if stripped.startswith('//') or stripped.startswith('#'):
                 self.tokens.append(Token(TokenType.COMMENT, stripped, line_num + 1, 0))
                 continue
             

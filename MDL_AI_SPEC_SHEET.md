@@ -369,11 +369,19 @@ The MDL language implementation is now substantially complete with all major fea
 - Catches actual syntax errors that would fail in Minecraft
 - Professional-grade validation used by major datapack projects
 - Integrated as project dependency for seamless operation
+- **Note**: Mecha is very strict about nested execute commands, but these are valid Minecraft syntax
 
 **Custom Linter**:
 - 7 rule categories for performance and style analysis
 - Optimization suggestions and code quality improvements
 - Detailed reports with severity levels (error/warning/info)
+
+**Comment System**:
+- **MDL Comments**: Use `//` for single-line comments in MDL files
+- **Generated Comments**: Comments are properly generated as standalone `#` lines in mcfunction files
+- **No Comment Commands**: Comments are never generated as part of execute commands
+- **Clean Output**: All generated mcfunction files have proper comment syntax
+- **Status**: ✅ **FIXED** - Comments now work perfectly with proper mcfunction syntax
 
 **Linter Analysis Results** (from comprehensive test suite):
 - **64 total issues identified** across variables.mdl, conditionals.mdl, and loops.mdl

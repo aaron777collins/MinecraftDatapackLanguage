@@ -86,9 +86,32 @@ mdl new my_pack --name "My Pack" --pack-format 82
 mdl build --mdl my_pack/mypack.mdl -o dist --wrapper mypack
 mdl check my_pack/mypack.mdl
 
+# Validate generated mcfunction files
+mdl check-advanced my_pack/mypack.mdl
+
 # Multi-file projects
 mdl build --mdl my_pack/ -o dist      # Build entire directory
 mdl build --mdl "file1.mdl file2.mdl" -o dist  # Build specific files
+```
+
+### Comments in MDL
+MDL supports modern JavaScript-style comments:
+```javascript
+// Single-line comments
+/* Multi-line comments */
+
+pack "My Pack" {
+    function example() {
+        // This comment will be properly converted to mcfunction
+        say Hello World!
+    }
+}
+```
+
+Generated mcfunction files will have proper `#` comments:
+```mcfunction
+# This is a generated comment
+say Hello World!
 ```
 
 ### Build a whole folder of `.mdl` files
