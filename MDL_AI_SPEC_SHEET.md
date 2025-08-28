@@ -346,7 +346,7 @@ This document serves as the comprehensive specification and implementation guide
 
 ## Current Version Status
 
-**Latest Version**: v10.1.69
+**Latest Version**: v10.1.70
 **Status**: Highly functional MDL compiler with comprehensive feature set
 **Known Issues**: All major issues resolved!
 **Next Priority**: Continue testing and documentation improvements
@@ -355,13 +355,25 @@ The MDL language implementation is now substantially complete with all major fea
 
 ## Known Issues and Limitations
 
-### ✅ **LINTING SYSTEM IMPLEMENTED**
+### ✅ **PROFESSIONAL MCFUNCTION VALIDATION SYSTEM**
 
-**New Feature**: Comprehensive mcfunction linter with `check-advanced` command
-- **Command**: `mdl check-advanced <file.mdl>` - Builds and analyzes generated mcfunction files
-- **Features**: 7 rule categories detecting redundant operations, inefficient storage, temporary variables, complex operations, potential errors, performance issues, and style problems
-- **Output**: Detailed reports with severity levels (error/warning/info) and suggestions
-- **Status**: Implemented in v10.1.67
+**New Feature**: Industry-standard mcfunction validation with Mecha integration
+- **Command**: `mdl check-advanced <file.mdl>` - Builds and validates generated mcfunction files
+- **Dual Validation**: Mecha (real syntax validation) + Custom linter (performance/style analysis)
+- **Professional-Grade**: Uses the same validation tool as major Minecraft projects
+- **Output**: Comprehensive reports with both syntax errors and optimization suggestions
+- **Status**: Implemented in v10.1.70
+
+**Mecha Integration**:
+- Real mcfunction syntax validation using industry-standard tool
+- Catches actual syntax errors that would fail in Minecraft
+- Professional-grade validation used by major datapack projects
+- Integrated as project dependency for seamless operation
+
+**Custom Linter**:
+- 7 rule categories for performance and style analysis
+- Optimization suggestions and code quality improvements
+- Detailed reports with severity levels (error/warning/info)
 
 **Linter Analysis Results** (from comprehensive test suite):
 - **64 total issues identified** across variables.mdl, conditionals.mdl, and loops.mdl
