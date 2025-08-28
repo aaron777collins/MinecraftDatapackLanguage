@@ -555,7 +555,7 @@ def _ast_to_pack(ast: Dict[str, Any], default_pack_format: int) -> Pack:
             ns = pack.namespace(namespace_name)
             
             # Convert function body to commands
-            commands = _ast_to_commands(func.body)
+            commands = _ast_to_commands(func.body, namespace_name, pack)
             print(f"DEBUG: Generated {len(commands)} commands for {namespace_name}:{func_name}: {commands}")
             if commands:
                 # Create function directly without going through old processing pipeline
@@ -592,261 +592,152 @@ def _ast_to_commands(body: List[Any], current_namespace: str = "test", current_p
             
             try:
                 if class_name == 'Command':
-                # Remove semicolon from command and clean up
-                command = node.command.rstrip(';').strip()
-                
-                # Handle tellraw commands with string concatenation
-                if command.startswith('tellraw ') and '+ ' in command:
-                    # Extract the tellraw parts
-                    parts = command.split(' ', 2)  # Split into ['tellraw', '@s', '{"text":"..."}']
-                    if len(parts) >= 3:
-                        selector = parts[1]
-                        json_part = parts[2]
-                        
-                        # Check if this is a tellraw with string concatenation
-                        if '"text":"' in json_part and '+ ' in json_part:
-                            # Extract the text part and build it properly
-                            text_start = json_part.find('"text":"') + 8
-                            text_end = json_part.find('"', text_start)
-                            if text_end != -1:
-                                text_content = json_part[text_start:text_end]
-                                
-                                # Split by + to get the parts
-                                text_parts = text_content.split(' + ')
-                                if len(text_parts) > 1:
-                                    # Create a temporary variable for the concatenated string
-                                    temp_var = f"temp_msg_{len(commands)}"
-                                    
-                                    # Build the string step by step
-                                    commands.append(f"# Build concatenated string for tellraw")
-                                    commands.append(f"data modify storage mdl:variables {temp_var} set value \"{text_parts[0].strip()}\"")
-                                    
-                                    for i, part in enumerate(text_parts[1:], 1):
-                                        part = part.strip()
-                                        if part.startswith('"') and part.endswith('"'):
-                                            # It's a literal string
-                                            literal = part[1:-1]
-                                            commands.append(f"data modify storage mdl:variables {temp_var} append value \"{literal}\"")
-                                        else:
-                                            # It's a variable
-                                            commands.append(f"execute store result storage mdl:temp concat string 1 run data get storage mdl:variables {part}")
-                                            commands.append(f"data modify storage mdl:variables {temp_var} append value storage mdl:temp concat")
-                                    
-                                    # Create the tellraw command with the built string
-                                    color_part = ""
-                                    if '"color":"' in json_part:
-                                        color_start = json_part.find('"color":"') + 9
-                                        color_end = json_part.find('"', color_start)
-                                        if color_end != -1:
-                                            color = json_part[color_start:color_end]
-                                            color_part = f',"color":"{color}"'
-                                    
-                                    commands.append(f"tellraw {selector} {{\"text\":\"${{{temp_var}}}\"{color_part}}}")
-                                else:
-                                    commands.append(command)
-                            else:
-                                commands.append(command)
-                        else:
-                            commands.append(command)
-                    else:
-                        commands.append(command)
-                else:
+                    # Remove semicolon from command and clean up
+                    command = node.command.rstrip(';').strip()
                     commands.append(command)
-                
+                    
                 elif class_name == 'FunctionCall':
                     # Convert function call to Minecraft function command
                     function_name = node.function_name
                     commands.append(f"function {function_name}")
                     
                 elif class_name == 'VariableDeclaration':
-                print(f"DEBUG: Processing VariableDeclaration: {node.name}")
-                # Convert variable declarations to scoreboard commands
-                var_type = node.data_type
-                var_name = node.name
-                
-                # Initialize the variable based on type
-                if var_type == 'num':
-                    commands.append(f"scoreboard objectives add {var_name} dummy")
-                elif var_type == 'str':
-                    commands.append(f"data modify storage mdl:variables {var_name} set value \"\"")
-                elif var_type == 'list':
-                    commands.append(f"data modify storage mdl:variables {var_name} set value []")
-                
-                # Handle the value using expression processor
-                if node.value:
-                    print(f"DEBUG: Processing variable declaration for {var_name}")
-                    print(f"DEBUG: Value type: {type(node.value).__name__}")
-                    print(f"DEBUG: Value: {node.value}")
-                    processed = expression_processor.process_expression(node.value, var_name)
-                    print(f"DEBUG: Processed result: {processed}")
-                    commands.extend(processed.temp_assignments)
+                    # Convert variable declarations to scoreboard commands
+                    var_type = node.data_type
+                    var_name = node.name
                     
-                    # If there's a final command, add it
-                    if processed.final_command:
-                        commands.append(processed.final_command)
-                            
+                    # Initialize the variable based on type
+                    if var_type == 'num':
+                        commands.append(f"scoreboard objectives add {var_name} dummy")
+                    elif var_type == 'str':
+                        commands.append(f"data modify storage mdl:variables {var_name} set value \"\"")
+                    elif var_type == 'list':
+                        commands.append(f"data modify storage mdl:variables {var_name} set value []")
+                    
+                    # Handle the value using expression processor
+                    if node.value:
+                        processed = expression_processor.process_expression(node.value, var_name)
+                        commands.extend(processed.temp_assignments)
+                        
+                        # If there's a final command, add it
+                        if processed.final_command:
+                            commands.append(processed.final_command)
+                                
                 elif class_name == 'VariableAssignment':
-                # Convert variable assignments to appropriate Minecraft commands
-                var_name = node.name
-                
-                if hasattr(node, 'value'):
-                    # Use systematic expression processing
-                    print(f"DEBUG: Processing variable assignment for {var_name}")
-                    print(f"DEBUG: Value type: {type(node.value).__name__}")
-                    print(f"DEBUG: Value: {node.value}")
-                    processed = expression_processor.process_expression(node.value, var_name)
-                    print(f"DEBUG: Processed result: {processed}")
-                    commands.extend(processed.temp_assignments)
+                    # Convert variable assignments to appropriate Minecraft commands
+                    var_name = node.name
                     
-                    # If there's a final command, add it
-                    if processed.final_command:
-                        commands.append(processed.final_command)
-                    else:
-                        # Simple value assignment
-                        if isinstance(node.value, (int, float)):
-                            commands.append(f"scoreboard players set @s {var_name} {node.value}")
-                        elif isinstance(node.value, str):
-                            value = node.value.strip('"')
-                            commands.append(f"data modify storage mdl:variables {var_name} set value \"{value}\"")
-                        else:
-                            # Unknown type - skip
-                            continue
+                    # Handle the value using expression processor
+                    if node.value:
+                        processed = expression_processor.process_expression(node.value, var_name)
+                        commands.extend(processed.temp_assignments)
                         
+                        # If there's a final command, add it
+                        if processed.final_command:
+                            commands.append(processed.final_command)
+                            
                 elif class_name == 'IfStatement':
-                # Convert if statements to Minecraft conditional commands
-                condition = node.condition.strip('"')
-                if_body = _ast_to_commands(node.body)
-                
-                # Generate conditional commands for if block
-                for cmd in if_body:
-                    commands.append(f"execute if {condition} run {cmd}")
-                
-                # Handle elif branches - each elif needs to check its condition AND that previous conditions were false
-                if hasattr(node, 'elif_branches') and node.elif_branches:
-                    # For the first elif, we need to check its condition AND that the if condition was false
-                    first_elif = node.elif_branches[0]
-                    elif_condition = first_elif.condition.strip('"')
-                    elif_body = _ast_to_commands(first_elif.body)
+                    # Convert if statements to Minecraft conditional commands
+                    condition = node.condition.strip('"')
                     
-                    for cmd in elif_body:
-                        commands.append(f"execute if {elif_condition} unless {condition} run {cmd}")
+                    # Convert if body to commands
+                    if_commands = _ast_to_commands(node.if_body, current_namespace, current_pack)
                     
-                    # For subsequent elif branches, we need to check their condition AND that all previous conditions were false
-                    for i in range(1, len(node.elif_branches)):
-                        elif_branch = node.elif_branches[i]
-                        elif_condition = elif_branch.condition.strip('"')
-                        elif_body = _ast_to_commands(elif_branch.body)
-                        
-                        # Build condition that checks this elif condition AND that all previous conditions were false
-                        previous_conditions = [condition] + [branch.condition.strip('"') for branch in node.elif_branches[:i]]
-                        unless_conditions = " ".join([f"unless {cond}" for cond in previous_conditions])
-                        
-                        for cmd in elif_body:
-                            commands.append(f"execute if {elif_condition} {unless_conditions} run {cmd}")
-                
-                # Handle else branch - only execute if all previous conditions were false
-                if hasattr(node, 'else_body') and node.else_body:
-                    else_body = _ast_to_commands(node.else_body)
+                    # Convert else body to commands (if it exists)
+                    else_commands = []
+                    if node.else_body:
+                        else_commands = _ast_to_commands(node.else_body, current_namespace, current_pack)
                     
-                    # Build condition that checks that all previous conditions were false
-                    all_conditions = [condition]
-                    if hasattr(node, 'elif_branches') and node.elif_branches:
-                        all_conditions.extend([branch.condition.strip('"') for branch in node.elif_branches])
+                    # Generate conditional execution
+                    if if_commands:
+                        # Add if condition and commands
+                        commands.append(f"# If statement: {condition}")
+                        for cmd in if_commands:
+                            commands.append(f"execute if {condition} run {cmd}")
                     
-                    unless_conditions = " ".join([f"unless {cond}" for cond in all_conditions])
-                    
-                    for cmd in else_body:
-                        commands.append(f"execute {unless_conditions} run {cmd}")
-                        
+                    if else_commands:
+                        # Add else commands with inverted condition
+                        unless_conditions = condition.replace('==', '!=').replace('!=', '==')
+                        commands.append(f"# Else statement")
+                        for cmd in else_commands:
+                            commands.append(f"execute {unless_conditions} run {cmd}")
+                            
                 elif class_name == 'ForLoop':
-                # Convert for loops to Minecraft iteration commands
-                variable = node.variable
-                selector = node.selector.strip('"')
-                loop_body = _ast_to_commands(node.body)
-                
-                # This is a regular for loop over entities
-                for cmd in loop_body:
-                    # Replace @s with the loop variable selector
-                    modified_cmd = cmd.replace('@s', selector)
-                    commands.append(f"execute as {selector} run {modified_cmd}")
+                    # Convert for loops to Minecraft iteration commands
+                    variable = node.variable
+                    selector = node.selector.strip('"')
+                    loop_body = _ast_to_commands(node.body, current_namespace, current_pack)
                     
+                    # Generate loop commands
+                    commands.append(f"# For loop over {selector}")
+                    for cmd in loop_body:
+                        commands.append(f"execute as {selector} run {cmd}")
+                        
                 elif class_name == 'ForInLoop':
-                # Convert for-in loops to Minecraft list iteration commands
-                variable = node.variable
-                list_name = node.list_name
-                loop_body = _ast_to_commands(node.body)
-                
-                commands.append(f"# For-in loop over {list_name}")
-                commands.append(f"execute store result storage mdl:temp list_length int 1 run data get storage mdl:variables {list_name}")
-                commands.append(f"execute if data storage mdl:variables {list_name} run function {current_namespace}:for_in_{variable}_{list_name}")
-                
-                # Generate the loop body function
-                loop_func_name = f"for_in_{variable}_{list_name}"
-                loop_func_commands = []
-                
-                # Add loop initialization
-                loop_func_commands.append(f"# Initialize loop index")
-                loop_func_commands.append(f"scoreboard players set @s loop_index 0")
-                
-                # Add loop condition and body
-                loop_func_commands.append(f"# Loop condition")
-                loop_func_commands.append(f"execute if score @s loop_index < @s list_length run function {current_namespace}:for_in_body_{variable}_{list_name}")
-                
-                # Generate the loop body function
-                body_func_name = f"for_in_body_{variable}_{list_name}"
-                body_commands = []
-                
-                # Get current element and store it in a variable
-                body_commands.append(f"# Get current element")
-                body_commands.append(f"data modify storage mdl:temp current_element set from storage mdl:variables {list_name}[score @s loop_index]")
-                
-                # Replace variable references in loop body
-                for cmd in loop_body:
-                    modified_cmd = cmd.replace(f"@{variable}", "storage mdl:temp current_element")
-                    body_commands.append(modified_cmd)
-                
-                # Increment loop index and continue
-                body_commands.append(f"# Increment index and continue")
-                body_commands.append(f"scoreboard players add @s loop_index 1")
-                body_commands.append(f"execute if score @s loop_index < @s list_length run function {current_namespace}:for_in_body_{variable}_{list_name}")
-                
-                # Store the functions for later generation
-                if not hasattr(current_pack, 'loop_functions'):
-                    current_pack.loop_functions = {}
-                current_pack.loop_functions[loop_func_name] = loop_func_commands
-                current_pack.loop_functions[body_func_name] = body_commands
+                    # Convert for-in loops to Minecraft list iteration commands
+                    variable = node.variable
+                    list_name = node.list_name
+                    loop_body = _ast_to_commands(node.body, current_namespace, current_pack)
+
+                    commands.append(f"# For-in loop over {list_name}")
+                    commands.append(f"execute store result storage mdl:temp list_length int 1 run data get storage mdl:variables {list_name}")
+                    commands.append(f"execute if data storage mdl:variables {list_name} run function {current_namespace}:for_in_{variable}_{list_name}")
+
+                    # Generate the loop body function
+                    loop_func_name = f"for_in_{variable}_{list_name}"
+                    loop_func_commands = []
+
+                    # Add loop initialization
+                    loop_func_commands.append(f"# Initialize loop index")
+                    loop_func_commands.append(f"scoreboard players set @s loop_index 0")
+
+                    # Add loop condition and body
+                    loop_func_commands.append(f"# Loop condition")
+                    loop_func_commands.append(f"execute if score @s loop_index < @s list_length run function {current_namespace}:for_in_body_{variable}_{list_name}")
+
+                    # Generate the loop body function
+                    body_func_name = f"for_in_body_{variable}_{list_name}"
+                    body_commands = []
+
+                    # Get current element and store it in a variable
+                    body_commands.append(f"# Get current element")
+                    body_commands.append(f"data modify storage mdl:temp current_element set from storage mdl:variables {list_name}[score @s loop_index]")
+
+                    # Replace variable references in loop body
+                    for cmd in loop_body:
+                        modified_cmd = cmd.replace(f"@{variable}", "storage mdl:temp current_element")
+                        body_commands.append(modified_cmd)
+
+                    # Increment loop index and continue
+                    body_commands.append(f"# Increment index and continue")
+                    body_commands.append(f"scoreboard players add @s loop_index 1")
+                    body_commands.append(f"execute if score @s loop_index < @s list_length run function {current_namespace}:for_in_body_{variable}_{list_name}")
+
+                    # Store the functions for later generation
+                    if not hasattr(current_pack, 'loop_functions'):
+                        current_pack.loop_functions = {}
+                    current_pack.loop_functions[loop_func_name] = loop_func_commands
+                    current_pack.loop_functions[body_func_name] = body_commands
                     
                 elif class_name == 'WhileLoop':
-                # Convert while loops to Minecraft conditional commands
-                condition = node.condition.strip('"')
-                loop_body = _ast_to_commands(node.body)
-                
-                # Generate loop commands (simplified - in practice you'd need more complex logic)
-                for cmd in loop_body:
-                    commands.append(f"execute if {condition} run {cmd}")
+                    # Convert while loops to Minecraft conditional commands
+                    condition = node.condition.strip('"')
+                    loop_body = _ast_to_commands(node.body, current_namespace, current_pack)
                     
-            elif class_name == 'BreakStatement':
-                # Skip break statements for now
-                continue
+                    # Generate loop commands
+                    commands.append(f"# While loop: {condition}")
+                    for cmd in loop_body:
+                        commands.append(f"execute if {condition} run {cmd}")
+                        
+                elif class_name == 'BreakStatement':
+                    # Handle break statements in loops
+                    commands.append(f"# Break statement - exit current loop")
+                    commands.append(f"execute unless score @s break_flag matches 1.. run scoreboard players set @s break_flag 1")
                 
-            elif class_name == 'ContinueStatement':
-                # Skip continue statements for now
-                continue
-                
-                elif class_name == 'SwitchStatement':
-                    # Switch statements are not supported in this version
-                    commands.append(f"# Switch statement - not supported")
-                    commands.append(f"say Switch statements are not supported in this version")
-                
-                elif class_name == 'TryCatchStatement':
-                    # Try-catch statements are not supported in this version
-                    commands.append(f"# Try-catch statement - not supported")
-                    commands.append(f"say Try-catch statements are not supported in this version")
-                
-                elif class_name == 'ThrowStatement':
-                    # Throw statements are not supported in this version
-                    commands.append(f"# Throw statement - not supported")
-                    commands.append(f"say Throw statements are not supported in this version")
+                elif class_name == 'ContinueStatement':
+                    # Handle continue statements in loops
+                    commands.append(f"# Continue statement - skip to next iteration")
+                    commands.append(f"execute unless score @s continue_flag matches 1.. run scoreboard players set @s continue_flag 1")
                 
                 elif class_name == 'ReturnStatement':
                     # Convert return statements to Minecraft commands
@@ -860,147 +751,125 @@ def _ast_to_commands(body: List[Any], current_namespace: str = "test", current_p
                         commands.append(f"# Return (no value)")
                     
                 elif class_name == 'ListAccessExpression':
-                # Convert list access to Minecraft NBT commands
-                list_name = node.list_name
-                if hasattr(node.index, 'value'):
-                    index = node.index.value
-                    commands.append(f"# Access element at index {index} from {list_name}")
-                    commands.append(f"execute store result storage mdl:temp index int 1 run scoreboard players get @s {index}")
-                    commands.append(f"data modify storage mdl:temp element set from storage mdl:variables {list_name}[storage mdl:temp index]")
-                elif hasattr(node.index, 'name'):
-                    # Variable index
-                    index_var = node.index.name
-                    commands.append(f"# Access element at variable index {index_var} from {list_name}")
-                    commands.append(f"execute store result storage mdl:temp index int 1 run scoreboard players get @s {index_var}")
-                    commands.append(f"data modify storage mdl:temp element set from storage mdl:variables {list_name}[storage mdl:temp index]")
-                else:
-                    commands.append(f"# Access element from {list_name} (complex index)")
-                    commands.append(f"data modify storage mdl:temp element set from storage mdl:variables {list_name}[0]")
-                    
-                elif class_name == 'ListLengthExpression':
-                # Convert list length to Minecraft commands
-                list_name = node.list_name
-                commands.append(f"# Get length of {list_name}")
-                commands.append(f"execute store result score @s {list_name}_length run data get storage mdl:variables {list_name}")
-                commands.append(f"# Store length in a more accessible variable")
-                commands.append(f"scoreboard players operation @s list_length = @s {list_name}_length")
-                
-                elif class_name == 'ListAppendOperation':
-                # Convert list append operations to Minecraft NBT commands
-                list_name = node.list_name
-                if hasattr(node.value, 'value'):
-                    # Handle string literals
-                    if hasattr(node.value, 'type') and node.value.type == 'string':
-                        value = node.value.value.strip('"')
-                        commands.append(f"data modify storage mdl:variables {list_name} append value \"{value}\"")
-                    elif hasattr(node.value, 'type') and node.value.type == 'number':
-                        value = node.value.value
-                        commands.append(f"data modify storage mdl:variables {list_name} append value {value}")
+                    # Convert list access to Minecraft NBT commands
+                    list_name = node.list_name
+                    if hasattr(node.index, 'value'):
+                        index = node.index.value
+                        commands.append(f"# Access element at index {index} from {list_name}")
+                        commands.append(f"execute store result storage mdl:temp index int 1 run scoreboard players get @s {index}")
+                        commands.append(f"data modify storage mdl:temp element set from storage mdl:variables {list_name}[storage mdl:temp index]")
+                    elif hasattr(node.index, 'name'):
+                        # Variable index
+                        index_var = node.index.name
+                        commands.append(f"# Access element at variable index {index_var} from {list_name}")
+                        commands.append(f"execute store result storage mdl:temp index int 1 run scoreboard players get @s {index_var}")
+                        commands.append(f"data modify storage mdl:temp element set from storage mdl:variables {list_name}[storage mdl:temp index]")
                     else:
-                        # Try to determine type from value
-                        try:
-                            value = int(node.value.value)
-                            commands.append(f"data modify storage mdl:variables {list_name} append value {value}")
-                        except (ValueError, TypeError):
-                            # Assume string
+                        commands.append(f"# Access element from {list_name} (complex index)")
+                        commands.append(f"data modify storage mdl:temp element set from storage mdl:variables {list_name}[0]")
+                        
+                elif class_name == 'ListLengthExpression':
+                    # Convert list length to Minecraft commands
+                    list_name = node.list_name
+                    commands.append(f"# Get length of {list_name}")
+                    commands.append(f"execute store result score @s {list_name}_length run data get storage mdl:variables {list_name}")
+                    commands.append(f"# Store length in a more accessible variable")
+                    commands.append(f"scoreboard players operation @s list_length = @s {list_name}_length")
+                    
+                elif class_name == 'ListAppendOperation':
+                    # Convert list append operations to Minecraft NBT commands
+                    list_name = node.list_name
+                    if hasattr(node.value, 'value'):
+                        # Handle string literals
+                        if hasattr(node.value, 'type') and node.value.type == 'string':
                             value = node.value.value.strip('"')
                             commands.append(f"data modify storage mdl:variables {list_name} append value \"{value}\"")
-                else:
-                    # Unknown value type - skip
-                    continue
-                    
-                elif class_name == 'ListRemoveOperation':
-                # Convert list remove operations to Minecraft NBT commands
-                list_name = node.list_name
-                if hasattr(node.value, 'value'):
-                    # Handle string literals
-                    if hasattr(node.value, 'type') and node.value.type == 'string':
-                        value = node.value.value.strip('"')
-                        # Use a temporary storage to find and remove the item
-                        commands.append(f"# Remove '{value}' from {list_name}")
-                        commands.append(f"execute store result storage mdl:temp index int 1 run data get storage mdl:variables {list_name}")
-                        commands.append(f"execute if data storage mdl:variables {list_name}[{{value:\"{value}\"}}] run data remove storage mdl:variables {list_name}[{{value:\"{value}\"}}]")
-                    elif hasattr(node.value, 'type') and node.value.type == 'number':
-                        value = node.value.value
-                        commands.append(f"# Remove {value} from {list_name}")
-                        commands.append(f"execute if data storage mdl:variables {list_name}[{{value:{value}}}] run data remove storage mdl:variables {list_name}[{{value:{value}}}]")
+                        elif hasattr(node.value, 'type') and node.value.type == 'number':
+                            value = node.value.value
+                            commands.append(f"data modify storage mdl:variables {list_name} append value {value}")
+                        else:
+                            # Try to determine type from value
+                            try:
+                                value = int(node.value.value)
+                                commands.append(f"data modify storage mdl:variables {list_name} append value {value}")
+                            except (ValueError, TypeError):
+                                # Assume string
+                                value = node.value.value.strip('"')
+                                commands.append(f"data modify storage mdl:variables {list_name} append value \"{value}\"")
                     else:
-                        # Try to determine type from value
-                        try:
-                            value = int(node.value.value)
+                        # Unknown value type - skip
+                        continue
+                        
+                elif class_name == 'ListRemoveOperation':
+                    # Convert list remove operations to Minecraft NBT commands
+                    list_name = node.list_name
+                    if hasattr(node.value, 'value'):
+                        # Handle string literals
+                        if hasattr(node.value, 'type') and node.value.type == 'string':
+                            value = node.value.value.strip('"')
+                            # Use a temporary storage to find and remove the item
+                            commands.append(f"# Remove '{value}' from {list_name}")
+                            commands.append(f"execute store result storage mdl:temp index int 1 run data get storage mdl:variables {list_name}")
+                            commands.append(f"execute if data storage mdl:variables {list_name}[{{value:\"{value}\"}}] run data remove storage mdl:variables {list_name}[{{value:\"{value}\"}}]")
+                        elif hasattr(node.value, 'type') and node.value.type == 'number':
+                            value = node.value.value
                             commands.append(f"# Remove {value} from {list_name}")
                             commands.append(f"execute if data storage mdl:variables {list_name}[{{value:{value}}}] run data remove storage mdl:variables {list_name}[{{value:{value}}}]")
-                        except (ValueError, TypeError):
-                            # Assume string
-                            value = node.value.value.strip('"')
-                            commands.append(f"# Remove '{value}' from {list_name}")
-                            commands.append(f"execute if data storage mdl:variables {list_name}[{{value:\"{value}\"}}] run data remove storage mdl:variables {list_name}[{{value:\"{value}\"}}]")
-                else:
-                    # Unknown value type - skip
-                    continue
-                    
-                elif class_name == 'ListInsertOperation':
-                # Convert list insert operations to Minecraft NBT commands
-                list_name = node.list_name
-                if hasattr(node.index, 'value') and hasattr(node.value, 'value'):
-                    index = node.index.value
-                    if hasattr(node.value, 'type') and node.value.type == 'string':
-                        value = node.value.value.strip('"')
-                        commands.append(f"# Insert '{value}' at index {index} in {list_name}")
-                        commands.append(f"data modify storage mdl:variables {list_name} insert {index} value \"{value}\"")
-                    elif hasattr(node.value, 'type') and node.value.type == 'number':
-                        value = node.value.value
-                        commands.append(f"# Insert {value} at index {index} in {list_name}")
-                        commands.append(f"data modify storage mdl:variables {list_name} insert {index} value {value}")
+                        else:
+                            # Try to determine type from value
+                            try:
+                                value = int(node.value.value)
+                                commands.append(f"# Remove {value} from {list_name}")
+                                commands.append(f"execute if data storage mdl:variables {list_name}[{{value:{value}}}] run data remove storage mdl:variables {list_name}[{{value:{value}}}]")
+                            except (ValueError, TypeError):
+                                # Assume string
+                                value = node.value.value.strip('"')
+                                commands.append(f"# Remove '{value}' from {list_name}")
+                                commands.append(f"execute if data storage mdl:variables {list_name}[{{value:\"{value}\"}}] run data remove storage mdl:variables {list_name}[{{value:\"{value}\"}}]")
                     else:
-                        # Try to determine type from value
-                        try:
-                            value = int(node.value.value)
-                            commands.append(f"# Insert {value} at index {index} in {list_name}")
-                            commands.append(f"data modify storage mdl:variables {list_name} insert {index} value {value}")
-                        except (ValueError, TypeError):
-                            # Assume string
+                        # Unknown value type - skip
+                        continue
+                        
+                elif class_name == 'ListInsertOperation':
+                    # Convert list insert operations to Minecraft NBT commands
+                    list_name = node.list_name
+                    if hasattr(node.index, 'value') and hasattr(node.value, 'value'):
+                        index = node.index.value
+                        if hasattr(node.value, 'type') and node.value.type == 'string':
                             value = node.value.value.strip('"')
                             commands.append(f"# Insert '{value}' at index {index} in {list_name}")
                             commands.append(f"data modify storage mdl:variables {list_name} insert {index} value \"{value}\"")
-                else:
-                    # Unknown value type - skip
-                    continue
-                    
+                        elif hasattr(node.value, 'type') and node.value.type == 'number':
+                            value = node.value.value
+                            commands.append(f"# Insert {value} at index {index} in {list_name}")
+                            commands.append(f"data modify storage mdl:variables {list_name} insert {index} value {value}")
+                        else:
+                            # Try to determine type from value
+                            try:
+                                value = int(node.value.value)
+                                commands.append(f"# Insert {value} at index {index} in {list_name}")
+                                commands.append(f"data modify storage mdl:variables {list_name} insert {index} value {value}")
+                            except (ValueError, TypeError):
+                                # Assume string
+                                value = node.value.value.strip('"')
+                                commands.append(f"# Insert '{value}' at index {index} in {list_name}")
+                                commands.append(f"data modify storage mdl:variables {list_name} insert {index} value \"{value}\"")
+                    else:
+                        # Unknown value type - skip
+                        continue
+                        
                 elif class_name == 'ListPopOperation':
-                # Convert list pop operations to Minecraft NBT commands
-                list_name = node.list_name
-                if node.index:
-                    # Pop at specific index
-                    if hasattr(node.index, 'value'):
-                        index = node.index.value
-                        commands.append(f"# Pop element at index {index} from {list_name}")
-                        commands.append(f"data remove storage mdl:variables {list_name}[{index}]")
-                else:
-                    # Pop last element
+                    # Convert list pop operations to Minecraft NBT commands
+                    list_name = node.list_name
                     commands.append(f"# Pop last element from {list_name}")
                     commands.append(f"execute store result storage mdl:temp last_index int 1 run data get storage mdl:variables {list_name}")
                     commands.append(f"execute if data storage mdl:variables {list_name} run data remove storage mdl:variables {list_name}[storage mdl:temp last_index]")
                     
                 elif class_name == 'ListClearOperation':
-                # Convert list clear operations to Minecraft NBT commands
-                list_name = node.list_name
-                commands.append(f"# Clear all elements from {list_name}")
-                commands.append(f"data modify storage mdl:variables {list_name} set value []")
-                
-                elif class_name == 'BreakStatement':
-                    # Handle break statements in loops
-                    commands.append(f"# Break statement - exit current loop")
-                    commands.append(f"execute unless score @s break_flag matches 1.. run scoreboard players set @s break_flag 1")
-                
-                elif class_name == 'ContinueStatement':
-                    # Handle continue statements in loops
-                    commands.append(f"# Continue statement - skip to next iteration")
-                    commands.append(f"execute unless score @s continue_flag matches 1.. run scoreboard players set @s continue_flag 1")
-                
-                elif class_name == 'ReturnStatement':
-                    # Skip return statements for now
-                    continue
+                    # Convert list clear operations to Minecraft NBT commands
+                    list_name = node.list_name
+                    commands.append(f"# Clear list {list_name}")
+                    commands.append(f"data modify storage mdl:variables {list_name} set value []")
                     
             else:
                 # Unknown node type - skip for now
