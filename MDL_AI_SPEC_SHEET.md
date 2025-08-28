@@ -363,10 +363,15 @@ The MDL language implementation is now substantially complete with all major fea
 - **Output**: Detailed reports with severity levels (error/warning/info) and suggestions
 - **Status**: Implemented in v10.1.67
 
-**Linter Analysis Results** (from test files):
-- **38 total issues identified** in variables.mdl and list_operations.mdl
-- **15 warnings** - Redundant operations, generated temp variables, complex storage operations
-- **23 info items** - Performance suggestions, style improvements, optimization opportunities
+**Linter Analysis Results** (from comprehensive test suite):
+- **64 total issues identified** across variables.mdl, conditionals.mdl, and loops.mdl
+- **23 warnings** - Redundant operations, generated temp variables, complex storage operations
+- **41 info items** - Performance suggestions, style improvements, optimization opportunities
+
+**Detailed Breakdown:**
+- **variables.mdl**: 38 issues (15 warnings, 23 info)
+- **conditionals.mdl**: 11 issues (0 warnings, 11 info) 
+- **loops.mdl**: 15 issues (0 warnings, 15 info)
 
 ### ❌ **CRITICAL ISSUES TO FIX**
 
@@ -437,29 +442,39 @@ The MDL language implementation is now substantially complete with all major fea
 
 ### 🔍 **LINTER-IDENTIFIED ISSUES TO ADDRESS**
 
-**From check-advanced analysis of generated mcfunction files:**
+**From comprehensive check-advanced analysis of generated mcfunction files:**
 
-1. **Redundant Scoreboard Operations** ⚠️
+1. **Redundant Scoreboard Operations** ⚠️ (2 instances)
    - **Issue**: `scoreboard players operation @s var = @s var` (variable assigned to itself)
    - **Impact**: Unnecessary commands, performance overhead
    - **Fix**: Remove redundant self-assignment operations
 
-2. **Generated Temporary Variables** ⚠️
+2. **Generated Temporary Variables** ⚠️ (8 instances)
    - **Issue**: `left_0`, `left_2`, `concat_1` variables from complex expressions
    - **Impact**: Cluttered output, hard to debug
    - **Fix**: Optimize expression processing to reduce temp variables
 
-3. **Complex Temporary Storage Operations** ⚠️
+3. **Complex Temporary Storage Operations** ⚠️ (6 instances)
    - **Issue**: `execute store result storage mdl:temp` operations
    - **Impact**: Performance overhead, complex debugging
    - **Fix**: Use direct storage operations where possible
 
-4. **Empty String Initializations** ℹ️
+4. **Empty String Initializations** ℹ️ (4 instances)
    - **Issue**: `set value ""` followed by immediate assignment
    - **Impact**: Redundant operations
    - **Fix**: Skip empty initialization when value is provided
 
-5. **Expensive Storage Operations** ℹ️
+5. **Expensive Storage Operations** ℹ️ (6 instances)
    - **Issue**: `execute store result score @s` for list length operations
    - **Impact**: Performance overhead
    - **Fix**: Optimize list operations and length calculations
+
+6. **Very Long Lines** ℹ️ (38 instances)
+   - **Issue**: Lines exceeding 120 characters, affecting readability
+   - **Impact**: Poor code readability, maintenance issues
+   - **Fix**: Break long commands into multiple lines
+
+7. **Temporary Storage Variables** ℹ️ (12 instances)
+   - **Issue**: `mdl:temp` usage that could be optimized
+   - **Impact**: Unnecessary temporary storage operations
+   - **Fix**: Optimize storage operations to reduce temp variable usage
