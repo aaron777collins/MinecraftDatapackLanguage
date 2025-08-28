@@ -4,6 +4,9 @@ dynamic = ["version"]                         # version comes from setuptools-sc
 description = "Compile JavaScript-style MDL language or Python API into a Minecraft datapack (1.21+ ready). Features variables, control flow, error handling, and VS Code extension."
 readme = "README.md"
 requires-python = ">=3.9"
+dependencies = [
+    "mecha>=0.99.0",
+]
 authors = [{name="Minecraft Datapack Language Team"}]
 classifiers = [
   "Programming Language :: Python :: 3",

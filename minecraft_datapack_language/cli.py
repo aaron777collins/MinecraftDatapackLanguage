@@ -534,7 +534,9 @@ def _ast_to_pack(ast: Dict[str, Any], default_pack_format: int) -> Pack:
     gc_function.commands.extend([
         "# Garbage collection for MDL variables",
         "# Clear temporary storage",
-        "data remove storage mdl:temp",
+        "data remove storage mdl:temp element",
+        "data remove storage mdl:temp index",
+        "data remove storage mdl:temp last_index",
         "# Reset scoreboard objectives (optional - uncomment if needed)",
         "# scoreboard objectives remove temp dummy",
         "# scoreboard objectives remove temp2 dummy"
@@ -1079,8 +1081,8 @@ def _ast_to_commands(body: List[Any], current_namespace: str = "test", current_p
                     # Convert list pop operations to Minecraft NBT commands
                     list_name = node.list_name
                     commands.append(f"# Pop last element from {list_name}")
-                    commands.append(f"execute store result storage mdl:temp last_index int 1 run data get storage mdl:variables {list_name}")
-                    commands.append(f"execute if data storage mdl:variables {list_name} run data remove storage mdl:variables {list_name}[storage mdl:temp last_index]")
+                    # Use a simpler approach: just remove the last element without specifying index
+                    commands.append(f"execute if data storage mdl:variables {list_name} run data remove storage mdl:variables {list_name}[-1]")
                     
                 elif class_name == 'ListClearOperation':
                     # Convert list clear operations to Minecraft NBT commands
@@ -1365,16 +1367,54 @@ def cmd_check_advanced(args):
             print("❌ No datapack directory found in output")
             return 1
         
-        # Lint all mcfunction files
+        # Run Mecha validation on all mcfunction files
+        mecha_results = {}
+        mecha_errors = 0
+        
+        if args.verbose:
+            print(f"🔍 Running Mecha validation...")
+        
+        # Find all mcfunction files
+        mcfunction_files = []
+        for root, dirs, files in os.walk(datapack_dir):
+            for file in files:
+                if file.endswith('.mcfunction'):
+                    mcfunction_files.append(os.path.join(root, file))
+        
+        for mcfunction_file in mcfunction_files:
+            try:
+                # Run Mecha on the file
+                import subprocess
+                result = subprocess.run(
+                    ['mecha', mcfunction_file],
+                    capture_output=True,
+                    text=True,
+                    timeout=30
+                )
+                
+                if result.returncode != 0:
+                    mecha_errors += 1
+                    mecha_results[mcfunction_file] = result.stdout + result.stderr
+                    
+            except subprocess.TimeoutExpired:
+                mecha_results[mcfunction_file] = "Mecha validation timed out"
+                mecha_errors += 1
+            except FileNotFoundError:
+                mecha_results[mcfunction_file] = "Mecha not found - please ensure mecha is installed"
+                mecha_errors += 1
+            except Exception as e:
+                mecha_results[mcfunction_file] = f"Mecha validation error: {str(e)}"
+                mecha_errors += 1
+        
+        # Also run our custom linter for additional checks
         lint_results = lint_mcfunction_directory(datapack_dir)
         
         # Process results
         all_issues = []
-        total_files = 0
+        total_files = len(mcfunction_files)
         files_with_issues = 0
         
         for file_path, issues in lint_results.items():
-            total_files += 1
             if issues:
                 files_with_issues += 1
                 all_issues.extend(issues)
@@ -1390,6 +1430,10 @@ def cmd_check_advanced(args):
                     "errors": len([i for i in all_issues if i.severity == 'error']),
                     "warnings": len([i for i in all_issues if i.severity == 'warning']),
                     "info": len([i for i in all_issues if i.severity == 'info'])
+                },
+                "mecha_validation": {
+                    "files_with_errors": mecha_errors,
+                    "errors": {os.path.relpath(k, output_dir): v for k, v in mecha_results.items()}
                 },
                 "files": {}
             }
@@ -1414,8 +1458,20 @@ def cmd_check_advanced(args):
             print(f"📊 Advanced Linting Report")
             print(f"=" * 50)
             print(f"📁 Files analyzed: {total_files}")
-            print(f"⚠️  Files with issues: {files_with_issues}")
-            print(f"📝 Total issues: {len(all_issues)}")
+            print(f"⚠️  Files with custom linter issues: {files_with_issues}")
+            print(f"📝 Total custom linter issues: {len(all_issues)}")
+            print(f"🔍 Files with Mecha validation errors: {mecha_errors}")
+            
+            # Show Mecha validation results
+            if mecha_results:
+                print(f"\n❌ Mecha Validation Errors:")
+                for file_path, error_output in mecha_results.items():
+                    rel_path = os.path.relpath(file_path, output_dir)
+                    print(f"\n📄 {rel_path}")
+                    print("-" * 40)
+                    print(error_output)
+            else:
+                print(f"\n✅ All files passed Mecha validation!")
             
             if all_issues:
                 error_count = len([i for i in all_issues if i.severity == 'error'])
@@ -1447,8 +1503,9 @@ def cmd_check_advanced(args):
                 print("✅ No linting issues found!")
         
         # Return appropriate exit code
-        has_errors = any(issue.severity == 'error' for issues in lint_results.values() for issue in issues)
-        return 1 if has_errors else 0
+        has_custom_errors = any(issue.severity == 'error' for issues in lint_results.values() for issue in issues)
+        has_mecha_errors = mecha_errors > 0
+        return 1 if (has_custom_errors or has_mecha_errors) else 0
         
     except Exception as e:
         print(f"❌ Error during advanced linting: {e}")
