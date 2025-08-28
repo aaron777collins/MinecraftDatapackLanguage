@@ -5,4 +5,4 @@ alwaysApply: true
 ---
 
 - Use the MDL_AI_SPEC_SHEET (living spec doc) to remember the important context. Update it if it is out of date. Do NOT forget to follow the development cycle.
-- Make sure to follow steps 1-7 in the development life cycle
+- Make sure to follow steps 1-7 in the development life cycle. Do not start uninstalling and installing. The first upgrade is just to prime pypi. Actually read the spec sheet occassionally when you get confused. Update the spec sheet if needed.

@@ -416,33 +416,33 @@ function "boss" {
 on_tick "util:boss";
 
 // Function tag examples
-tag function "minecraft:load" {
-    add "example:hello";
+tag function minecraft:load {
+    add example:hello;
 }
 
-tag function "minecraft:tick" {
-    add "example:hello";
-    add "example:variable_demo";
-    add "example:conditional_demo";
-    add "example:weapon_effects";
-    add "example:loop_demo";
-    add "example:calculate_fibonacci";
-    add "example:process_data";
-    add "example:error_handling";
-    add "util:boss";
+tag function minecraft:tick {
+    add example:hello;
+    add example:variable_demo;
+    add example:conditional_demo;
+    add example:weapon_effects;
+    add example:loop_demo;
+    add example:calculate_fibonacci;
+    add example:process_data;
+    add example:error_handling;
+    add util:boss;
 }
 
 // Data tag examples across registries
-tag item "example:swords" {
-    add "minecraft:diamond_sword";
-    add "minecraft:netherite_sword";
-    add "minecraft:golden_sword";
+tag item example:swords {
+    add minecraft:diamond_sword;
+    add minecraft:netherite_sword;
+    add minecraft:golden_sword;
 }
 
-tag block "example:glassy" {
-    add "minecraft:glass";
-    add "minecraft:tinted_glass";
-    add "minecraft:white_stained_glass";
+tag block example:glassy {
+    add minecraft:glass;
+    add minecraft:tinted_glass;
+    add minecraft:white_stained_glass;
 }
 
 // Garbage collection
