@@ -1,8 +1,0 @@
-{
-  "replace": false,
-  "values": [
-    "test:basic_conditionals",
-    "test:entity_conditionals",
-    "test:complex_conditionals"
-  ]
-}
