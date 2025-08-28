@@ -1,0 +1,27 @@
+// test_list_operations.mdl - Test list append and remove operations
+pack "List Operations Test" description "Testing list append and remove" pack_format 82;
+namespace "test";
+
+// Test list variable declarations
+var list items = ["sword", "shield", "potion"];
+var list numbers = [1, 2, 3];
+
+function "test_operations" {
+    // Test append operations
+    items.append("ruby");
+    items.append("diamond");
+    numbers.append(4);
+    numbers.append(5);
+    
+    // Test remove operations (will show TODO comments for now)
+    items.remove("shield");
+    numbers.remove(2);
+    
+    // Test mixed operations
+    items.append("emerald");
+    numbers.append(6);
+}
+
+function "test" {
+    say List operations test;
+}

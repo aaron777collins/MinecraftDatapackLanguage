@@ -266,16 +266,16 @@ def _ast_to_pack(ast: Dict[str, Any], default_pack_format: int) -> Pack:
     )
     
     # Process functions by their namespace
-    for func in ast.get('functions', []):
-        if hasattr(func, 'name'):
-            func_name = func.name
+        for func in ast.get('functions', []):
+            if hasattr(func, 'name'):
+                func_name = func.name
             # Get the namespace for this function
             namespace_name = getattr(func, 'namespace', 'minecraft')  # Default to minecraft if no namespace
             ns = pack.namespace(namespace_name)
             
-            # Convert function body to commands
-            commands = _ast_to_commands(func.body)
-            if commands:
+                # Convert function body to commands
+                commands = _ast_to_commands(func.body)
+                if commands:
                 # Create function directly without going through old processing pipeline
                 fn = ns.functions.setdefault(func_name, Function(func_name, []))
                 fn.commands.extend(commands)
@@ -538,7 +538,7 @@ def _ast_to_commands(body: List[Any]) -> List[str]:
                 
             else:
                 # Unknown node type - skip for now
-                continue
+            continue
                 
     return commands
 

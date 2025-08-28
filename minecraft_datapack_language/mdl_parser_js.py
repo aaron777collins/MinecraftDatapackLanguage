@@ -4,7 +4,7 @@ Handles unlimited nesting with explicit block boundaries
 """
 
 from dataclasses import dataclass
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Union
 from .mdl_lexer_js import Token, TokenType, lex_mdl_js
 
 @dataclass
@@ -163,6 +163,16 @@ class ImportStatement(ASTNode):
     module: str
     alias: Optional[str]
     imports: List[str]
+
+@dataclass
+class ListAppendOperation(ASTNode):
+    list_name: str
+    value: 'Expression'
+
+@dataclass
+class ListRemoveOperation(ASTNode):
+    list_name: str
+    value: 'Expression'
 
 class MDLParser:
     """Parser for JavaScript-style MDL language with curly braces."""
@@ -392,12 +402,15 @@ class MDLParser:
             elif token.type == TokenType.COMMAND:
                 statements.append(self._parse_command())
             elif token.type == TokenType.IDENTIFIER:
-                # Check if this is a variable assignment or function call
+                # Check if this is a variable assignment, function call, or list operation
                 next_token = self._peek_next()
                 if next_token and next_token.type == TokenType.ASSIGN:
                     statements.append(self._parse_variable_assignment())
                 elif next_token and next_token.type == TokenType.LPAREN:
                     statements.append(self._parse_function_call_from_identifier())
+                elif next_token and next_token.type == TokenType.DOT:
+                    # This might be a list operation like items.append("value")
+                    statements.append(self._parse_list_operation())
                 else:
                     self._advance()  # Skip unknown tokens
             else:
@@ -847,6 +860,35 @@ class MDLParser:
             self._advance()
         
         return FunctionCall(function_name, arguments)
+
+    def _parse_list_operation(self) -> Union[ListAppendOperation, ListRemoveOperation]:
+        """Parse list operation like items.append("value") or items.remove("value")."""
+        list_name = self._match(TokenType.IDENTIFIER).value
+        self._match(TokenType.DOT)  # consume .
+        
+        # Parse the operation type
+        operation_token = self._peek()
+        if operation_token.type == TokenType.APPEND:
+            self._match(TokenType.APPEND)
+        elif operation_token.type == TokenType.REMOVE:
+            self._match(TokenType.REMOVE)
+        else:
+            raise ValueError(f"Expected 'append' or 'remove', got {operation_token.type}")
+        
+        # Parse the value in parentheses
+        self._match(TokenType.LPAREN)
+        value = self._parse_expression()
+        self._match(TokenType.RPAREN)
+        
+        # Expect semicolon
+        if self._peek() and self._peek().type == TokenType.SEMICOLON:
+            self._advance()
+        
+        # Return appropriate operation
+        if operation_token.type == TokenType.APPEND:
+            return ListAppendOperation(list_name, value)
+        else:
+            return ListRemoveOperation(list_name, value)
 
 def parse_mdl_js(source: str) -> Dict[str, Any]:
     """Parse JavaScript-style MDL source code."""

@@ -74,6 +74,7 @@ class TokenType(Enum):
     LBRACKET = "LBRACKET"  # [
     RBRACKET = "RBRACKET"  # ]
     COMMA = "COMMA"
+    DOT = "DOT"  # .
     
     # Special
     NEWLINE = "NEWLINE"
@@ -83,6 +84,10 @@ class TokenType(Enum):
     IMPORT = "IMPORT"
     FROM = "FROM"
     AS = "AS"
+    
+    # List operations
+    APPEND = "APPEND"
+    REMOVE = "REMOVE"
 
 @dataclass
 class Token:
@@ -159,6 +164,8 @@ class MDLLexer:
             (r'^import\b', TokenType.IMPORT),
             (r'^from\b', TokenType.FROM),
             (r'^as\b', TokenType.AS),
+            (r'^append\b', TokenType.APPEND),
+            (r'^remove\b', TokenType.REMOVE),
         ]
         
         # Check for keywords first (but handle for loops specially)
@@ -471,6 +478,8 @@ class MDLLexer:
                 self.tokens.append(Token(TokenType.RBRACKET, "]", line_num, 0))
             elif part == ",":
                 self.tokens.append(Token(TokenType.COMMA, ",", line_num, 0))
+            elif part == ".":
+                self.tokens.append(Token(TokenType.DOT, ".", line_num, 0))
             elif part == "=":
                 self.tokens.append(Token(TokenType.ASSIGN, "=", line_num, 0))
             elif part == "+":
@@ -531,6 +540,10 @@ class MDLLexer:
                 self.tokens.append(Token(TokenType.NAMESPACE, "namespace", line_num, 0))
             elif part == "pack":
                 self.tokens.append(Token(TokenType.PACK, "pack", line_num, 0))
+            elif part == "append":
+                self.tokens.append(Token(TokenType.APPEND, "append", line_num, 0))
+            elif part == "remove":
+                self.tokens.append(Token(TokenType.REMOVE, "remove", line_num, 0))
             elif re.match(r'^[a-zA-Z_][a-zA-Z0-9_:]*$', part):
                 self.tokens.append(Token(TokenType.IDENTIFIER, part, line_num, 0))
             else:
