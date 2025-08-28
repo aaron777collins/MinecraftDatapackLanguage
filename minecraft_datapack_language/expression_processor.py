@@ -49,6 +49,11 @@ class ExpressionProcessor:
             'StringConcatenation',   # "a" + "b"
         ]
         
+        # Also check for literal expressions that might be list length
+        if class_name == 'LiteralExpression' and hasattr(expr, 'value'):
+            if isinstance(expr.value, str) and '.length' in expr.value:
+                return True
+        
         return class_name in complex_types
     
     def process_list_access(self, list_name: str, index_expr, target_var: str) -> ProcessedExpression:
@@ -201,18 +206,29 @@ class ExpressionProcessor:
             return ProcessedExpression(commands, "", [])
         
         class_name = expr.__class__.__name__
+        print(f"DEBUG: Processing expression {class_name}: {expr}")
         
         if class_name == 'ListAccessExpression':
+            print(f"DEBUG: Processing ListAccessExpression: {expr.list_name}[{expr.index}]")
             return self.process_list_access(expr.list_name, expr.index, target_var)
         elif class_name == 'ListLengthExpression':
             return self.process_list_length(expr.list_name, target_var)
         elif class_name == 'BinaryExpression':
+            print(f"DEBUG: Processing BinaryExpression: {expr.left} {expr.operator} {expr.right}")
             return self.process_binary_expression(expr, target_var)
         elif class_name == 'LiteralExpression':
             if hasattr(expr, 'type'):
                 if expr.type == 'string':
                     value = expr.value.strip('"').strip("'")
-                    commands = [f"data modify storage mdl:variables {target_var} set value \"{value}\""]
+                    # Check if this is a list length expression
+                    if '.length' in value:
+                        list_name = value.split('.')[0]
+                        commands = [
+                            f"# Get length of {list_name}",
+                            f"execute store result score @s {target_var} run data get storage mdl:variables {list_name}"
+                        ]
+                    else:
+                        commands = [f"data modify storage mdl:variables {target_var} set value \"{value}\""]
                 elif expr.type == 'number':
                     commands = [f"scoreboard players set @s {target_var} {expr.value}"]
                 else:
@@ -224,7 +240,15 @@ class ExpressionProcessor:
                     commands = [f"scoreboard players set @s {target_var} {value}"]
                 except (ValueError, TypeError):
                     value = str(expr.value).strip('"').strip("'")
-                    commands = [f"data modify storage mdl:variables {target_var} set value \"{value}\""]
+                    # Check if this is a list length expression
+                    if '.length' in value:
+                        list_name = value.split('.')[0]
+                        commands = [
+                            f"# Get length of {list_name}",
+                            f"execute store result score @s {target_var} run data get storage mdl:variables {list_name}"
+                        ]
+                    else:
+                        commands = [f"data modify storage mdl:variables {target_var} set value \"{value}\""]
             return ProcessedExpression(commands, "", [])
         elif class_name == 'Identifier':
             # Variable reference

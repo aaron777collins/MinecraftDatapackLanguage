@@ -5,6 +5,7 @@ from .pack import Pack, Function
 from .utils import ensure_dir
 from .mdl_parser_js import parse_mdl_js
 from .expression_processor import expression_processor, ProcessedExpression
+print(f"DEBUG: Expression processor imported: {expression_processor}")
 from . import __version__
 
 def _slug(s: str) -> str:
@@ -534,10 +535,13 @@ def _ast_to_pack(ast: Dict[str, Any], default_pack_format: int) -> Pack:
 
 def _ast_to_commands(body: List[Any]) -> List[str]:
     """Convert AST function body to list of valid Minecraft commands."""
+    print(f"DEBUG: _ast_to_commands called with {len(body)} nodes")
     commands = []
-    for node in body:
+    for i, node in enumerate(body):
+        print(f"DEBUG: Processing node {i}: {type(node).__name__}")
         if hasattr(node, '__class__'):
             class_name = node.__class__.__name__
+            print(f"DEBUG: Node class: {class_name}")
             
             if class_name == 'Command':
                 # Remove semicolon from command and clean up
@@ -607,67 +611,31 @@ def _ast_to_commands(body: List[Any]) -> List[str]:
                 commands.append(f"function {function_name}")
                 
             elif class_name == 'VariableDeclaration':
+                print(f"DEBUG: Processing VariableDeclaration: {node.name}")
                 # Convert variable declarations to scoreboard commands
                 var_type = node.data_type
                 var_name = node.name
                 
+                # Initialize the variable based on type
                 if var_type == 'num':
-                    # Number variables use scoreboard
                     commands.append(f"scoreboard objectives add {var_name} dummy")
-                    if node.value:
-                        # Set initial value if provided
-                        try:
-                            if hasattr(node.value, 'value'):
-                                # It's a LiteralExpression
-                                initial_value = int(node.value.value)
-                            else:
-                                # It's a simple value
-                                initial_value = int(node.value)
-                            commands.append(f"scoreboard players set @s {var_name} {initial_value}")
-                        except (ValueError, TypeError):
-                            # If not a simple number, set to 0
-                            commands.append(f"scoreboard players set @s {var_name} 0")
-                    else:
-                        # No initial value, set to 0
-                        commands.append(f"scoreboard players set @s {var_name} 0")
                 elif var_type == 'str':
-                    # String variables use NBT storage
                     commands.append(f"data modify storage mdl:variables {var_name} set value \"\"")
-                    if node.value:
-                        # Set initial value if provided
-                        if hasattr(node.value, 'value'):
-                            # Handle LiteralExpression
-                            if hasattr(node.value, 'type') and node.value.type == 'string':
-                                initial_value = node.value.value.strip('"').strip("'")
-                            else:
-                                initial_value = str(node.value.value).strip('"').strip("'")
-                        else:
-                            # Handle case where value is a string representation of an object
-                            value_str = str(node.value)
-                            if "LiteralExpression" in value_str:
-                                # Extract the actual value from the string representation
-                                import re
-                                match = re.search(r"value='([^']*)'", value_str)
-                                if match:
-                                    initial_value = match.group(1)
-                                else:
-                                    initial_value = value_str.strip('"').strip("'")
-                            else:
-                                initial_value = value_str.strip('"').strip("'")
-                        commands.append(f"data modify storage mdl:variables {var_name} set value \"{initial_value}\"")
                 elif var_type == 'list':
-                    # List variables use NBT storage with array
                     commands.append(f"data modify storage mdl:variables {var_name} set value []")
-                    if node.value and hasattr(node.value, 'elements'):
-                        # Add initial values if provided
-                        for i, item in enumerate(node.value.elements):
-                            if hasattr(item, 'value'):
-                                # Handle string literals in lists
-                                item_value = item.value.strip('"')
-                                commands.append(f"data modify storage mdl:variables {var_name} append value \"{item_value}\"")
-                            else:
-                                # Handle other types - convert to string for now
-                                commands.append(f"data modify storage mdl:variables {var_name} append value \"unknown\"")
+                
+                # Handle the value using expression processor
+                if node.value:
+                    print(f"DEBUG: Processing variable declaration for {var_name}")
+                    print(f"DEBUG: Value type: {type(node.value).__name__}")
+                    print(f"DEBUG: Value: {node.value}")
+                    processed = expression_processor.process_expression(node.value, var_name)
+                    print(f"DEBUG: Processed result: {processed}")
+                    commands.extend(processed.temp_assignments)
+                    
+                    # If there's a final command, add it
+                    if processed.final_command:
+                        commands.append(processed.final_command)
                             
             elif class_name == 'VariableAssignment':
                 # Convert variable assignments to appropriate Minecraft commands
@@ -675,7 +643,11 @@ def _ast_to_commands(body: List[Any]) -> List[str]:
                 
                 if hasattr(node, 'value'):
                     # Use systematic expression processing
+                    print(f"DEBUG: Processing variable assignment for {var_name}")
+                    print(f"DEBUG: Value type: {type(node.value).__name__}")
+                    print(f"DEBUG: Value: {node.value}")
                     processed = expression_processor.process_expression(node.value, var_name)
+                    print(f"DEBUG: Processed result: {processed}")
                     commands.extend(processed.temp_assignments)
                     
                     # If there's a final command, add it
