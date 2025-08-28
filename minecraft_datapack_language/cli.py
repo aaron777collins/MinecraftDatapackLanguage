@@ -106,72 +106,71 @@ def cmd_new(args):
     root = os.path.abspath(args.path)
     ensure_dir(root)
     
-    # Generate pack declaration for modern JavaScript-style MDL format
-    pack_declaration = f'pack "{args.name}" description "Example datapack" pack_format {args.pack_format};'
-    
     # Add format-specific comment
     format_comment = "# Using modern JavaScript-style MDL format (v10+)"
     
-    sample = f"""
-// mypack.mdl - minimal example for Minecraft Datapack Language (JavaScript-style)
-{format_comment}
-{pack_declaration}
+    # Create the pack declaration separately to avoid f-string issues with array literals
+    pack_declaration = 'pack "{}" description "Example datapack" pack_format {} min_format [{}, 0] max_format [{}, 1] min_engine_version "1.21.4";'.format(args.name, args.pack_format, args.pack_format, args.pack_format)
+    
+    sample = """// mypack.mdl - minimal example for Minecraft Datapack Language (JavaScript-style)
+# Using modern JavaScript-style MDL format (v10+)
+""" + pack_declaration + """
 namespace "example";
 
-function "inner" {{
+function "inner" {
     say [example:inner] This is the inner function;
-    tellraw @a {{"text":"Running inner","color":"yellow"}};
-}}
+    tellraw @a {"text":"Running inner","color":"yellow"};
+}
 
-function "hello" {{
+function "hello" {
     say [example:hello] Outer says hi;
     function example:inner;
-    tellraw @a {{"text":"Back in hello","color":"aqua"}};
-}}
+    tellraw @a {"text":"Back in hello","color":"aqua"};
+}
 
 // Conditional example - detect different entity types with enhanced logic
-function "conditional_demo" {{
-    if "entity @s[type=minecraft:player]" {{
+function "conditional_demo" {
+    if "entity @s[type=minecraft:player]" {
         say Player detected!;
         effect give @s minecraft:glowing 5 1;
-        tellraw @a {{"text":"A player is nearby!","color":"green"}};
-    }} else if "entity @s[type=minecraft:zombie]" {{
+        tellraw @a {"text":"A player is nearby!","color":"green"};
+    } else if "entity @s[type=minecraft:zombie]" {
         say Zombie detected!;
         effect give @s minecraft:poison 5 1;
-        tellraw @a {{"text":"A zombie is nearby!","color":"red"}};
-    }} else if "entity @s[type=minecraft:creeper]" {{
+        tellraw @a {"text":"A zombie is nearby!","color":"red"};
+    } else if "entity @s[type=minecraft:creeper]" {
         say Creeper detected!;
         effect give @s minecraft:resistance 5 1;
-        tellraw @a {{"text":"A creeper is nearby!","color":"dark_red"}};
-    }} else {{
+        tellraw @a {"text":"A creeper is nearby!","color":"dark_red"};
+    } else {
         say Unknown entity detected;
-        tellraw @a {{"text":"Something unknown is nearby...","color":"gray"}};
-    }}
-}}
+        tellraw @a {"text":"Something unknown is nearby...","color":"gray"};
+    }
+}
 
 // Advanced conditional example - weapon effects system
-function "weapon_effects" {{
-    if "entity @s[type=minecraft:player,nbt={{SelectedItem:{{id:'minecraft:diamond_sword'}}}}]" {{
+function "weapon_effects" {
+    if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:'minecraft:diamond_sword'}}]" {
         say Diamond sword detected!;
         effect give @s minecraft:strength 10 1;
         effect give @s minecraft:glowing 10 0;
-    }} else if "entity @s[type=minecraft:player,nbt={{SelectedItem:{{id:'minecraft:golden_sword'}}}}]" {{
+    } else if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:'minecraft:golden_sword'}}]" {
         say Golden sword detected!;
         effect give @s minecraft:speed 10 1;
         effect give @s minecraft:night_vision 10 0;
-    }} else if "entity @s[type=minecraft:player]" {{
+    } else if "entity @s[type=minecraft:player]" {
         say Player without special weapon;
         effect give @s minecraft:haste 5 0;
-    }} else {{
+    } else {
         say No player found;
-    }}
-}}
+    }
+}
 
 // Variable system example
 var num global_counter = 0;
 var str global_message = "Hello World";
 
-function "variable_demo" {{
+function "variable_demo" {
     var num local_counter = 10;
     var str player_name = "Steve";
     
@@ -181,10 +180,10 @@ function "variable_demo" {{
     player_name = "Alex";
     global_message = "Updated: " + player_name;
     
-    if "score @s test:local_counter matches 15" {{
+    if "score @s test:local_counter matches 15" {
         say Counter is 15!;
-    }}
-}}
+    }
+}
 
 // Hook the function into load and tick
 on_load "example:hello";
@@ -196,42 +195,43 @@ on_tick "example:variable_demo";
 // Second namespace with a cross-namespace call
 namespace "util";
 
-function "helper" {{
+function "helper" {
     say [util:helper] Helping out...;
-}}
+}
 
-function "boss" {{
+function "boss" {
     say [util:boss] Calling example:hello then util:helper;
     function example:hello;
     function util:helper;
-}}
+}
 
 // Run boss every tick as well
 on_tick "util:boss";
 
 // Function tag examples
-tag function "minecraft:load" {{
+tag function "minecraft:load" {
     add "example:hello";
-}}
+}
 
-tag function "minecraft:tick" {{
+tag function "minecraft:tick" {
     add "example:hello";
     add "example:conditional_demo";
     add "example:weapon_effects";
     add "example:variable_demo";
     add "util:boss";
-}}
+}
 
 // Data tag examples across registries
-tag item "example:swords" {{
+tag item "example:swords" {
     add "minecraft:diamond_sword";
     add "minecraft:netherite_sword";
-}}
+}
 
-tag block "example:glassy" {{
+tag block "example:glassy" {
     add "minecraft:glass";
     add "minecraft:tinted_glass";
-}}
+}
+"""
 
 """
     with open(os.path.join(root, "mypack.mdl"), "w", encoding="utf-8") as f:
