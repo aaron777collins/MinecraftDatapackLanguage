@@ -245,13 +245,27 @@ def _ast_to_pack(ast: Dict[str, Any], default_pack_format: int) -> Pack:
     if pack_info:
         pack_name = pack_info.name
         pack_format = pack_info.pack_format
+        description = pack_info.description
+        min_format = pack_info.min_format.values if pack_info.min_format else None
+        max_format = pack_info.max_format.values if pack_info.max_format else None
+        min_engine_version = pack_info.min_engine_version
     else:
         pack_name = "Generated Pack"
         pack_format = default_pack_format
+        description = ""
+        min_format = None
+        max_format = None
+        min_engine_version = None
     
-    # Create pack
-    pack = Pack(pack_name)
-    pack.pack_format = pack_format
+    # Create pack with all metadata
+    pack = Pack(
+        name=pack_name,
+        description=description,
+        pack_format=pack_format,
+        min_format=min_format,
+        max_format=max_format,
+        min_engine_version=min_engine_version
+    )
     
     # Process namespaces and functions
     for namespace in ast.get('namespaces', []):

@@ -71,6 +71,8 @@ class TokenType(Enum):
     RBRACE = "RBRACE"
     LPAREN = "LPAREN"
     RPAREN = "RPAREN"
+    LBRACKET = "LBRACKET"  # [
+    RBRACKET = "RBRACKET"  # ]
     COMMA = "COMMA"
     
     # Special
@@ -313,7 +315,7 @@ class MDLLexer:
             remaining_line = remaining_line.replace(selector, placeholder, 1)
         
         # Handle compound tokens like (identifier) by adding spaces around special characters
-        remaining_line = re.sub(r'([(){}=+\-*/%<>!&|,;])', r' \1 ', remaining_line)
+        remaining_line = re.sub(r'([(){}\[\]{}=+\-*/%<>!&|,;])', r' \1 ', remaining_line)
         
         # Split the remaining line
         parts = remaining_line.split()
@@ -359,6 +361,10 @@ class MDLLexer:
                 self.tokens.append(Token(TokenType.LPAREN, "(", line_num, 0))
             elif part == ")":
                 self.tokens.append(Token(TokenType.RPAREN, ")", line_num, 0))
+            elif part == "[":
+                self.tokens.append(Token(TokenType.LBRACKET, "[", line_num, 0))
+            elif part == "]":
+                self.tokens.append(Token(TokenType.RBRACKET, "]", line_num, 0))
             elif part == ",":
                 self.tokens.append(Token(TokenType.COMMA, ",", line_num, 0))
             elif part == "=":

@@ -13,12 +13,16 @@ class ASTNode:
     pass
 
 @dataclass
+class ArrayLiteral(ASTNode):
+    values: List[int]
+
+@dataclass
 class PackDeclaration(ASTNode):
     name: str
     description: str
     pack_format: int
-    min_format: Optional[str] = None
-    max_format: Optional[str] = None
+    min_format: Optional[ArrayLiteral] = None
+    max_format: Optional[ArrayLiteral] = None
     min_engine_version: Optional[str] = None
 
 @dataclass
@@ -255,10 +259,10 @@ class MDLParser:
             field = self._peek().value
             if field == "min_format":
                 self._advance()
-                min_format = self._match(TokenType.STRING).value
+                min_format = self._parse_array_literal()
             elif field == "max_format":
                 self._advance()
-                max_format = self._match(TokenType.STRING).value
+                max_format = self._parse_array_literal()
             elif field == "min_engine_version":
                 self._advance()
                 min_engine_version = self._match(TokenType.STRING).value
@@ -274,6 +278,22 @@ class MDLParser:
             self._advance()
         
         return PackDeclaration(name, description, pack_format, min_format, max_format, min_engine_version)
+    
+    def _parse_array_literal(self) -> ArrayLiteral:
+        """Parse array literal like [82, 0]."""
+        self._match(TokenType.LBRACKET)
+        
+        values = []
+        while self._peek() and self._peek().type != TokenType.RBRACKET:
+            if values:  # Not the first element
+                self._match(TokenType.COMMA)
+            
+            # Parse number
+            token = self._match(TokenType.NUMBER)
+            values.append(int(token.value))
+        
+        self._match(TokenType.RBRACKET)
+        return ArrayLiteral(values)
     
     def _parse_namespace_declaration(self) -> NamespaceDeclaration:
         """Parse namespace declaration."""

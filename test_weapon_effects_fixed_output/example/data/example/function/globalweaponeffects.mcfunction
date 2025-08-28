@@ -1,6 +1,0 @@
-execute if entity @a run function example:globalweaponeffects_for_control_0
-execute if entity @s[nbt={SelectedItem:{id:'minecraft:diamond_sword'}}] run function example:globalweaponeffects_if_1
-execute unless entity @s[nbt={SelectedItem:{id:'minecraft:diamond_sword'}}] if entity @s[nbt={SelectedItem:{id:'minecraft:golden_sword'}}] run function example:globalweaponeffects_elif_2
-execute unless entity @s[nbt={SelectedItem:{id:'minecraft:diamond_sword'}}] unless entity @s[nbt={SelectedItem:{id:'minecraft:golden_sword'}}] if entity @s[nbt={SelectedItem:{id:'minecraft:netherite_sword'}}] run function example:globalweaponeffects_elif_3
-execute unless entity @s[nbt={SelectedItem:{id:'minecraft:diamond_sword'}}] unless entity @s[nbt={SelectedItem:{id:'minecraft:golden_sword'}}] unless entity @s[nbt={SelectedItem:{id:'minecraft:netherite_sword'}}] if entity @s[nbt={SelectedItem:{id:'minecraft:iron_sword'}}] run function example:globalweaponeffects_elif_4
-execute unless entity @s[nbt={SelectedItem:{id:'minecraft:diamond_sword'}}] unless entity @s[nbt={SelectedItem:{id:'minecraft:golden_sword'}}] unless entity @s[nbt={SelectedItem:{id:'minecraft:netherite_sword'}}] unless entity @s[nbt={SelectedItem:{id:'minecraft:iron_sword'}}] if entity @s[nbt={SelectedItem:{id:'minecraft:wooden_sword'}}] run function example:globalweaponeffects_elif_5

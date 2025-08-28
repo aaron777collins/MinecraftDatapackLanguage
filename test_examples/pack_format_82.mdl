@@ -1,5 +1,5 @@
 // pack_format_82.mdl - Test pack format 82 with additional metadata
-pack "pack_format_82" description "Testing pack format 82 metadata" pack_format 82;
+pack "pack_format_82" description "Testing pack format 82 metadata" pack_format 82 min_format [82, 0] max_format [82, 1] min_engine_version "1.21.4";
 
 namespace "test";
 

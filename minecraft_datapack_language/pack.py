@@ -506,6 +506,9 @@ class Pack:
 
     def merge(self, other: "Pack"):
         """Merge content of another Pack into this one. Raises on conflicting function names within same namespace."""
+        # Preserve metadata from the root pack (self) - don't override with other pack's metadata
+        # This ensures that the first pack's metadata (min_format, max_format, min_engine_version) is preserved
+        
         # Namespaces
         for ns_name, ns_other in other.namespaces.items():
             ns_self = self.namespaces.get(ns_name)
