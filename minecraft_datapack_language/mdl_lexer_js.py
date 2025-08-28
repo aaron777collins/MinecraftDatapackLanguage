@@ -323,21 +323,14 @@ class MDLLexer:
             method_call_pattern = r'^([a-zA-Z_][a-zA-Z0-9_]*)\s*\.\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*\((.+)\)\s*$'
             method_match = re.match(method_call_pattern, line.strip())
             object_name = method_match.group(1)
-            method_name = method_match.group(2)
-            arguments = method_match.group(3).rstrip(';').strip()
+            method_part = method_match.group(2) + "(" + method_match.group(3).rstrip(';').strip() + ")"
             
             # Add object name token
             self.tokens.append(Token(TokenType.IDENTIFIER, object_name, line_num, 0))
             # Add dot token
             self.tokens.append(Token(TokenType.DOT, ".", line_num, 0))
-            # Add method name token
-            self.tokens.append(Token(TokenType.IDENTIFIER, method_name, line_num, 0))
-            # Add opening parenthesis
-            self.tokens.append(Token(TokenType.LPAREN, "(", line_num, 0))
-            # Tokenize the arguments
-            self._tokenize_expression(arguments, line_num)
-            # Add closing parenthesis
-            self.tokens.append(Token(TokenType.RPAREN, ")", line_num, 0))
+            # Tokenize the method name and arguments using _tokenize_remaining
+            self._tokenize_remaining(method_part, line_num)
         # Check if this looks like a variable assignment (identifier = expression)
         elif re.match(r'^([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*(.+)$', line.strip()):
             # This is a variable assignment - tokenize it properly
