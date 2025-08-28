@@ -1,0 +1,557 @@
+// test_comprehensive_simple.mdl - Comprehensive MDL Feature Testing
+// This tests ALL features with complex combinations that work in MDL
+pack "Comprehensive Simple Test" description "Testing all MDL features with complex combinations" pack_format 82;
+namespace "comprehensive";
+
+// Global state variables for complex testing
+var num global_counter = 0;
+var num player_count = 0;
+var str global_message = "System Ready";
+var list global_numbers = [1, 2, 3, 4, 5];
+var list global_strings = ["apple", "banana", "cherry"];
+var list global_mixed = [10, "text", 20, "more"];
+var num max_iterations = 1000;
+
+// Test 1: Complex Variable Operations
+function "test_variable_operations" {
+    say === Testing Variable Operations ===;
+    
+    // Number operations
+    var num a = 10;
+    var num b = 5;
+    var num c = a + b;
+    var num d = a - b;
+    var num e = a * b;
+    var num f = a / b;
+    var num g = a % b;
+    
+    // String operations
+    var str first = "Hello";
+    var str second = "World";
+    var str combined = first + " " + second;
+    var str with_number = "Count: " + c;
+    
+    // List operations
+    var list numbers = [1, 2, 3, 4, 5];
+    var list strings = ["one", "two", "three"];
+    var list mixed = [10, "text", 20];
+    
+    // Complex calculations
+    var num result = (a + b) * c - d;
+    var num modulo_result = result % 7;
+    
+    say Variable operations complete;
+    tellraw @s {"text":"Result: " + result};
+    tellraw @s {"text":"Modulo: " + modulo_result};
+    tellraw @s {"text":"Combined: " + combined};
+}
+
+// Test 2: Advanced List Operations
+function "test_advanced_list_operations" {
+    say === Testing Advanced List Operations ===;
+    
+    // Initialize test lists
+    var list numbers = [10, 20, 30, 40, 50];
+    var list strings = ["alpha", "beta", "gamma"];
+    var list mixed = [100, "text", 200, "more"];
+    
+    // Test list access with variables
+    var num index = 2;
+    var num value = numbers[index];
+    var str string_value = strings[1];
+    
+    // Test list length
+    var num numbers_length = numbers.length;
+    var num strings_length = strings.length;
+    
+    // Test list modifications
+    numbers.append(60);
+    numbers.append(70);
+    strings.append("delta");
+    mixed.append(300);
+    
+    // Test list insertions
+    numbers.insert(1, 15);
+    strings.insert(0, "zeta");
+    mixed.insert(2, "inserted");
+    
+    // Test list removals
+    numbers.remove(15);
+    strings.remove("beta");
+    
+    // Test list pop operations
+    var num last_number = numbers.pop();
+    var str last_string = strings.pop();
+    
+    // Test list clearing
+    var list temp_list = [1, 2, 3];
+    temp_list.clear();
+    
+    say Advanced list operations complete;
+    tellraw @s {"text":"Numbers length: " + numbers_length};
+    tellraw @s {"text":"Last number: " + last_number};
+}
+
+// Test 3: Complex Conditional Logic
+function "test_complex_conditionals" {
+    say === Testing Complex Conditionals ===;
+    
+    var num player_level = 15;
+    var str player_class = "warrior";
+    var num experience = 75;
+    var num health = 18;
+    
+    // Nested conditionals with variables
+    if "score @s player_level >= 10" {
+        if "score @s player_class == 'warrior'" {
+            if "score @s experience >= 50" {
+                say Advanced warrior detected!;
+                effect give @s minecraft:strength 10 2;
+                
+                if "score @s health < 20" {
+                    say Low health warrior - applying healing;
+                    effect give @s minecraft:instant_health 1 1;
+                } else {
+                    say Healthy warrior - applying resistance;
+                    effect give @s minecraft:resistance 10 1;
+                }
+            } else {
+                say Novice warrior;
+                effect give @s minecraft:haste 10 0;
+            }
+        } else if "score @s player_class == 'mage'" {
+            say Advanced mage detected!;
+            effect give @s minecraft:night_vision 10 0;
+            effect give @s minecraft:levitation 5 0;
+        } else {
+            say Unknown advanced class;
+            effect give @s minecraft:glowing 10 0;
+        }
+    } else if "score @s player_level >= 5" {
+        say Intermediate player;
+        effect give @s minecraft:speed 10 0;
+    } else {
+        say Beginner player;
+        effect give @s minecraft:jump_boost 10 0;
+    }
+    
+    // Complex conditional with list operations
+    var list items = ["sword", "shield", "potion"];
+    var num item_count = items.length;
+    
+    if "score @s item_count >= 3" {
+        say Well-equipped player;
+        if "score @s items[0] == 'sword'" {
+            say Has sword - applying combat effects;
+            effect give @s minecraft:strength 10 1;
+        }
+    }
+}
+
+// Test 4: Advanced Loop Patterns
+function "test_advanced_loops" {
+    say === Testing Advanced Loops ===;
+    
+    // Nested loops with variables
+    var num outer_count = 0;
+    var num inner_count = 0;
+    var num total_iterations = 0;
+    
+    while "score @s outer_count < 3" {
+        inner_count = 0;
+        
+        while "score @s inner_count < 2" {
+            total_iterations = total_iterations + 1;
+            
+            // Complex calculation within loop
+            var num calculation = (outer_count * 10) + inner_count;
+            var num modulo_result = calculation % 5;
+            
+            if "score @s modulo_result == 0" {
+                say Perfect calculation: calculation;
+            } else {
+                say Calculation: calculation (mod 5 = modulo_result);
+            }
+            
+            inner_count = inner_count + 1;
+        }
+        
+        outer_count = outer_count + 1;
+    }
+    
+    // Loop with break and continue
+    var num break_counter = 0;
+    var num continue_counter = 0;
+    var num break_sum = 0;
+    var num continue_sum = 0;
+    
+    while "score @s break_counter < 10" {
+        break_counter = break_counter + 1;
+        
+        if "score @s break_counter == 7" {
+            break;
+        }
+        
+        break_sum = break_sum + break_counter;
+    }
+    
+    while "score @s continue_counter < 10" {
+        continue_counter = continue_counter + 1;
+        
+        if "score @s continue_counter % 2 == 0" {
+            continue;
+        }
+        
+        continue_sum = continue_sum + continue_counter;
+    }
+    
+    say Advanced loops complete;
+    tellraw @s {"text":"Total iterations: " + total_iterations};
+    tellraw @s {"text":"Break sum: " + break_sum};
+    tellraw @s {"text":"Continue sum: " + continue_sum};
+}
+
+// Test 5: Function Composition
+function "test_function_composition" {
+    say === Testing Function Composition ===;
+    
+    // Call other test functions
+    function "comprehensive:test_variable_operations";
+    function "comprehensive:test_advanced_list_operations";
+    
+    // Complex function chain
+    function "comprehensive:calculate_fibonacci";
+    function "comprehensive:process_player_data";
+    
+    say Function composition complete;
+}
+
+// Test 6: Mathematical Algorithms
+function "calculate_fibonacci" {
+    say === Calculating Fibonacci ===;
+    
+    var num n = 10;
+    var num a = 0;
+    var num b = 1;
+    var num i = 2;
+    var num temp = 0;
+    
+    while "score @s i <= n" {
+        temp = a + b;
+        a = b;
+        b = temp;
+        i = i + 1;
+        
+        // Safety check
+        if "score @s i > max_iterations" {
+            say Fibonacci calculation stopped for safety;
+            break;
+        }
+    }
+    
+    say Fibonacci result: b;
+    tellraw @s {"text":"Fibonacci(" + n + ") = " + b};
+}
+
+// Test 7: Data Processing
+function "process_player_data" {
+    say === Processing Player Data ===;
+    
+    // Simulate player data processing
+    var list player_scores = [85, 92, 78, 96, 88];
+    var list player_names = ["Alice", "Bob", "Charlie", "Diana", "Eve"];
+    var num total_score = 0;
+    var num average_score = 0;
+    var num highest_score = 0;
+    var str best_player = "";
+    
+    // Calculate total and find highest using while loops
+    var num i = 0;
+    while "score @s i < player_scores.length" {
+        var num current_score = player_scores[i];
+        var str current_name = player_names[i];
+        
+        total_score = total_score + current_score;
+        
+        if "score @s current_score > highest_score" {
+            highest_score = current_score;
+            best_player = current_name;
+        }
+        i = i + 1;
+    }
+    
+    // Calculate average
+    average_score = total_score / player_scores.length;
+    
+    // Find players above average
+    var list above_average = [];
+    i = 0;
+    while "score @s i < player_scores.length" {
+        var num current_score = player_scores[i];
+        var str current_name = player_names[i];
+        
+        if "score @s current_score > average_score" {
+            above_average.append(current_name);
+        }
+        i = i + 1;
+    }
+    
+    say Player data processing complete;
+    tellraw @s {"text":"Total score: " + total_score};
+    tellraw @s {"text":"Average score: " + average_score};
+    tellraw @s {"text":"Best player: " + best_player + " (" + highest_score + ")"};
+    tellraw @s {"text":"Above average players: " + above_average.length};
+}
+
+// Test 8: Complex List Logic
+function "test_complex_list_logic" {
+    say === Testing Complex List Logic ===;
+    
+    // Create complex data structures
+    var list numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+    var list even_numbers = [];
+    var list odd_numbers = [];
+    var list multiples_of_3 = [];
+    
+    // Complex list filtering with while loops
+    var num i = 0;
+    while "score @s i < numbers.length" {
+        var num num_value = numbers[i];
+        
+        if "score @s num_value % 2 == 0" {
+            even_numbers.append(num_value);
+        } else {
+            odd_numbers.append(num_value);
+        }
+        
+        if "score @s num_value % 3 == 0" {
+            multiples_of_3.append(num_value);
+        }
+        i = i + 1;
+    }
+    
+    // Process the filtered lists
+    var num even_sum = 0;
+    var num odd_sum = 0;
+    var num multiple_sum = 0;
+    
+    i = 0;
+    while "score @s i < even_numbers.length" {
+        even_sum = even_sum + even_numbers[i];
+        i = i + 1;
+    }
+    
+    i = 0;
+    while "score @s i < odd_numbers.length" {
+        odd_sum = odd_sum + odd_numbers[i];
+        i = i + 1;
+    }
+    
+    i = 0;
+    while "score @s i < multiples_of_3.length" {
+        multiple_sum = multiple_sum + multiples_of_3[i];
+        i = i + 1;
+    }
+    
+    say Complex list logic complete;
+    tellraw @s {"text":"Even numbers: " + even_numbers.length + " (sum: " + even_sum + ")"};
+    tellraw @s {"text":"Odd numbers: " + odd_numbers.length + " (sum: " + odd_sum + ")"};
+    tellraw @s {"text":"Multiples of 3: " + multiples_of_3.length + " (sum: " + multiple_sum + ")"};
+}
+
+// Test 9: Error Handling and Edge Cases
+function "test_error_handling" {
+    say === Testing Error Handling ===;
+    
+    // Test division by zero handling
+    var num dividend = 10;
+    var num divisor = 0;
+    var num result = 0;
+    
+    if "score @s divisor != 0" {
+        result = dividend / divisor;
+    } else {
+        result = 0;
+        say Division by zero prevented;
+    }
+    
+    // Test list bounds checking
+    var list test_list = [1, 2, 3];
+    var num safe_index = 1;
+    var num unsafe_index = 10;
+    var num safe_value = 0;
+    var num unsafe_value = 0;
+    
+    if "score @s safe_index < test_list.length" {
+        safe_value = test_list[safe_index];
+    }
+    
+    if "score @s unsafe_index < test_list.length" {
+        unsafe_value = test_list[unsafe_index];
+    } else {
+        unsafe_value = -1;
+        say List bounds check passed;
+    }
+    
+    // Test empty list operations
+    var list empty_list = [];
+    var num empty_length = empty_list.length;
+    
+    if "score @s empty_length == 0" {
+        say Empty list detected correctly;
+        empty_list.append("first_item");
+    }
+    
+    say Error handling tests complete;
+    tellraw @s {"text":"Safe value: " + safe_value};
+    tellraw @s {"text":"Unsafe value: " + unsafe_value};
+    tellraw @s {"text":"Empty list length: " + empty_length};
+}
+
+// Test 10: Performance and Optimization
+function "test_performance_patterns" {
+    say === Testing Performance Patterns ===;
+    
+    // Batch processing
+    var num batch_size = 5;
+    var num processed = 0;
+    var list large_list = [];
+    
+    // Create large list efficiently
+    var num i = 0;
+    while "score @s i < 20" {
+        large_list.append(i);
+        i = i + 1;
+    }
+    
+    // Process in batches
+    i = 0;
+    while "score @s i < large_list.length" {
+        var num value = large_list[i];
+        
+        // Process value
+        var num processed_value = value * 2;
+        processed = processed + 1;
+        
+        // Batch checkpoint
+        if "score @s processed % batch_size == 0" {
+            say Processed batch of batch_size items;
+        }
+        i = i + 1;
+    }
+    
+    // Memory management
+    var list temp_data = [1, 2, 3, 4, 5];
+    temp_data.clear();
+    
+    say Performance patterns complete;
+    tellraw @s {"text":"Total processed: " + processed};
+    tellraw @s {"text":"Large list size: " + large_list.length};
+}
+
+// Test 11: Real-world Simulation
+function "simulate_game_system" {
+    say === Simulating Game System ===;
+    
+    // Game state
+    var num game_time = 0;
+    var str game_state = "running";
+    var list active_players = ["Alice", "Bob", "Charlie"];
+    var list player_scores = [0, 0, 0];
+    var num round_number = 1;
+    
+    // Simulate game loop
+    while "score @s game_time < 10" {
+        game_time = game_time + 1;
+        
+        // Update player scores
+        var num i = 0;
+        while "score @s i < active_players.length" {
+            var num score_increase = (game_time + i) % 10;
+            player_scores[i] = player_scores[i] + score_increase;
+            i = i + 1;
+        }
+        
+        // Check for round completion
+        if "score @s game_time % 5 == 0" {
+            round_number = round_number + 1;
+            say Round round_number completed;
+            
+            // Award bonus points
+            i = 0;
+            while "score @s i < active_players.length" {
+                player_scores[i] = player_scores[i] + 10;
+                i = i + 1;
+            }
+        }
+        
+        // Check for game end conditions
+        if "score @s player_scores[0] >= 50" {
+            game_state = "finished";
+            say Game finished! Alice wins with player_scores[0] points;
+            break;
+        }
+    }
+    
+    // Calculate final statistics
+    var num total_score = 0;
+    var num highest_score = 0;
+    var str winner = "";
+    
+    i = 0;
+    while "score @s i < player_scores.length" {
+        var num current_score = player_scores[i];
+        var str current_player = active_players[i];
+        
+        total_score = total_score + current_score;
+        
+        if "score @s current_score > highest_score" {
+            highest_score = current_score;
+            winner = current_player;
+        }
+        i = i + 1;
+    }
+    
+    var num average_score = total_score / player_scores.length;
+    
+    say Game simulation complete;
+    tellraw @s {"text":"Winner: " + winner + " (" + highest_score + " points)"};
+    tellraw @s {"text":"Average score: " + average_score};
+    tellraw @s {"text":"Total game time: " + game_time};
+}
+
+// Test 12: Integration Test
+function "run_integration_test" {
+    say === Running Integration Test ===;
+    
+    // Test all features together
+    function "comprehensive:test_variable_operations";
+    function "comprehensive:test_advanced_list_operations";
+    function "comprehensive:test_complex_conditionals";
+    function "comprehensive:test_advanced_loops";
+    function "comprehensive:test_function_composition";
+    function "comprehensive:test_complex_list_logic";
+    function "comprehensive:test_error_handling";
+    function "comprehensive:test_performance_patterns";
+    function "comprehensive:simulate_game_system";
+    
+    say Integration test complete;
+    tellraw @s {"text":"All comprehensive tests completed successfully!","color":"green"};
+}
+
+// Main test function
+function "test" {
+    say ========================================;
+    say COMPREHENSIVE MDL FEATURE TESTING;
+    say ========================================;
+    
+    // Run all tests
+    function "comprehensive:run_integration_test";
+    
+    say ========================================;
+    say ALL TESTS COMPLETED SUCCESSFULLY;
+    say ========================================;
+}
+
+// Auto-start the comprehensive test
+on_tick "comprehensive:test";
