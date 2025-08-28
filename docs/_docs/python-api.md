@@ -503,25 +503,4 @@ if __name__ == "__main__":
     print("Complete example pack built successfully!")
 ```
 
-## Migration from Legacy API
-
-The Python API is fully backward compatible. If you have existing code, it will continue to work:
-
-```python
-# Legacy code still works
-from minecraft_datapack_language import Pack
-
-p = Pack("Legacy Pack", "Backward compatible", 48)  # Old pack format
-ns = p.namespace("legacy")
-ns.function("legacy_func", "say Legacy function")
-
-# New features are available
-p = Pack("New Pack", "New features", 82)  # New pack format
-ns = p.namespace("new")
-ns.function("new_func", "say New function")
-
-# Both work together
-p.build("dist")
-```
-
-The Python API provides a powerful, flexible way to create Minecraft datapacks while maintaining full compatibility with the new JavaScript-style MDL language features.
+The Python API provides a powerful, flexible way to create Minecraft datapacks with full support for the JavaScript-style MDL language features.

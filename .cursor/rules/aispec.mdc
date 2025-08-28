@@ -1,0 +1,7 @@
+---
+description: AI SPEC SHEET
+globs:
+alwaysApply: true
+---
+
+- Use the MDL_AI_SPEC_SHEET (living spec doc) to remember the important context. Update it if it is out of date. Do NOT forget to follow the development cycle.

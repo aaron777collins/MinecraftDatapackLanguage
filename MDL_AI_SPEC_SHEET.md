@@ -1,7 +1,9 @@
 # MDL (Minecraft Datapack Language) AI Specification Sheet
 
+NOTE: we want to fully implement this language. If you get stuck, take a step back and think about a better solution.
+
 ## Overview
-MDL is a JavaScript-style language that compiles to Minecraft datapack `.mcfunction` files. The language provides a modern, developer-friendly syntax for creating complex Minecraft datapacks with advanced features like variables, lists, functions, and control flow.
+MDL is a JavaScript-style language that compiles to Minecraft datapack `.mcfunction` files. The language provides a modern, developer-friendly syntax for creating complex Minecraft datapacks with advanced features like variables, lists, functions, control flow, and error handling.
 
 ## Core Language Features
 
@@ -9,8 +11,9 @@ MDL is a JavaScript-style language that compiles to Minecraft datapack `.mcfunct
 - **Pack Declaration**: `pack "pack_name" description "description" pack_format 82;`
 - **Namespace Declaration**: `namespace "namespace_name";`
 - **Function Declaration**: `function "function_name" { ... }`
-- **Curly Brace Blocks**: All code blocks use `{ }` syntax
+- **Curly Brace Blocks**: All code blocks use `{ }` syntax (JavaScript-style)
 - **Semicolons**: Required at the end of statements
+- **No Indentation Requirements**: Uses explicit block boundaries instead of indentation
 
 ### 2. Variable System
 - **Variable Types**:
@@ -46,50 +49,62 @@ MDL is a JavaScript-style language that compiles to Minecraft datapack `.mcfunct
 - **Variable Operations**: `result = a + b * c`
 
 ### 7. Control Flow
-- **If Statements**: `if (condition) { ... }`
-- **If-Else**: `if (condition) { ... } else { ... }`
-- **While Loops**: `while (condition) { ... }`
-- **For Loops**: `for (var i = 0; i < 10; i++) { ... }`
-- **For-In Loops**: `for (var item in list) { ... }`
+- **If Statements**: `if "condition" { ... }`
+- **If-Else**: `if "condition" { ... } else { ... }`
+- **While Loops**: `while "condition" { ... }`
+- **For Loops**: `for variable in selector { ... }`
+- **For-In Loops**: `for (var item in list) { ... }` (planned feature)
 
 ### 8. Functions and Commands
 - **Built-in Commands**: `say "message"`, `tellraw @s {"text":"message","color":"green"}`
 - **Custom Functions**: `function "my_function" { ... }`
-- **Function Calls**: `call "namespace:function_name"`
+- **Function Calls**: `function "namespace:function_name"`
+- **Cross-namespace Calls**: `function "namespace:function_name"`
 
 ### 9. Error Handling
-- **Try-Catch**: `try { ... } catch (error) { ... }`
-- **Throw**: `throw "error message"`
+- **Conditional Error Prevention**: Use if statements to prevent errors
+- **Bounds Checking**: Check list indices and array bounds before access
+- **Safe Operations**: Validate conditions before performing operations
 
 ### 10. Advanced Features
 - **Nested Expressions**: Complex expressions with multiple operations
 - **Variable Scope**: Proper scoping within functions and blocks
 - **Type Inference**: Automatic type detection for literals
 - **Memory Management**: Automatic garbage collection for temporary variables
+- **Explicit Block Boundaries**: All control structures use curly braces `{ }`
+- **Minecraft Selector Integration**: Conditions use valid Minecraft selector syntax
+- **Modern Datapack Format**: Uses pack format 82+ by default for latest features
+- **Multi-file Support**: Compile multiple MDL files into a single datapack
 
 ## Compilation Architecture
 
 ### 1. Lexer (`mdl_lexer_js.py`)
 - Tokenizes MDL source code into tokens
 - Handles keywords, literals, operators, and punctuation
-- Supports JavaScript-style syntax with curly braces
+- Supports JavaScript-style syntax with curly braces and semicolons
+- No indentation-based parsing - uses explicit block boundaries
 
 ### 2. Parser (`mdl_parser_js.py`)
 - Converts token stream into Abstract Syntax Tree (AST)
 - Handles complex expressions and nested structures
 - Supports function calls, list access, and binary operations
+- Parses curly brace blocks and semicolon-terminated statements
+- Supports control flow (if/else, while, for loops)
 
 ### 3. Expression Processor (`expression_processor.py`)
 - Systematically breaks down complex expressions
 - Generates temporary variables for intermediate calculations
 - Handles string concatenation, arithmetic, and list operations
 - Converts high-level expressions to Minecraft commands
+- Manages temporary variable cleanup and memory optimization
 
 ### 4. Compiler (`cli.py`)
 - Converts AST into Minecraft `.mcfunction` files
 - Manages datapack structure and file organization
 - Handles variable storage and scoreboard objectives
 - Generates proper Minecraft command syntax
+- Compiles control flow structures to separate functions
+- Handles loops, variables, and list operations
 
 ## Minecraft Integration
 
@@ -98,17 +113,20 @@ MDL is a JavaScript-style language that compiles to Minecraft datapack `.mcfunct
 - **Strings**: Stored in NBT storage (`storage mdl:variables`)
 - **Lists**: Stored as NBT arrays in storage
 - **Temporary Variables**: Generated for complex expressions
+- **Modern Format**: Defaults to pack format 82+ for modern datapack features
 
 ### 2. Command Generation
 - **Data Commands**: `data modify`, `data get`, `data set`
 - **Scoreboard Commands**: `scoreboard players set`, `scoreboard players operation`
-- **Execute Commands**: `execute store result`, `execute if`
+- **Execute Commands**: `execute store result`, `execute if`, `execute as`
 - **Tellraw Commands**: JSON-based text display
+- **Control Flow**: Generates separate functions for complex control structures
 
 ### 3. Datapack Structure
 - **Pack Metadata**: `pack.mcmeta` with format and description
 - **Function Files**: `.mcfunction` files in `data/namespace/function/`
 - **Tags**: Load and tick function tags for automation
+- **Modern Format**: Uses pack format 82+ by default for latest features
 
 ## Testing Workflow
 
@@ -166,12 +184,17 @@ When testing changes to the MDL language, follow this exact workflow:
 - Generated `.mcfunction` files must be valid Minecraft commands
 - Complex expressions must be properly broken down
 - Temporary variables must be correctly managed
+- Control flow structures must generate valid function calls
+- Variable assignments and list operations must work correctly
 
 ### 2. Feature Testing
 - Test each language feature individually
 - Test complex nested expressions
 - Test edge cases and error conditions
 - Verify Minecraft command output is correct
+- Test control flow structures (if/else, while, for)
+- Test variable operations and assignments
+- Test list operations and string concatenation
 
 ### 3. Integration Testing
 - Test complete datapack compilation
@@ -182,10 +205,11 @@ When testing changes to the MDL language, follow this exact workflow:
 ## Future Enhancements
 
 ### 1. Language Features
-- **Classes and Objects**: Object-oriented programming support
+- **For-in Loops**: List iteration with `for (var item in list)`
+- **Enhanced List Operations**: More efficient list manipulation
+- **Advanced Variable Types**: Support for more complex data structures
 - **Modules and Imports**: Code organization and reusability
-- **Advanced Types**: Custom data types and structures
-- **Macros**: Code generation and metaprogramming
+- **Performance Optimizations**: Faster compilation and execution
 
 ### 2. Compiler Improvements
 - **Optimization**: Reduce generated command count
@@ -208,20 +232,24 @@ When testing changes to the MDL language, follow this exact workflow:
 - String concatenation
 - Arithmetic operations
 - Function declarations
-- Basic control flow
+- Control flow (if/else, while, for loops)
 - Expression processing system
+- Modern datapack format (82+) by default
 
 ### 🔄 In Progress
-- Complex nested expressions
-- Error handling improvements
+- For-in loops for list iteration
+- Enhanced list operations (insert, remove, pop, clear)
+- Complex nested expressions optimization
 - Performance optimization
 - Documentation updates
 
 ### 📋 Planned Features
-- Advanced control flow
-- Object-oriented features
+- Advanced control flow optimizations
 - Module system
 - Advanced debugging tools
+- Enhanced error recovery
+- Performance optimizations
+- Advanced variable types
 
 ## Technical Requirements
 
@@ -230,6 +258,7 @@ When testing changes to the MDL language, follow this exact workflow:
 - **Git**: Version control and collaboration
 - **pipx**: Package management for development
 - **Minecraft**: Target platform for testing
+- **Modern Datapack Format**: Pack format 82+ for latest features
 
 ### Dependencies
 - **setuptools**: Package building and distribution

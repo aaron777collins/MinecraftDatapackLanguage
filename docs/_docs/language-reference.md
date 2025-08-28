@@ -39,10 +39,6 @@ pack "My Pack";  // Inline comments are also supported
 **Multi-file compilation**: Only the first file should have a pack declaration. All other files are treated as modules.
 
 ```mdl
-// Legacy format (pre-82)
-pack "Pack Name" [description "Description"] [pack_format N];
-
-// Modern format (82+)
 pack "Pack Name" [description "Description"] [pack_format N] [min_format [major, minor]] [max_format [major, minor]] [min_engine_version "version"];
 ```
 
@@ -63,12 +59,6 @@ pack "Pack Name" [description "Description"] [pack_format N] [min_format [major,
 **Examples:**
 
 ```mdl
-// Legacy format (pre-82)
-pack "My Datapack";
-pack "My Datapack" description "A cool datapack";
-pack "My Datapack" description "For older versions" pack_format 47;
-
-// Modern format (82+)
 pack "My Datapack" pack_format 82 min_format [82, 0] max_format [82, 1] min_engine_version "1.21.4";
 pack "My Datapack" description "A cool datapack" pack_format 82 min_format [82, 0] max_format [82, 1];
 pack "My Datapack" description "For newer versions" pack_format 83 min_format [83, 0] max_format [83, 2];

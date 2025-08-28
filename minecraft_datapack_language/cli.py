@@ -108,14 +108,10 @@ def cmd_new(args):
     root = os.path.abspath(args.path)
     ensure_dir(root)
     
-    # Add format-specific comment
-    format_comment = "# Using modern JavaScript-style MDL format (v10+)"
-    
     # Create the pack declaration separately to avoid f-string issues with array literals
     pack_declaration = 'pack "{}" description "Example datapack" pack_format {} min_format [{}, 0] max_format [{}, 1] min_engine_version "1.21.4";'.format(args.name, args.pack_format, args.pack_format, args.pack_format)
     
     sample = """// mypack.mdl - Advanced example showcasing ALL MDL features
-# Using modern JavaScript-style MDL format (v10+) with full feature set
 """ + pack_declaration + """
 namespace "example";
 
@@ -716,11 +712,30 @@ def _ast_to_commands(body: List[Any]) -> List[str]:
                 selector = node.selector.strip('"')
                 loop_body = _ast_to_commands(node.body)
                 
-                # Generate loop commands
-                for cmd in loop_body:
-                    # Replace @s with the loop variable selector
-                    modified_cmd = cmd.replace('@s', selector)
-                    commands.append(f"execute as {selector} run {modified_cmd}")
+                # Check if this is a for-in loop (list iteration)
+                if selector.startswith('var ') or selector in ['list', 'items', 'elements']:
+                    # This is a for-in loop for list iteration
+                    list_name = selector.replace('var ', '').strip()
+                    commands.append(f"# For-in loop over {list_name}")
+                    commands.append(f"execute store result storage mdl:temp loop_index int 1 run data get storage mdl:variables {list_name}")
+                    commands.append(f"execute if data storage mdl:variables {list_name} run function {current_namespace}:for_in_{variable}_{list_name}")
+                    # Generate the loop body function
+                    loop_func_name = f"for_in_{variable}_{list_name}"
+                    loop_func_commands = []
+                    for cmd in loop_body:
+                        # Replace variable references with list element access
+                        modified_cmd = cmd.replace(f"@{variable}", f"storage mdl:variables {list_name}[storage mdl:temp loop_index]")
+                        loop_func_commands.append(modified_cmd)
+                    # Store the loop function for later generation
+                    if not hasattr(current_pack, 'loop_functions'):
+                        current_pack.loop_functions = {}
+                    current_pack.loop_functions[loop_func_name] = loop_func_commands
+                else:
+                    # This is a regular for loop over entities
+                    for cmd in loop_body:
+                        # Replace @s with the loop variable selector
+                        modified_cmd = cmd.replace('@s', selector)
+                        commands.append(f"execute as {selector} run {modified_cmd}")
                     
             elif class_name == 'WhileLoop':
                 # Convert while loops to Minecraft conditional commands
@@ -738,6 +753,56 @@ def _ast_to_commands(body: List[Any]) -> List[str]:
             elif class_name == 'ContinueStatement':
                 # Skip continue statements for now
                 continue
+                
+            elif class_name == 'SwitchStatement':
+                # Switch statements are not supported in this version
+                commands.append(f"# Switch statement - not supported")
+                commands.append(f"say Switch statements are not supported in this version")
+                
+            elif class_name == 'TryCatchStatement':
+                # Try-catch statements are not supported in this version
+                commands.append(f"# Try-catch statement - not supported")
+                commands.append(f"say Try-catch statements are not supported in this version")
+                
+            elif class_name == 'ThrowStatement':
+                # Throw statements are not supported in this version
+                commands.append(f"# Throw statement - not supported")
+                commands.append(f"say Throw statements are not supported in this version")
+                
+            elif class_name == 'ReturnStatement':
+                # Convert return statements to Minecraft commands
+                if hasattr(node, 'value') and node.value:
+                    if hasattr(node.value, 'value'):
+                        return_value = node.value.value
+                        commands.append(f"# Return value: {return_value}")
+                    else:
+                        commands.append(f"# Return statement")
+                else:
+                    commands.append(f"# Return (no value)")
+                
+            elif class_name == 'ListAccessExpression':
+                # Convert list access to Minecraft NBT commands
+                list_name = node.list_name
+                if hasattr(node.index, 'value'):
+                    index = node.index.value
+                    commands.append(f"# Access element at index {index} from {list_name}")
+                    commands.append(f"execute store result storage mdl:temp index int 1 run scoreboard players get @s {index}")
+                    commands.append(f"data modify storage mdl:temp element set from storage mdl:variables {list_name}[storage mdl:temp index]")
+                elif hasattr(node.index, 'name'):
+                    # Variable index
+                    index_var = node.index.name
+                    commands.append(f"# Access element at variable index {index_var} from {list_name}")
+                    commands.append(f"execute store result storage mdl:temp index int 1 run scoreboard players get @s {index_var}")
+                    commands.append(f"data modify storage mdl:temp element set from storage mdl:variables {list_name}[storage mdl:temp index]")
+                else:
+                    commands.append(f"# Access element from {list_name} (complex index)")
+                    commands.append(f"data modify storage mdl:temp element set from storage mdl:variables {list_name}[0]")
+                    
+            elif class_name == 'ListLengthExpression':
+                # Convert list length to Minecraft commands
+                list_name = node.list_name
+                commands.append(f"# Get length of {list_name}")
+                commands.append(f"execute store result score @s temp_length run data get storage mdl:variables {list_name}")
                 
             elif class_name == 'ListAppendOperation':
                 # Convert list append operations to Minecraft NBT commands

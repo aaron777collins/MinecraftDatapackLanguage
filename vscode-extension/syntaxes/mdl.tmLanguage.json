@@ -15,7 +15,7 @@
       "match": "\"([^\"\\\\]|\\\\.)*\""
     },
     {
-      "name": "comment.line.number-sign.mdl",
+      "name": "comment.line.mdl",
       "match": "//.*$"
     },
     {

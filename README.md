@@ -1,6 +1,6 @@
-# <img src="https://github.com/aaron777collins/MinecraftDatapackLanguage/raw/main/icons/icon-128.png" width="32" height="32" alt="MDL Icon"> Minecraft Datapack Language (MDL) v10
+# <img src="https://github.com/aaron777collins/MinecraftDatapackLanguage/raw/main/icons/icon-128.png" width="32" height="32" alt="MDL Icon"> Minecraft Datapack Language (MDL)
 
-A powerful compiler that lets you write Minecraft datapacks in a modern JavaScript-style language (`.mdl`) **or** via a clean Python API, and then compiles to the correct 1.21+ datapack folder layout automatically.
+A powerful compiler that lets you write Minecraft datapacks in a modern JavaScript-style language (`.mdl`) or via a clean Python API, and then compiles to the correct 1.21+ datapack folder layout automatically.
 
 📖 **[View Full Documentation](https://aaron777collins.github.io/MinecraftDatapackLanguage/)** - Complete guides, examples, and API reference  
 📦 **[View on PyPI](https://pypi.org/project/minecraft-datapack-language/)** - Download and install from PyPI  
@@ -12,9 +12,9 @@ A powerful compiler that lets you write Minecraft datapacks in a modern JavaScri
 ![PyPI](https://img.shields.io/pypi/v/minecraft-datapack-language?style=flat-square)
 ![Release](https://github.com/aaron777collins/MinecraftDatapackLanguage/workflows/Release/badge.svg)
 
-## 🆕 Version 10 - Modern JavaScript-Style MDL Language
+## 🎯 Modern JavaScript-Style MDL Language
 
-**Version 10 introduces a completely new JavaScript-style MDL language format** with modern programming features:
+**MDL uses a modern JavaScript-style language format** with advanced programming features:
 
 ### ✨ Modern Features
 - **🎯 JavaScript-style syntax** with curly braces `{}` and semicolons `;`
