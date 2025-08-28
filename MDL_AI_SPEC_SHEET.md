@@ -346,7 +346,7 @@ This document serves as the comprehensive specification and implementation guide
 
 ## Current Version Status
 
-**Latest Version**: v10.1.68
+**Latest Version**: v10.1.69
 **Status**: Highly functional MDL compiler with comprehensive feature set
 **Known Issues**: All major issues resolved!
 **Next Priority**: Continue testing and documentation improvements
@@ -454,6 +454,21 @@ The MDL language implementation is now substantially complete with all major fea
    - **Impact**: These commands will **FAIL** in Minecraft - they are invalid mcfunction syntax
    - **Fix**: ✅ **IMPLEMENTED** - Proper mcfunction arithmetic with temporary objectives
    - **Status**: **FIXED** in v10.1.68 - All scoreboard operations now generate valid mcfunction syntax
+
+2. **Invalid Scoreboard Comparison Syntax** ✅ **FIXED** (Multiple instances)
+   - **Issue**: `execute if score @s i <= n` - Missing target for comparison
+   - **Fix**: Should be `execute if score @s i <= @s n`
+   - **Status**: **FIXED** in v10.1.69 - All scoreboard comparisons now use proper syntax
+
+3. **Invalid Tellraw String Concatenation** ✅ **FIXED** (Multiple instances)
+   - **Issue**: `tellraw @s {"text":"Fibonacci(" + n + ") = " + b}` - Minecraft doesn't support `+` in JSON
+   - **Fix**: Use proper JSON array format with score components
+   - **Status**: **FIXED** in v10.1.69 - All tellraw commands now use valid JSON syntax
+
+4. **Invalid Say Commands with Variables** ✅ **FIXED** (Multiple instances)
+   - **Issue**: `say Fibonacci result: b` - Can't display variable values in say commands
+   - **Fix**: Convert to tellraw with proper JSON format
+   - **Status**: **FIXED** in v10.1.69 - All say commands with variables now use tellraw
 
 ## **Performance and Style Issues** (38 instances)
 
