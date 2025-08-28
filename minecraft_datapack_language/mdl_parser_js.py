@@ -404,19 +404,14 @@ class MDLParser:
             elif token.type == TokenType.IDENTIFIER:
                 # Check if this is a variable assignment, function call, or list operation
                 next_token = self._peek_next()
-                print(f"DEBUG: IDENTIFIER found, next_token = {next_token.type if next_token else 'None'}")  # Debug output
                 if next_token and next_token.type == TokenType.ASSIGN:
-                    print(f"DEBUG: Calling _parse_variable_assignment")  # Debug output
                     statements.append(self._parse_variable_assignment())
                 elif next_token and next_token.type == TokenType.DOT:
                     # This might be a list operation like items.append("value")
-                    print(f"DEBUG: Calling _parse_list_operation")  # Debug output
                     statements.append(self._parse_list_operation())
                 elif next_token and next_token.type == TokenType.LPAREN:
-                    print(f"DEBUG: Calling _parse_function_call_from_identifier")  # Debug output
                     statements.append(self._parse_function_call_from_identifier())
                 else:
-                    print(f"DEBUG: Skipping unknown tokens")  # Debug output
                     self._advance()  # Skip unknown tokens
             else:
                 self._advance()  # Skip unknown tokens
@@ -868,14 +863,11 @@ class MDLParser:
 
     def _parse_list_operation(self) -> Union[ListAppendOperation, ListRemoveOperation]:
         """Parse list operation like items.append("value") or items.remove("value")."""
-        print(f"DEBUG: _parse_list_operation called")  # Debug output
         list_name = self._match(TokenType.IDENTIFIER).value
-        print(f"DEBUG: list_name = {list_name}")  # Debug output
         self._match(TokenType.DOT)  # consume .
         
         # Parse the operation type
         operation_token = self._peek()
-        print(f"DEBUG: operation_token = {operation_token.type}")  # Debug output
         if operation_token.type == TokenType.APPEND:
             self._match(TokenType.APPEND)
         elif operation_token.type == TokenType.REMOVE:
@@ -894,13 +886,9 @@ class MDLParser:
         
         # Return appropriate operation
         if operation_token.type == TokenType.APPEND:
-            result = ListAppendOperation(list_name, value)
-            print(f"DEBUG: Returning ListAppendOperation")  # Debug output
-            return result
+            return ListAppendOperation(list_name, value)
         else:
-            result = ListRemoveOperation(list_name, value)
-            print(f"DEBUG: Returning ListRemoveOperation")  # Debug output
-            return result
+            return ListRemoveOperation(list_name, value)
 
 def parse_mdl_js(source: str) -> Dict[str, Any]:
     """Parse JavaScript-style MDL source code."""
