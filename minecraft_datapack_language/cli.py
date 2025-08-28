@@ -681,7 +681,8 @@ def _ast_to_commands(body: List[Any], current_namespace: str = "test", current_p
                         commands.append(f"scoreboard objectives add {var_name} dummy")
                     elif var_type == 'str' and not node.value:
                         # Only initialize empty string if no value is provided
-                        commands.append(f"data modify storage mdl:variables {var_name} set value \"\"")
+                        # Don't initialize empty strings - they'll be set when needed
+                        pass
                     elif var_type == 'list' and not node.value:
                         # Only initialize empty list if no value is provided
                         commands.append(f"data modify storage mdl:variables {var_name} set value []")

@@ -162,78 +162,144 @@ class ExpressionProcessor:
         if operator == '+':
             if is_right_literal:
                 # For literal numbers, use direct add
-                return f"scoreboard players operation @s {target} = @s {left}\nscoreboard players add @s {target} {right}"
+                if left == target:
+                    # Avoid self-assignment
+                    return f"scoreboard players add @s {target} {right}"
+                else:
+                    return f"scoreboard players operation @s {target} = @s {left}\nscoreboard players add @s {target} {right}"
             else:
                 # For variable operands, use scoreboard operation
-                return f"scoreboard players operation @s {target} = @s {left}\nscoreboard players operation @s {target} += @s {right}"
+                if left == target:
+                    # Avoid self-assignment
+                    return f"scoreboard players operation @s {target} += @s {right}"
+                else:
+                    return f"scoreboard players operation @s {target} = @s {left}\nscoreboard players operation @s {target} += @s {right}"
         
         elif operator == '-':
             if is_right_literal:
                 # For literal numbers, use direct remove
-                return f"scoreboard players operation @s {target} = @s {left}\nscoreboard players remove @s {target} {right}"
+                if left == target:
+                    # Avoid self-assignment
+                    return f"scoreboard players remove @s {target} {right}"
+                else:
+                    return f"scoreboard players operation @s {target} = @s {left}\nscoreboard players remove @s {target} {right}"
             else:
                 # For variable operands, use scoreboard operation
-                return f"scoreboard players operation @s {target} = @s {left}\nscoreboard players operation @s {target} -= @s {right}"
+                if left == target:
+                    # Avoid self-assignment
+                    return f"scoreboard players operation @s {target} -= @s {right}"
+                else:
+                    return f"scoreboard players operation @s {target} = @s {left}\nscoreboard players operation @s {target} -= @s {right}"
         
         elif operator == '*':
             if is_right_literal:
                 # For multiplication with literal, we need to create a temporary objective
                 temp_obj = f"temp_{right}"
-                return f"scoreboard objectives add {temp_obj} dummy\nscoreboard players set @s {temp_obj} {right}\nscoreboard players operation @s {target} = @s {left}\nscoreboard players operation @s {target} *= @s {temp_obj}"
+                if left == target:
+                    # Avoid self-assignment
+                    return f"scoreboard objectives add {temp_obj} dummy\nscoreboard players set @s {temp_obj} {right}\nscoreboard players operation @s {target} *= @s {temp_obj}"
+                else:
+                    return f"scoreboard objectives add {temp_obj} dummy\nscoreboard players set @s {temp_obj} {right}\nscoreboard players operation @s {target} = @s {left}\nscoreboard players operation @s {target} *= @s {temp_obj}"
             else:
                 # For variable operands, use scoreboard operation
-                return f"scoreboard players operation @s {target} = @s {left}\nscoreboard players operation @s {target} *= @s {right}"
+                if left == target:
+                    # Avoid self-assignment
+                    return f"scoreboard players operation @s {target} *= @s {right}"
+                else:
+                    return f"scoreboard players operation @s {target} = @s {left}\nscoreboard players operation @s {target} *= @s {right}"
         
         elif operator == '/':
             if is_right_literal:
                 # For division with literal, we need to create a temporary objective
                 temp_obj = f"temp_{right}"
-                return f"scoreboard objectives add {temp_obj} dummy\nscoreboard players set @s {temp_obj} {right}\nscoreboard players operation @s {target} = @s {left}\nscoreboard players operation @s {target} /= @s {temp_obj}"
+                if left == target:
+                    # Avoid self-assignment
+                    return f"scoreboard objectives add {temp_obj} dummy\nscoreboard players set @s {temp_obj} {right}\nscoreboard players operation @s {target} /= @s {temp_obj}"
+                else:
+                    return f"scoreboard objectives add {temp_obj} dummy\nscoreboard players set @s {temp_obj} {right}\nscoreboard players operation @s {target} = @s {left}\nscoreboard players operation @s {target} /= @s {temp_obj}"
             else:
                 # For variable operands, use scoreboard operation
-                return f"scoreboard players operation @s {target} = @s {left}\nscoreboard players operation @s {target} /= @s {right}"
+                if left == target:
+                    # Avoid self-assignment
+                    return f"scoreboard players operation @s {target} /= @s {right}"
+                else:
+                    return f"scoreboard players operation @s {target} = @s {left}\nscoreboard players operation @s {target} /= @s {right}"
         
         elif operator == '%':
             if is_right_literal:
                 # For modulo with literal, we need to create a temporary objective
                 temp_obj = f"temp_{right}"
-                return f"scoreboard objectives add {temp_obj} dummy\nscoreboard players set @s {temp_obj} {right}\nscoreboard players operation @s {target} = @s {left}\nscoreboard players operation @s {target} %= @s {temp_obj}"
+                if left == target:
+                    # Avoid self-assignment
+                    return f"scoreboard objectives add {temp_obj} dummy\nscoreboard players set @s {temp_obj} {right}\nscoreboard players operation @s {target} %= @s {temp_obj}"
+                else:
+                    return f"scoreboard objectives add {temp_obj} dummy\nscoreboard players set @s {temp_obj} {right}\nscoreboard players operation @s {target} = @s {left}\nscoreboard players operation @s {target} %= @s {temp_obj}"
             else:
                 # For variable operands, use scoreboard operation
-                return f"scoreboard players operation @s {target} = @s {left}\nscoreboard players operation @s {target} %= @s {right}"
+                if left == target:
+                    # Avoid self-assignment
+                    return f"scoreboard players operation @s {target} %= @s {right}"
+                else:
+                    return f"scoreboard players operation @s {target} = @s {left}\nscoreboard players operation @s {target} %= @s {right}"
         
         else:
             # Default to addition for unknown operators
             if is_right_literal:
-                return f"scoreboard players operation @s {target} = @s {left}\nscoreboard players add @s {target} {right}"
+                if left == target:
+                    # Avoid self-assignment
+                    return f"scoreboard players add @s {target} {right}"
+                else:
+                    return f"scoreboard players operation @s {target} = @s {left}\nscoreboard players add @s {target} {right}"
             else:
-                return f"scoreboard players operation @s {target} = @s {left}\nscoreboard players operation @s {target} += @s {right}"
+                if left == target:
+                    # Avoid self-assignment
+                    return f"scoreboard players operation @s {target} += @s {right}"
+                else:
+                    return f"scoreboard players operation @s {target} = @s {left}\nscoreboard players operation @s {target} += @s {right}"
     
     def process_string_concatenation(self, parts: List, target_var: str) -> ProcessedExpression:
         """Process string concatenation like "a" + b + "c" """
-        commands = [f"data modify storage mdl:variables {target_var} set value \"\""]
+        commands = []
         temp_vars = []
         
-        for part in parts:
-            if self.is_literal_string(part):
-                # Literal string - direct append
-                value = part.value.strip('"').strip("'")
-                commands.append(f"data modify storage mdl:variables {target_var} append value \"{value}\"")
-            elif hasattr(part, 'name'):
-                # Variable reference - directly copy from storage
-                # For string variables, copy directly; for numeric, use macro
-                commands.append(f"data modify storage mdl:variables {target_var} append from storage mdl:variables {part.name}")
-            elif self.is_complex_expression(part):
-                # Complex expression - evaluate first
-                temp_var = self.generate_temp_var("concat")
-                temp_vars.append(temp_var)
-                part_result = self.process_expression(part, temp_var)
-                commands.extend(part_result.temp_assignments)
-                commands.append(f"data modify storage mdl:variables {target_var} append from storage mdl:variables {temp_var}")
+        # Start with the first part instead of empty string
+        if parts:
+            first_part = parts[0]
+            if self.is_literal_string(first_part):
+                # Literal string - start with it
+                value = first_part.value.strip('"').strip("'")
+                commands.append(f"data modify storage mdl:variables {target_var} set value \"{value}\"")
+            elif hasattr(first_part, 'name'):
+                # Variable reference - start with it
+                commands.append(f"data modify storage mdl:variables {target_var} set from storage mdl:variables {first_part.name}")
             else:
-                # Simple value
-                value = str(part).strip('"').strip("'")
-                commands.append(f"data modify storage mdl:variables {target_var} append value \"{value}\"")
+                # Simple value - start with it
+                value = str(first_part).strip('"').strip("'")
+                commands.append(f"data modify storage mdl:variables {target_var} set value \"{value}\"")
+            
+            # Process remaining parts
+            for part in parts[1:]:
+                if self.is_literal_string(part):
+                    # Literal string - direct append
+                    value = part.value.strip('"').strip("'")
+                    commands.append(f"data modify storage mdl:variables {target_var} append value \"{value}\"")
+                elif hasattr(part, 'name'):
+                    # Variable reference - directly copy from storage
+                    commands.append(f"data modify storage mdl:variables {target_var} append from storage mdl:variables {part.name}")
+                elif self.is_complex_expression(part):
+                    # Complex expression - evaluate first
+                    temp_var = self.generate_temp_var("concat")
+                    temp_vars.append(temp_var)
+                    part_result = self.process_expression(part, temp_var)
+                    commands.extend(part_result.temp_assignments)
+                    commands.append(f"data modify storage mdl:variables {target_var} append from storage mdl:variables {temp_var}")
+                else:
+                    # Simple value
+                    value = str(part).strip('"').strip("'")
+                    commands.append(f"data modify storage mdl:variables {target_var} append value \"{value}\"")
+        else:
+            # Empty concatenation - set empty string
+            commands.append(f"data modify storage mdl:variables {target_var} set value \"\"")
         
         return ProcessedExpression(commands, "", temp_vars)
     
@@ -251,10 +317,14 @@ class ExpressionProcessor:
         if self.is_literal_string(expr.left) or self.is_literal_string(expr.right):
             return True
         
-        # Check if either operand is a string variable
-        if hasattr(expr.left, 'name') and expr.left.name in ['item', 'message']:  # Known string variables
+        # Check if either operand is a string variable (any variable could be a string)
+        if hasattr(expr.left, 'name'):
             return True
-        if hasattr(expr.right, 'name') and expr.right.name in ['item', 'message']:  # Known string variables
+        if hasattr(expr.right, 'name'):
+            return True
+        
+        # Check if either operand is a complex expression that might result in a string
+        if self.is_complex_expression(expr.left) or self.is_complex_expression(expr.right):
             return True
         
         return False
@@ -315,6 +385,9 @@ class ExpressionProcessor:
             # Variable reference
             commands = [f"scoreboard players operation @s {target_var} = @s {expr.name}"]
             return ProcessedExpression(commands, "", [])
+        elif hasattr(expr, 'left') and hasattr(expr, 'right') and hasattr(expr, 'operator'):
+            # This is a binary expression that wasn't caught by BinaryExpression class
+            return self.process_binary_expression(expr, target_var)
         elif class_name == 'ListExpression':
             # Handle list assignments
             commands = [f"data modify storage mdl:variables {target_var} set value []"]
@@ -370,6 +443,9 @@ class ExpressionProcessor:
             if hasattr(expr, 'name'):
                 # This might be a variable reference that wasn't caught by Identifier
                 commands = [f"scoreboard players operation @s {target_var} = @s {expr.name}"]
+            elif hasattr(expr, 'left') and hasattr(expr, 'right') and hasattr(expr, 'operator'):
+                # This is a binary expression that wasn't caught - process it
+                return self.process_binary_expression(expr, target_var)
             else:
                 # Fallback to string conversion with warning
                 print(f"WARNING: Unknown expression type {type(expr)}: {expr}")
