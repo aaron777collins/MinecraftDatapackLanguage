@@ -311,7 +311,7 @@ class ExpressionProcessor:
                     else:
                         commands = [f"data modify storage mdl:variables {target_var} set value \"{value}\""]
             return ProcessedExpression(commands, "", [])
-        elif class_name == 'Identifier':
+        elif class_name == 'Identifier' or class_name == 'VariableExpression':
             # Variable reference
             commands = [f"scoreboard players operation @s {target_var} = @s {expr.name}"]
             return ProcessedExpression(commands, "", [])
@@ -366,8 +366,14 @@ class ExpressionProcessor:
                 commands = [f"data modify storage mdl:variables {target_var} set value \"{str(expr)}\""]
                 return ProcessedExpression(commands, "", [])
         else:
-            # Unknown expression type - convert to string
-            commands = [f"data modify storage mdl:variables {target_var} set value \"{str(expr)}\""]
+            # Unknown expression type - try to handle it more intelligently
+            if hasattr(expr, 'name'):
+                # This might be a variable reference that wasn't caught by Identifier
+                commands = [f"scoreboard players operation @s {target_var} = @s {expr.name}"]
+            else:
+                # Fallback to string conversion with warning
+                print(f"WARNING: Unknown expression type {type(expr)}: {expr}")
+                commands = [f"data modify storage mdl:variables {target_var} set value \"{str(expr)}\""]
             return ProcessedExpression(commands, "", [])
     
     def process_condition(self, condition: str) -> ProcessedExpression:
