@@ -591,8 +591,7 @@ def _ast_to_commands(body: List[Any], current_namespace: str = "test", current_p
             print(f"DEBUG: Node class: {class_name}")
             
             try:
-            
-            if class_name == 'Command':
+                if class_name == 'Command':
                 # Remove semicolon from command and clean up
                 command = node.command.rstrip(';').strip()
                 
@@ -654,12 +653,12 @@ def _ast_to_commands(body: List[Any], current_namespace: str = "test", current_p
                 else:
                     commands.append(command)
                 
-            elif class_name == 'FunctionCall':
-                # Convert function call to Minecraft function command
-                function_name = node.function_name
-                commands.append(f"function {function_name}")
-                
-            elif class_name == 'VariableDeclaration':
+                elif class_name == 'FunctionCall':
+                    # Convert function call to Minecraft function command
+                    function_name = node.function_name
+                    commands.append(f"function {function_name}")
+                    
+                elif class_name == 'VariableDeclaration':
                 print(f"DEBUG: Processing VariableDeclaration: {node.name}")
                 # Convert variable declarations to scoreboard commands
                 var_type = node.data_type
@@ -686,7 +685,7 @@ def _ast_to_commands(body: List[Any], current_namespace: str = "test", current_p
                     if processed.final_command:
                         commands.append(processed.final_command)
                             
-            elif class_name == 'VariableAssignment':
+                elif class_name == 'VariableAssignment':
                 # Convert variable assignments to appropriate Minecraft commands
                 var_name = node.name
                 
@@ -713,7 +712,7 @@ def _ast_to_commands(body: List[Any], current_namespace: str = "test", current_p
                             # Unknown type - skip
                             continue
                         
-            elif class_name == 'IfStatement':
+                elif class_name == 'IfStatement':
                 # Convert if statements to Minecraft conditional commands
                 condition = node.condition.strip('"')
                 if_body = _ast_to_commands(node.body)
@@ -759,7 +758,7 @@ def _ast_to_commands(body: List[Any], current_namespace: str = "test", current_p
                     for cmd in else_body:
                         commands.append(f"execute {unless_conditions} run {cmd}")
                         
-            elif class_name == 'ForLoop':
+                elif class_name == 'ForLoop':
                 # Convert for loops to Minecraft iteration commands
                 variable = node.variable
                 selector = node.selector.strip('"')
@@ -771,7 +770,7 @@ def _ast_to_commands(body: List[Any], current_namespace: str = "test", current_p
                     modified_cmd = cmd.replace('@s', selector)
                     commands.append(f"execute as {selector} run {modified_cmd}")
                     
-            elif class_name == 'ForInLoop':
+                elif class_name == 'ForInLoop':
                 # Convert for-in loops to Minecraft list iteration commands
                 variable = node.variable
                 list_name = node.list_name
@@ -817,7 +816,7 @@ def _ast_to_commands(body: List[Any], current_namespace: str = "test", current_p
                 current_pack.loop_functions[loop_func_name] = loop_func_commands
                 current_pack.loop_functions[body_func_name] = body_commands
                     
-            elif class_name == 'WhileLoop':
+                elif class_name == 'WhileLoop':
                 # Convert while loops to Minecraft conditional commands
                 condition = node.condition.strip('"')
                 loop_body = _ast_to_commands(node.body)
@@ -834,33 +833,33 @@ def _ast_to_commands(body: List[Any], current_namespace: str = "test", current_p
                 # Skip continue statements for now
                 continue
                 
-            elif class_name == 'SwitchStatement':
-                # Switch statements are not supported in this version
-                commands.append(f"# Switch statement - not supported")
-                commands.append(f"say Switch statements are not supported in this version")
+                elif class_name == 'SwitchStatement':
+                    # Switch statements are not supported in this version
+                    commands.append(f"# Switch statement - not supported")
+                    commands.append(f"say Switch statements are not supported in this version")
                 
-            elif class_name == 'TryCatchStatement':
-                # Try-catch statements are not supported in this version
-                commands.append(f"# Try-catch statement - not supported")
-                commands.append(f"say Try-catch statements are not supported in this version")
+                elif class_name == 'TryCatchStatement':
+                    # Try-catch statements are not supported in this version
+                    commands.append(f"# Try-catch statement - not supported")
+                    commands.append(f"say Try-catch statements are not supported in this version")
                 
-            elif class_name == 'ThrowStatement':
-                # Throw statements are not supported in this version
-                commands.append(f"# Throw statement - not supported")
-                commands.append(f"say Throw statements are not supported in this version")
+                elif class_name == 'ThrowStatement':
+                    # Throw statements are not supported in this version
+                    commands.append(f"# Throw statement - not supported")
+                    commands.append(f"say Throw statements are not supported in this version")
                 
-            elif class_name == 'ReturnStatement':
-                # Convert return statements to Minecraft commands
-                if hasattr(node, 'value') and node.value:
-                    if hasattr(node.value, 'value'):
-                        return_value = node.value.value
-                        commands.append(f"# Return value: {return_value}")
+                elif class_name == 'ReturnStatement':
+                    # Convert return statements to Minecraft commands
+                    if hasattr(node, 'value') and node.value:
+                        if hasattr(node.value, 'value'):
+                            return_value = node.value.value
+                            commands.append(f"# Return value: {return_value}")
+                        else:
+                            commands.append(f"# Return statement")
                     else:
-                        commands.append(f"# Return statement")
-                else:
-                    commands.append(f"# Return (no value)")
-                
-            elif class_name == 'ListAccessExpression':
+                        commands.append(f"# Return (no value)")
+                    
+                elif class_name == 'ListAccessExpression':
                 # Convert list access to Minecraft NBT commands
                 list_name = node.list_name
                 if hasattr(node.index, 'value'):
@@ -878,7 +877,7 @@ def _ast_to_commands(body: List[Any], current_namespace: str = "test", current_p
                     commands.append(f"# Access element from {list_name} (complex index)")
                     commands.append(f"data modify storage mdl:temp element set from storage mdl:variables {list_name}[0]")
                     
-            elif class_name == 'ListLengthExpression':
+                elif class_name == 'ListLengthExpression':
                 # Convert list length to Minecraft commands
                 list_name = node.list_name
                 commands.append(f"# Get length of {list_name}")
@@ -886,7 +885,7 @@ def _ast_to_commands(body: List[Any], current_namespace: str = "test", current_p
                 commands.append(f"# Store length in a more accessible variable")
                 commands.append(f"scoreboard players operation @s list_length = @s {list_name}_length")
                 
-            elif class_name == 'ListAppendOperation':
+                elif class_name == 'ListAppendOperation':
                 # Convert list append operations to Minecraft NBT commands
                 list_name = node.list_name
                 if hasattr(node.value, 'value'):
@@ -910,7 +909,7 @@ def _ast_to_commands(body: List[Any], current_namespace: str = "test", current_p
                     # Unknown value type - skip
                     continue
                     
-            elif class_name == 'ListRemoveOperation':
+                elif class_name == 'ListRemoveOperation':
                 # Convert list remove operations to Minecraft NBT commands
                 list_name = node.list_name
                 if hasattr(node.value, 'value'):
@@ -940,7 +939,7 @@ def _ast_to_commands(body: List[Any], current_namespace: str = "test", current_p
                     # Unknown value type - skip
                     continue
                     
-            elif class_name == 'ListInsertOperation':
+                elif class_name == 'ListInsertOperation':
                 # Convert list insert operations to Minecraft NBT commands
                 list_name = node.list_name
                 if hasattr(node.index, 'value') and hasattr(node.value, 'value'):
@@ -968,7 +967,7 @@ def _ast_to_commands(body: List[Any], current_namespace: str = "test", current_p
                     # Unknown value type - skip
                     continue
                     
-            elif class_name == 'ListPopOperation':
+                elif class_name == 'ListPopOperation':
                 # Convert list pop operations to Minecraft NBT commands
                 list_name = node.list_name
                 if node.index:
@@ -983,26 +982,26 @@ def _ast_to_commands(body: List[Any], current_namespace: str = "test", current_p
                     commands.append(f"execute store result storage mdl:temp last_index int 1 run data get storage mdl:variables {list_name}")
                     commands.append(f"execute if data storage mdl:variables {list_name} run data remove storage mdl:variables {list_name}[storage mdl:temp last_index]")
                     
-            elif class_name == 'ListClearOperation':
+                elif class_name == 'ListClearOperation':
                 # Convert list clear operations to Minecraft NBT commands
                 list_name = node.list_name
                 commands.append(f"# Clear all elements from {list_name}")
                 commands.append(f"data modify storage mdl:variables {list_name} set value []")
                 
-            elif class_name == 'BreakStatement':
-                # Handle break statements in loops
-                commands.append(f"# Break statement - exit current loop")
-                commands.append(f"execute unless score @s break_flag matches 1.. run scoreboard players set @s break_flag 1")
+                elif class_name == 'BreakStatement':
+                    # Handle break statements in loops
+                    commands.append(f"# Break statement - exit current loop")
+                    commands.append(f"execute unless score @s break_flag matches 1.. run scoreboard players set @s break_flag 1")
                 
-            elif class_name == 'ContinueStatement':
-                # Handle continue statements in loops
-                commands.append(f"# Continue statement - skip to next iteration")
-                commands.append(f"execute unless score @s continue_flag matches 1.. run scoreboard players set @s continue_flag 1")
+                elif class_name == 'ContinueStatement':
+                    # Handle continue statements in loops
+                    commands.append(f"# Continue statement - skip to next iteration")
+                    commands.append(f"execute unless score @s continue_flag matches 1.. run scoreboard players set @s continue_flag 1")
                 
-            elif class_name == 'ReturnStatement':
-                # Skip return statements for now
-                continue
-                
+                elif class_name == 'ReturnStatement':
+                    # Skip return statements for now
+                    continue
+                    
             else:
                 # Unknown node type - skip for now
                 continue

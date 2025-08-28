@@ -177,6 +177,7 @@ When testing changes to the MDL language, follow this exact workflow:
 - **PyPI takes time** to update after release
 - **First upgrade** often fails, second one works
 - **Version numbers** increment automatically with patch releases
+- **Remove all old features you come across** We want to remove old features in the docs, examples, tests, etc. For example: we stopped supporting try catch and switch statements.
 
 ## Quality Assurance
 
