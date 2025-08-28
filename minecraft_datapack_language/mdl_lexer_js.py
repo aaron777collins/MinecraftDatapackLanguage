@@ -204,6 +204,23 @@ class MDLLexer:
                 self._tokenize_remaining(remaining, line_num)
             return
         
+        # Check for method calls (identifier.method(args))
+        method_match = re.match(r'^([a-zA-Z_][a-zA-Z0-9_]*)\s*\.\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*\((.*)\)', line.strip())
+        if method_match:
+            # This is a method call like items.append("value")
+            list_name = method_match.group(1)
+            method_name = method_match.group(2)
+            args = method_match.group(3)
+            
+            # Tokenize the list name
+            self.tokens.append(Token(TokenType.IDENTIFIER, list_name, line_num, 0))
+            self.tokens.append(Token(TokenType.DOT, ".", line_num, 0))
+            
+            # Tokenize the method name and arguments
+            method_part = method_name + "(" + args + ")"
+            self._tokenize_remaining(method_part, line_num)
+            return
+        
         # Check for function calls (identifier followed by parentheses)
         if '(' in line and not line.startswith('if ') and not line.startswith('while ') and not line.startswith('for '):
             # This might be a function call
