@@ -825,6 +825,56 @@ PY
 
 ---
 
+## 🔧 Development System
+
+MDL includes a comprehensive development system that allows you to work with both stable and development versions simultaneously.
+
+### Quick Setup
+
+**Linux/macOS:**
+```bash
+./scripts/dev_setup.sh
+```
+
+**Windows (PowerShell):**
+```powershell
+.\scripts\dev_setup.ps1
+```
+
+### Development Commands
+
+- **`mdl`** - Stable, globally installed version
+- **`mdlbeta`** - Local development version for testing changes
+
+### Development Workflow
+
+1. **Make changes** to the code
+2. **Rebuild** the development version:
+   ```bash
+   ./scripts/dev_build.sh
+   ```
+3. **Test** your changes with `mdlbeta`:
+   ```bash
+   mdlbeta build --mdl your_file.mdl -o dist
+   ```
+4. **Compare** with stable version:
+   ```bash
+   mdl build --mdl your_file.mdl -o dist_stable
+   ```
+
+### Testing
+
+**Test the development environment:**
+```bash
+# Linux/macOS
+./scripts/test_dev.sh
+
+# Windows (PowerShell)
+.\scripts\test_dev.ps1
+```
+
+For more details, see [DEVELOPMENT.md](DEVELOPMENT.md).
+
 ## 🔧 VS Code Extension
 
 Get syntax highlighting, linting, and build commands for `.mdl` files in VS Code, Cursor, and other VS Code-based editors.

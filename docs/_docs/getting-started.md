@@ -60,6 +60,32 @@ cd MinecraftDatapackLanguage
 python -m pip install -e .
 ```
 
+### Development System Setup
+
+MDL includes a comprehensive development system for contributors:
+
+**Linux/macOS:**
+```bash
+./scripts/dev_setup.sh
+```
+
+**Windows (PowerShell):**
+```powershell
+.\scripts\dev_setup.ps1
+```
+
+This sets up:
+- **`mdl`** - Stable, globally installed version
+- **`mdlbeta`** - Local development version for testing changes
+
+**Development Workflow:**
+1. Make changes to the code
+2. Run `./scripts/dev_build.sh` to rebuild the development version
+3. Test with `mdlbeta build --mdl your_file.mdl -o dist`
+4. Compare with `mdl build --mdl your_file.mdl -o dist_stable`
+
+For detailed development information, see [DEVELOPMENT.md](https://github.com/aaron777collins/MinecraftDatapackLanguage/blob/main/DEVELOPMENT.md).
+
 ## Updating MDL
 
 - **pipx**: `pipx upgrade minecraft-datapack-language`

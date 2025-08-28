@@ -31,7 +31,7 @@ This document summarizes the implementation of if/else if/else functionality in 
 
 ### Core Implementation
 - `minecraft_datapack_language/pack.py` - Added `_process_conditionals` method
-- `minecraft_datapack_language/mdl_parser.py` - No changes (uses post-processing approach)
+- `minecraft_datapack_language/mdl_parser_js.py` - JavaScript-style parser with modern syntax
 
 ### Documentation
 - `README.md` - Added conditional blocks section

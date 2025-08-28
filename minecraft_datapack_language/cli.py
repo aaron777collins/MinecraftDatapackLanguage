@@ -576,16 +576,22 @@ def _ast_to_pack(ast: Dict[str, Any], default_pack_format: int) -> Pack:
     
     return pack
 
-def _add_final_command(commands: List[str], final_command: str):
+def _add_final_command(commands: List[str], final_command: str, execute_prefix: str = ""):
     """Helper function to add final command, splitting on newlines if needed"""
     if '\n' in final_command:
-        # Split the command and add each part separately
+        # Split the command and add each part separately with execute prefix
         parts = final_command.split('\n')
         for part in parts:
             if part.strip():  # Skip empty lines
-                commands.append(part)
+                if execute_prefix and not part.startswith('#'):
+                    commands.append(f"{execute_prefix} {part}")
+                else:
+                    commands.append(part)
     else:
-        commands.append(final_command)
+        if execute_prefix and not final_command.startswith('#'):
+            commands.append(f"{execute_prefix} {final_command}")
+        else:
+            commands.append(final_command)
 
 
 
@@ -611,12 +617,12 @@ def _ast_to_commands(body: List[Any], current_namespace: str = "test", current_p
                         commands.append(f"{execute_prefix} {command}")
                     else:
                         commands.append(command)
-                    
+                
                 elif class_name == 'FunctionCall':
                     # Convert function call to Minecraft function command
                     function_name = node.function_name
                     commands.append(f"function {function_name}")
-                    
+                
                 elif class_name == 'VariableDeclaration':
                     # Convert variable declarations to scoreboard commands
                     var_type = node.data_type
@@ -644,7 +650,7 @@ def _ast_to_commands(body: List[Any], current_namespace: str = "test", current_p
                         # If there's a final command, add it with execute prefix
                         if processed.final_command:
                             _add_final_command(commands, processed.final_command, execute_prefix)
-                                
+                            
                 elif class_name == 'VariableAssignment':
                     # Convert variable assignments to appropriate Minecraft commands
                     var_name = node.name
@@ -663,7 +669,7 @@ def _ast_to_commands(body: List[Any], current_namespace: str = "test", current_p
                         # If there's a final command, add it with execute prefix
                         if processed.final_command:
                             _add_final_command(commands, processed.final_command, execute_prefix)
-                            
+                        
                 elif class_name == 'IfStatement':
                     # Convert if statements to Minecraft conditional commands
                     condition = node.condition.strip('"')
@@ -791,13 +797,13 @@ def _ast_to_commands(body: List[Any], current_namespace: str = "test", current_p
                             commands.append(f"# Else statement")
                             for cmd in else_commands:
                                 commands.append(f"execute unless {condition} run {cmd}")
-                            
+                        
                 elif class_name == 'ForLoop':
                     # Convert for loops to Minecraft iteration commands
                     variable = node.variable
                     selector = node.selector.strip('"')
                     loop_body = _ast_to_commands(node.body, current_namespace, current_pack)
-                    
+                
                     # Generate loop commands
                     commands.append(f"# For loop over {selector}")
                     for cmd in loop_body:
@@ -890,7 +896,7 @@ def _ast_to_commands(body: List[Any], current_namespace: str = "test", current_p
                     commands.append(f"# While loop: {condition_str}")
                     for cmd in loop_body:
                         commands.append(f"execute if {condition_str} run {cmd}")
-                        
+                    
                 elif class_name == 'BreakStatement':
                     # Handle break statements in loops
                     commands.append(f"# Break statement - exit current loop")
@@ -942,7 +948,7 @@ def _ast_to_commands(body: List[Any], current_namespace: str = "test", current_p
                     else:
                         # Unknown built-in function - skip
                         continue
-                    
+                
                 elif class_name == 'ListAppendOperation':
                     # Convert list append operations to Minecraft NBT commands
                     list_name = node.list_name
@@ -1037,7 +1043,7 @@ def _ast_to_commands(body: List[Any], current_namespace: str = "test", current_p
                     list_name = node.list_name
                     commands.append(f"# Clear list {list_name}")
                     commands.append(f"data modify storage mdl:variables {list_name} set value []")
-                    
+                
                 else:
                     # Unknown node type - skip for now
                     continue

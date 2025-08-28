@@ -92,6 +92,21 @@ This document serves as the comprehensive specification and implementation guide
 - **Operator Precedence**: Correct mathematical precedence handling
 - **Temporary Variables**: Efficient handling of intermediate results
 
+## Development System
+
+### ✅ **IMPLEMENTED** - Dual Command System
+- **Stable Command**: `mdl` - Globally installed stable version
+- **Development Command**: `mdlbeta` - Local development version for testing
+- **Setup Scripts**: `scripts/dev_setup.sh` and `scripts/dev_setup.ps1`
+- **Build Scripts**: `scripts/dev_build.sh` and `scripts/dev_build.ps1`
+- **Test Scripts**: `scripts/test_dev.sh` and `scripts/test_dev.ps1`
+
+### ✅ **IMPLEMENTED** - Development Workflow
+- **Initial Setup**: `./scripts/dev_setup.sh` installs `mdlbeta` command
+- **Development Testing**: Use `mdlbeta` for testing changes before release
+- **Version Comparison**: Compare `mdlbeta` and `mdl` outputs for compatibility
+- **Clean Separation**: Development and stable versions work independently
+
 ## Compilation Architecture
 
 ### ✅ **IMPLEMENTED** - Lexer (`mdl_lexer_js.py`)
@@ -209,33 +224,34 @@ This document serves as the comprehensive specification and implementation guide
 - Implement new features or fix bugs
 - Update documentation and specs
 
-### **Step 2**: Commit and Push ✅
+### **Step 2**: Development Testing ✅
+- `./scripts/dev_build.sh` - Build and install development version
+- `mdlbeta build --mdl test_file.mdl -o output_dir --verbose` - Test with development version
+- Verify changes work as expected with `mdlbeta`
+
+### **Step 3**: Commit and Push ✅
 - `git add .`
 - `git commit -m "descriptive message"`
 - `git push`
 
-### **Step 3**: Release ✅
+### **Step 4**: Release ✅
 - `bash scripts/release.sh patch`
 - Automatically increments version and creates GitHub release
 - Builds and uploads packages to PyPI
 
-### **Step 4**: Wait for PyPI Update ✅
+### **Step 5**: Wait for PyPI Update ✅
 - Allow time for PyPI to process and distribute the new package
 - Usually takes 20 seconds
 
-### **Step 5**: Package Upgrade ✅
+### **Step 6**: Package Upgrade ✅
 - `pipx upgrade minecraft-datapack-language`
 - Ensure latest version is installed locally
 - May need to run multiple times until latest version appears
 
-### **Step 6**: Repeat Upgrade ✅
-- Continue running `pipx upgrade` until version matches released version
-- Critical step to ensure testing uses latest code
-
-### **Step 7**: Testing ✅
-- `mdl build --mdl test_file.mdl -o output_dir --verbose`
+### **Step 7**: Final Testing ✅
+- `mdl build --mdl test_file.mdl -o output_dir --verbose` - Test with stable version
+- Compare outputs between `mdlbeta` and `mdl` to ensure compatibility
 - Verify all features work as expected
-- Run comprehensive feature tests
 
 ## Implementation Status
 

@@ -47,7 +47,7 @@ MinecraftDatapackLanguage/
 ├── minecraft_datapack_language/    # Main package
 │   ├── __init__.py
 │   ├── cli.py                      # Command-line interface
-│   ├── mdl_parser.py               # MDL language parser
+│   ├── mdl_parser_js.py            # JavaScript-style MDL parser
 │   ├── pack.py                     # Pack generation
 │   └── utils.py                    # Utility functions
 ├── vscode-extension/               # VS Code extension
