@@ -444,7 +444,20 @@ The MDL language implementation is now substantially complete with all major fea
 
 **From comprehensive check-advanced analysis of generated mcfunction files:**
 
-1. **Redundant Scoreboard Operations** ⚠️ (2 instances)
+## **🚨 CRITICAL SYNTAX ERRORS** (4 instances) - **MUST FIX IMMEDIATELY**
+
+1. **Invalid Scoreboard Operation Syntax** ❌ (4 instances)
+   - **Issue**: `scoreboard players operation @s left_0 *= @s 2` - `*=` operator doesn't exist in mcfunction
+   - **Issue**: `scoreboard players operation @s result += @s global_counter` - `+=` operator doesn't exist in mcfunction  
+   - **Issue**: `scoreboard players operation @s modulo_result %= @s 7` - `%=` operator doesn't exist in mcfunction
+   - **Issue**: `scoreboard players operation @s concat_1 += @s item_count` - `+=` operator doesn't exist in mcfunction
+   - **Impact**: These commands will **FAIL** in Minecraft - they are invalid mcfunction syntax
+   - **Fix**: Use proper operation syntax: `operation @s target = @s source` then `add/remove/set` commands
+   - **Priority**: **CRITICAL** - These break functionality
+
+## **Performance and Style Issues** (38 instances)
+
+2. **Redundant Scoreboard Operations** ⚠️ (2 instances)
    - **Issue**: `scoreboard players operation @s var = @s var` (variable assigned to itself)
    - **Impact**: Unnecessary commands, performance overhead
    - **Fix**: Remove redundant self-assignment operations

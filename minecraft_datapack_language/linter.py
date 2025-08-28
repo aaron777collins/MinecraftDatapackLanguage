@@ -212,6 +212,90 @@ class MCFunctionLinter:
                     ))
             except:
                 pass
+        
+        # Check for common mcfunction syntax errors
+        self._check_mcfunction_syntax(line, line_num)
+    
+    def _check_mcfunction_syntax(self, line: str, line_num: int):
+        """Check for actual mcfunction syntax errors"""
+        import re
+        
+        # Incomplete scoreboard commands
+        if re.match(r'scoreboard players (add|remove|set|operation)\s*$', line):
+            self.issues.append(LintIssue(
+                line_number=line_num,
+                severity='error',
+                category='syntax_errors',
+                message="Incomplete scoreboard command - missing target and value",
+                suggestion="Add target selector and value/objective",
+                command=line
+            ))
+        
+        # Invalid scoreboard operation syntax
+        if 'scoreboard players operation' in line and not re.search(r'@\w+\s+\w+\s*=\s*@\w+\s+\w+', line):
+            self.issues.append(LintIssue(
+                line_number=line_num,
+                severity='error',
+                category='syntax_errors',
+                message="Invalid scoreboard operation syntax",
+                suggestion="Use format: scoreboard players operation <target> <objective> = <source> <objective>",
+                command=line
+            ))
+        
+        # Unclosed quotes in data commands
+        if 'data modify' in line and line.count('"') % 2 != 0:
+            self.issues.append(LintIssue(
+                line_number=line_num,
+                severity='error',
+                category='syntax_errors',
+                message="Unclosed quotes in data command",
+                suggestion="Check quote matching in data modify command",
+                command=line
+            ))
+        
+        # Invalid entity selectors
+        if re.search(r'@[^aeprs]', line):
+            self.issues.append(LintIssue(
+                line_number=line_num,
+                severity='error',
+                category='syntax_errors',
+                message="Invalid entity selector",
+                suggestion="Use valid selectors: @a, @e, @p, @r, @s",
+                command=line
+            ))
+        
+        # Invalid effect names
+        if 'effect give' in line and not re.search(r'minecraft:[a-z_]+', line):
+            self.issues.append(LintIssue(
+                line_number=line_num,
+                severity='error',
+                category='syntax_errors',
+                message="Invalid effect name format",
+                suggestion="Use format: minecraft:effect_name",
+                command=line
+            ))
+        
+        # Malformed execute commands
+        if line.startswith('execute') and not re.search(r'run\s+\w+', line):
+            self.issues.append(LintIssue(
+                line_number=line_num,
+                severity='error',
+                category='syntax_errors',
+                message="Malformed execute command - missing 'run' clause",
+                suggestion="Add 'run <command>' to execute statement",
+                command=line
+            ))
+        
+        # Invalid data storage syntax
+        if 'data modify storage' in line and not re.search(r'storage\s+\w+:\w+', line):
+            self.issues.append(LintIssue(
+                line_number=line_num,
+                severity='error',
+                category='syntax_errors',
+                message="Invalid data storage syntax",
+                suggestion="Use format: storage <namespace>:<path>",
+                command=line
+            ))
     
     def _check_performance_issues(self, line: str, line_num: int):
         """Check for performance issues"""
