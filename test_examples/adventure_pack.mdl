@@ -21,7 +21,7 @@ function "initialize_player" {
     completed_quests.clear();
     
     tellraw @s {"text":"Welcome to the Adventure Pack!","color":"gold"};
-    tellraw @s {"text":"You are a level " + player_level + " " + player_class,"color":"green"};
+    tellraw @s {"text":"You are a level ", "extra":[{"score":{"name":"player_level","objective":"player_level"}}, {"text":" "}, {"nbt":"player_class","storage":"mdl:variables"}],"color":"green"};
 }
 
 function "gain_experience" {
@@ -34,7 +34,7 @@ function "gain_experience" {
         player_level = player_level + 1;
         player_experience = player_experience - exp_needed;
         
-        tellraw @s {"text":"Level Up! You are now level " + player_level,"color":"yellow"};
+        tellraw @s {"text":"Level Up! You are now level ", "extra":[{"score":{"name":"player_level","objective":"player_level"}}],"color":"yellow"};
         effect give @s minecraft:glowing 10 0;
         
         // Class-specific level up bonuses

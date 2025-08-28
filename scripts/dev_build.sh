@@ -22,14 +22,18 @@ echo "📦 Building package..."
 python -m build
 
 # Check if build was successful
-if [ ! -f "dist/minecraft_datapack_language-*.whl" ]; then
-    echo "❌ Error: Build failed - no wheel file found in dist/"
+if [ ! "$(ls -A dist/ 2>/dev/null)" ]; then
+    echo "❌ Error: Build failed - no package files found in dist/"
     exit 1
 fi
 
-# Get the built wheel file
-WHEEL_FILE=$(ls dist/minecraft_datapack_language-*.whl | head -1)
-echo "✅ Build successful: $WHEEL_FILE"
+# Get the built wheel file (if exists)
+WHEEL_FILE=$(ls dist/minecraft_datapack_language-*.whl 2>/dev/null | head -1)
+if [ -z "$WHEEL_FILE" ]; then
+    echo "✅ Build successful (source distribution only)"
+else
+    echo "✅ Build successful: $WHEEL_FILE"
+fi
 
 # Install the development version
 echo "📥 Installing development version as 'mdlbeta'..."

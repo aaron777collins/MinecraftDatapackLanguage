@@ -101,8 +101,8 @@ function "break_continue" {
     }
     
     say Break and continue test complete;
-    tellraw @s {"text":"Break sum: " + break_sum};
-    tellraw @s {"text":"Continue sum: " + continue_sum};
+    tellraw @s {"text":"Break sum: ", "extra":[{"score":{"name":"break_sum","objective":"break_sum"}}]};
+    tellraw @s {"text":"Continue sum: ", "extra":[{"score":{"name":"continue_sum","objective":"continue_sum"}}]};
 }
 
 on_tick "test:simple_while";

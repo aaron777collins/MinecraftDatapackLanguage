@@ -703,43 +703,39 @@ def _ast_to_commands(body: List[Any], current_namespace: str = "test", current_p
                                     
                                     # Generate conditional execution
                                     if if_commands:
-                                        commands.append(f"# If statement: {condition}")
                                         for cmd in if_commands:
                                             commands.append(f"execute if {data_condition} run {cmd}")
                                     
                                     if else_commands:
-                                        commands.append(f"# Else statement")
                                         for cmd in else_commands:
                                             commands.append(f"execute unless {data_condition} run {cmd}")
                                 else:
                                     # Fallback to original condition
                                     if if_commands:
-                                        commands.append(f"# If statement: {condition}")
                                         commands.extend(if_commands)
                                     
                                     if else_commands:
-                                        commands.append(f"# Else statement")
                                         commands.extend(else_commands)
                             else:
                                 # Fallback to original condition
                                 if if_commands:
-                                    commands.append(f"# If statement: {condition}")
+                                    
                                     for cmd in if_commands:
                                         commands.append(f"execute if {condition} run {cmd}")
                                 
                                 if else_commands:
-                                    commands.append(f"# Else statement")
+                                    
                                     for cmd in else_commands:
                                         commands.append(f"execute unless {condition} run {cmd}")
                         else:
                             # Fallback to original condition
                             if if_commands:
-                                commands.append(f"# If statement: {condition}")
+                                
                                 for cmd in if_commands:
                                     commands.append(f"execute if {condition} run {cmd}")
                             
                             if else_commands:
-                                commands.append(f"# Else statement")
+                                
                                 for cmd in else_commands:
                                     commands.append(f"execute unless {condition} run {cmd}")
                     elif "==" in condition and "'" in condition:
@@ -756,45 +752,45 @@ def _ast_to_commands(body: List[Any], current_namespace: str = "test", current_p
                                 
                                 # Generate conditional execution
                                 if if_commands:
-                                    commands.append(f"# If statement: {condition}")
+                                    
                                     for cmd in if_commands:
                                         commands.append(f"execute if {data_condition} run {cmd}")
                                 
                                 if else_commands:
-                                    commands.append(f"# Else statement")
+                                    
                                     for cmd in else_commands:
                                         commands.append(f"execute unless {data_condition} run {cmd}")
                             else:
                                 # Fallback to original condition
                                 if if_commands:
-                                    commands.append(f"# If statement: {condition}")
+                                    
                                     for cmd in if_commands:
                                         commands.append(f"execute if {condition} run {cmd}")
                                 
                                 if else_commands:
-                                    commands.append(f"# Else statement")
+                                    
                                     for cmd in else_commands:
                                         commands.append(f"execute unless {condition} run {cmd}")
                         else:
                             # Fallback to original condition
                             if if_commands:
-                                commands.append(f"# If statement: {condition}")
+                                
                                 for cmd in if_commands:
                                     commands.append(f"execute if {condition} run {cmd}")
                             
                             if else_commands:
-                                commands.append(f"# Else statement")
+                                
                                 for cmd in else_commands:
                                     commands.append(f"execute unless {condition} run {cmd}")
                     else:
                         # Regular scoreboard condition
                         if if_commands:
-                            commands.append(f"# If statement: {condition}")
+                            
                             for cmd in if_commands:
                                 commands.append(f"execute if {condition} run {cmd}")
                         
                         if else_commands:
-                            commands.append(f"# Else statement")
+                            
                             for cmd in else_commands:
                                 commands.append(f"execute unless {condition} run {cmd}")
                         
@@ -805,7 +801,7 @@ def _ast_to_commands(body: List[Any], current_namespace: str = "test", current_p
                     loop_body = _ast_to_commands(node.body, current_namespace, current_pack)
                 
                     # Generate loop commands
-                    commands.append(f"# For loop over {selector}")
+                    
                     for cmd in loop_body:
                         commands.append(f"execute as {selector} run {cmd}")
                         
@@ -815,7 +811,7 @@ def _ast_to_commands(body: List[Any], current_namespace: str = "test", current_p
                     list_name = node.list_name
                     loop_body = _ast_to_commands(node.body, current_namespace, current_pack)
 
-                    commands.append(f"# For-in loop over {list_name}")
+                    
                     commands.append(f"execute store result storage mdl:temp list_length int 1 run data get storage mdl:variables {list_name}")
                     commands.append(f"execute if data storage mdl:variables {list_name} run function {current_namespace}:for_in_{variable}_{list_name}")
 

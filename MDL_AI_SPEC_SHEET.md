@@ -217,41 +217,60 @@ This document serves as the comprehensive specification and implementation guide
 - **Result**: All generated mcfunction files now contain valid Minecraft commands
 - **Status**: Fixed - all major compilation issues resolved
 
-## Development Cycle (Steps 1-7)
+## Development Cycle (Steps 1-6 + Release)
 
 ### **Step 1**: Code Changes ✅
 - Make necessary code modifications
 - Implement new features or fix bugs
 - Update documentation and specs
 
-### **Step 2**: Development Testing ✅
+### **Step 2**: Development Build ✅
 - `./scripts/dev_build.sh` - Build and install development version
-- `mdlbeta build --mdl test_file.mdl -o output_dir --verbose` - Test with development version
-- Verify changes work as expected with `mdlbeta`
+- Ensures `mdlbeta` command is updated with latest changes
 
-### **Step 3**: Commit and Push ✅
+### **Step 3**: Development Testing ✅
+- `mdlbeta build --mdl test_file.mdl -o output_dir --verbose` - Test with development version
+- `mdlbeta check test_file.mdl` - Validate syntax
+- `mdlbeta new project_name` - Test project creation
+- Verify all changes work as expected with `mdlbeta`
+
+### **Step 4**: Comparison Testing ✅
+- `mdl build --mdl test_file.mdl -o output_stable` - Test with stable version
+- Compare outputs between `mdlbeta` and `mdl` to ensure compatibility
+- Verify no regressions in existing functionality
+
+### **Step 5**: Commit and Push ✅
 - `git add .`
 - `git commit -m "descriptive message"`
 - `git push`
 
-### **Step 4**: Release ✅
+### **Step 6**: Final Validation ✅
+- Run comprehensive test suite with `mdlbeta`
+- Verify all features work as expected
+- Ensure documentation is up to date
+
+---
+
+## Release Process (Post-Development)
+
+### **Release Step 1**: Release ✅
 - `bash scripts/release.sh patch`
 - Automatically increments version and creates GitHub release
 - Builds and uploads packages to PyPI
 
-### **Step 5**: Wait for PyPI Update ✅
+### **Release Step 2**: Wait for PyPI Update ✅
 - Allow time for PyPI to process and distribute the new package
 - Usually takes 20 seconds
 
-### **Step 6**: Package Upgrade ✅
+### **Release Step 3**: Package Upgrade ✅
 - `pipx upgrade minecraft-datapack-language`
 - Ensure latest version is installed locally
 - May need to run multiple times until latest version appears
 
-### **Step 7**: Final Testing ✅
+### **Release Step 4**: Production Testing ✅
 - `mdl build --mdl test_file.mdl -o output_dir --verbose` - Test with stable version
-- Compare outputs between `mdlbeta` and `mdl` to ensure compatibility
-- Verify all features work as expected
+- Verify the released version works correctly
+- Confirm all features are functional in production
 
 ## Implementation Status
 
@@ -333,3 +352,69 @@ This document serves as the comprehensive specification and implementation guide
 **Next Priority**: Continue testing and documentation improvements
 
 The MDL language implementation is now substantially complete with all major features working correctly. We are currently implementing a cleaner approach to list length using built-in functions instead of property access, which will resolve both variable assignment and while loop condition issues.
+
+## Known Issues and Limitations
+
+### ❌ **CRITICAL ISSUES TO FIX**
+
+1. **License Classifier Deprecation Warning**
+   - **Issue**: PyPI build shows deprecation warnings about license classifiers
+   - **Impact**: Build warnings, potential future compatibility issues
+   - **Fix**: Update pyproject.toml to use SPDX license expression instead of classifier
+
+2. **Variable Initialization Redundancy**
+   - **Issue**: Variables are initialized twice (empty value, then actual value)
+   - **Example**: `data modify storage mdl:variables player_class set value ""` followed by `data modify storage mdl:variables player_class set value "warrior"`
+   - **Impact**: Unnecessary commands, slower execution
+   - **Fix**: Remove redundant empty initialization
+
+3. **List Initialization Redundancy**
+   - **Issue**: Lists are initialized twice (empty array, then empty array again)
+   - **Example**: `data modify storage mdl:variables local_items set value []` followed by `data modify storage mdl:variables local_items set value []`
+   - **Impact**: Unnecessary commands, slower execution
+   - **Fix**: Remove redundant empty list initialization
+
+4. **Complex String Concatenation Issues**
+   - **Issue**: String concatenation generates overly complex temporary storage operations
+   - **Example**: Multiple `execute store result storage mdl:temp concat string 1 run data get storage mdl:variables` commands
+   - **Impact**: Inefficient, hard to read output
+   - **Fix**: Optimize string concatenation to use fewer temporary operations
+
+5. **List Operations Inefficiency**
+   - **Issue**: List remove and pop operations use complex temporary storage and conditional checks
+   - **Example**: `execute store result storage mdl:temp index int 1 run data get storage mdl:variables weapons` followed by conditional removal
+   - **Impact**: Inefficient, potentially unreliable
+   - **Fix**: Simplify list operations to use direct NBT manipulation
+
+6. **Tellraw Command Issues**
+   - **Issue**: Tellraw commands use string concatenation that doesn't work in Minecraft
+   - **Example**: `tellraw @s {"text":"Result: " + result}` - Minecraft doesn't support `+` in JSON
+   - **Impact**: Commands will fail in-game
+   - **Fix**: Use proper Minecraft JSON format with arrays or separate text components
+
+7. **Scoreboard Operation Complexity**
+   - **Issue**: Simple arithmetic operations generate complex scoreboard operations
+   - **Example**: `scoreboard players operation @s left_0 = @s local_counter\nscoreboard players operation @s left_0 *= @s 2`
+   - **Impact**: Unnecessary complexity, slower execution
+   - **Fix**: Optimize to use direct scoreboard commands where possible
+
+8. **Missing Error Handling**
+   - **Issue**: No validation for invalid operations (e.g., accessing non-existent list indices)
+   - **Impact**: Commands may fail silently or produce unexpected results
+   - **Fix**: Add proper error checking and validation
+
+9. **Debug Comments in Output**
+   - **Issue**: Debug comments like `# If statement:` and `# Else statement:` appear in final output
+   - **Impact**: Clutters the output, not needed in production
+   - **Fix**: Remove debug comments from final command generation
+
+10. **Inefficient Expression Processing**
+    - **Issue**: Complex expressions generate many temporary variables and operations
+    - **Impact**: Poor performance, hard to debug
+    - **Fix**: Optimize expression processor to minimize temporary operations
+
+### 🔧 **PRIORITY FIX ORDER**
+
+1. **High Priority (Critical)**: Issues 6, 8, 9 - These affect functionality and usability
+2. **Medium Priority (Performance)**: Issues 2, 3, 4, 7, 10 - These affect efficiency
+3. **Low Priority (Cleanup)**: Issues 1, 5 - These are warnings and optimizations
