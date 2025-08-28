@@ -406,11 +406,11 @@ class MDLParser:
                 next_token = self._peek_next()
                 if next_token and next_token.type == TokenType.ASSIGN:
                     statements.append(self._parse_variable_assignment())
-                elif next_token and next_token.type == TokenType.LPAREN:
-                    statements.append(self._parse_function_call_from_identifier())
                 elif next_token and next_token.type == TokenType.DOT:
                     # This might be a list operation like items.append("value")
                     statements.append(self._parse_list_operation())
+                elif next_token and next_token.type == TokenType.LPAREN:
+                    statements.append(self._parse_function_call_from_identifier())
                 else:
                     self._advance()  # Skip unknown tokens
             else:
