@@ -232,8 +232,6 @@ tag block "example:glassy" {
     add "minecraft:tinted_glass";
 }
 """
-
-"""
     with open(os.path.join(root, "mypack.mdl"), "w", encoding="utf-8") as f:
         f.write(sample.strip() + os.linesep)
     print(f"Created sample at {root}")
