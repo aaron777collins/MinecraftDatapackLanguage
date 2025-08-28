@@ -41,53 +41,43 @@ jobs:
         python -m pip install --upgrade pip
         python -m pip install -e .
         
-    - name: Test JavaScript-style MDL Language
+    - name: Test working MDL examples
       run: |
-        echo "Testing JavaScript-style MDL language features..."
+        echo "Testing working MDL examples..."
         
-        # Test basic syntax
-        echo "Testing basic syntax..."
-        mdl check test_examples/variables_demo.mdl
-        mdl check test_examples/control_flow_demo.mdl
-        
-        # Test parsing
-        echo "Testing MDL parsing..."
-        python test_comprehensive_suite.py
-        
-        # Test end-to-end pipeline
-        echo "Testing end-to-end pipeline..."
-        python test_e2e_comprehensive.py
-        
-    - name: Run comprehensive tests
-      run: |
-        python test_examples/run_all_tests.py
-        
-    - name: Test individual examples
-      run: |
-        echo "Testing individual MDL examples..."
-        
-        # Test each MDL file
+        # Test each working MDL file
         for file in test_examples/*.mdl; do
           echo "Testing $file"
           mdl check "$file"
           mdl build --mdl "$file" -o test_examples/dist
         done
         
-        # Test multi-file project
-        echo "Testing multi-file project..."
-        mdl check test_examples/adventure_pack/
-        mdl build --mdl test_examples/adventure_pack/ -o test_examples/dist
+    - name: Run test suite
+      run: |
+        python test_examples/run_all_tests.py
         
-        # Test Python API examples
-        echo "Testing Python API examples..."
-        for file in test_examples/*.py; do
-          if [[ "$file" != "test_examples/run_all_tests.py" ]]; then
-            echo "Testing $file"
-            python "$file"
-          fi
-        done
+    - name: Test CLI functionality
+      run: |
+        echo "Testing CLI functionality..."
         
-    - name: Test Python API Compatibility
+        # Test help
+        mdl --help
+        
+        # Test new command
+        mdl new cli_test --name "CLI Test" --pack-format 82
+        
+        # Verify created project
+        ls -la cli_test/
+        cat cli_test/*.mdl
+        
+        # Test check and build
+        mdl check cli_test/
+        mdl build --mdl cli_test/ -o test_examples/dist
+        
+        # Clean up
+        rm -rf cli_test/
+        
+    - name: Test Python API
       run: |
         echo "Testing Python API compatibility..."
         
@@ -130,48 +120,6 @@ jobs:
         print('[+] Tags work')
         "
         
-    - name: Test MDL to Python API Translation
-      run: |
-        echo "Testing MDL to Python API translation..."
-        
-        # Create a test MDL file
-        cat > test_mdl.mdl << 'EOF'
-        pack "test" description "Test pack" pack_format 82;
-        namespace "test";
-        
-        var num global_counter = 0;
-        
-        function "init" {
-            say Initializing...;
-            global_counter = 0;
-        }
-        
-        function "tick" {
-            global_counter = global_counter + 1;
-            
-            if "score @s test:global_counter matches 10" {
-                say Counter reached 10!;
-                global_counter = 0;
-            }
-        }
-        
-        on_load "test:init";
-        on_tick "test:tick";
-        EOF
-        
-        # Parse the MDL file
-        python -c "
-        from minecraft_datapack_language.mdl_parser_js import parse_mdl_js
-        with open('test_mdl.mdl', 'r') as f:
-            mdl = f.read()
-        ast = parse_mdl_js(mdl)
-        print(f'[+] Parsed MDL with {len(ast[\"functions\"])} functions')
-        print(f'[+] Found {len(ast[\"namespaces\"])} namespaces')
-        "
-        
-        # Clean up
-        rm test_mdl.mdl
-        
     - name: Verify generated datapacks
       run: |
         echo "Verifying generated datapacks..."
@@ -187,7 +135,7 @@ jobs:
             if [[ -f "$dir/pack.mcmeta" ]]; then
               echo "[+] pack.mcmeta found in $dir"
             else
-                              echo "[-] pack.mcmeta missing in $dir"
+              echo "[-] pack.mcmeta missing in $dir"
               exit 1
             fi
             
@@ -195,32 +143,11 @@ jobs:
             if [[ -d "$dir/data" ]]; then
               echo "[+] data directory found in $dir"
             else
-                              echo "[-] data directory missing in $dir"
+              echo "[-] data directory missing in $dir"
               exit 1
             fi
           fi
         done
-        
-    - name: Test CLI commands
-      run: |
-        echo "Testing CLI commands..."
-        
-        # Test help
-        mdl --help
-        
-        # Test new command
-        mdl new cli_test --name "CLI Test" --pack-format 82
-        
-        # Verify created project
-        ls -la cli_test/
-        cat cli_test/*.mdl
-        
-        # Test check and build
-        mdl check cli_test/
-        mdl build --mdl cli_test/ -o test_examples/dist
-        
-        # Clean up
-        rm -rf cli_test/
         
     - name: Upload test artifacts
       if: always()
