@@ -1,8 +1,0 @@
-// debug_simple.mdl - Very simple test
-pack "debug" description "Debug" pack_format 82;
-
-namespace "test";
-
-function "simple" {
-    var num counter = 5;
-}

@@ -1,0 +1,8 @@
+{
+  "replace": false,
+  "values": [
+    "game:player_action",
+    "ui:update_hud",
+    "utils:helper"
+  ]
+}

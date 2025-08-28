@@ -578,9 +578,13 @@ def _ast_to_commands(body: List[Any]) -> List[str]:
                     if node.value:
                         # Set initial value if provided
                         if hasattr(node.value, 'value'):
-                            initial_value = node.value.value.strip('"')
+                            # Handle LiteralExpression
+                            if hasattr(node.value, 'type') and node.value.type == 'string':
+                                initial_value = node.value.value.strip('"').strip("'")
+                            else:
+                                initial_value = str(node.value.value).strip('"').strip("'")
                         else:
-                            initial_value = str(node.value).strip('"')
+                            initial_value = str(node.value).strip('"').strip("'")
                         commands.append(f"data modify storage mdl:variables {var_name} set value \"{initial_value}\"")
                 elif var_type == 'list':
                     # List variables use NBT storage with array
@@ -688,7 +692,7 @@ def _ast_to_commands(body: List[Any]) -> List[str]:
                                     commands.append(f"scoreboard players set @s {var_name} {value}")
                                 except (ValueError, TypeError):
                                     # Assume string
-                                    value = node.value.value.strip('"')
+                                    value = str(node.value.value).strip('"')
                                     commands.append(f"data modify storage mdl:variables {var_name} set value \"{value}\"")
                                     
                         elif expr_class == 'ListExpression':

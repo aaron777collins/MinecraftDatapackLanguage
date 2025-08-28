@@ -30,7 +30,7 @@ def test_mdl_file(mdl_file, description):
         return False
     
     # Test build
-    if not run_command(f"mdl build --mdl {mdl_file} -o test_examples/dist", f"Build: {description}"):
+    if not run_command(f"mdl build --mdl {mdl_file} -o dist", f"Build: {description}"):
         return False
     
     return True
@@ -62,7 +62,7 @@ def main():
     print("=" * 60)
     
     # Create test directory
-    os.makedirs("test_examples/dist", exist_ok=True)
+    os.makedirs("dist", exist_ok=True)
     
     # Test results tracking
     total_tests = 0
@@ -70,13 +70,13 @@ def main():
     
     # Modern MDL examples
     mdl_examples = [
-        ("test_examples/hello_world.mdl", "Hello World"),
-        ("test_examples/variables.mdl", "Variables and Data Types"),
-        ("test_examples/conditionals.mdl", "Conditional Logic"),
-        ("test_examples/loops.mdl", "Loop Constructs"),
-        ("test_examples/namespaces.mdl", "Namespaces and Cross-namespace Calls"),
-        ("test_examples/error_handling.mdl", "Error Handling"),
-        ("test_examples/adventure_pack.mdl", "Complete Adventure Pack"),
+        ("hello_world.mdl", "Hello World"),
+        ("variables.mdl", "Variables and Data Types"),
+        ("conditionals.mdl", "Conditional Logic"),
+        ("loops.mdl", "Loop Constructs"),
+        ("namespaces.mdl", "Namespaces and Cross-namespace Calls"),
+        ("error_handling.mdl", "Error Handling"),
+        ("adventure_pack.mdl", "Complete Adventure Pack"),
     ]
     
     # Test MDL files
