@@ -5,6 +5,7 @@ from .pack import Pack, Function
 from .utils import ensure_dir
 from .mdl_parser_js import parse_mdl_js
 from .expression_processor import expression_processor, ProcessedExpression
+from .linter import lint_mcfunction_file, lint_mcfunction_directory, format_lint_report
 from . import __version__
 
 def _slug(s: str) -> str:
@@ -1274,6 +1275,146 @@ def cmd_check(args):
         print("OK")
         return 0
 
+def cmd_check_advanced(args):
+    """Advanced linting that builds the project and analyzes generated mcfunction files"""
+    import tempfile
+    import shutil
+    
+    # Create temporary output directory if not specified
+    output_dir = args.output_dir
+    temp_dir = None
+    if not output_dir:
+        temp_dir = tempfile.mkdtemp(prefix="mdl_lint_")
+        output_dir = temp_dir
+    
+    try:
+        # First, build the project to generate mcfunction files
+        if args.verbose:
+            print(f"🔨 Building project to generate mcfunction files...")
+        
+        # Create a temporary build command
+        build_args = argparse.Namespace()
+        build_args.mdl = args.path
+        build_args.src = None
+        build_args.py_module = None
+        build_args.out = output_dir
+        build_args.pack_format = args.pack_format
+        build_args.wrapper = None
+        build_args.verbose = args.verbose
+        
+        # Build the project
+        cmd_build(build_args)
+        
+        if args.verbose:
+            print(f"✅ Build completed. Analyzing generated files...")
+        
+        # Find the generated datapack directory
+        datapack_dir = None
+        for item in os.listdir(output_dir):
+            item_path = os.path.join(output_dir, item)
+            if os.path.isdir(item_path) and os.path.exists(os.path.join(item_path, "pack.mcmeta")):
+                datapack_dir = item_path
+                break
+        
+        if not datapack_dir:
+            print("❌ No datapack directory found in output")
+            return 1
+        
+        # Lint all mcfunction files
+        lint_results = lint_mcfunction_directory(datapack_dir)
+        
+        # Process results
+        all_issues = []
+        total_files = 0
+        files_with_issues = 0
+        
+        for file_path, issues in lint_results.items():
+            total_files += 1
+            if issues:
+                files_with_issues += 1
+                all_issues.extend(issues)
+        
+        # Generate report
+        if args.json:
+            # JSON output
+            report = {
+                "summary": {
+                    "total_files": total_files,
+                    "files_with_issues": files_with_issues,
+                    "total_issues": len(all_issues),
+                    "errors": len([i for i in all_issues if i.severity == 'error']),
+                    "warnings": len([i for i in all_issues if i.severity == 'warning']),
+                    "info": len([i for i in all_issues if i.severity == 'info'])
+                },
+                "files": {}
+            }
+            
+            for file_path, issues in lint_results.items():
+                rel_path = os.path.relpath(file_path, output_dir)
+                report["files"][rel_path] = [
+                    {
+                        "line": issue.line_number,
+                        "severity": issue.severity,
+                        "category": issue.category,
+                        "message": issue.message,
+                        "suggestion": issue.suggestion,
+                        "command": issue.command
+                    }
+                    for issue in issues
+                ]
+            
+            print(json.dumps(report, indent=2))
+        else:
+            # Human-readable output
+            print(f"📊 Advanced Linting Report")
+            print(f"=" * 50)
+            print(f"📁 Files analyzed: {total_files}")
+            print(f"⚠️  Files with issues: {files_with_issues}")
+            print(f"📝 Total issues: {len(all_issues)}")
+            
+            if all_issues:
+                error_count = len([i for i in all_issues if i.severity == 'error'])
+                warning_count = len([i for i in all_issues if i.severity == 'warning'])
+                info_count = len([i for i in all_issues if i.severity == 'info'])
+                
+                print(f"❌ Errors: {error_count}")
+                print(f"⚠️  Warnings: {warning_count}")
+                print(f"ℹ️  Info: {info_count}")
+                print()
+                
+                # Show issues by file
+                for file_path, issues in lint_results.items():
+                    if issues:
+                        rel_path = os.path.relpath(file_path, output_dir)
+                        print(f"📄 {rel_path}")
+                        print("-" * 40)
+                        
+                        for issue in issues:
+                            severity_icon = {'error': '❌', 'warning': '⚠️', 'info': 'ℹ️'}[issue.severity]
+                            print(f"{severity_icon} Line {issue.line_number}: {issue.message}")
+                            if issue.suggestion:
+                                print(f"   💡 {issue.suggestion}")
+                            if issue.command:
+                                cmd_preview = issue.command[:60] + "..." if len(issue.command) > 60 else issue.command
+                                print(f"   📝 {cmd_preview}")
+                            print()
+            else:
+                print("✅ No linting issues found!")
+        
+        # Return appropriate exit code
+        has_errors = any(issue.severity == 'error' for issues in lint_results.values() for issue in issues)
+        return 1 if has_errors else 0
+        
+    except Exception as e:
+        print(f"❌ Error during advanced linting: {e}")
+        if args.verbose:
+            traceback.print_exc()
+        return 1
+    finally:
+        # Clean up temporary directory
+        if temp_dir and os.path.exists(temp_dir):
+            shutil.rmtree(temp_dir)
+
 def main(argv=None):
     p = argparse.ArgumentParser(prog="mdl", description="Minecraft Datapack Language (compiler)")
     
@@ -1305,6 +1446,14 @@ def main(argv=None):
     p_check.add_argument("--json", action="store_true", help="Emit JSON diagnostics")
     p_check.add_argument("-v", "--verbose", action="store_true")
     p_check.set_defaults(func=cmd_check)
+
+    p_check_advanced = sub.add_parser("check-advanced", help="Advanced linting of generated mcfunction files")
+    p_check_advanced.add_argument("path", help="Path to .mdl file or directory")
+    p_check_advanced.add_argument("--pack-format", type=int, default=82, help="Pack format (default: 82 for modern)")
+    p_check_advanced.add_argument("--output-dir", help="Output directory for generated files (default: temp)")
+    p_check_advanced.add_argument("--json", action="store_true", help="Emit JSON diagnostics")
+    p_check_advanced.add_argument("-v", "--verbose", action="store_true")
+    p_check_advanced.set_defaults(func=cmd_check_advanced)
 
     args = p.parse_args(argv)
     return args.func(args)
