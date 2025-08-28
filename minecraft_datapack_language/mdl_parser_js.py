@@ -748,8 +748,20 @@ class MDLParser:
             return LiteralExpression(token.value, "string")
         elif token.type == TokenType.IDENTIFIER:
             self._advance()
+            # Check if this is a function call (identifier followed by ()
+            if self._peek() and self._peek().type == TokenType.LPAREN:
+                # Parse function call
+                arguments = []
+                self._advance()  # consume (
+                if self._peek() and self._peek().type != TokenType.RPAREN:
+                    arguments.append(self._parse_expression())
+                    while self._peek() and self._peek().type == TokenType.COMMA:
+                        self._advance()  # consume comma
+                        arguments.append(self._parse_expression())
+                self._match(TokenType.RPAREN)
+                return FunctionCall(token.value, arguments)
             # Check if this is a list access (identifier followed by [)
-            if self._peek() and self._peek().type == TokenType.LBRACKET:
+            elif self._peek() and self._peek().type == TokenType.LBRACKET:
                 self._advance()  # consume [
                 index = self._parse_expression()
                 self._match(TokenType.RBRACKET)

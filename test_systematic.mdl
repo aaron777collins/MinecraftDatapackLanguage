@@ -5,7 +5,7 @@ pack "test_systematic" description "Test systematic expression processing" pack_
             var list items = ["apple", "banana", "cherry"];
             var num index = 1;
             var str item = items[index];
-            var num count = items.length;
+            var num count = length(items);
             
             // Test string concatenation
             var str message = "Found " + item + " at index " + index;

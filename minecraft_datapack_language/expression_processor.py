@@ -267,6 +267,37 @@ class ExpressionProcessor:
                         # Handle other types - convert to string for now
                         commands.append(f"data modify storage mdl:variables {target_var} append value \"unknown\"")
             return ProcessedExpression(commands, "", [])
+        elif class_name == 'FunctionCall':
+            # Handle built-in function calls
+            if expr.function_name == 'length':
+                if len(expr.arguments) == 1:
+                    # length(list) - get the length of a list
+                    list_arg = expr.arguments[0]
+                    if hasattr(list_arg, 'name'):
+                        # Variable reference
+                        list_name = list_arg.name
+                        commands = [
+                            f"# Get length of {list_name}",
+                            f"execute store result score @s {target_var} run data get storage mdl:variables {list_name}"
+                        ]
+                    else:
+                        # Complex expression - evaluate first
+                        temp_list_var = self.generate_temp_var("list")
+                        list_result = self.process_expression(list_arg, temp_list_var)
+                        commands.extend(list_result.temp_assignments)
+                        commands.extend([
+                            f"# Get length of complex list expression",
+                            f"execute store result score @s {target_var} run data get storage mdl:variables {temp_list_var}"
+                        ])
+                    return ProcessedExpression(commands, "", [])
+                else:
+                    # Wrong number of arguments
+                    commands = [f"# Error: length() expects exactly 1 argument"]
+                    return ProcessedExpression(commands, "", [])
+            else:
+                # Unknown function - convert to string
+                commands = [f"data modify storage mdl:variables {target_var} set value \"{str(expr)}\""]
+                return ProcessedExpression(commands, "", [])
         else:
             # Unknown expression type - convert to string
             commands = [f"data modify storage mdl:variables {target_var} set value \"{str(expr)}\""]
