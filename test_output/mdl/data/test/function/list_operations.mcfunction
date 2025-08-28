@@ -11,11 +11,12 @@ data modify storage mdl:variables armor append value "diamond_leggings"
 data modify storage mdl:variables weapons insert 1 value "netherite_sword"
 # Insert 'netherite_helmet' at index 0 in armor
 data modify storage mdl:variables armor insert 0 value "netherite_helmet"
-# Access element at index 0 from weapons
-data modify storage mdl:temp element set from storage mdl:variables weapons[0]
-data modify storage mdl:variables primary_weapon set from storage mdl:temp element
-data modify storage mdl:variables weapon_count set value "weapons.length"
-data modify storage mdl:variables armor_count set value "armor.length"
+data modify storage mdl:variables primary_weapon set value ""
+data modify storage mdl:variables primary_weapon set value "0"
+scoreboard objectives add weapon_count dummy
+scoreboard players set @s weapon_count 0
+scoreboard objectives add armor_count dummy
+scoreboard players set @s armor_count 0
 # Remove 'golden_sword' from weapons
 execute store result storage mdl:temp index int 1 run data get storage mdl:variables weapons
 execute if data storage mdl:variables weapons[{value:"golden_sword"}] run data remove storage mdl:variables weapons[{value:"golden_sword"}]

@@ -15,6 +15,9 @@ def run_command(cmd, description):
     """Run a command and return success status"""
     print(f"Testing: {description}")
     try:
+        # Use python -c to run the CLI module directly
+        if cmd.startswith("mdl "):
+            cmd = f"python -c \"from minecraft_datapack_language.cli import main; main()\" {cmd[4:]}"
         result = subprocess.run(cmd, shell=True, capture_output=True, text=True, check=True)
         print(f"[+] {description} - PASSED")
         return True
@@ -70,13 +73,13 @@ def main():
     
     # Modern MDL examples
     mdl_examples = [
-        ("hello_world.mdl", "Hello World"),
-        ("variables.mdl", "Variables and Data Types"),
-        ("conditionals.mdl", "Conditional Logic"),
-        ("loops.mdl", "Loop Constructs"),
-        ("namespaces.mdl", "Namespaces and Cross-namespace Calls"),
-        ("error_handling.mdl", "Error Handling"),
-        ("adventure_pack.mdl", "Complete Adventure Pack"),
+        ("test_examples/hello_world.mdl", "Hello World"),
+        ("test_examples/variables.mdl", "Variables and Data Types"),
+        ("test_examples/conditionals.mdl", "Conditional Logic"),
+        ("test_examples/loops.mdl", "Loop Constructs"),
+        ("test_examples/namespaces.mdl", "Namespaces and Cross-namespace Calls"),
+        ("test_examples/error_handling.mdl", "Error Handling"),
+        ("test_examples/adventure_pack.mdl", "Complete Adventure Pack"),
     ]
     
     # Test MDL files

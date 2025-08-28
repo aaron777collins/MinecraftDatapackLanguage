@@ -584,7 +584,18 @@ def _ast_to_commands(body: List[Any]) -> List[str]:
                             else:
                                 initial_value = str(node.value.value).strip('"').strip("'")
                         else:
-                            initial_value = str(node.value).strip('"').strip("'")
+                            # Handle case where value is a string representation of an object
+                            value_str = str(node.value)
+                            if "LiteralExpression" in value_str:
+                                # Extract the actual value from the string representation
+                                import re
+                                match = re.search(r"value='([^']*)'", value_str)
+                                if match:
+                                    initial_value = match.group(1)
+                                else:
+                                    initial_value = value_str.strip('"').strip("'")
+                            else:
+                                initial_value = value_str.strip('"').strip("'")
                         commands.append(f"data modify storage mdl:variables {var_name} set value \"{initial_value}\"")
                 elif var_type == 'list':
                     # List variables use NBT storage with array
