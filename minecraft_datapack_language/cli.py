@@ -1,8 +1,9 @@
 
 import argparse, os, sys, json, traceback, re, zipfile, shutil, glob
+from typing import Dict, Any, List
 from .pack import Pack
 from .utils import ensure_dir
-from .mdl_parser import parse_mdl
+from .mdl_parser_js import parse_mdl_js
 from . import __version__
 
 def _slug(s: str) -> str:
@@ -72,9 +73,11 @@ def _parse_many(files, default_pack_format: int, verbose: bool = False):
             raise RuntimeError(f"{fp}: duplicate pack declaration (only the first file should have a pack declaration)")
         
         try:
-            # First file requires pack declaration, subsequent files don't
-            require_pack = (root_pack is None)
-            p = parse_mdl(src, default_pack_format=default_pack_format, require_pack=require_pack)
+            # Parse with JavaScript-style parser
+            ast = parse_mdl_js(src)
+            
+            # Convert AST to Pack object
+            p = _ast_to_pack(ast, default_pack_format)
         except Exception as e:
             # Bubble up with filename context
             raise RuntimeError(f"{fp}: {e}")
@@ -103,108 +106,180 @@ def cmd_new(args):
     root = os.path.abspath(args.path)
     ensure_dir(root)
     
-    # Generate pack declaration based on format
-    if args.format == "modern" and args.pack_format >= 82:
-        pack_declaration = f'pack "{args.name}" description "Example datapack" pack_format {args.pack_format} min_format [{args.pack_format}, 0] max_format [{args.pack_format}, 1] min_engine_version "1.21.4"'
-    else:
-        pack_declaration = f'pack "{args.name}" description "Example datapack" pack_format {args.pack_format}'
+    # Generate pack declaration for modern JavaScript-style MDL format
+    pack_declaration = f'pack "{args.name}" description "Example datapack" pack_format {args.pack_format};'
     
     # Add format-specific comment
-    format_comment = "# Using modern pack format 82+ metadata" if args.format == "modern" and args.pack_format >= 82 else "# Using legacy pack format"
+    format_comment = "# Using modern JavaScript-style MDL format (v10+)"
     
     sample = f"""
-# mypack.mdl - minimal example for Minecraft Datapack Language
+// mypack.mdl - minimal example for Minecraft Datapack Language (JavaScript-style)
 {format_comment}
 {pack_declaration}
+namespace "example";
 
-namespace "example"
+function "inner" {{
+    say [example:inner] This is the inner function;
+    tellraw @a {{"text":"Running inner","color":"yellow"}};
+}}
 
-function "inner":
-    say [example:inner] This is the inner function
-    tellraw @a {{"text":"Running inner","color":"yellow"}}
+function "hello" {{
+    say [example:hello] Outer says hi;
+    function example:inner;
+    tellraw @a {{"text":"Back in hello","color":"aqua"}};
+}}
 
-function "hello":
-    say [example:hello] Outer says hi
-    function example:inner
-    tellraw @a {{"text":"Back in hello","color":"aqua"}}
+// Conditional example - detect different entity types with enhanced logic
+function "conditional_demo" {{
+    if "entity @s[type=minecraft:player]" {{
+        say Player detected!;
+        effect give @s minecraft:glowing 5 1;
+        tellraw @a {{"text":"A player is nearby!","color":"green"}};
+    }} else if "entity @s[type=minecraft:zombie]" {{
+        say Zombie detected!;
+        effect give @s minecraft:poison 5 1;
+        tellraw @a {{"text":"A zombie is nearby!","color":"red"}};
+    }} else if "entity @s[type=minecraft:creeper]" {{
+        say Creeper detected!;
+        effect give @s minecraft:resistance 5 1;
+        tellraw @a {{"text":"A creeper is nearby!","color":"dark_red"}};
+    }} else {{
+        say Unknown entity detected;
+        tellraw @a {{"text":"Something unknown is nearby...","color":"gray"}};
+    }}
+}}
 
-# Conditional example - detect different entity types with enhanced logic
-function "conditional_demo":
-    if "entity @s[type=minecraft:player]":
-        say Player detected!
-        effect give @s minecraft:glowing 5 1
-        tellraw @a {{"text":"A player is nearby!","color":"green"}}
-    else if "entity @s[type=minecraft:zombie]":
-        say Zombie detected!
-        effect give @s minecraft:poison 5 1
-        tellraw @a {{"text":"A zombie is nearby!","color":"red"}}
-    else if "entity @s[type=minecraft:creeper]":
-        say Creeper detected!
-        effect give @s minecraft:resistance 5 1
-        tellraw @a {{"text":"A creeper is nearby!","color":"dark_red"}}
-    else:
-        say Unknown entity detected
-        tellraw @a {{"text":"Something unknown is nearby...","color":"gray"}}
+// Advanced conditional example - weapon effects system
+function "weapon_effects" {{
+    if "entity @s[type=minecraft:player,nbt={{SelectedItem:{{id:'minecraft:diamond_sword'}}}}]" {{
+        say Diamond sword detected!;
+        effect give @s minecraft:strength 10 1;
+        effect give @s minecraft:glowing 10 0;
+    }} else if "entity @s[type=minecraft:player,nbt={{SelectedItem:{{id:'minecraft:golden_sword'}}}}]" {{
+        say Golden sword detected!;
+        effect give @s minecraft:speed 10 1;
+        effect give @s minecraft:night_vision 10 0;
+    }} else if "entity @s[type=minecraft:player]" {{
+        say Player without special weapon;
+        effect give @s minecraft:haste 5 0;
+    }} else {{
+        say No player found;
+    }}
+}}
 
-# Advanced conditional example - weapon effects system
-function "weapon_effects":
-    if "entity @s[type=minecraft:player,nbt={{SelectedItem:{{id:'minecraft:diamond_sword'}}}}]":
-        say Diamond sword detected!
-        effect give @s minecraft:strength 10 1
-        effect give @s minecraft:glowing 10 0
-    else if "entity @s[type=minecraft:player,nbt={{SelectedItem:{{id:'minecraft:golden_sword'}}}}]":
-        say Golden sword detected!
-        effect give @s minecraft:speed 10 1
-        effect give @s minecraft:night_vision 10 0
-    else if "entity @s[type=minecraft:player]":
-        say Player without special weapon
-        effect give @s minecraft:haste 5 0
-    else:
-        say No player found
+// Variable system example
+var num global_counter = 0;
+var str global_message = "Hello World";
 
-# Hook the function into load and tick
-on_load "example:hello"
-on_tick "example:hello"
-on_tick "example:conditional_demo"
-on_tick "example:weapon_effects"
+function "variable_demo" {{
+    var num local_counter = 10;
+    var str player_name = "Steve";
+    
+    local_counter = local_counter + 5;
+    global_counter = global_counter + 1;
+    
+    player_name = "Alex";
+    global_message = "Updated: " + player_name;
+    
+    if "score @s test:local_counter matches 15" {{
+        say Counter is 15!;
+    }}
+}}
 
-# Second namespace with a cross-namespace call
-namespace "util"
+// Hook the function into load and tick
+on_load "example:hello";
+on_tick "example:hello";
+on_tick "example:conditional_demo";
+on_tick "example:weapon_effects";
+on_tick "example:variable_demo";
 
-function "helper":
-    say [util:helper] Helping out...
+// Second namespace with a cross-namespace call
+namespace "util";
 
-function "boss":
-    say [util:boss] Calling example:hello then util:helper
-    function example:hello
-    function util:helper
+function "helper" {{
+    say [util:helper] Helping out...;
+}}
 
-# Run boss every tick as well
-on_tick "util:boss"
+function "boss" {{
+    say [util:boss] Calling example:hello then util:helper;
+    function example:hello;
+    function util:helper;
+}}
 
-# Function tag examples
-tag function "minecraft:load":
-    add "example:hello"
+// Run boss every tick as well
+on_tick "util:boss";
 
-tag function "minecraft:tick":
-    add "example:hello"
-    add "example:conditional_demo"
-    add "example:weapon_effects"
-    add "util:boss"
+// Function tag examples
+tag function "minecraft:load" {{
+    add "example:hello";
+}}
 
-# Data tag examples across registries
-tag item "example:swords":
-    add "minecraft:diamond_sword"
-    add "minecraft:netherite_sword"
+tag function "minecraft:tick" {{
+    add "example:hello";
+    add "example:conditional_demo";
+    add "example:weapon_effects";
+    add "example:variable_demo";
+    add "util:boss";
+}}
 
-tag block "example:glassy":
-    add "minecraft:glass"
-    add "minecraft:tinted_glass"
+// Data tag examples across registries
+tag item "example:swords" {{
+    add "minecraft:diamond_sword";
+    add "minecraft:netherite_sword";
+}}
+
+tag block "example:glassy" {{
+    add "minecraft:glass";
+    add "minecraft:tinted_glass";
+}}
 
 """
     with open(os.path.join(root, "mypack.mdl"), "w", encoding="utf-8") as f:
         f.write(sample.strip() + os.linesep)
     print(f"Created sample at {root}")
+
+def _ast_to_pack(ast: Dict[str, Any], default_pack_format: int) -> Pack:
+    """Convert JavaScript-style AST to Pack object."""
+    # Extract pack information
+    pack_info = ast.get('pack')
+    if pack_info:
+        pack_name = pack_info.name
+        pack_format = pack_info.pack_format
+    else:
+        pack_name = "Generated Pack"
+        pack_format = default_pack_format
+    
+    # Create pack
+    pack = Pack(pack_name)
+    pack.pack_format = pack_format
+    
+    # Process namespaces and functions
+    for namespace in ast.get('namespaces', []):
+        ns_name = namespace.name
+        ns = pack.namespace(ns_name)
+        
+        # Process functions in this namespace
+        for func in ast.get('functions', []):
+            if hasattr(func, 'name'):
+                func_name = func.name
+                # Convert function body to commands
+                commands = _ast_to_commands(func.body)
+                if commands:
+                    ns.function(func_name, *commands)
+    
+    return pack
+
+def _ast_to_commands(body: List[Any]) -> List[str]:
+    """Convert AST function body to list of commands."""
+    commands = []
+    for node in body:
+        if hasattr(node, 'command'):
+            commands.append(node.command)
+        elif hasattr(node, '__class__'):
+            # Handle other AST nodes (if statements, loops, etc.)
+            # For now, just skip complex structures
+            continue
+    return commands
 
 def _determine_wrapper(pack: Pack, override: str | None):
     if override:
@@ -282,7 +357,9 @@ def cmd_check(args):
             # Single file - parse individually
             with open(path, "r", encoding="utf-8") as f:
                 src = f.read()
-            parse_mdl(src, default_pack_format=args.pack_format)
+            ast = parse_mdl_js(src)
+            # Convert AST to Pack for validation
+            _ast_to_pack(ast, args.pack_format)
     except Exception as e:
         # For top-level failures
         m = re.search(r'Line (\d+):\s*(.*)', str(e))
@@ -317,9 +394,7 @@ def main(argv=None):
     p_new = sub.add_parser("new", help="Create a sample .mdl project")
     p_new.add_argument("path")
     p_new.add_argument("--name", default="Minecraft Datapack Language")
-    p_new.add_argument("--pack-format", type=int, default=82)
-    p_new.add_argument("--format", choices=["legacy", "modern"], default="modern", 
-                      help="Pack format style: 'legacy' (pre-82) or 'modern' (82+)")
+    p_new.add_argument("--pack-format", type=int, default=82, help="Pack format (default: 82 for modern)")
     p_new.set_defaults(func=cmd_new)
 
     p_build = sub.add_parser("build", help="Build a datapack")
@@ -328,14 +403,14 @@ def main(argv=None):
     g.add_argument("--src", help="Path to .mdl source (file or directory)")
     g.add_argument("--py-module", help="Python module path exposing create_pack() -> Pack")
     p_build.add_argument("-o", "--out", required=True, help="Output folder (MDL creates <out>/<wrapper>/ and <out>/<wrapper>.zip)")
-    p_build.add_argument("--pack-format", type=int, default=48)
+    p_build.add_argument("--pack-format", type=int, default=82, help="Pack format (default: 82 for modern)")
     p_build.add_argument("--wrapper", help="Wrapper folder/zip name (default: first namespace or slug of pack name)")
     p_build.add_argument("-v", "--verbose", action="store_true", help="Show detailed processing information")
     p_build.set_defaults(func=cmd_build)
 
     p_check = sub.add_parser("check", help="Validate .mdl (file or directory)")
     p_check.add_argument("path", help="Path to .mdl file or directory")
-    p_check.add_argument("--pack-format", type=int, default=48)
+    p_check.add_argument("--pack-format", type=int, default=82, help="Pack format (default: 82 for modern)")
     p_check.add_argument("--json", action="store_true", help="Emit JSON diagnostics")
     p_check.add_argument("-v", "--verbose", action="store_true")
     p_check.set_defaults(func=cmd_check)
