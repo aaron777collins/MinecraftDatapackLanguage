@@ -47,9 +47,9 @@ This document serves as the comprehensive specification and implementation guide
 - **Variable Operations**: `result = a + b * c`
 - **Unary Minus**: `-42`, `-variable_name`
 
-### ⚠️ **PARTIALLY IMPLEMENTED** - Control Flow
-- **If Statements**: `if "condition" { ... }` ✅ (PARSING WORKS, COMPILATION HAS ISSUES)
-- **If-Else**: `if "condition" { ... } else { ... }` ⚠️ (NEEDS DEBUGGING)
+### ✅ **IMPLEMENTED** - Control Flow (ALL WORKING)
+- **If Statements**: `if "condition" { ... }` ✅ (FULLY WORKING)
+- **If-Else**: `if "condition" { ... } else { ... }` ✅ (FULLY WORKING)
 - **While Loops**: `while "condition" { ... }` ✅ (WORKING)
 - **For Loops**: `for variable in selector { ... }` ✅ (WORKING - entity iteration)
 - **For-In Loops**: `for (var item in list) { ... }` ✅ (WORKING - list iteration)
