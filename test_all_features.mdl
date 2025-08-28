@@ -1,0 +1,173 @@
+// test_all_features.mdl - Comprehensive test of all MDL features
+
+pack "All Features Test" description "Testing all MDL features" pack_format 82;
+
+namespace "test";
+
+// Import module system (new feature)
+import "utils" { helper, calculator };
+
+// Export function (new feature)
+export helper_function;
+
+// Global variables
+var num global_counter = 0;
+var str global_message = "Hello from global!";
+var list global_items = ["apple", "banana", "cherry"];
+
+// Main function with all features
+function "main" {
+    // Variable declarations
+    var num counter = 0;
+    var str message = "Hello, MDL!";
+    var list items = ["sword", "shield", "potion"];
+    
+    // Basic commands
+    say "Starting MDL feature test";
+    tellraw @a {"text":"Testing all MDL features","color":"green"};
+    
+    // Variable assignments
+    counter = 42;
+    message = "Updated message";
+    
+    // List operations
+    append items "bow";
+    insert items[1] "axe";
+    remove items[0];
+    pop items;
+    
+    // String concatenation
+    var str full_message = "Items: " + items[0] + " and " + items[1];
+    say full_message;
+    
+    // Arithmetic operations
+    var num result = (counter + 10) * 2;
+    say "Result: " + result;
+    
+    // Control flow
+    if "score @s counter matches 40.." {
+        say "Counter is high!";
+    } else {
+        say "Counter is low.";
+    }
+    
+    // While loop
+    while "score @s counter matches 1.." {
+        say "Counter: " + counter;
+        counter = counter - 1;
+    }
+    
+    // For loop over entities
+    for player in "@a" {
+        tellraw @s {"text":"Hello player!","color":"blue"};
+    }
+    
+    // For-in loop over list (new feature)
+    for (var item in items) {
+        say "Processing: " + item;
+        tellraw @a {"text":"Found item: " + item,"color":"yellow"};
+    }
+    
+    // Enhanced list operations
+    var num item_count = length(items);
+    say "Total items: " + item_count;
+    
+    // List access with variable index
+    var num index = 0;
+    var str first_item = items[index];
+    say "First item: " + first_item;
+    
+    // Complex nested expressions
+    var num complex_result = ((counter + 5) * 2) - 10;
+    say "Complex result: " + complex_result;
+    
+    // Function calls
+    function "test:helper_function";
+    function "utils:calculator";
+    
+    // Error handling with bounds checking
+    if "score @s index matches 0.." {
+        if "data storage mdl:variables items" {
+            var str safe_item = items[index];
+            say "Safe access: " + safe_item;
+        } else {
+            say "List is empty!";
+        }
+    } else {
+        say "Invalid index!";
+    }
+    
+    // Clear list
+    clear items;
+    say "List cleared!";
+    
+    // Final message
+    tellraw @a {"text":"All features tested successfully!","color":"green"};
+}
+
+// Helper function
+function "helper_function" {
+    say "Helper function called!";
+    var num helper_var = 100;
+    say "Helper value: " + helper_var;
+}
+
+// Test function for for-in loops
+function "test_for_in" {
+    var list test_list = ["alpha", "beta", "gamma", "delta"];
+    
+    say "Testing for-in loop:";
+    for (var element in test_list) {
+        say "Element: " + element;
+    }
+    
+    say "For-in loop completed!";
+}
+
+// Test function for list operations
+function "test_list_ops" {
+    var list numbers = [1, 2, 3, 4, 5];
+    
+    say "Original list length: " + length(numbers);
+    
+    // Test append
+    append numbers 6;
+    say "After append: " + length(numbers);
+    
+    // Test insert
+    insert numbers[0] 0;
+    say "After insert: " + length(numbers);
+    
+    // Test remove
+    remove numbers[1];
+    say "After remove: " + length(numbers);
+    
+    // Test pop
+    pop numbers;
+    say "After pop: " + length(numbers);
+    
+    // Test access
+    var num first = numbers[0];
+    var num last = numbers[length(numbers) - 1];
+    say "First: " + first + ", Last: " + last;
+}
+
+// Hook functions
+on_tick "test:tick_function";
+on_load "test:load_function";
+
+function "tick_function" {
+    // Tick function logic
+    var num tick_count = 0;
+    tick_count = tick_count + 1;
+    
+    if "score @s tick_count matches 100.." {
+        say "100 ticks reached!";
+        tick_count = 0;
+    }
+}
+
+function "load_function" {
+    say "Datapack loaded!";
+    tellraw @a {"text":"All Features Test datapack is ready!","color":"gold"};
+}

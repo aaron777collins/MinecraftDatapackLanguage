@@ -59,6 +59,12 @@ class ForLoop(ASTNode):
     body: List[ASTNode]
 
 @dataclass
+class ForInLoop(ASTNode):
+    variable: str
+    list_name: str
+    body: List[ASTNode]
+
+@dataclass
 class WhileLoop(ASTNode):
     condition: str
     body: List[ASTNode]
@@ -78,6 +84,15 @@ class TagDeclaration(ASTNode):
     tag_type: str
     name: str
     values: List[str]
+
+@dataclass
+class ImportStatement(ASTNode):
+    module_name: str
+    imports: List[str]  # List of function names to import
+
+@dataclass
+class ExportStatement(ASTNode):
+    function_name: str
 
 @dataclass
 class VariableDeclaration(ASTNode):
@@ -245,6 +260,10 @@ class MDLParser:
                 ast['hooks'].append(self._parse_hook_declaration())
             elif token.type == TokenType.TAG:
                 ast['tags'].append(self._parse_tag_declaration())
+            elif token.type == TokenType.IMPORT:
+                ast['imports'].append(self._parse_import_statement())
+            elif token.type == TokenType.EXPORT:
+                ast['exports'].append(self._parse_export_statement())
             elif token.type in [TokenType.VAR, TokenType.LET, TokenType.CONST]:
                 # Handle variable declarations at top level (global variables)
                 if ast['functions']:
@@ -509,28 +528,45 @@ class MDLParser:
         self._match(TokenType.RBRACE)
         return body
     
-    def _parse_for_loop(self) -> ForLoop:
+    def _parse_for_loop(self) -> Union[ForLoop, ForInLoop]:
         """Parse for loop with curly braces."""
         self._match(TokenType.FOR)
-        variable = self._match(TokenType.IDENTIFIER).value
-        self._match(TokenType.IN)
         
-        # Check if the next token is a string (selector) or identifier (list variable)
-        token = self._peek()
-        if token.type == TokenType.STRING:
-            selector = self._match(TokenType.STRING).value
-        elif token.type == TokenType.IDENTIFIER:
-            # This is a list variable, we'll need to handle it specially
-            selector = self._match(TokenType.IDENTIFIER).value
+        # Check if this is a for-in loop: for (var item in list)
+        if self._peek().type == TokenType.LPAREN:
+            self._match(TokenType.LPAREN)
+            self._match(TokenType.VAR)
+            variable = self._match(TokenType.IDENTIFIER).value
+            self._match(TokenType.IN)
+            list_name = self._match(TokenType.IDENTIFIER).value
+            self._match(TokenType.RPAREN)
+            
+            self._match(TokenType.LBRACE)
+            body = self._parse_block()
+            self._match(TokenType.RBRACE)
+            
+            return ForInLoop(variable, list_name, body)
         else:
-            raise ValueError(f"Expected STRING or IDENTIFIER after 'in', got {token.type}")
-        
-        self._match(TokenType.LBRACE)
-        
-        body = self._parse_block()
-        self._match(TokenType.RBRACE)
-        
-        return ForLoop(variable, selector, body)
+            # Regular for loop: for variable in selector
+            variable = self._match(TokenType.IDENTIFIER).value
+            self._match(TokenType.IN)
+            
+            # Check if the next token is a string (selector) or identifier (list variable)
+            token = self._peek()
+            if token.type == TokenType.STRING:
+                selector = self._match(TokenType.STRING).value
+            elif token.type == TokenType.IDENTIFIER:
+                # This is a list variable, we'll need to handle it specially
+                selector = self._match(TokenType.IDENTIFIER).value
+            else:
+                raise ValueError(f"Expected STRING or IDENTIFIER after 'in', got {token.type}")
+            
+            self._match(TokenType.LBRACE)
+            
+            body = self._parse_block()
+            self._match(TokenType.RBRACE)
+            
+            return ForLoop(variable, selector, body)
     
     def _parse_while_loop(self) -> WhileLoop:
         """Parse while loop with curly braces."""
@@ -636,6 +672,41 @@ class MDLParser:
         self._match(TokenType.RBRACE)
         
         return TagDeclaration(tag_type, name, values)
+    
+    def _parse_import_statement(self) -> ImportStatement:
+        """Parse import statement."""
+        self._match(TokenType.IMPORT)
+        
+        # Parse module name
+        module_name = self._match(TokenType.STRING).value
+        
+        # Parse imports list
+        imports = []
+        if self._peek() and self._peek().type == TokenType.LBRACE:
+            self._match(TokenType.LBRACE)
+            if self._peek() and self._peek().type != TokenType.RBRACE:
+                imports.append(self._match(TokenType.IDENTIFIER).value)
+                while self._peek() and self._peek().type == TokenType.COMMA:
+                    self._advance()  # consume comma
+                    imports.append(self._match(TokenType.IDENTIFIER).value)
+            self._match(TokenType.RBRACE)
+        
+        # Expect semicolon
+        if self._peek() and self._peek().type == TokenType.SEMICOLON:
+            self._advance()
+        
+        return ImportStatement(module_name, imports)
+    
+    def _parse_export_statement(self) -> ExportStatement:
+        """Parse export statement."""
+        self._match(TokenType.EXPORT)
+        function_name = self._match(TokenType.IDENTIFIER).value
+        
+        # Expect semicolon
+        if self._peek() and self._peek().type == TokenType.SEMICOLON:
+            self._advance()
+        
+        return ExportStatement(function_name)
     
     def _parse_variable_declaration(self) -> VariableDeclaration:
         """Parse variable declaration."""

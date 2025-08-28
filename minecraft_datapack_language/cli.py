@@ -529,15 +529,21 @@ def _ast_to_pack(ast: Dict[str, Any], default_pack_format: int) -> Pack:
     
     return pack
 
-def _ast_to_commands(body: List[Any]) -> List[str]:
+def _ast_to_commands(body: List[Any], current_namespace: str = "test", current_pack: Any = None) -> List[str]:
     """Convert AST function body to list of valid Minecraft commands."""
     print(f"DEBUG: _ast_to_commands called with {len(body)} nodes")
     commands = []
+    
+    # Performance optimization: Pre-allocate common variables
+    temp_var_counter = 0
+    
     for i, node in enumerate(body):
         print(f"DEBUG: Processing node {i}: {type(node).__name__}")
         if hasattr(node, '__class__'):
             class_name = node.__class__.__name__
             print(f"DEBUG: Node class: {class_name}")
+            
+            try:
             
             if class_name == 'Command':
                 # Remove semicolon from command and clean up
@@ -712,30 +718,57 @@ def _ast_to_commands(body: List[Any]) -> List[str]:
                 selector = node.selector.strip('"')
                 loop_body = _ast_to_commands(node.body)
                 
-                # Check if this is a for-in loop (list iteration)
-                if selector.startswith('var ') or selector in ['list', 'items', 'elements']:
-                    # This is a for-in loop for list iteration
-                    list_name = selector.replace('var ', '').strip()
-                    commands.append(f"# For-in loop over {list_name}")
-                    commands.append(f"execute store result storage mdl:temp loop_index int 1 run data get storage mdl:variables {list_name}")
-                    commands.append(f"execute if data storage mdl:variables {list_name} run function {current_namespace}:for_in_{variable}_{list_name}")
-                    # Generate the loop body function
-                    loop_func_name = f"for_in_{variable}_{list_name}"
-                    loop_func_commands = []
-                    for cmd in loop_body:
-                        # Replace variable references with list element access
-                        modified_cmd = cmd.replace(f"@{variable}", f"storage mdl:variables {list_name}[storage mdl:temp loop_index]")
-                        loop_func_commands.append(modified_cmd)
-                    # Store the loop function for later generation
-                    if not hasattr(current_pack, 'loop_functions'):
-                        current_pack.loop_functions = {}
-                    current_pack.loop_functions[loop_func_name] = loop_func_commands
-                else:
-                    # This is a regular for loop over entities
-                    for cmd in loop_body:
-                        # Replace @s with the loop variable selector
-                        modified_cmd = cmd.replace('@s', selector)
-                        commands.append(f"execute as {selector} run {modified_cmd}")
+                # This is a regular for loop over entities
+                for cmd in loop_body:
+                    # Replace @s with the loop variable selector
+                    modified_cmd = cmd.replace('@s', selector)
+                    commands.append(f"execute as {selector} run {modified_cmd}")
+                    
+            elif class_name == 'ForInLoop':
+                # Convert for-in loops to Minecraft list iteration commands
+                variable = node.variable
+                list_name = node.list_name
+                loop_body = _ast_to_commands(node.body)
+                
+                commands.append(f"# For-in loop over {list_name}")
+                commands.append(f"execute store result storage mdl:temp list_length int 1 run data get storage mdl:variables {list_name}")
+                commands.append(f"execute if data storage mdl:variables {list_name} run function {current_namespace}:for_in_{variable}_{list_name}")
+                
+                # Generate the loop body function
+                loop_func_name = f"for_in_{variable}_{list_name}"
+                loop_func_commands = []
+                
+                # Add loop initialization
+                loop_func_commands.append(f"# Initialize loop index")
+                loop_func_commands.append(f"scoreboard players set @s loop_index 0")
+                
+                # Add loop condition and body
+                loop_func_commands.append(f"# Loop condition")
+                loop_func_commands.append(f"execute if score @s loop_index < @s list_length run function {current_namespace}:for_in_body_{variable}_{list_name}")
+                
+                # Generate the loop body function
+                body_func_name = f"for_in_body_{variable}_{list_name}"
+                body_commands = []
+                
+                # Get current element and store it in a variable
+                body_commands.append(f"# Get current element")
+                body_commands.append(f"data modify storage mdl:temp current_element set from storage mdl:variables {list_name}[score @s loop_index]")
+                
+                # Replace variable references in loop body
+                for cmd in loop_body:
+                    modified_cmd = cmd.replace(f"@{variable}", "storage mdl:temp current_element")
+                    body_commands.append(modified_cmd)
+                
+                # Increment loop index and continue
+                body_commands.append(f"# Increment index and continue")
+                body_commands.append(f"scoreboard players add @s loop_index 1")
+                body_commands.append(f"execute if score @s loop_index < @s list_length run function {current_namespace}:for_in_body_{variable}_{list_name}")
+                
+                # Store the functions for later generation
+                if not hasattr(current_pack, 'loop_functions'):
+                    current_pack.loop_functions = {}
+                current_pack.loop_functions[loop_func_name] = loop_func_commands
+                current_pack.loop_functions[body_func_name] = body_commands
                     
             elif class_name == 'WhileLoop':
                 # Convert while loops to Minecraft conditional commands
@@ -802,7 +835,9 @@ def _ast_to_commands(body: List[Any]) -> List[str]:
                 # Convert list length to Minecraft commands
                 list_name = node.list_name
                 commands.append(f"# Get length of {list_name}")
-                commands.append(f"execute store result score @s temp_length run data get storage mdl:variables {list_name}")
+                commands.append(f"execute store result score @s {list_name}_length run data get storage mdl:variables {list_name}")
+                commands.append(f"# Store length in a more accessible variable")
+                commands.append(f"scoreboard players operation @s list_length = @s {list_name}_length")
                 
             elif class_name == 'ListAppendOperation':
                 # Convert list append operations to Minecraft NBT commands
@@ -924,6 +959,11 @@ def _ast_to_commands(body: List[Any]) -> List[str]:
             else:
                 # Unknown node type - skip for now
                 continue
+                
+        except Exception as e:
+            print(f"ERROR: Failed to process node {i} of type {class_name}: {str(e)}")
+            commands.append(f"# ERROR: Failed to process {class_name} - {str(e)}")
+            continue
                 
     return commands
 

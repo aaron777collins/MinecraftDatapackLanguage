@@ -169,6 +169,7 @@ When testing changes to the MDL language, follow this exact workflow:
    ```bash
    mdl build --mdl test_file.mdl -o output_dir --verbose
    ```
+   Check the output to ensure the outputted files are valid mcfunction files and work as a datapack
 
 ### Important Notes
 - **Always use `pipx`** for installation and upgrades
@@ -236,20 +237,21 @@ When testing changes to the MDL language, follow this exact workflow:
 - Expression processing system
 - Modern datapack format (82+) by default
 
-### 🔄 In Progress
-- For-in loops for list iteration
+### ✅ Recently Completed
+- For-in loops for list iteration (`for (var item in list)`)
 - Enhanced list operations (insert, remove, pop, clear)
+- Module system (import/export statements)
+- Enhanced error handling and debugging
+- Performance optimizations
 - Complex nested expressions optimization
-- Performance optimization
-- Documentation updates
 
 ### 📋 Planned Features
 - Advanced control flow optimizations
-- Module system
-- Advanced debugging tools
+- Advanced debugging tools (source maps, step-through debugging)
 - Enhanced error recovery
-- Performance optimizations
-- Advanced variable types
+- Advanced variable types (objects, custom data structures)
+- Performance optimizations (further command reduction)
+- IDE integration improvements
 
 ## Technical Requirements
 

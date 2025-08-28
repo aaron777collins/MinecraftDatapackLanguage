@@ -82,6 +82,7 @@ class TokenType(Enum):
     COMMENT = "COMMENT"
     COMMAND = "COMMAND"
     IMPORT = "IMPORT"
+    EXPORT = "EXPORT"
     FROM = "FROM"
     AS = "AS"
     
@@ -165,6 +166,7 @@ class MDLLexer:
             (r'^throw\b', TokenType.THROW),
             (r'^return\b', TokenType.RETURN),
             (r'^import\b', TokenType.IMPORT),
+            (r'^export\b', TokenType.EXPORT),
             (r'^from\b', TokenType.FROM),
             (r'^as\b', TokenType.AS),
             (r'^append\b', TokenType.APPEND),
