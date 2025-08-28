@@ -1,0 +1,34 @@
+// test_comprehensive.mdl - Comprehensive test of all features
+pack "comprehensive" description "Comprehensive test" pack_format 82;
+
+namespace "test";
+
+function "test_all" {
+    // Test all variable types
+    var num health = 100;
+    var str name = "Player";
+    var list items = ["sword", "shield"];
+    
+    // Test variable operations
+    health = health + 10;
+    name = name + " Hero";
+    items.append("potion");
+    
+    // Test conditionals
+    if "score @s health matches 100.." {
+        say Player is healthy;
+    } else {
+        say Player needs healing;
+    }
+    
+    // Test loops
+    var num counter = 0;
+    while "score @s counter matches ..2" {
+        say Loop iteration;
+        counter = counter + 1;
+    }
+    
+    // Test commands
+    say Test complete;
+    tellraw @s {"text":"Final health: " + health};
+}

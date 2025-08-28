@@ -495,19 +495,28 @@ def _ast_to_pack(ast: Dict[str, Any], default_pack_format: int) -> Pack:
     ])
     
     # Process functions by their namespace
+    current_namespace = 'minecraft'  # Default namespace
+    
+    # First, get the current namespace from namespace declarations
+    namespaces = ast.get('namespaces', [])
+    if namespaces:
+        current_namespace = namespaces[-1].name  # Use the last declared namespace
+    
     for func in ast.get('functions', []):
         if hasattr(func, 'name'):
             func_name = func.name
-            # Get the namespace for this function
-            namespace_name = getattr(func, 'namespace', 'minecraft')  # Default to minecraft if no namespace
+            # Use the current namespace (or function-specific namespace if it has one)
+            namespace_name = getattr(func, 'namespace', current_namespace)
             ns = pack.namespace(namespace_name)
             
             # Convert function body to commands
             commands = _ast_to_commands(func.body)
+            print(f"DEBUG: Generated {len(commands)} commands for {namespace_name}:{func_name}: {commands}")
             if commands:
                 # Create function directly without going through old processing pipeline
                 fn = ns.functions.setdefault(func_name, Function(func_name, []))
                 fn.commands.extend(commands)
+                print(f"DEBUG: Function {namespace_name}:{func_name} now has {len(fn.commands)} commands: {fn.commands}")
     
     # Process hooks (on_load, on_tick)
     for hook in ast.get('hooks', []):
@@ -568,7 +577,10 @@ def _ast_to_commands(body: List[Any]) -> List[str]:
                     commands.append(f"data modify storage mdl:variables {var_name} set value \"\"")
                     if node.value:
                         # Set initial value if provided
-                        initial_value = str(node.value).strip('"')
+                        if hasattr(node.value, 'value'):
+                            initial_value = node.value.value.strip('"')
+                        else:
+                            initial_value = str(node.value).strip('"')
                         commands.append(f"data modify storage mdl:variables {var_name} set value \"{initial_value}\"")
                 elif var_type == 'list':
                     # List variables use NBT storage with array
