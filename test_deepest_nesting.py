@@ -206,7 +206,7 @@ on_tick "test:weapon_effects_deep"
                 for i, cmd in enumerate(func.commands):
                     print(f"    {i+1}: {cmd}")
                 if not func.commands:
-                    print("    ⚠️  EMPTY!")
+                    print("    [-] EMPTY!")
             
             # Check if the deepest function has content
             deepest_funcs = [name for name in test_ns.functions.keys() if "for" in name and len(name.split('_')) > 3]
@@ -218,9 +218,9 @@ on_tick "test:weapon_effects_deep"
                 if func.commands:
                     print(f"  Commands: {func.commands}")
                 else:
-                    print(f"  ⚠️  WARNING: Deepest function '{func_name}' is empty!")
+                    print(f"  [-] WARNING: Deepest function '{func_name}' is empty!")
         
-        print("\n✅ Weapon effects deep nesting test completed!")
+        print("\n[+] Weapon effects deep nesting test completed!")
         return True
         
     except Exception as e:

@@ -50,14 +50,14 @@ on_tick "test:nested_for"
                 print(f"  Commands ({len(func.commands)}):")
                 for i, cmd in enumerate(func.commands):
                     print(f"    {i+1}: {cmd}")
-                if not func.commands:
-                    print("    ⚠️  EMPTY!")
-        
-        print("\n✅ Nested for loops test completed!")
+                                if not func.commands:
+                    print("    [-] EMPTY!")
+            
+            print("\n[+] Nested for loops test completed!")
         return True
         
     except Exception as e:
-        print(f"❌ Nested for loops test failed: {e}")
+        print(f"[-] Nested for loops test failed: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -99,14 +99,14 @@ on_tick "test:while_nested"
                 print(f"  Commands ({len(func.commands)}):")
                 for i, cmd in enumerate(func.commands):
                     print(f"    {i+1}: {cmd}")
-                if not func.commands:
-                    print("    ⚠️  EMPTY!")
-        
-        print("\n✅ While with nested if test completed!")
+                                if not func.commands:
+                    print("    [-] EMPTY!")
+            
+            print("\n[+] While with nested if test completed!")
         return True
         
     except Exception as e:
-        print(f"❌ While with nested if test failed: {e}")
+        print(f"[-] While with nested if test failed: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -152,14 +152,14 @@ on_tick "test:complex_nested"
                 print(f"  Commands ({len(func.commands)}):")
                 for i, cmd in enumerate(func.commands):
                     print(f"    {i+1}: {cmd}")
-                if not func.commands:
-                    print("    ⚠️  EMPTY!")
-        
-        print("\n✅ Complex nested test completed!")
+                                if not func.commands:
+                    print("    [-] EMPTY!")
+            
+            print("\n[+] Complex nested test completed!")
         return True
         
     except Exception as e:
-        print(f"❌ Complex nested test failed: {e}")
+        print(f"[-] Complex nested test failed: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -194,14 +194,14 @@ on_tick "test:simple_while"
                 print(f"  Commands ({len(func.commands)}):")
                 for i, cmd in enumerate(func.commands):
                     print(f"    {i+1}: {cmd}")
-                if not func.commands:
-                    print("    ⚠️  EMPTY!")
-        
-        print("\n✅ Simple while test completed!")
+                                if not func.commands:
+                    print("    [-] EMPTY!")
+            
+            print("\n[+] Simple while test completed!")
         return True
         
     except Exception as e:
-        print(f"❌ Simple while test failed: {e}")
+        print(f"[-] Simple while test failed: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -218,12 +218,12 @@ if __name__ == "__main__":
     
     print("\n" + "=" * 80)
     print("Test Results Summary:")
-    print(f"Simple while: {'✅ PASS' if test1 else '❌ FAIL'}")
-    print(f"While with nested if: {'✅ PASS' if test2 else '❌ FAIL'}")
-    print(f"Nested for with if: {'✅ PASS' if test3 else '❌ FAIL'}")
-    print(f"Complex nested: {'✅ PASS' if test4 else '❌ FAIL'}")
+    print(f"Simple while: {'[+] PASS' if test1 else '[-] FAIL'}")
+    print(f"While with nested if: {'[+] PASS' if test2 else '[-] FAIL'}")
+    print(f"Nested for with if: {'[+] PASS' if test3 else '[-] FAIL'}")
+    print(f"Complex nested: {'[+] PASS' if test4 else '[-] FAIL'}")
     
     if all([test1, test2, test3, test4]):
-        print("\n🎉 All nested control structure tests passed!")
+        print("\n[+] All nested control structure tests passed!")
     else:
-        print("\n⚠️  Some nested control structure tests failed.")
+        print("\n[-] Some nested control structure tests failed.")

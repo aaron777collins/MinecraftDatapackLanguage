@@ -1,4 +1,4 @@
-pack "Control Flow Demo" description "Demonstrates all control flow features" pack_format 82;
+pack "control_flow_demo" description "Demonstrates all control flow features" pack_format 82;
 
 namespace "demo";
 
@@ -64,18 +64,22 @@ function "switch_demo" {
     var num choice = 2;
     
     // Switch statement
-    switch choice {
-        case 0:
+    switch (choice) {
+        case 0 {
             say Choice is zero;
             break;
-        case 1:
+        }
+        case 1 {
             say Choice is one;
             break;
-        case 2:
+        }
+        case 2 {
             say Choice is two;
             break;
-        default:
+        }
+        default {
             say Choice is something else;
+        }
     }
 }
 
@@ -126,7 +130,7 @@ function "break_continue_demo" {
     }
     
     // Continue in loops
-    for i in [1, 2, 3, 4, 5] {
+    for i in "@a" {
         if "score @s demo:i matches 3" {
             say Skipping 3;
             continue;

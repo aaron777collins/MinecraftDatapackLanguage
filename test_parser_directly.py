@@ -103,7 +103,7 @@ tag block "example:glassy":
                     if func.commands:
                         print(f"  First command: {func.commands[0]}")
                     else:
-                        print(f"  ⚠️  WARNING: Function '{func_name}' is empty!")
+                        print(f"  [-] WARNING: Function '{func_name}' is empty!")
                 
             else:
                 print("[-] Main function 'globalweaponeffects' not found!")
@@ -171,13 +171,13 @@ on_tick "test:simple_for"
                     if func.commands:
                         print(f"  Commands: {func.commands}")
                     else:
-                        print(f"  ⚠️  WARNING: Function '{func_name}' is empty!")
+                        print(f"  [-] WARNING: Function '{func_name}' is empty!")
         
-        print("✅ Simple for loop test completed!")
+        print("[+] Simple for loop test completed!")
         return True
         
     except Exception as e:
-        print(f"❌ Simple for loop test failed: {e}")
+        print(f"[-] Simple for loop test failed: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -224,11 +224,11 @@ on_tick "test:for_with_conditionals"
             else:
                 print(f"  [-] WARNING: Function '{func_name}' is empty!")
         
-        print("✅ For loop with conditionals test completed!")
+        print("[+] For loop with conditionals test completed!")
         return True
         
     except Exception as e:
-        print(f"❌ For loop with conditionals test failed: {e}")
+        print(f"[-] For loop with conditionals test failed: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -244,11 +244,11 @@ if __name__ == "__main__":
     
     print("\n" + "=" * 60)
     print("Test Results Summary:")
-    print(f"Simple for loop: {'✅ PASS' if test1 else '❌ FAIL'}")
-    print(f"For with conditionals: {'✅ PASS' if test2 else '❌ FAIL'}")
-    print(f"Weapon effects example: {'✅ PASS' if test3 else '❌ FAIL'}")
+    print(f"Simple for loop: {'[+] PASS' if test1 else '[-] FAIL'}")
+    print(f"For with conditionals: {'[+] PASS' if test2 else '[-] FAIL'}")
+    print(f"Weapon effects example: {'[+] PASS' if test3 else '[-] FAIL'}")
     
     if all([test1, test2, test3]):
-        print("\n🎉 All tests passed! The parser is working correctly.")
+        print("\n[+] All tests passed! The parser is working correctly.")
     else:
-        print("\n⚠️  Some tests failed. The parser needs fixes before release.")
+        print("\n[-] Some tests failed. The parser needs fixes before release.")
