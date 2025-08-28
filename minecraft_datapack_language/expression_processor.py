@@ -156,25 +156,52 @@ class ExpressionProcessor:
         except (ValueError, TypeError):
             is_right_literal = False
         
+        # For literal numbers, we can use direct add/remove/set
+        # For variable operands, we need to use scoreboard operations
+        
         if operator == '+':
             if is_right_literal:
+                # For literal numbers, use direct add
                 return f"scoreboard players operation @s {target} = @s {left}\nscoreboard players add @s {target} {right}"
             else:
+                # For variable operands, use scoreboard operation
                 return f"scoreboard players operation @s {target} = @s {left}\nscoreboard players operation @s {target} += @s {right}"
+        
         elif operator == '-':
             if is_right_literal:
+                # For literal numbers, use direct remove
                 return f"scoreboard players operation @s {target} = @s {left}\nscoreboard players remove @s {target} {right}"
             else:
+                # For variable operands, use scoreboard operation
                 return f"scoreboard players operation @s {target} = @s {left}\nscoreboard players operation @s {target} -= @s {right}"
+        
         elif operator == '*':
             if is_right_literal:
-                return f"scoreboard players operation @s {target} = @s {left}\nscoreboard players operation @s {target} *= @s {right}"
+                # For multiplication with literal, we need to create a temporary objective
+                temp_obj = f"temp_{right}"
+                return f"scoreboard objectives add {temp_obj} dummy\nscoreboard players set @s {temp_obj} {right}\nscoreboard players operation @s {target} = @s {left}\nscoreboard players operation @s {target} *= @s {temp_obj}"
             else:
+                # For variable operands, use scoreboard operation
                 return f"scoreboard players operation @s {target} = @s {left}\nscoreboard players operation @s {target} *= @s {right}"
+        
         elif operator == '/':
-            return f"scoreboard players operation @s {target} = @s {left}\nscoreboard players operation @s {target} /= @s {right}"
+            if is_right_literal:
+                # For division with literal, we need to create a temporary objective
+                temp_obj = f"temp_{right}"
+                return f"scoreboard objectives add {temp_obj} dummy\nscoreboard players set @s {temp_obj} {right}\nscoreboard players operation @s {target} = @s {left}\nscoreboard players operation @s {target} /= @s {temp_obj}"
+            else:
+                # For variable operands, use scoreboard operation
+                return f"scoreboard players operation @s {target} = @s {left}\nscoreboard players operation @s {target} /= @s {right}"
+        
         elif operator == '%':
-            return f"scoreboard players operation @s {target} = @s {left}\nscoreboard players operation @s {target} %= @s {right}"
+            if is_right_literal:
+                # For modulo with literal, we need to create a temporary objective
+                temp_obj = f"temp_{right}"
+                return f"scoreboard objectives add {temp_obj} dummy\nscoreboard players set @s {temp_obj} {right}\nscoreboard players operation @s {target} = @s {left}\nscoreboard players operation @s {target} %= @s {temp_obj}"
+            else:
+                # For variable operands, use scoreboard operation
+                return f"scoreboard players operation @s {target} = @s {left}\nscoreboard players operation @s {target} %= @s {right}"
+        
         else:
             # Default to addition for unknown operators
             if is_right_literal:

@@ -232,15 +232,27 @@ class MCFunctionLinter:
             ))
         
         # Invalid scoreboard operation syntax
-        if 'scoreboard players operation' in line and not re.search(r'@\w+\s+\w+\s*=\s*@\w+\s+\w+', line):
-            self.issues.append(LintIssue(
-                line_number=line_num,
-                severity='error',
-                category='syntax_errors',
-                message="Invalid scoreboard operation syntax",
-                suggestion="Use format: scoreboard players operation <target> <objective> = <source> <objective>",
-                command=line
-            ))
+        # Check for valid patterns: =, +=, -=, *=, /=, %=
+        valid_patterns = [
+            r'@\w+\s+\w+\s*=\s*@\w+\s+\w+',      # assignment: target = source
+            r'@\w+\s+\w+\s*\+=\s*@\w+\s+\w+',    # addition: target += source
+            r'@\w+\s+\w+\s*-=\s*@\w+\s+\w+',     # subtraction: target -= source
+            r'@\w+\s+\w+\s*\*=\s*@\w+\s+\w+',    # multiplication: target *= source
+            r'@\w+\s+\w+\s*/=\s*@\w+\s+\w+',     # division: target /= source
+            r'@\w+\s+\w+\s*%=\s*@\w+\s+\w+'      # modulo: target %= source
+        ]
+        
+        if 'scoreboard players operation' in line:
+            is_valid = any(re.search(pattern, line) for pattern in valid_patterns)
+            if not is_valid:
+                self.issues.append(LintIssue(
+                    line_number=line_num,
+                    severity='error',
+                    category='syntax_errors',
+                    message="Invalid scoreboard operation syntax",
+                    suggestion="Use format: scoreboard players operation <target> <objective> <operator> <source> <objective>",
+                    command=line
+                ))
         
         # Unclosed quotes in data commands
         if 'data modify' in line and line.count('"') % 2 != 0:
