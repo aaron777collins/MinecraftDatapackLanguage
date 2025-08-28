@@ -240,7 +240,9 @@ class MDLParser:
             'namespaces': [],
             'functions': [],
             'hooks': [],
-            'tags': []
+            'tags': [],
+            'imports': [],
+            'exports': []
         }
         
         current_namespace = None
