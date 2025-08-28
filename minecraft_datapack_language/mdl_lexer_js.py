@@ -201,6 +201,15 @@ class MDLLexer:
                 self._tokenize_remaining(remaining, line_num)
             return
         
+        # Check for tag function (special case where function is an identifier)
+        if line.startswith('tag function'):
+            self.tokens.append(Token(TokenType.TAG, "tag", line_num, 0))
+            self.tokens.append(Token(TokenType.IDENTIFIER, "function", line_num, 0))
+            remaining = line[13:].strip()
+            if remaining:
+                self._tokenize_remaining(remaining, line_num)
+            return
+        
         # Check for function call
         if line.startswith('function '):
             self.tokens.append(Token(TokenType.FUNCTION, "function", line_num, 0))
