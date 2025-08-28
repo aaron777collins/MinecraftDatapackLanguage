@@ -538,7 +538,7 @@ def _ast_to_commands(body: List[Any]) -> List[str]:
                 
             else:
                 # Unknown node type - skip for now
-            continue
+                continue
                 
     return commands
 
