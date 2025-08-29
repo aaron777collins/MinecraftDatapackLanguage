@@ -609,6 +609,31 @@ def _generate_hook_files(ast: Dict[str, Any], output_dir: Path, namespace: str) 
     # Generate a global load function for variable initialization if we have variables
     if has_variables:
         _generate_global_load_function(ast, output_dir, namespace)
+        
+        # For multi-file builds, we need to ensure each namespace with variables gets its own load function
+        # Check if we have functions from different namespaces
+        namespace_functions = {}
+        for function in ast.get('functions', []):
+            if isinstance(function, dict):
+                func_namespace = getattr(function, '_source_namespace', namespace)
+            else:
+                func_namespace = getattr(function, '_source_namespace', namespace)
+            
+            if func_namespace not in namespace_functions:
+                namespace_functions[func_namespace] = []
+            namespace_functions[func_namespace].append(function)
+        
+        # For each namespace that has functions, ensure it has a load function in load.json
+        for func_namespace in namespace_functions.keys():
+            if func_namespace != namespace:  # Skip the root namespace as it's already handled
+                namespace_load_function = f"{func_namespace}:load"
+                if namespace_load_function not in load_functions:
+                    load_functions.append(namespace_load_function)
+                    
+                    # Update the load.json with the additional namespace load function
+                    load_file = tags_dir / "load.json"
+                    with open(load_file, 'w', encoding='utf-8') as f:
+                        f.write('{"values": [' + ', '.join(f'"{func}"' for func in load_functions) + ']}')
 
 
 def _generate_global_load_function(ast: Dict[str, Any], output_dir: Path, namespace: str) -> None:
@@ -625,6 +650,20 @@ def _generate_global_load_function(ast: Dict[str, Any], output_dir: Path, namesp
         # If we have pack info, use the pack name as the root namespace
         root_namespace = pack_info['name']
     
+    # For multi-file builds, we need to generate load functions for each namespace that has variables
+    # First, identify all namespaces that have functions
+    namespace_functions = {}
+    for function in ast.get('functions', []):
+        if isinstance(function, dict):
+            func_namespace = getattr(function, '_source_namespace', root_namespace)
+        else:
+            func_namespace = getattr(function, '_source_namespace', root_namespace)
+        
+        if func_namespace not in namespace_functions:
+            namespace_functions[func_namespace] = []
+        namespace_functions[func_namespace].append(function)
+    
+    # Generate load function for the root namespace (which contains all variables)
     functions_dir = output_dir / "data" / root_namespace / dir_map.function
     functions_dir.mkdir(parents=True, exist_ok=True)
     
@@ -683,6 +722,18 @@ def _generate_global_load_function(ast: Dict[str, Any], output_dir: Path, namesp
         load_file = functions_dir / "load.mcfunction"
         with open(load_file, 'w', encoding='utf-8') as f:
             f.write('\n'.join(variable_initializations))
+    
+    # Generate load functions for other namespaces that have functions
+    for func_namespace in namespace_functions.keys():
+        if func_namespace != root_namespace:  # Skip the root namespace as it's already handled
+            # Create the namespace directory
+            namespace_functions_dir = output_dir / "data" / func_namespace / dir_map.function
+            namespace_functions_dir.mkdir(parents=True, exist_ok=True)
+            
+            # Create a load.mcfunction file for this namespace (it will be empty but ensures the function exists)
+            namespace_load_file = namespace_functions_dir / "load.mcfunction"
+            with open(namespace_load_file, 'w', encoding='utf-8') as f:
+                f.write("execute unless entity @e[type=armor_stand,tag=mdl_server,limit=1] run summon armor_stand ~ 320 ~ {Tags:[\"mdl_server\"],Invisible:1b,Marker:1b,NoGravity:1b,Invulnerable:1b}")
 
 
 def _generate_tag_files(ast: Dict[str, Any], output_dir: Path, namespace: str) -> None:
