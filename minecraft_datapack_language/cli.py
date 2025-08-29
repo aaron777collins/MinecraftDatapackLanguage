@@ -671,7 +671,7 @@ def _generate_global_load_function(ast: Dict[str, Any], output_dir: Path, namesp
     # Group variables by their source namespace
     namespace_variables = {}
     
-    # Add top-level variables to the root namespace
+    # Add top-level variables to the root namespace (the one with the pack declaration)
     for var in ast.get('variables', []):
         if isinstance(var, dict):
             var_name = var.get('name', 'unknown')
@@ -686,9 +686,11 @@ def _generate_global_load_function(ast: Dict[str, Any], output_dir: Path, namesp
     for function in ast.get('functions', []):
         if isinstance(function, dict):
             body = function.get('body', [])
+            # Get the actual source namespace for this function
             func_namespace = getattr(function, '_source_namespace', root_namespace)
         else:
             body = getattr(function, 'body', [])
+            # Get the actual source namespace for this function
             func_namespace = getattr(function, '_source_namespace', root_namespace)
         
         for statement in body:
@@ -702,7 +704,7 @@ def _generate_global_load_function(ast: Dict[str, Any], output_dir: Path, namesp
             elif hasattr(statement, '__class__') and statement.__class__.__name__ == 'VariableAssignment':
                 var_name = statement.name if hasattr(statement, 'name') else statement.get('name', 'unknown')
             
-            # Add the variable to its namespace
+            # Add the variable to its correct namespace
             if var_name:
                 if func_namespace not in namespace_variables:
                     namespace_variables[func_namespace] = []
