@@ -110,6 +110,16 @@ class MDLLexer:
             if char == '\n':
                 self.line += 1
                 self.column = 1
+            elif char == '\r':
+                # Handle Windows line endings (\r\n)
+                if self.current + 1 < len(source) and source[self.current + 1] == '\n':
+                    self.current += 1  # Skip the \r
+                    self.line += 1
+                    self.column = 1
+                else:
+                    # Just a \r without \n, treat as newline
+                    self.line += 1
+                    self.column = 1
             else:
                 self.column += 1
             self.current += 1
@@ -146,6 +156,12 @@ class MDLLexer:
     def _scan_comment(self, source: str):
         """Scan a comment."""
         while self.current < len(source) and source[self.current] != '\n':
+            if source[self.current] == '\r':
+                # Handle Windows line endings in comments
+                if self.current + 1 < len(source) and source[self.current + 1] == '\n':
+                    break  # End of comment at \r\n
+                else:
+                    break  # End of comment at \r
             self.current += 1
             self.column += 1
     
@@ -177,6 +193,23 @@ class MDLLexer:
         }
         
         token_type = keyword_map.get(text, TokenType.IDENTIFIER)
+        
+        # Special handling for "else if" - look ahead for "if"
+        if text == 'else' and self.current < len(source):
+            # Skip whitespace
+            temp_current = self.current
+            while (temp_current < len(source) and 
+                   source[temp_current].isspace()):
+                temp_current += 1
+            
+            # Check if next token is "if"
+            if (temp_current + 1 < len(source) and 
+                source[temp_current:temp_current + 2] == 'if' and
+                (temp_current + 2 >= len(source) or 
+                 not source[temp_current + 2].isalnum())):
+                # This is "else if", we'll handle it in the parser
+                pass
+        
         self.tokens.append(Token(token_type, text, self.line, self.start - self.column + 1))
     
     def _scan_number(self, source: str):
@@ -200,6 +233,16 @@ class MDLLexer:
             if source[self.current] == '\n':
                 self.line += 1
                 self.column = 1
+            elif source[self.current] == '\r':
+                # Handle Windows line endings in strings
+                if self.current + 1 < len(source) and source[self.current + 1] == '\n':
+                    self.current += 1  # Skip the \r
+                    self.line += 1
+                    self.column = 1
+                else:
+                    # Just a \r without \n, treat as newline
+                    self.line += 1
+                    self.column = 1
             else:
                 self.column += 1
             self.current += 1

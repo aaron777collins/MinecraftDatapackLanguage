@@ -268,7 +268,9 @@ class MDLParser:
         
         # Parse else if branches
         elif_branches = []
-        while self._peek().type == TokenType.ELSE_IF:
+        while (self._peek().type == TokenType.ELSE and 
+               self.current + 1 < len(self.tokens) and
+               self.tokens[self.current + 1].type == TokenType.IF):
             elif_branches.append(self._parse_elif_branch())
         
         # Parse else body
@@ -285,7 +287,8 @@ class MDLParser:
     
     def _parse_elif_branch(self) -> ElifBranch:
         """Parse else if branch."""
-        self._match(TokenType.ELSE_IF)
+        self._match(TokenType.ELSE)
+        self._match(TokenType.IF)
         
         condition_token = self._match(TokenType.STRING)
         condition = condition_token.value.strip('"').strip("'")

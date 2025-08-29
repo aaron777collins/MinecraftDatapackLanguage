@@ -1,30 +1,28 @@
 #!/usr/bin/env python3
 
-import sys
-import os
-sys.path.insert(0, os.path.abspath('.'))
-
 from minecraft_datapack_language.mdl_parser_js import parse_mdl_js
 
-# Test the parser with a simple length function call
-test_code = '''pack "test" description "test" pack_format 82;
+# Test the problematic file
+source = '''
+pack "test" "Test" 82;
 namespace "test";
-
-function "demo" {
-    var num count = length(items);
+var num player_level = 15;
+function "main" {
+    if "$player_level$ >= 20" {
+        say "Master level!";
+    } else if "$player_level$ >= 15" {
+        say "Expert level!";
+    } else {
+        say "Beginner level!";
+    }
 }
-
-on_tick "test:demo";
+on_tick "test:main";
 '''
 
-print("Testing parser with:", test_code)
-print("=" * 50)
-
 try:
-    ast = parse_mdl_js(test_code)
-    print("✅ Parser succeeded!")
-    print("AST:", ast)
+    result = parse_mdl_js(source)
+    print("Parsing successful!")
 except Exception as e:
-    print("❌ Parser failed:", e)
+    print(f"Parsing failed: {e}")
     import traceback
     traceback.print_exc()

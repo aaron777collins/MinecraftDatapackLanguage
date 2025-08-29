@@ -1,5 +1,5 @@
 // variables.mdl - Simple number variables test
-pack "variables" description "Simple variables test" pack_format 82;
+pack "variables" "Simple variables test" 82;
 
 namespace "test";
 

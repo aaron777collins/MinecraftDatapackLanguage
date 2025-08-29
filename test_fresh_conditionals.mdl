@@ -1,0 +1,32 @@
+// test_fresh_conditionals.mdl - Fresh conditionals test
+pack "test_fresh_conditionals" "Fresh conditionals test" 82;
+
+namespace "test";
+
+var num player_level = 15;
+var num player_health = 20;
+
+function "main" {
+    player_level = 15;
+    player_health = 8;
+    
+    if "$player_level$ > 10" {
+        say "Player is experienced!";
+    }
+    
+    if "$player_health$ < 10" {
+        say "Health is low!";
+    } else {
+        say "Health is okay";
+    }
+    
+    if "$player_level$ >= 20" {
+        say "Master level!";
+    } else if "$player_level$ >= 15" {
+        say "Expert level!";
+    } else {
+        say "Beginner level!";
+    }
+}
+
+on_tick "test:main";

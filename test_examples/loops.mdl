@@ -1,5 +1,5 @@
 // loops.mdl - Simple loops test
-pack "loops" description "Loops test" pack_format 82;
+pack "loops" "Loops test" 82;
 
 namespace "test";
 
@@ -26,13 +26,13 @@ function "main" {
     }
     
     // For loop (entity iteration)
-    for player in @a {
+    for player in "@a" {
         say "Hello $player$";
         tellraw @s [{"text":"Greeting player: "},{"selector":"@s"}];
     }
     
     // For loop with specific selector
-    for zombie in @e[type=zombie] {
+    for zombie in "@e[type=zombie]" {
         say "Found zombie: $zombie$";
         effect give @s minecraft:glowing 5 0;
     }
