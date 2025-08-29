@@ -1,0 +1,1 @@
+say "Player score equals 50"

@@ -1,0 +1,1 @@
+say "Player score is greater than or equal to 50"

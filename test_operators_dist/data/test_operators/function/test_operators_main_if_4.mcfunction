@@ -1,0 +1,1 @@
+say "Game timer is less than or equal to 10"
