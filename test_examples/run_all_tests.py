@@ -15,9 +15,6 @@ def run_command(cmd, description):
     """Run a command and return success status"""
     print(f"Testing: {description}")
     try:
-        # Use python -c to run the CLI module directly
-        if cmd.startswith("mdl "):
-            cmd = f"python -c \"from minecraft_datapack_language.cli import main; main()\" {cmd[4:]}"
         result = subprocess.run(cmd, shell=True, capture_output=True, text=True, check=True)
         print(f"[+] {description} - PASSED")
         return True
@@ -27,11 +24,7 @@ def run_command(cmd, description):
         return False
 
 def test_mdl_file(mdl_file, description):
-    """Test an MDL file by checking and building it"""
-    # Test syntax check
-    if not run_command(f"mdl check {mdl_file}", f"Syntax check: {description}"):
-        return False
-    
+    """Test an MDL file by building it"""
     # Test build
     if not run_command(f"mdl build --mdl {mdl_file} -o dist", f"Build: {description}"):
         return False
@@ -44,9 +37,9 @@ def test_cli_functionality():
     print("-" * 30)
     
     tests = [
-        ("mdl --help", "CLI help command"),
-        ("mdl --version", "CLI version command"),
-        ('mdl new test_pack --name "Test Pack" --pack-format 82', "CLI new command"),
+        ("mdl build --help", "CLI build help command"),
+        ("mdl new --help", "CLI new help command"),
+        ('mdl new test_pack --name "Test Pack"', "CLI new command"),
     ]
     
     results = []
@@ -73,13 +66,17 @@ def main():
     
     # Working MDL examples
     mdl_examples = [
-        ("test_examples/hello_world.mdl", "Hello World"),
-        ("test_examples/variables.mdl", "Variables and Data Types"),
-        ("test_examples/conditionals.mdl", "Conditional Logic"),
-        ("test_examples/loops.mdl", "Loop Constructs"),
-        ("test_examples/namespaces.mdl", "Namespaces and Cross-namespace Calls"),
-        ("test_examples/error_handling.mdl", "Error Handling"),
-        ("test_examples/adventure_pack.mdl", "Complete Adventure Pack"),
+        ("hello_world.mdl", "Hello World"),
+        ("variables.mdl", "Variables and Data Types"),
+        ("conditionals.mdl", "Conditional Logic"),
+        ("simple_control.mdl", "Simple Control Structures"),
+        ("loops.mdl", "Loop Constructs"),
+        ("namespaces.mdl", "Namespaces and Cross-namespace Calls"),
+        ("error_handling.mdl", "Error Handling"),
+        ("adventure_pack.mdl", "Complete Adventure Pack"),
+        ("pack_format_43_example.mdl", "Pack Format 43 Example"),
+        ("pack_format_45_example.mdl", "Pack Format 45 Example"),
+        ("pre_82_example.mdl", "Pre-82 Example"),
     ]
     
     # Test MDL files

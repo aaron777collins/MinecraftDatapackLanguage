@@ -26,9 +26,11 @@ function "main" {
         say "Counter: $counter$";
     }
     
-    // For loop to iterate over players
-    for player in "@a" {
-        say "Hello $player$!";
+    // While loop to iterate over players (for loops are no longer supported)
+    var num player_count = 0;
+    while "$player_count$ < 3" {
+        say "Hello player!";
+        player_count = $player_count$ + 1;
     }
 }
 

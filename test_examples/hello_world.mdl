@@ -1,10 +1,10 @@
 // hello_world.mdl - Basic test for modern MDL syntax
-pack "hello_world" description "A simple example datapack" pack_format 82;
+pack "hello_world" "A simple example datapack" 82;
 
 namespace "example";
 
 function "hello" {
-    say Hello, Minecraft!;
+    say "Hello, Minecraft!";
     tellraw @a {"text":"Welcome to my datapack!","color":"green"};
 }
 

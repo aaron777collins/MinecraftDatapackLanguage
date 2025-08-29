@@ -518,7 +518,7 @@ def _validate_pack_format(pack_format: int) -> None:
     if pack_format < 1:
         raise SystemExit(f"Invalid pack format: {pack_format}. Must be >= 1")
     
-    print(f"✓ Pack format {pack_format}")
+    print(f"Pack format {pack_format}")
     
     # Get directory mapping for this pack format
     dir_map = get_dir_map(pack_format)
