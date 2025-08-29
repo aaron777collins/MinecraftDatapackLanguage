@@ -473,9 +473,11 @@ def main():
             raise SystemExit("build command requires --mdl and --output arguments")
         build_mdl(args.mdl, args.output, args.verbose)
     elif args.command == "new":
-        if len(args._get_args()) < 1:
+        # Get the project name from sys.argv since argparse doesn't handle positional args well with subcommands
+        import sys
+        if len(sys.argv) < 3:
             raise SystemExit("new command requires a project name")
-        project_name = args._get_args()[0]
+        project_name = sys.argv[2]
         create_new_project(project_name, args.name)
     else:
         parser.print_help()
