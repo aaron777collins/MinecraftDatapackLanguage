@@ -199,7 +199,7 @@ def _generate_scoreboard_objectives(ast: Dict[str, Any], output_dir: Path) -> Li
     return commands
 
 
-def _process_statement(statement: Any, namespace: str, function_name: str, statement_index: int = 0, is_tag_function: bool = False) -> List[str]:
+def _process_statement(statement: Any, namespace: str, function_name: str, statement_index: int = 0, is_tag_function: bool = False, selector: str = "@s") -> List[str]:
     """Process a single statement into Minecraft commands."""
     commands = []
     
@@ -279,10 +279,10 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
             
             if method == "recursion":
                 # Use current recursion approach (creates multiple function files)
-                commands.extend(_process_while_loop_recursion(statement, namespace, function_name, statement_index, is_tag_function))
+                commands.extend(_process_while_loop_recursion(statement, namespace, function_name, statement_index, is_tag_function, selector))
             elif method == "schedule":
                 # Use schedule-based approach (single function with counter)
-                commands.extend(_process_while_loop_schedule(statement, namespace, function_name, statement_index, is_tag_function))
+                commands.extend(_process_while_loop_schedule(statement, namespace, function_name, statement_index, is_tag_function, selector))
             else:
                 raise ValueError(f"Unknown while loop method: {method}")
         
@@ -417,12 +417,21 @@ def _generate_function_file(ast: Dict[str, Any], output_dir: Path, namespace: st
                 is_tag_function = True
                 break
         
+        # For tag functions, we need to use a different approach since @a can't be used in execute if score
+        # We'll use @e[type=marker,limit=1] for server-run functions
+        if is_tag_function:
+            # Add marker entity creation at the start of tag functions
+            commands.append("summon marker ~ ~ ~ {Tags:[\"mdl_server\"]}")
+            selector = "@e[type=marker,tag=mdl_server,limit=1]"
+        else:
+            selector = "@s"
+        
         # Debug output - always print
-        print(f"DEBUG: Function {function_name}: is_tag_function={is_tag_function}, selector={'@a' if is_tag_function else '@s'}")
+        print(f"DEBUG: Function {function_name}: is_tag_function={is_tag_function}, selector={selector}")
         print(f"DEBUG: Hooks: {ast.get('hooks', [])}")
         
         if verbose:
-            print(f"Function {function_name}: is_tag_function={is_tag_function}, selector={'@a' if is_tag_function else '@s'}")
+            print(f"Function {function_name}: is_tag_function={is_tag_function}, selector={selector}")
             print(f"  Hooks: {ast.get('hooks', [])}")
             print(f"  Looking for: {function_name} or {namespace}:{function_name}")
             print(f"  Hook function names: {[hook.get('function_name', '') for hook in ast.get('hooks', [])]}")
@@ -431,11 +440,11 @@ def _generate_function_file(ast: Dict[str, Any], output_dir: Path, namespace: st
         for i, statement in enumerate(body):
             if verbose:
                 print(f"Processing statement: {type(statement)} = {statement}")
-            commands.extend(_process_statement(statement, namespace, function_name, i, is_tag_function))
+            commands.extend(_process_statement(statement, namespace, function_name, i, is_tag_function, selector))
             
             # Collect conditional functions for if statements
             if hasattr(statement, '__class__') and statement.__class__.__name__ == 'IfStatement':
-                conditional_functions.extend(_collect_conditional_functions(statement, namespace, function_name, i, is_tag_function))
+                conditional_functions.extend(_collect_conditional_functions(statement, namespace, function_name, i, is_tag_function, selector))
         
         # Write the function file
         with open(function_file, 'w', encoding='utf-8') as f:
@@ -534,18 +543,15 @@ def _validate_pack_format(pack_format: int) -> None:
         print("  - Tag directories: items/, blocks/, entity_types/, fluids/, game_events/ (<43)")
 
 
-def _collect_conditional_functions(if_statement, namespace: str, function_name: str, statement_index: int, is_tag_function: bool = False) -> List[tuple]:
+def _collect_conditional_functions(if_statement, namespace: str, function_name: str, statement_index: int, is_tag_function: bool = False, selector: str = "@s") -> List[tuple]:
     """Collect all conditional functions from an if statement"""
     functions = []
-    
-    # Determine selector based on function context
-    selector = "@a" if is_tag_function else "@s"
     
     # Generate if body function
     if_label = f"{namespace}_{function_name}_if_{statement_index}"
     if_commands = []
     for j, stmt in enumerate(if_statement.body):
-        if_commands.extend(_process_statement(stmt, namespace, function_name, j, is_tag_function))
+        if_commands.extend(_process_statement(stmt, namespace, function_name, j, is_tag_function, selector))
     functions.append((if_label, if_commands))
     
     # Generate elif body functions
@@ -553,7 +559,7 @@ def _collect_conditional_functions(if_statement, namespace: str, function_name: 
         elif_label = f"{namespace}_{function_name}_elif_{statement_index}_{i}"
         elif_commands = []
         for j, stmt in enumerate(elif_branch.body):
-            elif_commands.extend(_process_statement(stmt, namespace, function_name, j, is_tag_function))
+            elif_commands.extend(_process_statement(stmt, namespace, function_name, j, is_tag_function, selector))
         functions.append((elif_label, elif_commands))
     
     # Generate else body function
@@ -561,7 +567,7 @@ def _collect_conditional_functions(if_statement, namespace: str, function_name: 
         else_label = f"{namespace}_{function_name}_else_{statement_index}"
         else_commands = []
         for j, stmt in enumerate(if_statement.else_body):
-            else_commands.extend(_process_statement(stmt, namespace, function_name, j, is_tag_function))
+            else_commands.extend(_process_statement(stmt, namespace, function_name, j, is_tag_function, selector))
         functions.append((else_label, else_commands))
     
     # Generate end function (empty)
@@ -571,19 +577,17 @@ def _collect_conditional_functions(if_statement, namespace: str, function_name: 
     return functions
 
 
-def _process_while_loop_recursion(while_statement, namespace: str, function_name: str, statement_index: int, is_tag_function: bool = False) -> List[str]:
+def _process_while_loop_recursion(while_statement, namespace: str, function_name: str, statement_index: int, is_tag_function: bool = False, selector: str = "@s") -> List[str]:
     """Process while loop using recursion method (creates multiple function files)"""
     commands = []
     
-    # Determine selector based on function context
-    selector = "@a" if is_tag_function else "@s"
     condition = _convert_condition_to_minecraft_syntax(while_statement.condition.condition_string, selector)
     
     # Generate loop body function
     loop_label = f"{namespace}_{function_name}_while_{statement_index}"
     loop_commands = []
     for j, stmt in enumerate(while_statement.body):
-        loop_commands.extend(_process_statement(stmt, namespace, function_name, j, is_tag_function))
+        loop_commands.extend(_process_statement(stmt, namespace, function_name, j, is_tag_function, selector))
     
     # Add recursive call to continue the loop
     loop_commands.append(f"execute if {condition} run function {namespace}:{loop_label}")
@@ -599,19 +603,17 @@ def _process_while_loop_recursion(while_statement, namespace: str, function_name
     return commands
 
 
-def _process_while_loop_schedule(while_statement, namespace: str, function_name: str, statement_index: int, is_tag_function: bool = False) -> List[str]:
+def _process_while_loop_schedule(while_statement, namespace: str, function_name: str, statement_index: int, is_tag_function: bool = False, selector: str = "@s") -> List[str]:
     """Process while loop using schedule method (single function with counter)"""
     commands = []
     
-    # Determine selector based on function context
-    selector = "@a" if is_tag_function else "@s"
     condition = _convert_condition_to_minecraft_syntax(while_statement.condition.condition_string, selector)
     
     # Generate loop body function
     loop_label = f"{namespace}_{function_name}_while_{statement_index}"
     loop_commands = []
     for j, stmt in enumerate(while_statement.body):
-        loop_commands.extend(_process_statement(stmt, namespace, function_name, j, is_tag_function))
+        loop_commands.extend(_process_statement(stmt, namespace, function_name, j, is_tag_function, selector))
     
     # Add recursive schedule call to continue the loop
     loop_commands.append(f"execute if {condition} run schedule function {namespace}:{loop_label} 1t")
