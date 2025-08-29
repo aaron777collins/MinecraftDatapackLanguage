@@ -1280,9 +1280,9 @@ def build_mdl(input_path: str, output_path: str, verbose: bool = False) -> None:
     # Create zip file
     _create_zip_file(output_dir, output_dir.parent / f"{output_dir.name}.zip")
     
+    print(f"Successfully built datapack: {output_dir}")
+    print(f"Created zip file: {output_dir.parent / f'{output_dir.name}.zip'}")
     if verbose:
-        print(f"Successfully built datapack: {output_dir}")
-        print(f"Created zip file: {output_dir.parent / f'{output_dir.name}.zip'}")
         print(f"Supported registry types: functions, tags, recipes, loot_tables, advancements, predicates, item_modifiers, structures")
 
 
