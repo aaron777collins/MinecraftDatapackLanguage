@@ -533,19 +533,11 @@ def _generate_global_load_function(ast: Dict[str, Any], output_dir: Path, namesp
     
     functions_dir.mkdir(parents=True, exist_ok=True)
     
-    # Collect all variable declarations from all functions
+    # Collect all variable declarations and assignments from all functions
     variable_initializations = []
     processed_vars = set()  # Track processed variables to avoid duplicates
     
-    # Debug: Print AST structure to understand how variables are stored
-    print(f"DEBUG: AST keys: {list(ast.keys())}")
-    print(f"DEBUG: Functions: {len(ast.get('functions', []))}")
-    if 'statements' in ast:
-        print(f"DEBUG: Top-level statements: {len(ast.get('statements', []))}")
-        for i, stmt in enumerate(ast.get('statements', [])):
-            print(f"DEBUG: Statement {i}: {type(stmt)} - {getattr(stmt, '__class__', {}).__name__ if hasattr(stmt, '__class__') else 'no class'}")
-    
-    # Add scoreboard objectives for all variables from function declarations
+    # Add scoreboard objectives for all variables from function declarations and assignments
     for function in ast.get('functions', []):
         if isinstance(function, dict):
             body = function.get('body', [])
@@ -553,26 +545,24 @@ def _generate_global_load_function(ast: Dict[str, Any], output_dir: Path, namesp
             body = getattr(function, 'body', [])
         
         for statement in body:
+            var_name = None
+            
+            # Handle variable declarations
             if hasattr(statement, '__class__') and statement.__class__.__name__ == 'VariableDeclaration':
                 var_name = statement.name if hasattr(statement, 'name') else statement.get('name', 'unknown')
-                if var_name not in processed_vars:
-                    processed_vars.add(var_name)
-                    # Add scoreboard objective creation
-                    variable_initializations.append(f"scoreboard objectives add {var_name} dummy")
-                    
-                    # Always initialize to 0 for debugging and reload consistency
-                    variable_initializations.append(f"scoreboard players set @e[type=armor_stand,tag=mdl_server,limit=1] {var_name} 0")
-                    
-                    # If there's a non-zero initial value, set it after the 0 initialization
-                    if statement.value and hasattr(statement.value, 'value'):
-                        try:
-                            value = int(statement.value.value)
-                            if value != 0:
-                                # Use server armor stand for global variables
-                                variable_initializations.append(f"scoreboard players set @e[type=armor_stand,tag=mdl_server,limit=1] {var_name} {value}")
-                        except (ValueError, AttributeError):
-                            # If we can't determine the value, skip additional initialization
-                            pass
+                
+            # Handle variable assignments to capture all used variables
+            elif hasattr(statement, '__class__') and statement.__class__.__name__ == 'VariableAssignment':
+                var_name = statement.name if hasattr(statement, 'name') else statement.get('name', 'unknown')
+            
+            # Process the variable if we found one
+            if var_name and var_name not in processed_vars:
+                processed_vars.add(var_name)
+                # Add scoreboard objective creation
+                variable_initializations.append(f"scoreboard objectives add {var_name} dummy")
+                
+                # Always initialize to 0 for debugging and reload consistency
+                variable_initializations.append(f"scoreboard players set @e[type=armor_stand,tag=mdl_server,limit=1] {var_name} 0")
     
     # Add server armor stand creation
     if variable_initializations:
