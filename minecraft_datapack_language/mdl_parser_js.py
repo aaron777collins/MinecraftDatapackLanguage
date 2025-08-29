@@ -161,15 +161,16 @@ class MDLParser:
         name = name_token.value.strip('"').strip("'")
         
         # Parse description
-        self._match(TokenType.STRING)  # Skip description for now
+        description_token = self._match(TokenType.STRING)
+        description = description_token.value.strip('"').strip("'")
         
         # Parse pack_format
-        self._match(TokenType.NUMBER)
-        pack_format = 82  # Default
+        pack_format_token = self._match(TokenType.NUMBER)
+        pack_format = int(pack_format_token.value)
         
         self._match(TokenType.SEMICOLON)
         
-        return {"name": name, "description": "Generated pack", "pack_format": pack_format}
+        return {"name": name, "description": description, "pack_format": pack_format}
     
     def _parse_namespace_declaration(self) -> NamespaceDeclaration:
         """Parse namespace declaration."""
