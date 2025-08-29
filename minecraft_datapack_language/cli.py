@@ -213,7 +213,7 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
             # Handle variable declaration
             if statement.value:
                 # Process the expression
-                result = expression_processor.process_expression(statement.value, statement.name)
+                result = expression_processor.process_expression(statement.value, statement.name, selector)
                 commands.extend(result.temp_assignments)
                 if result.final_command:
                     commands.append(result.final_command)
@@ -223,7 +223,7 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
         
         elif class_name == 'VariableAssignment':
             # Handle variable assignment
-            result = expression_processor.process_expression(statement.value, statement.name)
+            result = expression_processor.process_expression(statement.value, statement.name, selector)
             temp_commands = []
             temp_commands.extend(result.temp_assignments)
             if result.final_command:

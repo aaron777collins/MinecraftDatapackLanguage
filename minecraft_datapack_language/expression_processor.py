@@ -48,7 +48,7 @@ class ExpressionProcessor:
         
         return class_name in complex_types
     
-    def process_binary_expression(self, expr, target_var: str) -> ProcessedExpression:
+    def process_binary_expression(self, expr, target_var: str, selector: str = "@s") -> ProcessedExpression:
         """Process binary expressions like a + b, a * b, etc."""
         commands = []
         temp_vars = []
@@ -57,7 +57,7 @@ class ExpressionProcessor:
         if self.is_complex_expression(expr.left):
             left_temp = self.generate_temp_var("left")
             temp_vars.append(left_temp)
-            left_result = self.process_expression(expr.left, left_temp)
+            left_result = self.process_expression(expr.left, left_temp, selector)
             commands.extend(left_result.temp_assignments)
             left_var = left_temp
         else:
@@ -67,14 +67,14 @@ class ExpressionProcessor:
         if self.is_complex_expression(expr.right):
             right_temp = self.generate_temp_var("right")
             temp_vars.append(right_temp)
-            right_result = self.process_expression(expr.right, right_temp)
+            right_result = self.process_expression(expr.right, right_temp, selector)
             commands.extend(right_result.temp_assignments)
             right_var = right_temp
         else:
             right_var = self.extract_simple_value(expr.right)
         
         # Generate operation command
-        op_command = self.generate_binary_operation(expr.operator, left_var, right_var, target_var)
+        op_command = self.generate_binary_operation(expr.operator, left_var, right_var, target_var, selector)
         commands.append(op_command)
         
         return ProcessedExpression(commands, "", temp_vars)
@@ -91,7 +91,7 @@ class ExpressionProcessor:
         else:
             return str(expr)
     
-    def generate_binary_operation(self, operator: str, left: str, right: str, target: str) -> str:
+    def generate_binary_operation(self, operator: str, left: str, right: str, target: str, selector: str = "@s") -> str:
         """Generate a binary operation command"""
         # Check if left and right are numeric literals
         try:
@@ -230,7 +230,7 @@ class ExpressionProcessor:
                     # Both are variables
                     return f"scoreboard players operation @s {target} = @s {left}\nscoreboard players operation @s {target} += @s {right}"
     
-    def process_expression(self, expr, target_var: str) -> ProcessedExpression:
+    def process_expression(self, expr, target_var: str, selector: str = "@s") -> ProcessedExpression:
         """Main entry point for processing any expression"""
         if not hasattr(expr, '__class__'):
             # Simple value
@@ -240,7 +240,7 @@ class ExpressionProcessor:
         class_name = expr.__class__.__name__
         
         if class_name == 'BinaryExpression':
-            return self.process_binary_expression(expr, target_var)
+            return self.process_binary_expression(expr, target_var, selector)
         elif class_name == 'LiteralExpression':
             # Handle literal expressions (numbers only)
             try:
@@ -260,7 +260,7 @@ class ExpressionProcessor:
             return ProcessedExpression(commands, "", [])
         elif hasattr(expr, 'left') and hasattr(expr, 'right') and hasattr(expr, 'operator'):
             # This is a binary expression that wasn't caught by BinaryExpression class
-            return self.process_binary_expression(expr, target_var)
+            return self.process_binary_expression(expr, target_var, selector)
         else:
             # Unknown expression type - set to 0
             commands = [f"scoreboard players set @s {target_var} 0"]
