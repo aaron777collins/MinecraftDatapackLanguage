@@ -92,6 +92,7 @@ class TokenType(Enum):
     INSERT = "INSERT"
     POP = "POP"
     CLEAR = "CLEAR"
+    LENGTH = "LENGTH"  # .length property
 
 @dataclass
 class Token:
@@ -597,6 +598,8 @@ class MDLLexer:
                 self.tokens.append(Token(TokenType.POP, "pop", line_num, 0))
             elif part == "clear":
                 self.tokens.append(Token(TokenType.CLEAR, "clear", line_num, 0))
+            elif part == "length":
+                self.tokens.append(Token(TokenType.LENGTH, "length", line_num, 0))
             # length is now treated as a regular identifier for function calls
             elif part == "break":
                 self.tokens.append(Token(TokenType.BREAK, "break", line_num, 0))

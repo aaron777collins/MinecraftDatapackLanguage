@@ -140,6 +140,9 @@ class ExpressionProcessor:
             return expr.name
         elif hasattr(expr, 'value'):
             return str(expr.value)
+        elif hasattr(expr, '__class__') and expr.__class__.__name__ == 'ListLengthExpression':
+            # ListLengthExpression should be treated as a complex expression
+            raise ValueError("ListLengthExpression should be processed as complex expression")
         else:
             return str(expr)
     
@@ -356,10 +359,6 @@ class ExpressionProcessor:
                         ]
                     else:
                         commands = [f"data modify storage mdl:variables {target_var} set value \"{value}\""]
-                elif expr.type == 'number':
-                    commands = [f"scoreboard players set @s {target_var} {expr.value}"]
-                else:
-                    commands = [f"# Unknown literal type: {expr.type}"]
             else:
                 # Try to determine type
                 try:

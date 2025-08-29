@@ -9,12 +9,12 @@ var list global_numbers = [1, 2, 3, 4, 5];
 var list global_strings = ["apple", "banana", "cherry"];
 
 function "inner" {
-    say [example:inner] This is the inner function;
+    tellraw @s {"text":"[example:inner] This is the inner function"};
     tellraw @a {"text":"Running inner","color":"yellow"};
 }
 
 function "hello" {
-    say [example:hello] Outer says hi;
+    tellraw @s {"text":"[example:hello] Outer says hi"};
     function example:inner;
     tellraw @a {"text":"Back in hello","color":"aqua"};
 }
@@ -47,7 +47,7 @@ function "variable_demo" {
     // String concatenation with variables
     var str status = player_name + " has " + item_count + " items";
     
-    say Variable demo complete;
+    tellraw @s {"text":"Variable demo complete"};
     tellraw @s [{"text":"Result: "},{"score":{"name":"@s","objective":"result"}}];
     tellraw @s [{"text":"Modulo: "},{"score":{"name":"@s","objective":"modulo_result"}}];
     tellraw @s [{"text":"Status: "},{"nbt":"status","storage":"mdl:variables"}];
@@ -62,26 +62,26 @@ function "conditional_demo" {
     if "score @s player_level >= 10" {
         if "score @s player_class == 'warrior'" {
             if "score @s experience >= 50" {
-                say Advanced warrior detected!;
+                tellraw @s {"text":"Advanced warrior detected!"};
                 effect give @s minecraft:strength 10 2;
                 effect give @s minecraft:glowing 10 0;
             } else {
-                say Novice warrior;
+                tellraw @s {"text":"Novice warrior"};
                 effect give @s minecraft:haste 10 0;
             }
         } else if "score @s player_class == 'mage'" {
-            say Advanced mage detected!;
+            tellraw @s {"text":"Advanced mage detected!"};
             effect give @s minecraft:night_vision 10 0;
             effect give @s minecraft:levitation 5 0;
         } else {
-            say Unknown advanced class;
+            tellraw @s {"text":"Unknown advanced class"};
             effect give @s minecraft:glowing 10 0;
         }
     } else if "score @s player_level >= 5" {
-        say Intermediate player;
+        tellraw @s {"text":"Intermediate player"};
         effect give @s minecraft:speed 10 0;
     } else {
-        say Beginner player;
+        tellraw @s {"text":"Beginner player"};
         effect give @s minecraft:jump_boost 10 0;
     }
 }
@@ -93,23 +93,23 @@ function "weapon_effects" {
     
     if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:'minecraft:diamond_sword'}}]" {
         weapon_index = 0;
-        say Diamond sword detected!;
+        tellraw @s {"text":"Diamond sword detected!"};
         effect give @s minecraft:strength 10 1;
         effect give @s minecraft:glowing 10 0;
     } else if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:'minecraft:golden_sword'}}]" {
         weapon_index = 1;
-        say Golden sword detected!;
+        tellraw @s {"text":"Golden sword detected!"};
         effect give @s minecraft:speed 10 1;
         effect give @s minecraft:night_vision 10 0;
     } else if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:'minecraft:bow'}}]" {
         weapon_index = 2;
-        say Bow detected!;
+        tellraw @s {"text":"Bow detected!"};
         effect give @s minecraft:jump_boost 10 1;
     } else if "entity @s[type=minecraft:player]" {
-        say Player without special weapon;
+        tellraw @s {"text":"Player without special weapon"};
         effect give @s minecraft:haste 5 0;
     } else {
-        say No player found;
+        tellraw @s {"text":"No player found"};
     }
     
     // Use list to get weapon name
@@ -137,9 +137,9 @@ function "loop_demo" {
             var num modulo_result = calculation % 5;
             
             if "score @s modulo_result == 0" {
-                say Perfect calculation: calculation;
+                tellraw @s [{"text":"Perfect calculation: "},{"score":{"name":"@s","objective":"calculation"}}];
             } else {
-                say Calculation: calculation (mod 5 = modulo_result);
+                tellraw @s [{"text":"Calculation: "},{"score":{"name":"@s","objective":"calculation"}},{"text":" (mod 5 = "},{"score":{"name":"@s","objective":"modulo_result"}},{"text":")"}];
             }
             
             inner_count = inner_count + 1;
@@ -174,7 +174,7 @@ function "loop_demo" {
         continue_sum = continue_sum + continue_counter;
     }
     
-    say Loop demo complete;
+    tellraw @s {"text":"Loop demo complete"};
     tellraw @s [{"text":"Total iterations: "},{"score":{"name":"@s","objective":"total_iterations"}}];
     tellraw @s [{"text":"Break sum: "},{"score":{"name":"@s","objective":"break_sum"}}];
     tellraw @s [{"text":"Continue sum: "},{"score":{"name":"@s","objective":"continue_sum"}}];
@@ -224,7 +224,7 @@ function "process_data" {
     
     var num average_score = total_score / scores.length;
     
-    say Data processing complete;
+    tellraw @s {"text":"Data processing complete"};
     tellraw @s [{"text":"Total score: "},{"score":{"name":"@s","objective":"total_score"}}];
     tellraw @s [{"text":"Average score: "},{"score":{"name":"@s","objective":"average_score"}}];
     tellraw @s [{"text":"Best player: "},{"nbt":"best_player","storage":"mdl:variables"},{"text":" ("},{"score":{"name":"@s","objective":"highest_score"}},{"text":")"}];
@@ -239,7 +239,7 @@ function "error_handling" {
     
     if "score @s divisor = 0" {
         result = 0;
-        say Division by zero prevented;
+        tellraw @s "Division by zero prevented";
     } else {
         result = dividend / divisor;
     }
@@ -259,10 +259,10 @@ function "error_handling" {
         unsafe_value = test_list[unsafe_index];
     } else {
         unsafe_value = -1;
-        say List bounds check passed;
+        tellraw @s "List bounds check passed";
     }
     
-    say Error handling complete;
+    tellraw @s "Error handling complete";
     tellraw @s [{"text":"Safe value: "},{"score":{"name":"@s","objective":"safe_value"}}];
     tellraw @s [{"text":"Unsafe value: "},{"score":{"name":"@s","objective":"unsafe_value"}}];
 }
@@ -282,11 +282,11 @@ on_tick "example:error_handling";
 namespace "util";
 
 function "helper" {
-    say [util:helper] Helping out...;
+    tellraw @s {"text":"[util:helper] Helping out..."};
 }
 
 function "boss" {
-    say [util:boss] Calling example functions;
+    tellraw @s {"text":"[util:boss] Calling example functions"};
     function example:hello;
     function example:variable_demo;
     function example:loop_demo;
@@ -329,7 +329,8 @@ tag block example:glassy {
 // Garbage collection
 function "cleanup" {
     function mdl:garbage_collect;
-    say Cleanup complete;
+    tellraw @s {"text":"Cleanup complete"};
 }
 
-on_tick "example:cleanup";
+on_tick "example:cleanup";
+

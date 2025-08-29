@@ -129,12 +129,12 @@ var list global_numbers = [1, 2, 3, 4, 5];
 var list global_strings = ["apple", "banana", "cherry"];
 
 function "inner" {
-    say [example:inner] This is the inner function;
+    tellraw @s {"text":"[example:inner] This is the inner function"};
     tellraw @a {"text":"Running inner","color":"yellow"};
 }
 
 function "hello" {
-    say [example:hello] Outer says hi;
+    tellraw @s {"text":"[example:hello] Outer says hi"};
     function example:inner;
     tellraw @a {"text":"Back in hello","color":"aqua"};
 }
@@ -167,7 +167,7 @@ function "variable_demo" {
     // String concatenation with variables
     var str status = player_name + " has " + item_count + " items";
     
-    say Variable demo complete;
+    tellraw @s {"text":"Variable demo complete"};
     tellraw @s [{"text":"Result: "},{"score":{"name":"@s","objective":"result"}}];
     tellraw @s [{"text":"Modulo: "},{"score":{"name":"@s","objective":"modulo_result"}}];
     tellraw @s [{"text":"Status: "},{"nbt":"status","storage":"mdl:variables"}];
@@ -179,29 +179,29 @@ function "conditional_demo" {
     var str player_class = "warrior";
     var num experience = 75;
     
-    if "score @s player_level >= 10" {
-        if "score @s player_class == 'warrior'" {
-            if "score @s experience >= 50" {
-                say Advanced warrior detected!;
+    if player_level >= 10 {
+        if player_class == "warrior" {
+            if experience >= 50 {
+                tellraw @s {"text":"Advanced warrior detected!"};
                 effect give @s minecraft:strength 10 2;
                 effect give @s minecraft:glowing 10 0;
             } else {
-                say Novice warrior;
+                tellraw @s {"text":"Novice warrior"};
                 effect give @s minecraft:haste 10 0;
             }
-        } else if "score @s player_class == 'mage'" {
-            say Advanced mage detected!;
+        } else if player_class == "mage" {
+            tellraw @s {"text":"Advanced mage detected!"};
             effect give @s minecraft:night_vision 10 0;
             effect give @s minecraft:levitation 5 0;
         } else {
-            say Unknown advanced class;
+            tellraw @s {"text":"Unknown advanced class"};
             effect give @s minecraft:glowing 10 0;
         }
-    } else if "score @s player_level >= 5" {
-        say Intermediate player;
+    } else if player_level >= 5 {
+        tellraw @s {"text":"Intermediate player"};
         effect give @s minecraft:speed 10 0;
     } else {
-        say Beginner player;
+        tellraw @s {"text":"Beginner player"};
         effect give @s minecraft:jump_boost 10 0;
     }
 }
@@ -213,27 +213,27 @@ function "weapon_effects" {
     
     if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:'minecraft:diamond_sword'}}]" {
         weapon_index = 0;
-        say Diamond sword detected!;
+        tellraw @s {"text":"Diamond sword detected!"};
         effect give @s minecraft:strength 10 1;
         effect give @s minecraft:glowing 10 0;
     } else if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:'minecraft:golden_sword'}}]" {
         weapon_index = 1;
-        say Golden sword detected!;
+        tellraw @s {"text":"Golden sword detected!"};
         effect give @s minecraft:speed 10 1;
         effect give @s minecraft:night_vision 10 0;
     } else if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:'minecraft:bow'}}]" {
         weapon_index = 2;
-        say Bow detected!;
+        tellraw @s {"text":"Bow detected!"};
         effect give @s minecraft:jump_boost 10 1;
     } else if "entity @s[type=minecraft:player]" {
-        say Player without special weapon;
+        tellraw @s {"text":"Player without special weapon"};
         effect give @s minecraft:haste 5 0;
     } else {
-        say No player found;
+        tellraw @s {"text":"No player found"};
     }
     
     // Use list to get weapon name
-    if "score @s weapon_index < weapons.length" {
+    if weapon_index < weapons.length {
         var str current_weapon = weapons[weapon_index];
         tellraw @s [{"text":"Using weapon: "},{"nbt":"current_weapon","storage":"mdl:variables"}];
     }
@@ -246,20 +246,20 @@ function "loop_demo" {
     var num total_iterations = 0;
     
     // Nested loops
-    while "score @s outer_count < 3" {
+    while outer_count < 3 {
         inner_count = 0;
         
-        while "score @s inner_count < 2" {
+        while inner_count < 2 {
             total_iterations = total_iterations + 1;
             
             // Complex calculation within loop
             var num calculation = (outer_count * 10) + inner_count;
             var num modulo_result = calculation % 5;
             
-            if "score @s modulo_result == 0" {
-                say Perfect calculation: calculation;
+            if modulo_result == 0 {
+                tellraw @s [{"text":"Perfect calculation: "},{"score":{"name":"@s","objective":"calculation"}}];
             } else {
-                say Calculation: calculation (mod 5 = modulo_result);
+                tellraw @s [{"text":"Calculation: "},{"score":{"name":"@s","objective":"calculation"}},{"text":" (mod 5 = "},{"score":{"name":"@s","objective":"modulo_result"}},{"text":")"}];
             }
             
             inner_count = inner_count + 1;
@@ -274,27 +274,27 @@ function "loop_demo" {
     var num break_sum = 0;
     var num continue_sum = 0;
     
-    while "score @s break_counter < 10" {
+    while break_counter < 10 {
         break_counter = break_counter + 1;
         
-        if "score @s break_counter == 7" {
+        if break_counter == 7 {
             break;
         }
         
         break_sum = break_sum + break_counter;
     }
     
-    while "score @s continue_counter < 10" {
+    while continue_counter < 10 {
         continue_counter = continue_counter + 1;
         
-        if "score @s continue_counter % 2 == 0" {
+        if continue_counter % 2 == 0 {
             continue;
         }
         
         continue_sum = continue_sum + continue_counter;
     }
     
-    say Loop demo complete;
+    tellraw @s {"text":"Loop demo complete"};
     tellraw @s [{"text":"Total iterations: "},{"score":{"name":"@s","objective":"total_iterations"}}];
     tellraw @s [{"text":"Break sum: "},{"score":{"name":"@s","objective":"break_sum"}}];
     tellraw @s [{"text":"Continue sum: "},{"score":{"name":"@s","objective":"continue_sum"}}];
@@ -308,7 +308,7 @@ function "calculate_fibonacci" {
     var num i = 2;
     var num temp = 0;
     
-    while "score @s i <= @s n" {
+    while i <= n {
         temp = a + b;
         a = b;
         b = temp;
@@ -329,13 +329,13 @@ function "process_data" {
     
     // Calculate total and find highest
     var num i = 0;
-    while "score @s i < scores.length" {
+    while i < scores.length {
         var num current_score = scores[i];
         var str current_name = names[i];
         
         total_score = total_score + current_score;
         
-        if "score @s current_score > highest_score" {
+        if current_score > highest_score {
             highest_score = current_score;
             best_player = current_name;
         }
@@ -344,7 +344,7 @@ function "process_data" {
     
     var num average_score = total_score / scores.length;
     
-    say Data processing complete;
+    tellraw @s {"text":"Data processing complete"};
     tellraw @s [{"text":"Total score: "},{"score":{"name":"@s","objective":"total_score"}}];
     tellraw @s [{"text":"Average score: "},{"score":{"name":"@s","objective":"average_score"}}];
     tellraw @s [{"text":"Best player: "},{"nbt":"best_player","storage":"mdl:variables"},{"text":" ("},{"score":{"name":"@s","objective":"highest_score"}},{"text":")"}];
@@ -357,9 +357,9 @@ function "error_handling" {
     var num divisor = 0;
     var num result = 0;
     
-    if "score @s divisor = 0" {
+    if divisor = 0 {
         result = 0;
-        say Division by zero prevented;
+        tellraw @s {"text":"Division by zero prevented"};
     } else {
         result = dividend / divisor;
     }
@@ -371,18 +371,18 @@ function "error_handling" {
     var num safe_value = 0;
     var num unsafe_value = 0;
     
-    if "score @s safe_index < test_list.length" {
+    if safe_index < test_list.length {
         safe_value = test_list[safe_index];
     }
     
-    if "score @s unsafe_index < test_list.length" {
+    if unsafe_index < test_list.length {
         unsafe_value = test_list[unsafe_index];
     } else {
         unsafe_value = -1;
-        say List bounds check passed;
+        tellraw @s {"text":"List bounds check passed"};
     }
     
-    say Error handling complete;
+    tellraw @s {"text":"Error handling complete"};
     tellraw @s [{"text":"Safe value: "},{"score":{"name":"@s","objective":"safe_value"}}];
     tellraw @s [{"text":"Unsafe value: "},{"score":{"name":"@s","objective":"unsafe_value"}}];
 }
@@ -402,11 +402,11 @@ on_tick "example:error_handling";
 namespace "util";
 
 function "helper" {
-    say [util:helper] Helping out...;
+    tellraw @s {"text":"[util:helper] Helping out..."};
 }
 
 function "boss" {
-    say [util:boss] Calling example functions;
+    tellraw @s {"text":"[util:boss] Calling example functions"};
     function example:hello;
     function example:variable_demo;
     function example:loop_demo;
@@ -449,7 +449,7 @@ tag block example:glassy {
 // Garbage collection
 function "cleanup" {
     function mdl:garbage_collect;
-    say Cleanup complete;
+    tellraw @s {"text":"Cleanup complete"};
 }
 
 on_tick "example:cleanup";
@@ -1406,6 +1406,9 @@ def cmd_check_advanced(args):
                     elif "Expected eof, literal 'align', literal 'anchored', literal 'as', literal 'at', literal 'facing' or 10 other tokens but got literal 'scoreboard'" in output:
                         # This is also a false positive - execute if score ... run scoreboard ... is valid syntax
                         mecha_results[mcfunction_file] = "IGNORED: Mecha false positive - execute if score ... run scoreboard ... is valid Minecraft syntax"
+                    elif "Expected eof, literal 'align', literal 'anchored', literal 'as', literal 'at', literal 'facing' or 10 other tokens but got literal 'tellraw'" in output:
+                        # This is also a false positive - execute if score ... run tellraw ... is valid syntax
+                        mecha_results[mcfunction_file] = "IGNORED: Mecha false positive - execute if score ... run tellraw ... is valid Minecraft syntax"
                     else:
                         # This is a real error
                         mecha_errors += 1
