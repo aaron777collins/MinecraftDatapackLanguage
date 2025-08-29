@@ -149,7 +149,7 @@ def _generate_scoreboard_objectives(ast: Dict[str, Any], output_dir: Path) -> Li
     return commands
 
 
-def _process_statement(statement: Any, namespace: str, function_name: str) -> List[str]:
+def _process_statement(statement: Any, namespace: str, function_name: str, statement_index: int = 0) -> List[str]:
     """Process a single statement into Minecraft commands."""
     commands = []
     
@@ -184,28 +184,30 @@ def _process_statement(statement: Any, namespace: str, function_name: str) -> Li
                     commands.append(cmd)
         
         elif class_name == 'IfStatement':
-            # Handle if statement - simplified inline approach
+            # Handle if statement with proper execute commands
             condition = _convert_condition_to_minecraft_syntax(statement.condition)
             
-            # For now, just add a comment about the if statement
-            commands.append(f"# if {condition}")
+            # Generate unique labels for this if statement
+            if_label = f"{namespace}_{function_name}_if_{statement_index}"
+            end_label = f"{namespace}_{function_name}_if_end_{statement_index}"
             
-            # Process the if body statements
-            for stmt in statement.body:
-                commands.extend(_process_statement(stmt, namespace, function_name))
+            # Add condition check - if true, run the if body
+            commands.append(f"execute if {condition} run function {namespace}:{if_label}")
             
             # Process else if branches
-            for elif_branch in statement.elif_branches:
+            for i, elif_branch in enumerate(statement.elif_branches):
+                elif_label = f"{namespace}_{function_name}_elif_{statement_index}_{i}"
                 elif_condition = _convert_condition_to_minecraft_syntax(elif_branch.condition)
-                commands.append(f"# else if {elif_condition}")
-                for stmt in elif_branch.body:
-                    commands.extend(_process_statement(stmt, namespace, function_name))
+                # Only run elif if previous conditions were false
+                commands.append(f"execute unless {condition} if {elif_condition} run function {namespace}:{elif_label}")
             
             # Process else body
             if statement.else_body:
-                commands.append("# else")
-                for stmt in statement.else_body:
-                    commands.extend(_process_statement(stmt, namespace, function_name))
+                else_label = f"{namespace}_{function_name}_else_{statement_index}"
+                commands.append(f"execute unless {condition} run function {namespace}:{else_label}")
+            
+            # Add end label
+            commands.append(f"function {namespace}:{end_label}")
         
         elif class_name == 'WhileLoop':
             # Handle while loop - simplified inline approach
@@ -252,9 +254,56 @@ def _process_statement(statement: Any, namespace: str, function_name: str) -> Li
                     command = command.replace(' } ', ' }')
                     command = command.replace(' : ', ': ')
                 elif command.startswith('say'):
-                    # For say commands, convert to tellraw (simplified for now)
-                    command = command.replace('say "', 'tellraw @a [{"text":"')
-                    command = command.replace('"', '"}]')
+                    # For say commands, convert to tellraw with proper variable substitution
+                    import re
+                    var_pattern = r'\$([a-zA-Z_][a-zA-Z0-9_]*)\$'
+                    
+                    # Extract the text content from say command
+                    text_match = re.search(r'say "([^"]*)"', command)
+                    if text_match:
+                        text_content = text_match.group(1)
+                        
+                        # Check if there are variable substitutions
+                        if '$' in text_content:
+                            # Build JSON array with text and scoreboard components
+                            # Find all variables and their positions
+                            var_matches = list(re.finditer(var_pattern, text_content))
+                            json_parts = []
+                            last_end = 0
+                            
+                            for match in var_matches:
+                                # Add text before the variable
+                                if match.start() > last_end:
+                                    text_before = text_content[last_end:match.start()]
+                                    if text_before:
+                                        json_parts.append(f'{{"text":"{text_before}"}}')
+                                
+                                # Add the variable
+                                var_name = match.group(1)
+                                json_parts.append(f'{{"score":{{"name":"@s","objective":"{var_name}"}}}}')
+                                last_end = match.end()
+                            
+                            # Add any remaining text
+                            if last_end < len(text_content):
+                                text_after = text_content[last_end:]
+                                if text_after:
+                                    json_parts.append(f'{{"text":"{text_after}"}}')
+                            
+                            command = f'tellraw @a [{",".join(json_parts)}]'
+                        else:
+                            # No variables, simple conversion
+                            command = f'tellraw @a [{{"text":"{text_content}"}}]'
+                elif command.startswith('tellraw'):
+                    # For tellraw commands, just do simple variable substitution
+                    import re
+                    var_pattern = r'\$([a-zA-Z_][a-zA-Z0-9_]*)\$'
+                    
+                    def replace_var_in_tellraw(match):
+                        var_name = match.group(1)
+                        return f'{{"score":{{"name":"@s","objective":"{var_name}"}}}}'
+                    
+                    # Replace variable substitutions
+                    command = re.sub(var_pattern, replace_var_in_tellraw, command)
                 else:
                     # Simple variable substitution for other commands
                     command = _process_variable_substitutions(command)
@@ -284,6 +333,9 @@ def _generate_function_file(ast: Dict[str, Any], output_dir: Path, namespace: st
     
     functions_dir.mkdir(parents=True, exist_ok=True)
     
+    # Track all conditional functions that need to be generated
+    conditional_functions = []
+    
     for function in ast.get('functions', []):
         # Handle both dict and AST node objects
         if isinstance(function, dict):
@@ -298,14 +350,24 @@ def _generate_function_file(ast: Dict[str, Any], output_dir: Path, namespace: st
         commands = []
         
         # Process each statement in the function
-        for statement in body:
+        for i, statement in enumerate(body):
             if verbose:
                 print(f"Processing statement: {type(statement)} = {statement}")
-            commands.extend(_process_statement(statement, namespace, function_name))
+            commands.extend(_process_statement(statement, namespace, function_name, i))
+            
+            # Collect conditional functions for if statements
+            if hasattr(statement, '__class__') and statement.__class__.__name__ == 'IfStatement':
+                conditional_functions.extend(_collect_conditional_functions(statement, namespace, function_name, i))
         
         # Write the function file
         with open(function_file, 'w', encoding='utf-8') as f:
             f.write('\n'.join(commands))
+    
+    # Generate all conditional function files
+    for func_name, func_body in conditional_functions:
+        func_file = functions_dir / f"{func_name}.mcfunction"
+        with open(func_file, 'w', encoding='utf-8') as f:
+            f.write('\n'.join(func_body))
 
 
 def _generate_hook_files(ast: Dict[str, Any], output_dir: Path, namespace: str) -> None:
@@ -388,6 +450,40 @@ def _validate_pack_format(pack_format: int) -> None:
         print("  - Tag directories: item/, block/, entity_type/, fluid/, game_event/ (43+)")
     else:
         print("  - Tag directories: items/, blocks/, entity_types/, fluids/, game_events/ (<43)")
+
+
+def _collect_conditional_functions(if_statement, namespace: str, function_name: str, statement_index: int) -> List[tuple]:
+    """Collect all conditional functions from an if statement"""
+    functions = []
+    
+    # Generate if body function
+    if_label = f"{namespace}_{function_name}_if_{statement_index}"
+    if_commands = []
+    for j, stmt in enumerate(if_statement.body):
+        if_commands.extend(_process_statement(stmt, namespace, function_name, j))
+    functions.append((if_label, if_commands))
+    
+    # Generate elif body functions
+    for i, elif_branch in enumerate(if_statement.elif_branches):
+        elif_label = f"{namespace}_{function_name}_elif_{statement_index}_{i}"
+        elif_commands = []
+        for j, stmt in enumerate(elif_branch.body):
+            elif_commands.extend(_process_statement(stmt, namespace, function_name, j))
+        functions.append((elif_label, elif_commands))
+    
+    # Generate else body function
+    if if_statement.else_body:
+        else_label = f"{namespace}_{function_name}_else_{statement_index}"
+        else_commands = []
+        for j, stmt in enumerate(if_statement.else_body):
+            else_commands.extend(_process_statement(stmt, namespace, function_name, j))
+        functions.append((else_label, else_commands))
+    
+    # Generate end function (empty)
+    end_label = f"{namespace}_{function_name}_if_end_{statement_index}"
+    functions.append((end_label, []))
+    
+    return functions
 
 
 def _create_zip_file(source_dir: Path, zip_path: Path) -> None:
