@@ -146,6 +146,25 @@ def _generate_load_function(scoreboard_commands: List[str], output_dir: Path, na
     load_file = functions_dir / "load.mcfunction"
     with open(load_file, 'w', encoding='utf-8') as f:
         f.write('\n'.join(scoreboard_commands))
+    
+    # Add load function as a hook to the AST
+    if 'hooks' not in ast:
+        ast['hooks'] = []
+    
+    # Check if load hook already exists
+    load_hook_exists = any(hook.get('hook_type') == 'load' for hook in ast['hooks'])
+    
+    print(f"DEBUG: Current hooks in AST: {ast['hooks']}")
+    print(f"DEBUG: Load hook exists: {load_hook_exists}")
+    
+    if not load_hook_exists:
+        ast['hooks'].append({
+            'hook_type': 'load',
+            'function_name': 'load'
+        })
+        print(f"DEBUG: Added load hook to AST: {ast['hooks']}")
+    else:
+        print(f"DEBUG: Load hook already exists, not adding")
 
 
 def _generate_scoreboard_objectives(ast: Dict[str, Any], output_dir: Path) -> List[str]:
@@ -428,6 +447,9 @@ def _generate_hook_files(ast: Dict[str, Any], output_dir: Path, namespace: str) 
     load_functions = []
     tick_functions = []
     
+    # Debug: Print all hooks in AST
+    print(f"DEBUG: AST hooks: {ast.get('hooks', [])}")
+    
     for hook in ast.get('hooks', []):
         function_name = hook['function_name']
         # Check if function_name already contains a namespace (has a colon)
@@ -438,22 +460,29 @@ def _generate_hook_files(ast: Dict[str, Any], output_dir: Path, namespace: str) 
             # Function name doesn't include namespace, add it
             full_function_name = f"{namespace}:{function_name}"
         
+        print(f"DEBUG: Processing hook {hook['hook_type']}: {full_function_name}")
+        
         if hook['hook_type'] == "load":
             load_functions.append(full_function_name)
         elif hook['hook_type'] == "tick":
             tick_functions.append(full_function_name)
+    
+    print(f"DEBUG: Load functions: {load_functions}")
+    print(f"DEBUG: Tick functions: {tick_functions}")
     
     # Generate load.json
     if load_functions:
         load_file = tags_dir / "load.json"
         with open(load_file, 'w', encoding='utf-8') as f:
             f.write('{"values": [' + ', '.join(f'"{func}"' for func in load_functions) + ']}')
+        print(f"DEBUG: Generated load.json with: {load_functions}")
     
     # Generate tick.json
     if tick_functions:
         tick_file = tags_dir / "tick.json"
         with open(tick_file, 'w', encoding='utf-8') as f:
             f.write('{"values": [' + ', '.join(f'"{func}"' for func in tick_functions) + ']}')
+        print(f"DEBUG: Generated tick.json with: {tick_functions}")
 
 
 def _generate_tag_files(ast: Dict[str, Any], output_dir: Path, namespace: str) -> None:
@@ -617,10 +646,13 @@ def build_mdl(input_path: str, output_path: str, verbose: bool = False) -> None:
         print(f"Generated {len(scoreboard_commands)} scoreboard commands: {scoreboard_commands}")
     
     # Write scoreboard objectives to a load function
+    print(f"DEBUG: Scoreboard commands: {scoreboard_commands}")
     if scoreboard_commands:
         if verbose:
             print(f"Generating load function with {len(scoreboard_commands)} scoreboard commands")
         _generate_load_function(scoreboard_commands, output_dir, namespace, ast)
+    else:
+        print(f"DEBUG: No scoreboard commands to generate load function")
     
     # Generate function files
     _generate_function_file(ast, output_dir, namespace, verbose)
