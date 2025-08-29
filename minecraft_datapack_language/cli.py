@@ -328,14 +328,16 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
                             if text_after:
                                 json_parts.append(f'{{"text":"{text_after}"}}')
                         
-                        command = f'tellraw {selector} [{",".join(json_parts)}]'
+                        command = f'tellraw @a [{",".join(json_parts)}]'
                     else:
                         # No variables, simple conversion
-                        command = f'tellraw {selector} [{{"text":"{text_content}"}}]'
+                        command = f'tellraw @a [{{"text":"{text_content}"}}]'
                 else:
                     # Fallback: if regex doesn't match, still convert to tellraw
-                    command = command.replace('say "', f'tellraw {selector} [{{"text":"')
+                    command = command.replace('say "', f'tellraw @a [{{"text":"')
                     command = command.replace('"', '"}]')
+                
+                print(f"DEBUG: Converted say command to: {command}")
             
             # Process variable substitutions in strings for other commands
             elif '$' in command:
@@ -362,7 +364,9 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
                     # Simple variable substitution for other commands
                     command = _process_variable_substitutions(command, selector)
             elif command.startswith('tellraw'):
-                # For tellraw commands without variables, still clean up spacing
+                # For tellraw commands, only replace @s with @a, leave @a unchanged
+                command = command.replace('tellraw @s ', 'tellraw @a ')
+                # Clean up spacing
                 command = command.replace(' @ s ', ' @s ')
                 command = command.replace(' , ', ', ')
                 command = command.replace(' { ', ' {')
