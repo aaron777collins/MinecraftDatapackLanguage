@@ -109,6 +109,9 @@ class Namespace:
             elif_match = re.match(r'^else\s+if\s+"([^"]+)"\s*:\s*$', cmd)
             if elif_match:
                 condition = elif_match.group(1)
+                
+                # Convert comparison operators to matches syntax
+                condition = self._convert_comparison_operators(condition)
                 elif_commands = []
                 i += 1
                 
@@ -333,6 +336,56 @@ class Pack:
         
         return processed_condition
 
+    def _convert_comparison_operators(self, condition: str) -> str:
+        """Convert comparison operators to Minecraft matches syntax."""
+        processed_condition = condition
+        
+        # Convert comparison operators to matches syntax
+        if ">=" in condition:
+            # score @s var >= 10 -> score @s var matches 10..
+            parts = condition.split(">=")
+            if len(parts) == 2:
+                left = parts[0].strip()
+                right = parts[1].strip()
+                processed_condition = f"{left} matches {right}.."
+        elif "<=" in condition:
+            # score @s var <= 10 -> score @s var matches ..10
+            parts = condition.split("<=")
+            if len(parts) == 2:
+                left = parts[0].strip()
+                right = parts[1].strip()
+                processed_condition = f"{left} matches ..{right}"
+        elif ">" in condition:
+            # score @s var > 10 -> score @s var matches 11..
+            parts = condition.split(">")
+            if len(parts) == 2:
+                left = parts[0].strip()
+                right = parts[1].strip()
+                try:
+                    num = int(right)
+                    processed_condition = f"{left} matches {num + 1}.."
+                except ValueError:
+                    # If not a number, keep original
+                    processed_condition = condition
+        elif "<" in condition:
+            # score @s var < 10 -> score @s var matches ..9
+            parts = condition.split("<")
+            if len(parts) == 2:
+                left = parts[0].strip()
+                right = parts[1].strip()
+                try:
+                    num = int(right)
+                    processed_condition = f"{left} matches ..{num - 1}"
+                except ValueError:
+                    # If not a number, keep original
+                    processed_condition = condition
+        
+        # Convert string quotes for NBT data
+        if "data storage" in processed_condition and "'" in processed_condition:
+            processed_condition = processed_condition.replace("'", '"')
+        
+        return processed_condition
+
     def _process_control_flow(self, ns_name: str, func_name: str, commands: List[str]) -> List[str]:
         """Process conditional blocks and loops in function commands and generate appropriate Minecraft commands."""
         import re
@@ -351,6 +404,9 @@ class Pack:
                 
                 # Process list access expressions in conditions
                 condition = self._process_list_access_in_condition(condition, ns_name, func_name, len(processed_commands))
+                
+                # Convert comparison operators to matches syntax
+                condition = self._convert_comparison_operators(condition)
                 
                 if_commands = []
                 i += 1

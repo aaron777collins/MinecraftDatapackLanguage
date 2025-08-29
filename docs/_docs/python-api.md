@@ -256,7 +256,7 @@ def create_complex_pack():
     # Combat system
     combat = p.namespace("combat")
     combat.function("weapon_effects",
-        "execute as @a[nbt={SelectedItem:{id:'minecraft:diamond_sword'}}] run effect give @s minecraft:strength 1 0 true"
+        "execute as @a[nbt={SelectedItem:{id:\"minecraft:diamond_sword\"}}] run effect give @s minecraft:strength 1 0 true"
     )
     combat.function("update_combat",
         "function core:tick",
@@ -296,8 +296,8 @@ def create_safe_pack():
     
     # Conditional effects
     ns.function("conditional_effects",
-        "execute as @a[nbt={SelectedItem:{id:'minecraft:diamond'}}] run effect give @s minecraft:strength 1 0 true",
-        "execute as @a unless entity @s[nbt={SelectedItem:{id:'minecraft:diamond'}}] run effect clear @s minecraft:strength"
+        "execute as @a[nbt={SelectedItem:{id:\"minecraft:diamond\"}}] run effect give @s minecraft:strength 1 0 true",
+        "execute as @a unless entity @s[nbt={SelectedItem:{id:\"minecraft:diamond\"}}] run effect clear @s minecraft:strength"
     )
     
     p.on_tick("safe:safe_teleport")
@@ -449,8 +449,8 @@ def create_complete_pack():
     # Combat namespace
     combat = p.namespace("combat")
     combat.function("weapon_effects",
-        "execute as @a[nbt={SelectedItem:{id:'minecraft:diamond_sword'}}] run effect give @s minecraft:strength 1 0 true",
-        "execute as @a[nbt={SelectedItem:{id:'minecraft:golden_sword'}}] run effect give @s minecraft:speed 1 0 true"
+        "execute as @a[nbt={SelectedItem:{id:\"minecraft:diamond_sword\"}}] run effect give @s minecraft:strength 1 0 true",
+        "execute as @a[nbt={SelectedItem:{id:\"minecraft:golden_sword\"}}] run effect give @s minecraft:speed 1 0 true"
     )
     
     combat.function("update_combat",

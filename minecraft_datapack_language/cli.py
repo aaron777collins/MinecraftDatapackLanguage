@@ -115,12 +115,15 @@ def cmd_new(args):
     # Create the directory
     ensure_dir(root)
     
-    # Create the pack declaration separately to avoid f-string issues with array literals
-    pack_declaration = 'pack "{}" description "Example datapack" pack_format {} min_format [{}, 0] max_format [{}, 1] min_engine_version "1.21.4";'.format(args.name, args.pack_format, args.pack_format, args.pack_format)
+    # Use the path name for the pack name and namespace, not the --name argument
+    pack_name = os.path.basename(args.path)
     
-    sample = """// mypack.mdl - Advanced example showcasing ALL MDL features
-""" + pack_declaration + """
-namespace "example";
+    # Create the pack declaration separately to avoid f-string issues with array literals
+    pack_declaration = 'pack "{}" description "Example datapack" pack_format {} min_format [{}, 0] max_format [{}, 1] min_engine_version "1.21.4";'.format(pack_name, args.pack_format, args.pack_format, args.pack_format)
+    
+    sample = f"""// {pack_name}.mdl - Advanced example showcasing ALL MDL features
+{pack_declaration}
+namespace "{pack_name}";
 
 // Global state variables
 var num global_counter = 0;
@@ -128,19 +131,19 @@ var str global_message = "System Ready";
 var list global_numbers = [1, 2, 3, 4, 5];
 var list global_strings = ["apple", "banana", "cherry"];
 
-function "inner" {
-    tellraw @s {"text":"[example:inner] This is the inner function"};
-    tellraw @a {"text":"Running inner","color":"yellow"};
-}
+function "inner" {{
+    tellraw @s {{"text":"[{pack_name}:inner] This is the inner function"}};
+    tellraw @a {{"text":"Running inner","color":"yellow"}};
+}}
 
-function "hello" {
-    tellraw @s {"text":"[example:hello] Outer says hi"};
-    function example:inner;
-    tellraw @a {"text":"Back in hello","color":"aqua"};
-}
+function "hello" {{
+    tellraw @s {{"text":"[{pack_name}:hello] Outer says hi"}};
+    function {pack_name}:inner;
+    tellraw @a {{"text":"Back in hello","color":"aqua"}};
+}}
 
 // Advanced variable operations with all data types
-function "variable_demo" {
+function "variable_demo" {{
     var num local_counter = 10;
     var str player_name = "Steve";
     var list local_items = ["sword", "shield", "potion"];
@@ -167,160 +170,170 @@ function "variable_demo" {
     // String concatenation with variables
     var str status = player_name + " has " + item_count + " items";
     
-    tellraw @s {"text":"Variable demo complete"};
-    tellraw @s [{"text":"Result: "},{"score":{"name":"@s","objective":"result"}}];
-    tellraw @s [{"text":"Modulo: "},{"score":{"name":"@s","objective":"modulo_result"}}];
-    tellraw @s [{"text":"Status: "},{"nbt":"status","storage":"mdl:variables"}];
-}
+    tellraw @s {{"text":"Variable demo complete"}};
+    tellraw @s [{{"text":"Result: "}},{{"score":{{"name":"@s","objective":"result"}}}}];
+    tellraw @s [{{"text":"Modulo: "}},{{"score":{{"name":"@s","objective":"modulo_result"}}}}];
+    tellraw @s [{{"text":"Status: "}},{{"nbt":"status","storage":"{args.name}:variables"}}];
+}}
 
-// Advanced conditional logic with nested structures
-function "conditional_demo" {
+// Advanced conditional logic with dynamic variables
+function "conditional_demo" {{
     var num player_level = 15;
     var str player_class = "warrior";
     var num experience = 75;
+    var num min_level = 10;
+    var num max_level = 20;
+    var num required_exp = 50;
     
-    if player_level >= 10 {
-        if player_class == "warrior" {
-            if experience >= 50 {
-                tellraw @s {"text":"Advanced warrior detected!"};
+    // Use simple variable names - system will automatically convert to matches syntax
+    if "player_level matches min_level.." {{
+        if "player_class matches 'warrior'" {{
+            if "experience matches required_exp.." {{
+                tellraw @s {{"text":"Advanced warrior detected!"}};
                 effect give @s minecraft:strength 10 2;
                 effect give @s minecraft:glowing 10 0;
-            } else {
-                tellraw @s {"text":"Novice warrior"};
+            }} else {{
+                tellraw @s {{"text":"Novice warrior"}};
                 effect give @s minecraft:haste 10 0;
-            }
-        } else if player_class == "mage" {
-            tellraw @s {"text":"Advanced mage detected!"};
+            }}
+        }} else if "player_class matches 'mage'" {{
+            tellraw @s {{"text":"Advanced mage detected!"}};
             effect give @s minecraft:night_vision 10 0;
             effect give @s minecraft:levitation 5 0;
-        } else {
-            tellraw @s {"text":"Unknown advanced class"};
+        }} else {{
+            tellraw @s {{"text":"Unknown advanced class"}};
             effect give @s minecraft:glowing 10 0;
-        }
-    } else if player_level >= 5 {
-        tellraw @s {"text":"Intermediate player"};
+        }}
+    }} else if "player_level matches ..max_level" {{
+        tellraw @s {{"text":"Player level within range"}};
         effect give @s minecraft:speed 10 0;
-    } else {
-        tellraw @s {"text":"Beginner player"};
+    }} else {{
+        tellraw @s {{"text":"Beginner player"}};
         effect give @s minecraft:jump_boost 10 0;
-    }
-}
+    }}
+}}
 
 // Advanced weapon effects with list operations
-function "weapon_effects" {
+function "weapon_effects" {{
     var list weapons = ["diamond_sword", "golden_sword", "bow"];
     var num weapon_index = 0;
     
-    if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:'minecraft:diamond_sword'}}]" {
+    if "entity @s[type=minecraft:player,nbt={{SelectedItem:{{id:'minecraft:diamond_sword'}}}}]" {{
         weapon_index = 0;
-        tellraw @s {"text":"Diamond sword detected!"};
+        tellraw @s {{"text":"Diamond sword detected!"}};
         effect give @s minecraft:strength 10 1;
         effect give @s minecraft:glowing 10 0;
-    } else if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:'minecraft:golden_sword'}}]" {
+    }} else if "entity @s[type=minecraft:player,nbt={{SelectedItem:{{id:'minecraft:golden_sword'}}}}]" {{
         weapon_index = 1;
-        tellraw @s {"text":"Golden sword detected!"};
+        tellraw @s {{"text":"Golden sword detected!"}};
         effect give @s minecraft:speed 10 1;
         effect give @s minecraft:night_vision 10 0;
-    } else if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:'minecraft:bow'}}]" {
+    }} else if "entity @s[type=minecraft:player,nbt={{SelectedItem:{{id:'minecraft:bow'}}}}]" {{
         weapon_index = 2;
-        tellraw @s {"text":"Bow detected!"};
+        tellraw @s {{"text":"Bow detected!"}};
         effect give @s minecraft:jump_boost 10 1;
-    } else if "entity @s[type=minecraft:player]" {
-        tellraw @s {"text":"Player without special weapon"};
+    }} else if "entity @s[type=minecraft:player]" {{
+        tellraw @s {{"text":"Player without special weapon"}};
         effect give @s minecraft:haste 5 0;
-    } else {
-        tellraw @s {"text":"No player found"};
-    }
+    }} else {{
+        tellraw @s {{"text":"No player found"}};
+    }}
     
-    // Use list to get weapon name
-    if weapon_index < weapons.length {
+    // Use list to get weapon name with dynamic variable
+    if "weapon_index matches ..weapons_length" {{
         var str current_weapon = weapons[weapon_index];
-        tellraw @s [{"text":"Using weapon: "},{"nbt":"current_weapon","storage":"mdl:variables"}];
-    }
-}
+        tellraw @s [{{"text":"Using weapon: "}},{{"nbt":"current_weapon","storage":"{pack_name}:variables"}}];
+    }}
+}}
 
 // Advanced loop patterns with break and continue
-function "loop_demo" {
+function "loop_demo" {{
     var num outer_count = 0;
     var num inner_count = 0;
     var num total_iterations = 0;
     
-    // Nested loops
-    while outer_count < 3 {
+    // Nested loops with matches syntax
+    var num max_outer = 2;
+    var num max_inner = 1;
+    while "outer_count matches ..max_outer" {{
         inner_count = 0;
         
-        while inner_count < 2 {
+        while "inner_count matches ..max_inner" {{
             total_iterations = total_iterations + 1;
             
             // Complex calculation within loop
             var num calculation = (outer_count * 10) + inner_count;
             var num modulo_result = calculation % 5;
             
-            if modulo_result == 0 {
-                tellraw @s [{"text":"Perfect calculation: "},{"score":{"name":"@s","objective":"calculation"}}];
-            } else {
-                tellraw @s [{"text":"Calculation: "},{"score":{"name":"@s","objective":"calculation"}},{"text":" (mod 5 = "},{"score":{"name":"@s","objective":"modulo_result"}},{"text":")"}];
-            }
+            if "score @s modulo_result matches 0" {{
+                tellraw @s [{{"text":"Perfect calculation: "}},{{"score":{{"name":"@s","objective":"calculation"}}}}];
+            }} else {{
+                tellraw @s [{{"text":"Calculation: "}},{{"score":{{"name":"@s","objective":"calculation"}}}},{{"text":" (mod 5 = "}},{{"score":{{"name":"@s","objective":"modulo_result"}}}},{{"text":")"}}];
+            }}
             
             inner_count = inner_count + 1;
-        }
+        }}
         
         outer_count = outer_count + 1;
-    }
+    }}
     
-    // Loop with break and continue
+    // Loop with break and continue using matches syntax
     var num break_counter = 0;
     var num continue_counter = 0;
     var num break_sum = 0;
     var num continue_sum = 0;
+    var num max_break = 9;
+    var num max_continue = 9;
+    var num break_threshold = 7;
     
-    while break_counter < 10 {
+    while "break_counter matches ..max_break" {{
         break_counter = break_counter + 1;
         
-        if break_counter == 7 {
+        if "break_counter matches break_threshold" {{
             break;
-        }
+        }}
         
         break_sum = break_sum + break_counter;
-    }
+    }}
     
-    while continue_counter < 10 {
+    while "continue_counter matches ..max_continue" {{
         continue_counter = continue_counter + 1;
         
-        if continue_counter % 2 == 0 {
+        if continue_counter % 2 == 0 {{
             continue;
-        }
+        }}
         
         continue_sum = continue_sum + continue_counter;
-    }
+    }}
     
-    tellraw @s {"text":"Loop demo complete"};
-    tellraw @s [{"text":"Total iterations: "},{"score":{"name":"@s","objective":"total_iterations"}}];
-    tellraw @s [{"text":"Break sum: "},{"score":{"name":"@s","objective":"break_sum"}}];
-    tellraw @s [{"text":"Continue sum: "},{"score":{"name":"@s","objective":"continue_sum"}}];
-}
+    tellraw @s {{"text":"Loop demo complete"}};
+    tellraw @s [{{"text":"Total iterations: "}},{{"score":{{"name":"@s","objective":"total_iterations"}}}}];
+    tellraw @s [{{"text":"Break sum: "}},{{"score":{{"name":"@s","objective":"break_sum"}}}}];
+    tellraw @s [{{"text":"Continue sum: "}},{{"score":{{"name":"@s","objective":"continue_sum"}}}}];
+}}
 
-// Mathematical algorithms
-function "calculate_fibonacci" {
+// Mathematical algorithms with dynamic variables
+function "calculate_fibonacci" {{
     var num n = 10;
     var num a = 0;
     var num b = 1;
     var num i = 2;
     var num temp = 0;
     
-    while i <= n {
+    // Use dynamic variable in while loop condition
+    while "i matches ..n" {{
         temp = a + b;
         a = b;
         b = temp;
         i = i + 1;
-    }
+    }}
     
-    tellraw @s [{"text":"Fibonacci result: "},{"score":{"name":"@s","objective":"b"}}];
-    tellraw @s [{"text":"Fibonacci("},{"score":{"name":"@s","objective":"n"}},{"text":") = "},{"score":{"name":"@s","objective":"b"}}];
-}
+    tellraw @s [{{"text":"Fibonacci result: "}},{{"score":{{"name":"@s","objective":"b"}}}}];
+    tellraw @s [{{"text":"Fibonacci("}},{{"score":{{"name":"@s","objective":"n"}}}},{{"text":") = "}},{{"score":{{"name":"@s","objective":"b"}}}}];
+}}
 
-// Data processing with lists
-function "process_data" {
+// Data processing with lists and dynamic variables
+function "process_data" {{
     var list scores = [85, 92, 78, 96, 88];
     var list names = ["Alice", "Bob", "Charlie", "Diana", "Eve"];
     var num total_score = 0;
@@ -329,130 +342,161 @@ function "process_data" {
     
     // Calculate total and find highest
     var num i = 0;
-    while i < scores.length {
+    // Use dynamic variable for list length
+    while "i matches ..scores_length" {{
         var num current_score = scores[i];
         var str current_name = names[i];
         
         total_score = total_score + current_score;
         
-        if current_score > highest_score {
+        if "score @s current_score matches @s highest_score.." {{
             highest_score = current_score;
             best_player = current_name;
-        }
+        }}
         i = i + 1;
-    }
+    }}
     
     var num average_score = total_score / scores.length;
     
-    tellraw @s {"text":"Data processing complete"};
-    tellraw @s [{"text":"Total score: "},{"score":{"name":"@s","objective":"total_score"}}];
-    tellraw @s [{"text":"Average score: "},{"score":{"name":"@s","objective":"average_score"}}];
-    tellraw @s [{"text":"Best player: "},{"nbt":"best_player","storage":"mdl:variables"},{"text":" ("},{"score":{"name":"@s","objective":"highest_score"}},{"text":")"}];
-}
+    tellraw @s {{"text":"Data processing complete"}};
+    tellraw @s [{{"text":"Total score: "}},{{"score":{{"name":"@s","objective":"total_score"}}}}];
+    tellraw @s [{{"text":"Average score: "}},{{"score":{{"name":"@s","objective":"average_score"}}}}];
+    tellraw @s [{{"text":"Best player: "}},{{"nbt":"best_player","storage":"{args.name}:variables"}},{{"text":" ("}},{{"score":{{"name":"@s","objective":"highest_score"}}}},{{"text":")"}}];
+}}
 
-// Error handling and edge cases
-function "error_handling" {
+// Error handling and edge cases with dynamic variables
+function "error_handling" {{
     // Test division by zero handling
     var num dividend = 10;
     var num divisor = 0;
     var num result = 0;
+    var num zero_threshold = 0;
     
-    if divisor = 0 {
+    if "divisor matches zero_threshold" {{
         result = 0;
-        tellraw @s {"text":"Division by zero prevented"};
-    } else {
+        tellraw @s {{"text":"Division by zero prevented"}};
+    }} else {{
         result = dividend / divisor;
-    }
+    }}
     
-    // Test list bounds checking
+    // Test list bounds checking with dynamic variables
     var list test_list = [1, 2, 3];
     var num safe_index = 1;
     var num unsafe_index = 10;
     var num safe_value = 0;
     var num unsafe_value = 0;
     
-    if safe_index < test_list.length {
+    if "safe_index matches ..test_list_length" {{
         safe_value = test_list[safe_index];
-    }
+    }}
     
-    if unsafe_index < test_list.length {
+    if "score @s unsafe_index matches ..@{{test_list_length}}" {{
         unsafe_value = test_list[unsafe_index];
-    } else {
+    }} else {{
         unsafe_value = -1;
-        tellraw @s {"text":"List bounds check passed"};
-    }
+        tellraw @s {{"text":"List bounds check passed"}};
+    }}
     
-    tellraw @s {"text":"Error handling complete"};
-    tellraw @s [{"text":"Safe value: "},{"score":{"name":"@s","objective":"safe_value"}}];
-    tellraw @s [{"text":"Unsafe value: "},{"score":{"name":"@s","objective":"unsafe_value"}}];
-}
+    tellraw @s {{"text":"Error handling complete"}};
+    tellraw @s [{{"text":"Safe value: "}},{{"score":{{"name":"@s","objective":"safe_value"}}}}];
+    tellraw @s [{{"text":"Unsafe value: "}},{{"score":{{"name":"@s","objective":"unsafe_value"}}}}];
+}}
+
+// Dynamic variable usage in matches syntax
+function "dynamic_matches_demo" {{
+    // Set up some variables
+    var num min_level = 5;
+    var num max_level = 15;
+    var num player_level = 10;
+    var num required_gold = 100;
+    var num player_gold = 75;
+    
+    // Use variables dynamically in matches syntax
+    if "player_level matches min_level.." {{
+        if "player_level matches ..max_level" {{
+            tellraw @s {{"text":"Player level is within acceptable range"}};
+            
+            // Check if player has enough gold using variable
+            if "player_gold matches required_gold.." {{
+                tellraw @s {{"text":"Player has enough gold for upgrade"}};
+            }} else {{
+                tellraw @s {{"text":"Player needs more gold"}};
+                var num gold_needed = required_gold - player_gold;
+                tellraw @s [{{"text":"Gold needed: "}},{{"score":{{"name":"@s","objective":"gold_needed"}}}}];
+            }}
+        }} else {{
+            tellraw @s {{"text":"Player level too high"}};
+        }}
+    }} else {{
+        tellraw @s {{"text":"Player level too low"}};
+    }}
+}}
 
 // Hook the functions into load and tick
-on_load "example:hello";
-on_tick "example:hello";
-on_tick "example:variable_demo";
-on_tick "example:conditional_demo";
-on_tick "example:weapon_effects";
-on_tick "example:loop_demo";
-on_tick "example:calculate_fibonacci";
-on_tick "example:process_data";
-on_tick "example:error_handling";
+on_load "{pack_name}:hello";
+on_tick "{pack_name}:hello";
+on_tick "{pack_name}:variable_demo";
+on_tick "{pack_name}:conditional_demo";
+on_tick "{pack_name}:weapon_effects";
+on_tick "{pack_name}:loop_demo";
+on_tick "{pack_name}:calculate_fibonacci";
+on_tick "{pack_name}:process_data";
+on_tick "{pack_name}:error_handling";
+on_tick "{pack_name}:dynamic_matches_demo";
 
 // Second namespace with cross-namespace calls
 namespace "util";
 
-function "helper" {
-    tellraw @s {"text":"[util:helper] Helping out..."};
-}
+function "helper" {{
+    tellraw @s {{"text":"[util:helper] Helping out..."}};
+}}
 
-function "boss" {
-    tellraw @s {"text":"[util:boss] Calling example functions"};
-    function example:hello;
-    function example:variable_demo;
-    function example:loop_demo;
+function "boss" {{
+    tellraw @s {{"text":"[util:boss] Calling {pack_name} functions"}};
+    function {pack_name}:hello;
+    function {pack_name}:variable_demo;
+    function {pack_name}:loop_demo;
     function util:helper;
-}
 
 // Run boss every tick
 on_tick "util:boss";
 
 // Function tag examples
-tag function minecraft:load {
-    add example:hello;
-}
+tag function minecraft:load {{
+    add {pack_name}:hello;
+}}
 
-tag function minecraft:tick {
-    add example:hello;
-    add example:variable_demo;
-    add example:conditional_demo;
-    add example:weapon_effects;
-    add example:loop_demo;
-    add example:calculate_fibonacci;
-    add example:process_data;
-    add example:error_handling;
+tag function minecraft:tick {{
+    add {pack_name}:hello;
+    add {pack_name}:variable_demo;
+    add {pack_name}:conditional_demo;
+    add {pack_name}:weapon_effects;
+    add {pack_name}:loop_demo;
+    add {pack_name}:calculate_fibonacci;
+    add {pack_name}:process_data;
+    add {pack_name}:error_handling;
     add util:boss;
-}
 
 // Data tag examples across registries
-tag item example:swords {
+tag item {pack_name}:swords {{
     add minecraft:diamond_sword;
     add minecraft:netherite_sword;
     add minecraft:golden_sword;
-}
+}}
 
-tag block example:glassy {
+tag block {pack_name}:glassy {{
     add minecraft:glass;
     add minecraft:tinted_glass;
     add minecraft:white_stained_glass;
-}
+}}
 
 // Garbage collection
-function "cleanup" {
-    function mdl:garbage_collect;
-    tellraw @s {"text":"Cleanup complete"};
-}
+function "cleanup" {{
+    function {pack_name}:garbage_collect;
+    tellraw @s {{"text":"Cleanup complete"}};
+}}
 
-on_tick "example:cleanup";
+on_tick "{pack_name}:cleanup";
 """
     # Create the main MDL file with a better name
     mdl_filename = f"{args.name.lower().replace(' ', '_')}.mdl"
@@ -498,7 +542,6 @@ This sample demonstrates:
     print(f"Created sample project at {root}")
     print(f"Main file: {mdl_filename}")
     print(f"Build with: mdl build --mdl {mdl_filename} -o dist")
-
 def _ast_to_pack(ast: Dict[str, Any], default_pack_format: int) -> Pack:
     """Convert JavaScript-style AST to Pack object."""
     # Extract pack information
@@ -578,6 +621,66 @@ def _ast_to_pack(ast: Dict[str, Any], default_pack_format: int) -> Pack:
         pack.tag(tag.tag_type, tag.name, tag.values)
     
     return pack
+
+def _convert_condition_to_minecraft_syntax(condition: str) -> str:
+    """Convert regular comparison operators to Minecraft matches syntax and handle dynamic variable references."""
+    processed_condition = condition
+    
+    # Handle dynamic variable references using @{variable_name} syntax
+    # This converts @{var_name} to @s var_name for scoreboard references
+    import re
+    pattern = r'@\{([^}]+)\}'
+    def replace_var_ref(match):
+        var_name = match.group(1)
+        return f"@s {var_name}"
+    
+    processed_condition = re.sub(pattern, replace_var_ref, processed_condition)
+    
+    # Convert comparison operators to matches syntax
+    if ">=" in condition:
+        # score @s var >= 10 -> score @s var matches 10..
+        parts = condition.split(">=")
+        if len(parts) == 2:
+            left = parts[0].strip()
+            right = parts[1].strip()
+            processed_condition = f"{left} matches {right}.."
+    elif "<=" in condition:
+        # score @s var <= 10 -> score @s var matches ..10
+        parts = condition.split("<=")
+        if len(parts) == 2:
+            left = parts[0].strip()
+            right = parts[1].strip()
+            processed_condition = f"{left} matches ..{right}"
+    elif ">" in condition:
+        # score @s var > 10 -> score @s var matches 11..
+        parts = condition.split(">")
+        if len(parts) == 2:
+            left = parts[0].strip()
+            right = parts[1].strip()
+            try:
+                num = int(right)
+                processed_condition = f"{left} matches {num + 1}.."
+            except ValueError:
+                # If not a number, keep original
+                processed_condition = condition
+    elif "<" in condition:
+        # score @s var < 10 -> score @s var matches ..9
+        parts = condition.split("<")
+        if len(parts) == 2:
+            left = parts[0].strip()
+            right = parts[1].strip()
+            try:
+                num = int(right)
+                processed_condition = f"{left} matches ..{num - 1}"
+            except ValueError:
+                # If not a number, keep original
+                processed_condition = condition
+    
+    # Convert string quotes for NBT data
+    if "data storage" in processed_condition and "'" in processed_condition:
+        processed_condition = processed_condition.replace("'", '"')
+    
+    return processed_condition
 
 def _add_final_command(commands: List[str], final_command: str, execute_prefix: str = ""):
     """Helper function to add final command, splitting on newlines if needed"""
@@ -730,6 +833,9 @@ def _ast_to_commands(body: List[Any], current_namespace: str = "test", current_p
                     # Convert if statements to Minecraft conditional commands
                     condition = node.condition.strip('"')
                     
+                    # Convert condition to proper Minecraft syntax
+                    condition = _convert_condition_to_minecraft_syntax(condition)
+                    
                     # Convert if body to commands
                     if_commands = _ast_to_commands(node.body, current_namespace, current_pack)
                     
@@ -804,7 +910,7 @@ def _ast_to_commands(body: List[Any], current_namespace: str = "test", current_p
                             
                             if "score @s" in left_part:
                                 var_name = left_part.replace("score @s", "").strip()
-                                data_condition = f"data storage mdl:variables {var_name} matches '{right_part}'"
+                                data_condition = f"data storage mdl:variables {var_name} matches \"{right_part}\""
                                 
                                 # Generate conditional execution
                                 if if_commands:
@@ -839,7 +945,7 @@ def _ast_to_commands(body: List[Any], current_namespace: str = "test", current_p
                                 for cmd in else_commands:
                                     commands.append(f"execute unless {condition} run {cmd}")
                     else:
-                        # Regular scoreboard condition
+                        # Regular scoreboard condition - use the already converted condition
                         if if_commands:
                             for cmd in if_commands:
                                 commands.append(f"execute if {condition} run {cmd}")
@@ -879,7 +985,7 @@ def _ast_to_commands(body: List[Any], current_namespace: str = "test", current_p
 
                     # Add loop condition and body
                     loop_func_commands.append(f"# Loop condition")
-                    loop_func_commands.append(f"execute if score @s loop_index < @s list_length run function {current_namespace}:for_in_body_{variable}_{list_name}")
+                    loop_func_commands.append(f"execute if score @s loop_index matches ..@{list_name}_length run function {current_namespace}:for_in_body_{variable}_{list_name}")
 
                     # Generate the loop body function
                     body_func_name = f"for_in_body_{variable}_{list_name}"
@@ -897,7 +1003,7 @@ def _ast_to_commands(body: List[Any], current_namespace: str = "test", current_p
                     # Increment loop index and continue
                     body_commands.append(f"# Increment index and continue")
                     body_commands.append(f"scoreboard players add @s loop_index 1")
-                    body_commands.append(f"execute if score @s loop_index < @s list_length run function {current_namespace}:for_in_body_{variable}_{list_name}")
+                    body_commands.append(f"execute if score @s loop_index matches ..@{list_name}_length run function {current_namespace}:for_in_body_{variable}_{list_name}")
 
                     # Store the functions for later generation
                     if not hasattr(current_pack, 'loop_functions'):

@@ -537,17 +537,17 @@ function "conditional_example" {
     var num player_level = 15;
     var str player_class = "warrior";
     
-    if "score @s player_level >= 10" {
-        if "score @s player_class == 'warrior'" {
+    if "score @s player_level matches 10.." {
+        if "data storage mdl:variables player_class matches \"warrior\"" {
             say Advanced warrior detected!;
             effect give @s minecraft:strength 10 2;
-        } else if "score @s player_class == 'mage'" {
+        } else if "data storage mdl:variables player_class matches \"mage\"" {
             say Advanced mage detected!;
             effect give @s minecraft:night_vision 10 0;
         } else {
             say Unknown advanced class;
         }
-    } else if "score @s player_level >= 5" {
+    } else if "score @s player_level matches 5.." {
         say Intermediate player;
         effect give @s minecraft:speed 10 0;
     } else {

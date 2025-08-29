@@ -140,13 +140,13 @@ function "check_player_status" {
                     say Level up! New level: player_level;
                 }
                 
-                if "entity @s[nbt={SelectedItem:{id:'minecraft:diamond_sword'}}]" {
+                if "entity @s[nbt={SelectedItem:{id:\"minecraft:diamond_sword\"}}]" {
                     player_class = "warrior";
                     effect give @s minecraft:strength 10 1;
-                } else if "entity @s[nbt={SelectedItem:{id:'minecraft:bow'}}]" {
+                } else if "entity @s[nbt={SelectedItem:{id:\"minecraft:bow\"}}]" {
                     player_class = "archer";
                     effect give @s minecraft:speed 10 1;
-                } else if "entity @s[nbt={SelectedItem:{id:'minecraft:stick'}}]" {
+                } else if "entity @s[nbt={SelectedItem:{id:\"minecraft:stick\"}}]" {
                     player_class = "mage";
                     effect give @s minecraft:night_vision 10 0;
                 }
@@ -174,11 +174,11 @@ var num item_type = 0;
 
 function "handle_item" {
     for player in @a {
-        if "entity @s[nbt={SelectedItem:{id:'minecraft:diamond_sword'}}]" {
+        if "entity @s[nbt={SelectedItem:{id:\"minecraft:diamond_sword\"}}]" {
             item_type = 1;
-        } else if "entity @s[nbt={SelectedItem:{id:'minecraft:bow'}}]" {
+        } else if "entity @s[nbt={SelectedItem:{id:\"minecraft:bow\"}}]" {
             item_type = 2;
-        } else if "entity @s[nbt={SelectedItem:{id:'minecraft:shield'}}]" {
+        } else if "entity @s[nbt={SelectedItem:{id:\"minecraft:shield\"}}]" {
             item_type = 3;
         } else {
             item_type = 0;
@@ -317,7 +317,7 @@ var num mana = 100;
 
 function "heal_player" (amount) {
     health = health + amount;
-    if "score @s health > 20" {
+    if "score @s health matches 21.." {
         health = 20;
     }
     effect give @s minecraft:instant_health 1 1;
@@ -325,7 +325,7 @@ function "heal_player" (amount) {
 }
 
 function "use_mana" (cost) {
-    if "score @s mana >= cost" {
+    if "score @s mana matches cost.." {
         mana = mana - cost;
         return true;
     } else {
@@ -396,7 +396,7 @@ import "core" from "./core.mdl";
 
 function "attack" {
     for player in @a {
-        if "entity @s[nbt={SelectedItem:{id:'minecraft:diamond_sword'}}]" {
+        if "entity @s[nbt={SelectedItem:{id:\"minecraft:diamond_sword\"}}]" {
             execute as @s at @s if entity @e[type=minecraft:zombie,distance=..3] run function combat:damage;
         }
     }
@@ -460,7 +460,7 @@ function "gain_experience" (amount) {
     say Gained amount experience points;
     
     // Level up logic
-    if "score @s experience >= 100" {
+    if "score @s experience matches 100.." {
         player_level = player_level + 1;
         experience = experience - 100;
         health = health + 5;
@@ -473,13 +473,13 @@ function "gain_experience" (amount) {
 function "use_item" (item_name) {
     switch (item_name) {
         case "potion":
-            if "score @s health < 20" {
+            if "score @s health matches ..19" {
                 health = heal_player(10);
                 say Used health potion;
             }
             break;
         case "mana_potion":
-            if "score @s mana < 100" {
+            if "score @s mana matches ..99" {
                 mana = mana + 25;
                 say Used mana potion;
             }
@@ -493,7 +493,7 @@ function "use_item" (item_name) {
 function "heal_player" (amount) {
     var num old_health = health;
     health = health + amount;
-    if "score @s health > 20" {
+    if "score @s health matches 21.." {
         health = 20;
     }
     effect give @s minecraft:instant_health 1 1;
@@ -504,12 +504,12 @@ function "combat_tick" {
     for player in @a {
         if "entity @s[type=minecraft:player]" {
             // Auto-heal over time
-            if "score @s health < 20" {
+            if "score @s health matches ..19" {
                 health = health + 1;
             }
             
             // Mana regeneration
-            if "score @s mana < 100" {
+            if "score @s mana matches ..99" {
                 mana = mana + 2;
             }
         }
@@ -536,7 +536,7 @@ var num gold_coins = 0;
 
 function "add_item" (item_name) {
     try {
-        if "score @s items < inventory_size" {
+        if "score @s items matches ..35" {
             items = items + [item_name];
             say Added item_name to inventory;
         } else {
@@ -617,7 +617,7 @@ function "optimized_tick" {
 
 function "memory_management" {
     // Clear old data periodically
-    if "score @s frame_count >= 1200" {
+    if "score @s frame_count matches 1200.." {
         frame_count = 0;
         say Memory cleanup performed;
     }

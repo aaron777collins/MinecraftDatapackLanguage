@@ -377,7 +377,8 @@ class ExpressionProcessor:
                         commands = [f"data modify storage mdl:variables {target_var} set value \"{value}\""]
             return ProcessedExpression(commands, "", [])
         elif class_name == 'Identifier' or class_name == 'VariableExpression':
-            # Variable reference
+            # Variable reference - check if this should be stored as a string or number
+            # For now, assume it's a number and use scoreboard operation
             commands = [f"scoreboard players operation @s {target_var} = @s {expr.name}"]
             return ProcessedExpression(commands, "", [])
         elif hasattr(expr, 'left') and hasattr(expr, 'right') and hasattr(expr, 'operator'):
@@ -444,7 +445,20 @@ class ExpressionProcessor:
             else:
                 # Fallback to string conversion with warning
                 print(f"WARNING: Unknown expression type {type(expr)}: {expr}")
-                commands = [f"data modify storage mdl:variables {target_var} set value \"{str(expr)}\""]
+                # Don't store the string representation of the object - this causes issues
+                # Instead, try to extract a meaningful value
+                if hasattr(expr, 'value'):
+                    commands = [f"data modify storage mdl:variables {target_var} set value \"{expr.value}\""]
+                elif hasattr(expr, '__str__'):
+                    # Only use str() if it's not a complex object
+                    expr_str = str(expr)
+                    if not any(keyword in expr_str for keyword in ['VariableExpression', 'BinaryExpression', 'LiteralExpression']):
+                        commands = [f"data modify storage mdl:variables {target_var} set value \"{expr_str}\""]
+                    else:
+                        # This is a complex object - don't store it as a string
+                        commands = [f"# Error: Cannot convert complex expression to string"]
+                else:
+                    commands = [f"# Error: Unknown expression type"]
             return ProcessedExpression(commands, "", [])
     
     def process_condition(self, condition: str) -> ProcessedExpression:

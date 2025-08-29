@@ -1,0 +1,25 @@
+pack "Fibonacci Test" description "Test variable expressions and matches syntax" pack_format 82;
+
+namespace "test";
+
+function "fibonacci" {
+    var num n = 10;
+    var num a = 0;
+    var num b = 1;
+    var num i = 2;
+    var num temp = 0;
+    
+    // While loop: i <= n
+    while "score @s i matches ..10" {
+        temp = a;
+        temp = temp + b;
+        a = b;
+        b = temp;
+        i = i + 1;
+    }
+    
+    say Fibonacci result: b;
+    tellraw @s {"text":"Fibonacci(" + n + ") = " + b};
+}
+
+on_tick "test:fibonacci";

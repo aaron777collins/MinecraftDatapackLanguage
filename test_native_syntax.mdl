@@ -1,0 +1,33 @@
+pack "native_syntax_test" description "Test native Minecraft syntax" pack_format 82;
+
+namespace "test";
+
+function "native_conditional_demo" {
+    scoreboard objectives add player_level dummy;
+    scoreboard players set @s player_level 15;
+    data modify storage mdl:variables player_class set value "warrior";
+    scoreboard objectives add experience dummy;
+    scoreboard players set @s experience 75;
+    
+    // Use native Minecraft syntax - no conversion needed!
+    if "score @s player_level matches 10.." {
+        if "data storage mdl:variables player_class matches \"warrior\"" {
+            if "score @s experience matches 50.." {
+                say Advanced warrior detected!;
+                effect give @s minecraft:strength 10 2;
+                effect give @s minecraft:glowing 10 0;
+            } else {
+                say Novice warrior;
+                effect give @s minecraft:haste 10 0;
+            }
+        } else {
+            say Unknown advanced class;
+            effect give @s minecraft:glowing 10 0;
+        }
+    } else {
+        say Beginner player;
+        effect give @s minecraft:jump_boost 10 0;
+    }
+}
+
+on_tick "test:native_conditional_demo";

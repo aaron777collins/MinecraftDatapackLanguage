@@ -143,6 +143,11 @@ function "conditional_example" {
 
 **Rules:**
 - Conditions must be valid Minecraft selector syntax (e.g., `entity @s[type=minecraft:player]`)
+- **Use native Minecraft syntax**: Write conditions in Minecraft's own language
+  - `score @s var matches 10..` (greater than or equal to 10)
+  - `score @s var matches ..10` (less than or equal to 10)  
+  - `score @s var matches 5..15` (between 5 and 15)
+  - `data storage mdl:variables var matches "value"` (string comparison)
 - **Explicit block boundaries**: Conditional blocks use curly braces `{` and `}`
 - **Statement termination**: All commands must end with semicolons `;`
 - You can have multiple `else if` blocks
@@ -155,10 +160,10 @@ function "conditional_example" {
 
 ```mdl
 function "weapon_effects" {
-    if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:'minecraft:diamond_sword'}}]" {
+    if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:\"minecraft:diamond_sword\"}}]" {
         say Diamond sword detected!;
         effect give @s minecraft:strength 10 1;
-    } else if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:'minecraft:golden_sword'}}]" {
+    } else if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:\"minecraft:golden_sword\"}}]" {
         say Golden sword detected!;
         effect give @s minecraft:speed 10 1;
     } else if "entity @s[type=minecraft:player]" {
@@ -166,6 +171,33 @@ function "weapon_effects" {
         effect give @s minecraft:haste 5 0;
     } else {
         say No player found;
+    }
+}
+```
+
+**Example with scoreboard comparisons:**
+
+```mdl
+function "level_system" {
+    var num player_level = 15;
+    var str player_class = "warrior";
+    
+    if "score @s player_level matches 10.." {
+        if "data storage mdl:variables player_class matches \"warrior\"" {
+            say Advanced warrior detected!;
+            effect give @s minecraft:strength 10 2;
+        } else if "data storage mdl:variables player_class matches \"mage\"" {
+            say Advanced mage detected!;
+            effect give @s minecraft:night_vision 10 0;
+        } else {
+            say Unknown advanced class;
+        }
+    } else if "score @s player_level matches 5.." {
+        say Intermediate player;
+        effect give @s minecraft:speed 10 0;
+    } else {
+        say Beginner player;
+        effect give @s minecraft:jump_boost 10 0;
     }
 }
 ```
@@ -227,6 +259,13 @@ function "item_detection" {
 **How conditionals work:**
 
 When you write conditional blocks in MDL, they are automatically converted to separate functions and called using Minecraft's `execute` command. The system ensures proper logical flow where `else if` blocks only execute if all previous conditions were false, and `else` blocks only execute if all conditions were false.
+
+**Native Minecraft Syntax:**
+MDL uses native Minecraft syntax for conditions, so you write them exactly as you would in vanilla Minecraft:
+- `score @s var matches 10..` (greater than or equal to 10)
+- `score @s var matches ..10` (less than or equal to 10)
+- `score @s var matches 5..15` (between 5 and 15)
+- `data storage mdl:variables var matches "value"` (string comparison)
 
 For example, the above `weapon_effects` function generates:
 
@@ -310,7 +349,7 @@ function "for_example" {
 function "complex_for" {
     for player in @a[gamemode=survival] {
         say Processing survival player: @s;
-        if "entity @s[nbt={SelectedItem:{id:'minecraft:diamond_sword'}}]" {
+        if "entity @s[nbt={SelectedItem:{id:\"minecraft:diamond_sword\"}}]" {
             say Player has diamond sword!;
             effect give @s minecraft:strength 10 1;
         } else {
@@ -591,10 +630,10 @@ MDL provides built-in support for if/else if/else statements with unlimited nest
 
 ```mdl
 function "weapon_effects" {
-    if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:'minecraft:diamond_sword'}}]" {
+    if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:\"minecraft:diamond_sword\"}}]" {
         say Diamond sword detected!;
         effect give @s minecraft:strength 10 1;
-    } else if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:'minecraft:golden_sword'}}]" {
+    } else if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:\"minecraft:golden_sword\"}}]" {
         say Golden sword detected!;
         effect give @s minecraft:speed 10 1;
     } else if "entity @s[type=minecraft:player]" {
@@ -650,7 +689,7 @@ function "extreme_nesting" {
         if "entity @s[type=minecraft:player]" {
             for item in @s {
                 while "entity @s[type=minecraft:item]" {
-                    if "entity @s[nbt={Item:{id:'minecraft:diamond'}}]" {
+                    if "entity @s[nbt={Item:{id:\"minecraft:diamond\"}}]" {
                         // ... 25 more levels of nesting ...
                         say This is the deepest level!;
                     }
