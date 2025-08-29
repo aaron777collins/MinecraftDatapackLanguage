@@ -5,7 +5,7 @@ title: Minecraft Datapack Language (MDL)
 
 # <img src="{{ site.baseurl }}/icons/icon-128.png" width="48" height="48" alt="MDL Icon" style="vertical-align: middle; margin-right: 12px;"> Minecraft Datapack Language (MDL)
 
-A tiny compiler that lets you write Minecraft datapacks in a simple language (`.mdl`) **or** via a clean Python API, and then compiles to the correct 1.21+ datapack folder layout automatically.
+A **modern JavaScript-style compiler** that lets you write Minecraft datapacks with **real control structures, variables, and expressions** that actually work.
 
 ## Quick Navigation
 
@@ -49,12 +49,20 @@ A tiny compiler that lets you write Minecraft datapacks in a simple language (`.
 
 <div class="features">
   <div class="feature">
-    <h3>🚀 Easy to Use</h3>
-    <p>Write datapacks in a simple, readable language or use a clean Python API</p>
+    <h3>🎯 JavaScript-Style Syntax</h3>
+    <p>Write datapacks with modern curly braces, semicolons, and familiar syntax</p>
   </div>
   <div class="feature">
-    <h3>⚡ 1.21+ Ready</h3>
-    <p>Handles directory renames from snapshots 24w19a and 24w21a automatically</p>
+    <h3>🔄 Real Control Structures</h3>
+    <p>Full if/else if/else statements and while loops that actually work</p>
+  </div>
+  <div class="feature">
+    <h3>🔢 Variables & Expressions</h3>
+    <p>Number variables with arithmetic operations and variable substitution</p>
+  </div>
+  <div class="feature">
+    <h3>⚡ Modern Minecraft</h3>
+    <p>Pack format 82 by default with latest Minecraft features</p>
   </div>
   <div class="feature">
     <h3>🔧 VS Code Support</h3>
@@ -83,16 +91,21 @@ pip install minecraft-datapack-language
 ### Create Your First Datapack
 
 ```mdl
-# hello.mdl
-pack "My First Pack" description "A simple example" pack_format 48
+// hello.mdl
+pack "My First Pack" description "A simple example" pack_format 82;
 
-namespace "example"
+namespace "example";
 
-function "hello":
-    say Hello, Minecraft!
-    tellraw @a {"text":"Welcome to my datapack!","color":"green"}
+var num counter = 0;
 
-on_load "example:hello"
+function "hello" {
+    say Hello, Minecraft!;
+    tellraw @a {"text":"Welcome to my datapack!","color":"green"};
+    counter = counter + 1;
+    say Counter: $counter$;
+}
+
+on_load "example:hello";
 ```
 
 ### Build and Use
@@ -104,13 +117,16 @@ mdl build --mdl hello.mdl -o dist
 
 ## Key Features
 
-- **Simple Language**: Write datapacks in `.mdl` files with clear syntax
-- **Python API**: Programmatically create datapacks using Python
-- **Multi-file Projects**: Organize large datapacks across multiple files
-- **VS Code Integration**: Syntax highlighting, linting, and build commands
-- **1.21+ Compatibility**: Automatic handling of new datapack structure
-- **Function Tags**: Easy integration with `minecraft:tick` and `minecraft:load`
-- **Multiple Tag Types**: Support for function, item, block, entity, fluid, and game event tags
+- **🎯 JavaScript-Style Syntax**: Write datapacks with modern curly braces `{}` and semicolons `;`
+- **🔄 Full Control Structures**: `if/else if/else` statements and `while` loops with method selection
+- **🔢 Variables & Expressions**: Number variables with arithmetic operations and `$variable$` substitution
+- **📝 Modern Comments**: Use `//` and `/* */` for comments
+- **📁 Multi-file Projects**: Organize large datapacks across multiple files with automatic merging
+- **🔧 VS Code Integration**: Syntax highlighting, linting, and build commands
+- **⚡ Modern Minecraft**: Pack format 82 by default with latest features
+- **🎨 Variable Optimization**: Automatic load function generation for initialization
+- **🎯 Selector Optimization**: Proper `@a` usage for system commands
+- **🏷️ Function Tags**: Easy integration with `minecraft:tick` and `minecraft:load`
 
 ## Documentation
 

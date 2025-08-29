@@ -1,6 +1,6 @@
 # <img src="https://github.com/aaron777collins/MinecraftDatapackLanguage/raw/main/icons/icon-128.png" width="32" height="32" alt="MDL Icon"> Minecraft Datapack Language (MDL)
 
-A **simplified** compiler that lets you write Minecraft datapacks in a modern JavaScript-style language (`.mdl`) with **control structures and number variables** that actually work.
+A **modern JavaScript-style compiler** that lets you write Minecraft datapacks with **real control structures, variables, and expressions** that actually work.
 
 📖 **[View Full Documentation](https://aaron777collins.github.io/MinecraftDatapackLanguage/)** - Complete guides, examples, and API reference  
 📦 **[View on PyPI](https://pypi.org/project/minecraft-datapack-language/)** - Download and install from PyPI  
@@ -12,31 +12,35 @@ A **simplified** compiler that lets you write Minecraft datapacks in a modern Ja
 ![PyPI](https://img.shields.io/pypi/v/minecraft-datapack-language?style=flat-square)
 ![Release](https://github.com/aaron777collins/MinecraftDatapackLanguage/workflows/Release/badge.svg)
 
-## 🎯 **SIMPLIFIED** JavaScript-Style MDL Language
+## 🎯 **MODERN** JavaScript-Style MDL Language
 
-**MDL uses a simplified JavaScript-style language format** focused on **control structures and number variables**:
+**MDL uses a modern JavaScript-style language format** with **real control structures, variables, and expressions**:
 
-### ✨ **SIMPLIFIED** Features
+### ✨ **MODERN** Features
 - **🎯 JavaScript-style syntax** with curly braces `{}` and semicolons `;`
 - **📝 Modern comments** using `//` and `/* */`
-- **🔢 Number variables only** with `var num` type (stored in scoreboards)
-- **🔄 Control structures** including `if/else`, `while` loops with method selection
+- **🔢 Number variables** with `var num` type (stored in scoreboards)
+- **🔄 Full control structures** including `if/else if/else`, `while` loops with method selection
 - **💲 Variable substitution** with `$variable$` syntax
+- **🧮 Expressions** with arithmetic operations (`+`, `-`, `*`, `/`)
 - **📦 Namespace system** for modular code organization
 - **🎨 VS Code extension** with full IntelliSense and snippets
 - **🧪 Comprehensive testing** with E2E validation
 - **📚 Extensive documentation** with examples for every feature
 
 ### 🏗️ Core Features
-- ✅ Handles the directory renames from snapshots **24w19a** (tag subfolders) and **24w21a** (core registry folders)
-- ✅ Easy hooks into `minecraft:tick` and `minecraft:load` via function tags
-- ✅ Creates tags for `function`, `item`, `block`, `entity_type`, `fluid`, and `game_event`
-- ✅ **Control structures** that actually work - `if/else`, `while` loops with recursion/schedule methods
+- ✅ **Modern pack format 82** by default for latest Minecraft features
+- ✅ **JavaScript-style syntax** with curly braces and semicolons
+- ✅ **Real control structures** - `if/else if/else`, `while` loops with recursion/schedule methods
 - ✅ **Number variables** stored in scoreboards with `$variable$` substitution
+- ✅ **Expressions** with arithmetic operations and variable substitution
 - ✅ **Multi-file projects** with automatic merging and dependency resolution
-- ✅ **Simple expressions** with basic arithmetic operations
+- ✅ **Variable optimization** - automatic load function generation for initialization
+- ✅ **Selector optimization** - proper `@a` usage for system commands
+- ✅ **Easy hooks** into `minecraft:tick` and `minecraft:load` via function tags
+- ✅ **Tag support** for `function`, `item`, `block`, `entity_type`, `fluid`, and `game_event`
 
-> **Note**: Version 10 uses **pack_format 82** by default for the modern JavaScript-style syntax.
+> **Note**: Version 10.1+ uses **pack_format 82** by default for the modern JavaScript-style syntax.
 
 ---
 
@@ -71,17 +75,14 @@ python -m pip install -e .
 
 - **pipx**: `pipx upgrade minecraft-datapack-language`  
 - **pip (venv)**: `pip install -U minecraft-datapack-language`  
-- Pin a version: `pipx install "minecraft-datapack-language==10.0.0"`
+- Pin a version: `pipx install "minecraft-datapack-language==10.1.134"`
 
 ---
 
 ## 💻 CLI
 
-### Modern JavaScript-style MDL (v10)
+### Modern JavaScript-style MDL (v10.1+)
 ```bash
-# Create a new v10 project
-mdl new my_pack --name "My Pack" --pack-format 82
-
 # Build JavaScript-style MDL files
 mdl build --mdl my_pack/mypack.mdl -o dist --wrapper mypack
 mdl check my_pack/mypack.mdl
@@ -103,7 +104,7 @@ MDL supports modern JavaScript-style comments:
 pack "My Pack" {
     function example() {
         // This comment will be properly converted to mcfunction
-        say Hello World!
+        say Hello World!;
     }
 }
 ```
@@ -135,50 +136,58 @@ mdl check --json src/
 
 ---
 
-## 📝 Quick Start - **SIMPLIFIED** MDL
+## 📝 Quick Start - **MODERN** MDL
 
-Create your first simplified MDL project:
+Create your first modern MDL project:
 
 ```mdl
-// simple_pack.mdl
-pack "Simple Pack" description "A simple example" pack_format 82;
+// modern_pack.mdl
+pack "Modern Pack" description "A modern example" pack_format 82;
 
 namespace "example";
 
-// Number variables only
+// Number variables with expressions
 var num counter = 0;
 var num health = 20;
 var num level = 1;
+var num experience = 0;
 
 function "init" {
     say Initializing...;
     counter = 0;
     health = 20;
     level = 1;
+    experience = 0;
 }
 
 function "tick" {
     counter = counter + 1;
     
-    // Variable substitution in conditions
+    // Full if/else if/else control structure
     if "$health$ < 10" {
         say Health is low!;
         health = health + 5;
+        effect give @a minecraft:regeneration 10 1;
+    } else if "$level$ > 5" {
+        say High level player!;
+        effect give @a minecraft:strength 10 1;
+    } else {
+        say Normal player;
+        effect give @a minecraft:speed 10 0;
     }
     
     // Variable substitution in strings
     say Counter: $counter$;
     
-    // While loop
+    // While loop with method selection
     while "$counter$ < 10" {
         counter = $counter$ + 1;
         say Counter: $counter$;
     }
     
-    // For loop (entity iteration)
-    for player in @a {
-        say Hello $player$;
-    }
+    // Expressions with arithmetic
+    experience = $level$ * 100 + $counter$;
+    say Experience: $experience$;
 }
 
 // Lifecycle hooks
@@ -188,8 +197,8 @@ on_tick "example:tick";
 
 Build and test:
 ```bash
-mdl build --mdl simple_pack.mdl -o dist
-# → dist/simple_pack/... and dist/simple_pack.zip
+mdl build --mdl modern_pack.mdl -o dist
+# → dist/modern_pack/... and dist/modern_pack.zip
 ```
 
 ---
@@ -262,21 +271,29 @@ pack "Adventure Pack" description "Multi-file example datapack" pack_format 82;
 
 namespace "core";
 
-// Number variables only
+// Number variables with expressions
 var num system_version = 1;
 var num player_count = 0;
+var num total_experience = 0;
 
 function "init" {
     say [core:init] Initializing Adventure Pack...;
     tellraw @a {"text":"Adventure Pack loaded!","color":"green"};
     system_version = 1;
     player_count = 0;
+    total_experience = 0;
 }
 
 function "tick" {
     say [core:tick] Core systems running...;
     execute as @a run particle minecraft:end_rod ~ ~ ~ 0.1 0.1 0.1 0.01 1;
     player_count = player_count + 1;
+    
+    // Control structure example
+    if "$player_count$ > 10" {
+        say Many players online!;
+        effect give @a minecraft:glowing 5 0;
+    }
 }
 
 // Hook into vanilla lifecycle
@@ -290,11 +307,15 @@ on_tick "core:tick";
 namespace "combat";
 
 var num weapon_damage = 10;
+var num critical_chance = 5;
 
 function "weapon_effects" {
     say [combat:weapon_effects] Applying weapon effects...;
     execute as @a[nbt={SelectedItem:{id:'minecraft:diamond_sword'}}] run effect give @s minecraft:strength 1 0 true;
     weapon_damage = weapon_damage + 2;
+    
+    // Expression example
+    critical_chance = $weapon_damage$ / 2;
 }
 
 function "update_combat" {
@@ -309,11 +330,15 @@ function "update_combat" {
 namespace "combat";
 
 var num armor_bonus = 5;
+var num defense_rating = 0;
 
 function "armor_bonus" {
     say [combat:armor_bonus] Checking armor bonuses...;
     execute as @a[nbt={Inventory:[{Slot:103b,id:"minecraft:diamond_helmet"}]}] run effect give @s minecraft:resistance 1 0 true;
     armor_bonus = armor_bonus + 1;
+    
+    // Expression with multiple variables
+    defense_rating = $armor_bonus$ * 2 + 10;
 }
 
 function "update_armor" {
@@ -327,11 +352,18 @@ function "update_armor" {
 namespace "ui";
 
 var num hud_version = 1;
+var num display_counter = 0;
 
 function "show_hud" {
     say [ui:show_hud] Updating HUD...;
     title @a actionbar {"text":"Adventure Pack Active","color":"gold"};
     hud_version = hud_version + 1;
+    
+    // While loop example
+    while "$display_counter$ < 5" {
+        display_counter = $display_counter$ + 1;
+        say HUD update: $display_counter$;
+    }
 }
 
 function "update_ui" {
@@ -362,6 +394,7 @@ This will create a datapack with:
 - **Combat features** (weapon and armor effects)
 - **UI elements** (HUD display)
 - **Cross-module calls** (UI calls combat functions)
+- **Variable optimization** (automatic load function generation)
 
 ### CLI Options for Multi-file Builds
 
@@ -382,7 +415,7 @@ This will create a datapack with:
 
 ---
 
-## 📝 The **SIMPLIFIED** `.mdl` Language
+## 📝 The **MODERN** `.mdl` Language
 
 ### Grammar you can rely on (based on the parser)
 - **pack header** (required once):
@@ -406,7 +439,7 @@ This will create a datapack with:
       tellraw @a {"text":"ok","color":"green"};
   }
   ```
-- **conditional blocks** (if/else if/else statements):
+- **full conditional blocks** (if/else if/else statements):
   ```mdl
   function "conditional" {
       if "$health$ < 10" {
@@ -417,10 +450,11 @@ This will create a datapack with:
           effect give @s minecraft:speed 5 1;
       } else {
           say Normal player;
+          effect give @s minecraft:jump_boost 5 0;
       }
   }
   ```
-- **while loops** (repetitive execution):
+- **while loops** (repetitive execution with method selection):
   ```mdl
   function "countdown" {
       var num counter = 5;
@@ -428,15 +462,22 @@ This will create a datapack with:
           say Counter: $counter$;
           counter = counter - 1;
       }
+      
+      // Schedule method for performance
+      counter = 10;
+      while "$counter$ > 0" method="schedule" {
+          say Schedule counter: $counter$;
+          counter = $counter$ - 1;
+      }
   }
   ```
-- **for loops** (entity iteration):
+- **expressions** (arithmetic operations):
   ```mdl
-  function "player_effects" {
-      for player in @a {
-          say Processing player: @s;
-          effect give @s minecraft:speed 10 1;
-      }
+  function "expressions" {
+      var num a = 10;
+      var num b = 5;
+      var num result = $a$ + $b$ * 2;
+      say Result: $result$;
   }
   ```
 - **function calls** (one function invoking another with fully qualified ID):
@@ -500,9 +541,9 @@ Notice how the full-line `//` and block comments never make it into the `.mcfunc
 
 ---
 
-### **SIMPLIFIED** Variables and Data Types
+### **MODERN** Variables and Data Types
 
-MDL supports **number variables only** for simplicity and reliability:
+MDL supports **number variables** with **expressions and arithmetic operations**:
 
 #### Number Variables (`num`)
 ```mdl
@@ -515,30 +556,39 @@ counter = counter + 1;
 health = health - 5;
 experience = experience * 2;
 
+// Expressions with multiple variables
+var num total = $health$ + $experience$;
+var num average = $total$ / 2;
+
 // Variable substitution in strings
 say Health: $health$;
 say Experience: $experience$;
+say Total: $total$;
 ```
 
 **Variable Substitution**: Use `$variable_name$` to read values from scoreboards in strings and conditions.
 
-### **SIMPLIFIED** Control Flow
+**Expressions**: Support for arithmetic operations (`+`, `-`, `*`, `/`) with proper order of operations.
 
-MDL supports conditional blocks and loops for control flow.
+### **MODERN** Control Flow
+
+MDL supports full conditional blocks and loops for control flow.
 
 #### Conditional Blocks
 
-MDL supports if/else if/else statements for conditional execution:
+MDL supports complete if/else if/else statements for conditional execution:
 
 ```mdl
 function "conditional_example" {
     var num player_level = 15;
     var num player_health = 8;
+    var num player_experience = 1000;
     
     if "$player_level$ >= 10" {
         if "$player_health$ < 10" {
             say Advanced player with low health!;
             effect give @s minecraft:regeneration 10 1;
+            player_health = $player_health$ + 10;
         } else {
             say Advanced player with good health;
             effect give @s minecraft:strength 10 1;
@@ -549,6 +599,11 @@ function "conditional_example" {
     } else {
         say Beginner player;
         effect give @s minecraft:jump_boost 10 0;
+    }
+    
+    // Expression in condition
+    if "$player_experience$ > $player_level$ * 100" {
+        say High experience for level!;
     }
 }
 ```
@@ -561,6 +616,7 @@ function "conditional_example" {
 - The `else` block is optional
 - Conditional blocks are compiled to separate functions and called with `execute` commands
 - **Proper logic**: `else if` blocks only execute if previous conditions were false
+- **Expressions in conditions**: Support for arithmetic operations in conditions
 
 #### While Loops
 
@@ -582,6 +638,14 @@ function "while_example" {
         say "Schedule counter: $counter$";
         counter = $counter$ - 1;
     }
+    
+    // Expression in loop condition
+    var num max_count = 5;
+    counter = 0;
+    while "$counter$ < $max_count$ * 2" {
+        say "Expression counter: $counter$";
+        counter = $counter$ + 1;
+    }
 }
 ```
 
@@ -594,6 +658,7 @@ function "while_example" {
 - **Recursion method**: Executes all iterations immediately (good for small loops)
 - **Schedule method**: Spreads iterations across ticks (better for long loops, prevents lag)
 - **Important**: Ensure your loop body modifies the condition to avoid infinite loops
+- **Expressions in conditions**: Support for arithmetic operations in loop conditions
 
 **Implementation**: While loops generate separate function files with proper recursive calls to continue execution until the condition becomes false.
 
@@ -627,18 +692,19 @@ tellraw @a {"text":"This text is really, really long so we split it","color":"go
 
 ---
 
-## 🎯 **SIMPLIFIED** example (control structures + number variables)
+## 🎯 **MODERN** example (control structures + variables + expressions)
 
 ```mdl
-// simple_pack.mdl - simplified example for Minecraft Datapack Language
-pack "Simple Pack" description "Simplified example datapack" pack_format 82;
+// modern_pack.mdl - modern example for Minecraft Datapack Language
+pack "Modern Pack" description "Modern example datapack" pack_format 82;
 
 namespace "example";
 
-// Number variables only
+// Number variables with expressions
 var num counter = 0;
 var num health = 20;
 var num level = 1;
+var num experience = 0;
 
 function "inner" {
     say [example:inner] This is the inner function;
@@ -651,28 +717,37 @@ function "hello" {
     function example:inner;
     tellraw @a {"text":"Back in hello","color":"aqua"};
     
-    // Variable operations
+    // Variable operations with expressions
     health = health + 5;
     level = level + 1;
+    experience = $level$ * 100 + $counter$;
     
     // Variable substitution
     say Health: $health$;
     say Level: $level$;
+    say Experience: $experience$;
     
-    // Control structures
+    // Full control structures
     if "$health$ > 15" {
         say High health!;
         effect give @s minecraft:strength 10 1;
+    } else if "$level$ > 5" {
+        say High level!;
+        effect give @s minecraft:speed 10 1;
+    } else {
+        say Normal stats;
+        effect give @s minecraft:jump_boost 10 0;
     }
     
+    // While loop with method selection
     while "$counter$ < 5" {
         say Counter: $counter$;
         counter = counter + 1;
     }
     
-    for player in @a {
-        say Hello $player$;
-        effect give @s minecraft:speed 5 0;
+    // Expression in condition
+    if "$experience$ > $level$ * 50" {
+        say High experience for level!;
     }
 }
 
@@ -684,11 +759,14 @@ on_tick "example:hello";
 namespace "util";
 
 var num helper_count = 0;
+var num total_help = 0;
 
 function "helper" {
     say [util:helper] Helping out...;
     helper_count = helper_count + 1;
+    total_help = $helper_count$ * 10;
     say Helper count: $helper_count$;
+    say Total help: $total_help$;
 }
 
 function "boss" {
@@ -729,8 +807,10 @@ tag block "example:glassy" {
 - **Function tags** to participate in vanilla tags (`minecraft:load`, `minecraft:tick`).
 - **Data tags** (`item`, `block`) in addition to function tags.
 - **Number variables** with `$variable$` substitution.
-- **Control structures** that actually work - `if/else`, `while`, `for` loops.
+- **Expressions** with arithmetic operations and variable substitution.
+- **Full control structures** - `if/else if/else`, `while` loops with method selection.
 - **Modern syntax** with curly braces and semicolons.
+- **Variable optimization** - automatic load function generation.
 
 ---
 
@@ -740,8 +820,8 @@ tag block "example:glassy" {
 from minecraft_datapack_language import Pack
 
 def build_pack():
-    p = Pack(name="Simple Pack",
-             description="Simplified example datapack",
+    p = Pack(name="Modern Pack",
+             description="Modern example datapack",
              pack_format=82)
 
     ex = p.namespace("example")

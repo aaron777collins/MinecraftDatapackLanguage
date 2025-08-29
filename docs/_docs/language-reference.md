@@ -4,22 +4,24 @@ title: Language Reference
 permalink: /docs/language-reference/
 ---
 
-# **SIMPLIFIED** MDL Language Reference
+# **MODERN** MDL Language Reference
 
-This is the complete reference for the **simplified** Minecraft Datapack Language (MDL) syntax.
+This is the complete reference for the **modern JavaScript-style** Minecraft Datapack Language (MDL) syntax.
 
 ## Overview
 
-MDL is a **simplified** language designed to make writing Minecraft datapacks easier. It compiles to standard `.mcfunction` files and follows the 1.21+ datapack structure. MDL uses JavaScript-style syntax with curly braces and semicolons for explicit block boundaries and **control structures that actually work**.
+MDL is a **modern JavaScript-style language** designed to make writing Minecraft datapacks easier. It compiles to standard `.mcfunction` files and follows the latest datapack structure. MDL uses JavaScript-style syntax with curly braces and semicolons for explicit block boundaries and **real control structures, variables, and expressions that actually work**.
 
 ## Basic Syntax
 
 ### Comments
 
-Comments start with `//` and continue to the end of the line:
+MDL supports modern JavaScript-style comments:
 
 ```mdl
-// This is a comment
+// Single-line comments
+/* Multi-line comments */
+
 pack "My Pack";  // Inline comments are also supported
 ```
 
@@ -89,6 +91,85 @@ function "hud" {
 }
 ```
 
+## Variables
+
+MDL supports **number variables** with **expressions and arithmetic operations**:
+
+### Variable Declarations
+
+```mdl
+var num variable_name = initial_value;
+```
+
+**Rules:**
+- Only `num` type is supported (stored in scoreboards)
+- Variable names should be descriptive
+- Initial values are optional (defaults to 0)
+- **Statement termination**: Variable declarations must end with semicolons `;`
+
+**Examples:**
+
+```mdl
+var num counter = 0;
+var num health = 20;
+var num level = 1;
+var num experience = 0;
+```
+
+### Variable Substitution
+
+Use `$variable_name$` to read values from scoreboards in strings and conditions:
+
+```mdl
+function "example" {
+    say Health: $health$;
+    say Level: $level$;
+    say Experience: $experience$;
+    
+    // In conditions
+    if "$health$ < 10" {
+        say Health is low!;
+    }
+}
+```
+
+### Expressions
+
+MDL supports arithmetic operations with variables:
+
+```mdl
+function "expressions" {
+    var num a = 10;
+    var num b = 5;
+    
+    // Basic arithmetic
+    var num sum = $a$ + $b$;
+    var num difference = $a$ - $b$;
+    var num product = $a$ * $b$;
+    var num quotient = $a$ / $b$;
+    
+    // Complex expressions
+    var num total = $health$ + $experience$;
+    var num average = $total$ / 2;
+    var num bonus = $level$ * 10 + $counter$;
+    
+    // Variable assignment with expressions
+    counter = $counter$ + 1;
+    health = $health$ - 5;
+    experience = $level$ * 100 + $counter$;
+}
+```
+
+**Supported Operations:**
+- `+` (addition)
+- `-` (subtraction)
+- `*` (multiplication)
+- `/` (division)
+
+**Order of Operations:**
+- Multiplication and division are performed before addition and subtraction
+- Use parentheses for explicit grouping (when supported)
+
 ## Functions
 
 Functions contain Minecraft commands and are the core of your datapack:
@@ -102,114 +183,35 @@ function "function_name" {
 ```
 
 **Rules:**
-- Function names should be lowercase
-- Use underscores or hyphens for multi-word names
-- **Explicit block boundaries**: Functions use curly braces `{` and `}`
+- Function names should be descriptive
+- Functions must be quoted: `"function_name"`
+- **Explicit block boundaries**: Use curly braces `{` and `}`
 - **Statement termination**: All commands must end with semicolons `;`
-- Functions can call other functions using fully qualified names
+- Functions can call other functions using fully qualified IDs
 
 **Example:**
 
 ```mdl
-function "hello" {
-    say Hello from the hello function;
+function "inner" {
+    say [example:inner] This is the inner function;
+    tellraw @a {"text":"Running inner","color":"yellow"};
 }
 
-function "greet" {
-    say I will call the hello function;
-    function example:hello;
-    say Back in the greet function;
-}
-```
-
-## **SIMPLIFIED** Variables
-
-MDL supports **number variables only** for simplicity and reliability.
-
-### Variable Declarations
-
-```mdl
-var num variable_name = initial_value;
-```
-
-**Rules:**
-- **Only `num` type supported**: All variables are numbers stored in scoreboards
-- Variable names should be lowercase
-- Use underscores for multi-word names
-- **Statement termination**: Variable declarations must end with semicolons `;`
-
-**Examples:**
-
-```mdl
-var num counter = 0;
-var num health = 20;
-var num level = 1;
-var num player_score = 100;
-```
-
-### Variable Assignment
-
-```mdl
-variable_name = expression;
-```
-
-**Examples:**
-
-```mdl
-counter = 5;
-health = health + 10;
-level = level * 2;
-player_score = player_score - 5;
-```
-
-### Variable Substitution
-
-Use `$variable_name$` to read values from scoreboards in strings and conditions:
-
-```mdl
-// In strings
-say Health: $health$;
-tellraw @a {"text":"Level: $level$","color":"gold"};
-
-// In conditions
-if "$health$ < 10" {
-    say Health is low!;
-}
-
-while "$counter$ > 0" {
-    say Counter: $counter$;
-    counter = counter - 1;
+function "outer" {
+    say [example:outer] This is the outer function;
+    function example:inner;  // Call another function
+    tellraw @a {"text":"Back in outer","color":"aqua"};
 }
 ```
 
-## **SIMPLIFIED** Control Flow
+## Control Structures
 
-MDL supports conditional blocks and loops for control flow.
+MDL supports **full control structures** with proper logic flow.
 
 ### Conditional Blocks (if/else if/else)
 
 ```mdl
-if "condition" {
-    // commands to run if condition is true
-} else if "condition" {
-    // commands to run if this condition is true
-} else {
-    // commands to run if no conditions were true
-}
-```
-
-**Rules:**
-- Conditions use `$variable$` syntax for variable substitution
-- **Explicit block boundaries**: Conditional blocks use curly braces `{` and `}`
-- **Statement termination**: All commands must end with semicolons `;`
-- You can have multiple `else if` blocks
-- The `else` block is optional
-- Conditional blocks are compiled to separate functions and called with `execute` commands
-
-**Examples:**
-
-```mdl
-function "check_player" {
+function "conditional_example" {
     var num player_level = 15;
     var num player_health = 8;
     
@@ -217,6 +219,7 @@ function "check_player" {
         if "$player_health$ < 10" {
             say Advanced player with low health!;
             effect give @s minecraft:regeneration 10 1;
+            player_health = $player_health$ + 10;
         } else {
             say Advanced player with good health;
             effect give @s minecraft:strength 10 1;
@@ -231,76 +234,54 @@ function "check_player" {
 }
 ```
 
+**Rules:**
+- Conditions use `$variable$` syntax for variable substitution
+- **Explicit block boundaries**: Use curly braces `{` and `}`
+- **Statement termination**: All commands must end with semicolons `;`
+- You can have multiple `else if` blocks
+- The `else` block is optional
+- **Proper logic**: `else if` blocks only execute if previous conditions were false
+- **Expressions in conditions**: Support for arithmetic operations in conditions
+
 ### While Loops
 
 ```mdl
-while "condition" {
-    // commands to repeat while condition is true
+function "while_example" {
+    var num counter = 5;
+    
+    // Default recursion method (immediate execution)
+    while "$counter$ > 0" {
+        say "Counter: $counter$";
+        counter = $counter$ - 1;
+    }
+    
+    // Schedule method (spreads across ticks for performance)
+    counter = 10;
+    while "$counter$ > 0" method="schedule" {
+        say "Schedule counter: $counter$";
+        counter = $counter$ - 1;
+    }
+    
+    // Expression in loop condition
+    var num max_count = 5;
+    counter = 0;
+    while "$counter$ < $max_count$ * 2" {
+        say "Expression counter: $counter$";
+        counter = $counter$ + 1;
+    }
 }
 ```
 
 **Rules:**
 - Conditions use `$variable$` syntax for variable substitution
-- **Explicit block boundaries**: While loops use curly braces `{` and `}`
+- **Explicit block boundaries**: Use curly braces `{` and `}`
 - **Statement termination**: All commands must end with semicolons `;`
 - While loops continue until the condition becomes false
+- **Method Selection**: Choose `method="recursion"` (default) or `method="schedule"`
+- **Recursion method**: Executes all iterations immediately (good for small loops)
+- **Schedule method**: Spreads iterations across ticks (better for long loops, prevents lag)
 - **Important**: Ensure your loop body modifies the condition to avoid infinite loops
-
-**Examples:**
-
-```mdl
-function "countdown" {
-    var num counter = 5;
-    while "$counter$ > 0" {
-        say Countdown: $counter$;
-        counter = counter - 1;
-        say Decremented counter;
-    }
-}
-
-function "health_regeneration" {
-    var num regen_count = 0;
-    while "$regen_count$ < 3" {
-        say Regenerating health...;
-        effect give @s minecraft:regeneration 5 0;
-        regen_count = regen_count + 1;
-    }
-}
-```
-
-### For Loops
-
-```mdl
-for variable in selector {
-    // commands to run for each entity in the selector
-}
-```
-
-**Rules:**
-- Collection must be a valid Minecraft entity selector
-- **Explicit block boundaries**: For loops use curly braces `{` and `}`
-- **Statement termination**: All commands must end with semicolons `;`
-- For loops iterate over each entity in the collection
-- **Efficient execution**: Each conditional block becomes a separate function for optimal performance
-
-**Examples:**
-
-```mdl
-function "player_effects" {
-    for player in @a {
-        say Processing player: @s;
-        effect give @s minecraft:speed 10 1;
-        tellraw @s {"text":"You got speed!","color":"green"};
-    }
-}
-
-function "item_processing" {
-    for item in @e[type=minecraft:item] {
-        say Processing item: @s;
-        effect give @s minecraft:glowing 5 1;
-    }
-}
-```
+- **Expressions in conditions**: Support for arithmetic operations in loop conditions
 
 ## Hooks
 
@@ -312,30 +293,29 @@ on_tick "namespace:function_name";
 ```
 
 **Rules:**
-- Function names must be fully qualified (include namespace)
+- **Namespaced IDs required**: Use `namespace:function_name` format
+- `on_load`: Runs when the world loads
+- `on_tick`: Runs every tick (20 times per second)
 - **Statement termination**: Hook declarations must end with semicolons `;`
-- `on_load` runs when the datapack loads
-- `on_tick` runs every game tick
 
-**Examples:**
+**Example:**
 
 ```mdl
 on_load "example:init";
 on_tick "example:tick";
-on_tick "ui:update_hud";
 ```
 
 ## Tags
 
-Tags allow your functions to participate in vanilla tag systems:
+Tags allow your functions to participate in vanilla Minecraft systems:
 
 ```mdl
-tag function "tag_name" {
+tag function "minecraft:tick" {
     add "namespace:function_name";
 }
 ```
 
-**Supported tag types:**
+**Supported Tag Types:**
 - `function` - Function tags
 - `item` - Item tags
 - `block` - Block tags
@@ -343,7 +323,7 @@ tag function "tag_name" {
 - `fluid` - Fluid tags
 - `game_event` - Game event tags
 
-**Examples:**
+**Example:**
 
 ```mdl
 tag function "minecraft:load" {
@@ -352,118 +332,119 @@ tag function "minecraft:load" {
 
 tag function "minecraft:tick" {
     add "example:tick";
-    add "ui:update_hud";
 }
 
 tag item "example:swords" {
     add "minecraft:diamond_sword";
     add "minecraft:netherite_sword";
 }
+```
 
-tag block "example:glassy" {
-    add "minecraft:glass";
-    add "minecraft:tinted_glass";
+## Multi-line Commands
+
+Long JSON commands can be split across multiple lines with a trailing backslash `\`:
+
+```mdl
+function "multiline" {
+    tellraw @a \
+        {"text":"This text is really, really long so we split it",\
+         "color":"gold"};
 }
 ```
 
-## **SIMPLIFIED** Expressions
+When compiled, the function becomes a single line:
 
-MDL supports basic arithmetic operations with number variables:
-
-### Arithmetic Operators
-
-- `+` - Addition
-- `-` - Subtraction
-- `*` - Multiplication
-- `/` - Division
-
-**Examples:**
-
-```mdl
-var num result = 0;
-result = 5 + 3;        // result = 8
-result = 10 - 4;       // result = 6
-result = 3 * 7;        // result = 21
-result = 15 / 3;       // result = 5
-
-// With variables
-var num a = 10;
-var num b = 5;
-result = a + b;        // result = 15
-result = a * b;        // result = 50
+```mcfunction
+tellraw @a {"text":"This text is really, really long so we split it","color":"gold"}
 ```
 
-### Variable Substitution in Expressions
+## Optimizations
 
-You can use variable substitution in arithmetic expressions:
+MDL includes several automatic optimizations:
+
+### Variable Optimization
+
+Variables are automatically initialized in a global load function for better performance:
 
 ```mdl
+var num counter = 0;
 var num health = 20;
-var num bonus = 5;
-health = $health$ + $bonus$;  // health = 25
 ```
+
+This generates a `load.mcfunction` file that:
+- Creates all scoreboard objectives
+- Initializes all variables to 0
+- Sets non-zero initial values
+- Creates the server armor stand entity
+
+### Selector Optimization
+
+System commands automatically use proper selectors:
+
+```mdl
+function "example" {
+    say "Hello World";  // Converts to tellraw @a
+    tellraw @a {"text":"Direct command"};  // Preserved as-is
+}
+```
+
+- `say` commands are converted to `tellraw @a`
+- Existing `tellraw @a` commands are preserved
+- `tellraw @s` commands are converted to `tellraw @a` for system commands
 
 ## Complete Example
 
-Here's a complete example showing all the **simplified** MDL features:
+Here's a complete example showing all the features:
 
 ```mdl
-// complete_example.mdl - Complete simplified MDL example
-pack "Complete Example" description "Shows all simplified features" pack_format 82;
+// complete_example.mdl
+pack "Complete Example" description "Shows all MDL features" pack_format 82;
 
 namespace "example";
 
-// Number variables
+// Variables with expressions
 var num counter = 0;
 var num health = 20;
 var num level = 1;
+var num experience = 0;
 
 function "init" {
-    say Initializing...;
+    say [example:init] Initializing Complete Example...;
+    tellraw @a {"text":"Complete Example loaded!","color":"green"};
     counter = 0;
     health = 20;
     level = 1;
+    experience = 0;
 }
 
 function "tick" {
     counter = counter + 1;
     
-    // Variable substitution
-    say Counter: $counter$;
-    say Health: $health$;
-    say Level: $level$;
-    
-    // Conditional logic
+    // Full control structure
     if "$health$ < 10" {
         say Health is low!;
         health = health + 5;
-        effect give @s minecraft:regeneration 10 1;
+        effect give @a minecraft:regeneration 10 1;
     } else if "$level$ > 5" {
         say High level player!;
-        effect give @s minecraft:strength 10 1;
+        effect give @a minecraft:strength 10 1;
     } else {
         say Normal player;
-        effect give @s minecraft:speed 10 0;
+        effect give @a minecraft:speed 10 0;
     }
+    
+    // Variable substitution
+    say Counter: $counter$;
     
     // While loop
-    var num loop_count = 0;
-    while "$loop_count$ < 3" {
-        say Loop iteration: $loop_count$;
-        loop_count = loop_count + 1;
+    while "$counter$ < 10" {
+        counter = $counter$ + 1;
+        say Counter: $counter$;
     }
     
-    // For loop
-    for player in @a {
-        say Hello $player$;
-        effect give @s minecraft:glowing 5 0;
-    }
-}
-
-function "helper" {
-    say Helper function called;
-    level = level + 1;
-    say New level: $level$;
+    // Expressions
+    experience = $level$ * 100 + $counter$;
+    say Experience: $experience$;
 }
 
 // Hooks
@@ -478,62 +459,14 @@ tag function "minecraft:load" {
 tag function "minecraft:tick" {
     add "example:tick";
 }
-
-tag item "example:tools" {
-    add "minecraft:diamond_pickaxe";
-    add "minecraft:diamond_axe";
-}
 ```
 
-## Best Practices
-
-1. **Use descriptive names**: Choose clear, descriptive names for functions and variables
-2. **Organize with namespaces**: Use namespaces to group related functions
-3. **Comment your code**: Add comments to explain complex logic
-4. **Test incrementally**: Build and test your datapack as you develop
-5. **Use variable substitution**: Use `$variable$` syntax for clean, readable code
-6. **Keep it simple**: The simplified language is designed to be reliable and easy to understand
-
-## Common Patterns
-
-### Counter Pattern
-
-```mdl
-var num counter = 0;
-
-function "increment" {
-    counter = counter + 1;
-    say Counter: $counter$;
-}
-```
-
-### Health Management
-
-```mdl
-var num health = 20;
-
-function "check_health" {
-    if "$health$ < 10" {
-        say Health is low!;
-        health = health + 5;
-    }
-}
-```
-
-### Level System
-
-```mdl
-var num level = 1;
-var num experience = 0;
-
-function "gain_experience" {
-    experience = experience + 10;
-    if "$experience$ >= 100" {
-        level = level + 1;
-        experience = 0;
-        say Level up! New level: $level$;
-    }
-}
-```
-
-This **simplified** language focuses on **control structures and number variables** that actually work, making it much easier to create reliable Minecraft datapacks.
+This example demonstrates:
+- **JavaScript-style syntax** with curly braces and semicolons
+- **Variables** with expressions and arithmetic
+- **Full control structures** with if/else if/else
+- **While loops** with method selection
+- **Variable substitution** in strings and conditions
+- **Hooks** for automatic execution
+- **Tags** for vanilla integration
+- **Optimizations** for better performance
