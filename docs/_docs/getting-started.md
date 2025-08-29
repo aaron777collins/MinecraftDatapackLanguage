@@ -6,7 +6,7 @@ permalink: /docs/getting-started/
 
 # Getting Started
 
-This guide will help you install Minecraft Datapack Language (MDL) and create your first **modern JavaScript-style** datapack with control structures, variables, and expressions.
+This guide will help you install Minecraft Datapack Language (MDL) and create your first **modern JavaScript-style** datapack with control structures, variables, expressions, and multi-file projects.
 
 ## Installation
 
@@ -94,7 +94,7 @@ For detailed development information, see [DEVELOPMENT.md](https://github.com/aa
 
 ## Your First **Modern** Datapack
 
-Let's create a modern datapack that demonstrates **control structures, variables, and expressions**.
+Let's create a modern datapack that demonstrates **control structures, variables, expressions, and multi-file projects**.
 
 ### 1. Create the MDL File
 
@@ -183,6 +183,88 @@ This simple example shows:
 - **🧮 Expressions**: Arithmetic operations with variables
 - **🎯 Selector optimization**: Proper `@a` usage for system commands
 - **🎨 Variable optimization**: Automatic load function generation
+- **📦 Multi-file support**: Organize code across multiple files with namespaces
+
+## Multi-File Project Example
+
+Let's create a more complex project using multiple files:
+
+### 1. Create Multiple MDL Files
+
+**`core.mdl`** - Core game logic:
+```mdl
+pack "multi_example" "A multi-file example" 82;
+
+namespace "core";
+
+var num player_count = 0;
+var num game_timer = 0;
+
+function "init" {
+    say [core:init] Initializing multi-file system...;
+    player_count = 0;
+    game_timer = 0;
+}
+
+function "tick" {
+    game_timer = $game_timer$ + 1;
+    say [core:tick] Game timer: $game_timer$;
+}
+
+on_load "core:init";
+on_tick "core:tick";
+```
+
+**`ui.mdl`** - User interface:
+```mdl
+namespace "ui";
+
+var num menu_state = 0;
+
+function "init" {
+    say [ui:init] Initializing UI...;
+    menu_state = 0;
+}
+
+function "show_menu" {
+    if "$menu_state$ == 0" {
+        say "=== Main Menu ===";
+    }
+}
+
+on_load "ui:init";
+on_tick "ui:show_menu";
+```
+
+### 2. Build the Multi-File Project
+
+```bash
+mdl build --mdl . -o dist
+```
+
+This creates a datapack with:
+- **Separate namespaces**: `core` and `ui` functions are in different directories
+- **Merged variables**: All variables are initialized together
+- **Combined hooks**: All load and tick functions are properly organized
+
+### 3. Generated Structure
+
+```
+dist/
+├── data/
+│   ├── minecraft/tags/function/
+│   │   ├── load.json    # Contains core:init, ui:init
+│   │   └── tick.json    # Contains core:tick, ui:show_menu
+│   ├── core/            # core.mdl namespace
+│   │   └── function/
+│   │       ├── init.mcfunction
+│   │       └── tick.mcfunction
+│   └── ui/              # ui.mdl namespace
+│       └── function/
+│           ├── init.mcfunction
+│           └── show_menu.mcfunction
+└── pack.mcmeta
+```
 
 ## Next Steps
 

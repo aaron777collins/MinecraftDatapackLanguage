@@ -4,9 +4,9 @@ title: Examples
 permalink: /docs/examples/
 ---
 
-# **SIMPLIFIED** JavaScript-style MDL Examples (v10+)
+# **MODERN** JavaScript-style MDL Examples (v11+)
 
-This page contains complete, working examples of the **simplified** JavaScript-style MDL format that demonstrate **control structures and number variables**.
+This page contains complete, working examples of the **modern** JavaScript-style MDL format that demonstrate **control structures, variables, expressions, and multi-file projects**.
 
 > **📚 Looking for legacy examples?** See [Legacy Examples](legacy-examples.md) for the old MDL format (v9 and below).
 
@@ -37,26 +37,28 @@ mdl build --mdl hello_world.mdl -o dist
 # Run /reload in-game
 ```
 
-### **Simplified** Variable System
+### **Modern** Variable System
 
-Demonstrates the **simplified** variable system with **number variables only**.
+Demonstrates the **modern** variable system with **expressions and arithmetic operations**.
 
 ```mdl
 // variables.mdl
-pack "Variable System" description "Demonstrates number variables" pack_format 82;
+pack "Variable System" description "Demonstrates modern variables and expressions" pack_format 82;
 
 namespace "variables";
 
-// Number variables only
+// Number variables with expressions
 var num player_count = 0;
 var num health = 20;
 var num level = 1;
+var num experience = 0;
 
 function "init" {
     say Initializing variable system...;
     player_count = 0;
     health = 20;
     level = 1;
+    experience = 0;
 }
 
 function "count_players" {
@@ -79,8 +81,14 @@ function "check_health" {
 
 function "level_up" {
     level = level + 1;
-    say Level up! New level: $level$;
+    experience = $level$ * 100;  // Expression with multiplication
+    say Level up! New level: $level$ Experience: $experience$;
     effect give @s minecraft:experience 10 0;
+}
+
+function "calculate_bonus" {
+    var num bonus = $level$ * 10 + $player_count$;  // Complex expression
+    say Bonus calculated: $bonus$;
 }
 
 on_load "variables:init";
@@ -126,11 +134,11 @@ function "decrease_particles" {
 on_tick "particles:tick";
 ```
 
-## **Simplified** Control Flow Examples
+## **Modern** Control Flow Examples
 
 ### Conditional Logic
 
-Demonstrates **if/else if/else** statements with **number variables**.
+Demonstrates **if/else if/else** statements with **expressions and variables**.
 
 ```mdl
 // conditionals.mdl
@@ -282,9 +290,9 @@ on_tick "for_loops:mob_effects";
 
 ## Advanced Examples
 
-### **Simplified** Game System
+### **Modern** Game System
 
-A complete game system using **number variables and control structures**.
+A complete game system using **variables, expressions, and control structures**.
 
 ```mdl
 // game_system.mdl
@@ -345,9 +353,9 @@ on_load "game:init_game";
 on_tick "game:update_game";
 ```
 
-### **Simplified** Multi-Namespace System
+### **Modern** Multi-File System
 
-Demonstrates organizing code across multiple namespaces.
+Demonstrates organizing code across multiple files with proper namespace separation.
 
 ```mdl
 // multi_namespace.mdl
@@ -429,7 +437,140 @@ tag function "minecraft:tick" {
 }
 ```
 
-## **Simplified** Patterns and Best Practices
+## **Multi-File Project Example**
+
+### Complete Multi-File System
+
+This example demonstrates building a complete project across multiple files with proper namespace separation:
+
+**`game.mdl`** - Core Game Logic:
+```mdl
+pack "multi_game" "A multi-file game example" 82;
+
+namespace "game";
+
+var num player_score = 0;
+var num game_timer = 0;
+var num health = 20;
+
+function "main" {
+    // If-else if-else chain
+    if "$health$ < 10" {
+        say "Health is low: $health$";
+        health = $health$ + 5;
+    } else if "$health$ > 15" {
+        say "Health is good: $health$";
+    } else {
+        say "Health is moderate: $health$";
+    }
+    
+    // While loop with counter
+    while "$game_timer$ < 5" {
+        game_timer = $game_timer$ + 1;
+        say "Game Timer: $game_timer$";
+    }
+}
+
+function "score_update" {
+    player_score = $player_score$ + 10;
+    say "Score updated: $player_score$";
+}
+
+on_tick "game:main";
+```
+
+**`ui.mdl`** - User Interface:
+```mdl
+namespace "ui";
+
+var num menu_state = 0;
+var num selected_option = 1;
+
+function "main" {
+    // Show menu based on state
+    if "$menu_state$ == 0" {
+        say "=== Main Menu ===";
+        say "1. Start Game";
+        say "2. Options";
+        say "3. Exit";
+    }
+    
+    // Handle selection
+    if "$selected_option$ == 1" {
+        say "Starting game...";
+    } else if "$selected_option$ == 2" {
+        say "Opening options...";
+    } else if "$selected_option$ == 3" {
+        say "Exiting...";
+    }
+}
+
+function "button_handler" {
+    var num button_id = 0;
+    
+    if "$button_id$ == 1" {
+        selected_option = 1;
+        say "Option 1 selected";
+    } else if "$button_id$ == 2" {
+        selected_option = 2;
+        say "Option 2 selected";
+    }
+}
+
+on_load "ui:main";
+```
+
+**`combat.mdl`** - Combat System:
+```mdl
+namespace "combat";
+
+var num enemy_count = 5;
+var num damage = 0;
+
+function "main" {
+    var num total_damage = 0;
+    total_damage = $damage$ * 2;
+    
+    if "$total_damage$ > 20" {
+        say "Critical hit! Damage: $total_damage$";
+    } else {
+        say "Normal hit. Damage: $total_damage$";
+    }
+    
+    // Variable substitution in tellraw
+    tellraw @a [{"text":"Enemy Count: "},{"score":{"name":"@a","objective":"enemy_count"}}];
+}
+
+on_tick "combat:main";
+```
+
+**Build all files together:**
+```bash
+mdl build --mdl . -o dist
+```
+
+**Generated structure:**
+```
+dist/
+├── data/
+│   ├── minecraft/tags/function/
+│   │   ├── load.json    # All load functions
+│   │   └── tick.json    # All tick functions
+│   ├── game/            # game.mdl namespace
+│   ├── ui/              # ui.mdl namespace
+│   └── combat/          # combat.mdl namespace
+└── pack.mcmeta
+```
+
+### Key Benefits of Multi-File System
+
+- ✅ **No function name conflicts** - Each namespace is completely separate
+- ✅ **Modular development** - Work on different features in separate files
+- ✅ **Automatic merging** - All variables and functions are combined intelligently
+- ✅ **Proper initialization** - Variables are automatically set up in load functions
+- ✅ **Clean organization** - Each module has its own directory structure
+
+## **Modern** Patterns and Best Practices
 
 ### Counter Pattern
 
@@ -562,16 +703,18 @@ mdl build --mdl test_examples/example_name.mdl -o dist
 # Run /reload in-game
 ```
 
-## **Simplified** Language Benefits
+## **Modern** Language Benefits
 
-The **simplified** MDL language focuses on:
+The **modern** MDL language focuses on:
 
 1. **Reliability**: Control structures that actually work
-2. **Simplicity**: Number variables only with `$variable$` substitution
+2. **Expressiveness**: Variables with expressions and arithmetic operations
 3. **Clarity**: Clear, readable syntax with explicit block boundaries
 4. **Performance**: Efficient compilation to Minecraft commands
 5. **Maintainability**: Easy to understand and modify
+6. **Modularity**: Multi-file projects with proper namespace separation
+7. **Optimization**: Automatic variable initialization and smart selector handling
 
-This **simplified** approach makes it much easier to create reliable Minecraft datapacks without the complexity of the previous version.
+This **modern** approach makes it much easier to create complex, reliable Minecraft datapacks with proper organization and advanced features.
 
 

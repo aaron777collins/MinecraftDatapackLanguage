@@ -10,7 +10,7 @@ This is the complete reference for the **modern JavaScript-style** Minecraft Dat
 
 ## Overview
 
-MDL is a **modern JavaScript-style language** designed to make writing Minecraft datapacks easier. It compiles to standard `.mcfunction` files and follows the latest datapack structure. MDL uses JavaScript-style syntax with curly braces and semicolons for explicit block boundaries and **real control structures, variables, and expressions that actually work**.
+MDL is a **modern JavaScript-style language** designed to make writing Minecraft datapacks easier. It compiles to standard `.mcfunction` files and follows the latest datapack structure. MDL uses JavaScript-style syntax with curly braces and semicolons for explicit block boundaries and **real control structures, variables, expressions, and multi-file projects that actually work**.
 
 ## Basic Syntax
 
@@ -93,7 +93,7 @@ function "hud" {
 
 ## Variables
 
-MDL supports **number variables** with **expressions and arithmetic operations**:
+MDL supports **number variables** with **expressions, arithmetic operations, and multi-file merging**:
 
 ### Variable Declarations
 
@@ -358,6 +358,48 @@ When compiled, the function becomes a single line:
 tellraw @a {"text":"This text is really, really long so we split it","color":"gold"}
 ```
 
+## Multi-File Projects
+
+MDL supports building datapacks from multiple files with proper namespace separation:
+
+### Multi-File Building
+
+```bash
+# Build entire directory
+mdl build --mdl my_project/ -o dist
+
+# Build specific files
+mdl build --mdl "core.mdl ui.mdl combat.mdl" -o dist
+```
+
+### Namespace Separation
+
+Each file can have its own namespace, preventing function name conflicts:
+
+```mdl
+// core.mdl
+namespace "core";
+function "main" { ... }
+
+// ui.mdl
+namespace "ui";
+function "main" { ... }  // Different from core:main!
+```
+
+### Variable Merging
+
+Variables from all files are automatically merged and initialized together:
+
+```mdl
+// core.mdl
+var num player_count = 0;
+
+// ui.mdl
+var num menu_state = 0;
+
+// Both variables are initialized in the same load function
+```
+
 ## Optimizations
 
 MDL includes several automatic optimizations:
@@ -391,6 +433,14 @@ function "example" {
 - `say` commands are converted to `tellraw @a`
 - Existing `tellraw @a` commands are preserved
 - `tellraw @s` commands are converted to `tellraw @a` for system commands
+
+### Multi-File Optimization
+
+When building multiple files:
+- Functions are properly namespaced
+- Variables are merged and initialized together
+- Hooks are combined into appropriate tag files
+- No conflicts between same-named functions in different namespaces
 
 ## Complete Example
 
