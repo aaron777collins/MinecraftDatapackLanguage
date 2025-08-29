@@ -287,9 +287,13 @@ class MDLParser:
         """Parse a JSON block until matching closing brace."""
         import json
         
-        # Collect all tokens until matching closing brace
+        # For now, just collect the raw source until matching closing brace
+        # This is a simpler approach that should work reliably
+        source = ""
         brace_count = 1
-        json_tokens = []
+        
+        # Skip the opening brace
+        self._advance()
         
         while not self._is_at_end() and brace_count > 0:
             token = self._peek()
@@ -299,19 +303,18 @@ class MDLParser:
                 brace_count -= 1
             
             if brace_count > 0:  # Don't include the final closing brace
-                json_tokens.append(token)
+                source += token.value
             
             self._advance()
         
-        # Convert tokens back to string
-        json_string = "".join([token.value for token in json_tokens])
-        
         try:
             # Parse as JSON
-            return json.loads(json_string)
+            return json.loads(source)
         except json.JSONDecodeError as e:
+            print(f"Warning: JSON parsing failed: {e}")
+            print(f"JSON source: {source}")
             # Return as raw string if JSON parsing fails
-            return {"raw_json": json_string}
+            return {"raw_json": source}
     
     def _parse_loot_table_declaration(self) -> LootTableDeclaration:
         """Parse loot table declaration."""
