@@ -214,8 +214,16 @@ def _process_statement(statement: Any, namespace: str, function_name: str) -> Li
 
 
 def _generate_function_file(ast: Dict[str, Any], output_dir: Path, namespace: str) -> None:
-    """Generate function files from AST."""
-    functions_dir = output_dir / "data" / namespace / "functions"
+    """Generate function files with support for both pre-82 and post-82 directory structures."""
+    pack_info = ast.get('pack', {})
+    pack_format = pack_info.get('pack_format', 82)
+    
+    # Use new directory name for pack format 82+ (1.21+)
+    if pack_format >= 82:
+        functions_dir = output_dir / "data" / namespace / "function"
+    else:
+        functions_dir = output_dir / "data" / namespace / "functions"
+    
     functions_dir.mkdir(parents=True, exist_ok=True)
     
     for function in ast.get('functions', []):
@@ -234,18 +242,26 @@ def _generate_function_file(ast: Dict[str, Any], output_dir: Path, namespace: st
 
 
 def _generate_hook_files(ast: Dict[str, Any], output_dir: Path, namespace: str) -> None:
-    """Generate hook files (load.json, tick.json)."""
-    tags_dir = output_dir / "data" / "minecraft" / "tags" / "functions"
+    """Generate hook files (load.json, tick.json) with support for both pre-82 and post-82 directory structures."""
+    pack_info = ast.get('pack', {})
+    pack_format = pack_info.get('pack_format', 82)
+    
+    # Use new directory name for pack format 82+ (1.21+)
+    if pack_format >= 82:
+        tags_dir = output_dir / "data" / "minecraft" / "tags" / "function"
+    else:
+        tags_dir = output_dir / "data" / "minecraft" / "tags" / "functions"
+    
     tags_dir.mkdir(parents=True, exist_ok=True)
     
     load_functions = []
     tick_functions = []
     
     for hook in ast.get('hooks', []):
-        if hook.hook_type == "load":
-            load_functions.append(f"{namespace}:{hook.function_name}")
-        elif hook.hook_type == "tick":
-            tick_functions.append(f"{namespace}:{hook.function_name}")
+        if hook['hook_type'] == "load":
+            load_functions.append(f"{namespace}:{hook['function_name']}")
+        elif hook['hook_type'] == "tick":
+            tick_functions.append(f"{namespace}:{hook['function_name']}")
     
     # Generate load.json
     if load_functions:
@@ -261,28 +277,70 @@ def _generate_hook_files(ast: Dict[str, Any], output_dir: Path, namespace: str) 
 
 
 def _generate_tag_files(ast: Dict[str, Any], output_dir: Path, namespace: str) -> None:
-    """Generate tag files."""
-    tags_dir = output_dir / "data" / namespace / "tags" / "functions"
+    """Generate tag files with support for both pre-82 and post-82 directory structures."""
+    pack_info = ast.get('pack', {})
+    pack_format = pack_info.get('pack_format', 82)
+    
+    # Use new directory name for pack format 82+ (1.21+)
+    if pack_format >= 82:
+        tags_dir = output_dir / "data" / namespace / "tags" / "function"
+    else:
+        tags_dir = output_dir / "data" / namespace / "tags" / "functions"
+    
     tags_dir.mkdir(parents=True, exist_ok=True)
     
     for tag in ast.get('tags', []):
-        tag_file = tags_dir / f"{tag.name}.json"
+        tag_file = tags_dir / f"{tag['name']}.json"
         with open(tag_file, 'w', encoding='utf-8') as f:
-            f.write('{"values": [' + ', '.join(f'"{value}"' for value in tag.values) + ']}')
+            f.write('{"values": [' + ', '.join(f'"{value}"' for value in tag['values']) + ']}')
+
+
+def _validate_pack_format(pack_format: int) -> None:
+    """Validate pack format and provide helpful information."""
+    if pack_format < 1:
+        raise SystemExit(f"Invalid pack format: {pack_format}. Must be >= 1")
+    
+    if pack_format >= 82:
+        print(f"✓ Using post-82 format ({pack_format}) - Minecraft 1.21+ with new directory structure")
+        print("  - Functions: data/<namespace>/function/")
+        print("  - Tags: data/minecraft/tags/function/")
+        print("  - Pack metadata: min_format and max_format")
+    else:
+        print(f"✓ Using pre-82 format ({pack_format}) - Minecraft 1.20 and below with legacy directory structure")
+        print("  - Functions: data/<namespace>/functions/")
+        print("  - Tags: data/minecraft/tags/functions/")
+        print("  - Pack metadata: pack_format")
 
 
 def _generate_pack_mcmeta(ast: Dict[str, Any], output_dir: Path) -> None:
-    """Generate pack.mcmeta file."""
+    """Generate pack.mcmeta file with support for both pre-82 and post-82 formats."""
     pack_info = ast.get('pack')
     if not pack_info:
         pack_info = {'name': 'mdl_pack', 'description': 'Generated MDL pack', 'pack_format': 82}
     
-    pack_mcmeta = {
-        "pack": {
-            "pack_format": pack_info['pack_format'],
-            "description": pack_info['description']
+    pack_format = pack_info['pack_format']
+    
+    # Validate pack format
+    _validate_pack_format(pack_format)
+    
+    # Handle different pack format versions
+    if pack_format >= 82:
+        # Post-82 format (1.21+) with min_format and max_format
+        pack_mcmeta = {
+            "pack": {
+                "min_format": [pack_format, 0],
+                "max_format": [pack_format, 0x7fffffff],
+                "description": pack_info['description']
+            }
         }
-    }
+    else:
+        # Pre-82 format (1.20 and below) with pack_format
+        pack_mcmeta = {
+            "pack": {
+                "pack_format": pack_format,
+                "description": pack_info['description']
+            }
+        }
     
     import json
     with open(output_dir / "pack.mcmeta", 'w', encoding='utf-8') as f:
@@ -346,8 +404,9 @@ def create_new_project(project_name: str, pack_name: str = None) -> None:
     
     project_dir.mkdir(parents=True)
     
-    # Create the main MDL file with simplified syntax
-    mdl_content = f'''// {project_name}.mdl - Simplified MDL Project
+    # Create the main MDL file with simplified syntax (post-82 format)
+    mdl_content = f'''// {project_name}.mdl - Simplified MDL Project (Minecraft 1.21+)
+// Uses pack format 82+ with new directory structure (function/ instead of functions/)
 pack "{pack_name}" "A simplified MDL datapack" 82;
 
 namespace "{project_name}";
@@ -411,6 +470,15 @@ on_tick "{project_name}:main";
 
 A simplified MDL (Minecraft Datapack Language) project demonstrating core features.
 
+## Pack Format Information
+
+This project uses **pack format 82** (Minecraft 1.21+) with the new directory structure:
+- **Functions**: `data/<namespace>/function/` (not `functions/`)
+- **Tags**: `data/minecraft/tags/function/` (not `functions/`)
+- **Pack Metadata**: Uses `min_format` and `max_format` instead of `pack_format`
+
+For Minecraft 1.20 and below, use pack format < 82 with legacy directory structure.
+
 ## Features Demonstrated
 
 - **Number Variables**: Stored in scoreboard objectives
@@ -440,7 +508,21 @@ The compiler will generate:
 - Scoreboard objectives for all variables
 - Minecraft functions with proper control flow
 - Hook files for automatic execution
-- Pack metadata
+- Pack metadata with correct format for pack version 82+
+
+## Pack Format Examples
+
+### Post-82 (Minecraft 1.21+)
+```mdl
+pack "my_pack" "My datapack" 82;
+// Uses: data/<namespace>/function/ and min_format/max_format
+```
+
+### Pre-82 (Minecraft 1.20 and below)
+```mdl
+pack "my_pack" "My datapack" 15;
+// Uses: data/<namespace>/functions/ and pack_format
+```
 '''
     
     readme_file = project_dir / "README.md"
