@@ -151,20 +151,14 @@ def _generate_load_function(scoreboard_commands: List[str], output_dir: Path, na
     if 'hooks' not in ast:
         ast['hooks'] = []
     
-    # Check if load hook already exists
-    load_hook_exists = any(hook.get('hook_type') == 'load' for hook in ast['hooks'])
+    # Always add the automatic load function for scoreboard initialization
+    # This ensures scoreboard setup runs even when user has custom load hooks
+    ast['hooks'].append({
+        'hook_type': 'load',
+        'function_name': 'load'
+    })
     
-    print(f"DEBUG: Current hooks in AST: {ast['hooks']}")
-    print(f"DEBUG: Load hook exists: {load_hook_exists}")
-    
-    if not load_hook_exists:
-        ast['hooks'].append({
-            'hook_type': 'load',
-            'function_name': 'load'
-        })
-        print(f"DEBUG: Added load hook to AST: {ast['hooks']}")
-    else:
-        print(f"DEBUG: Load hook already exists, not adding")
+    print(f"DEBUG: Added automatic load hook for scoreboard initialization")
 
 
 def _generate_scoreboard_objectives(ast: Dict[str, Any], output_dir: Path) -> List[str]:
