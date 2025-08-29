@@ -279,8 +279,8 @@ def _generate_pack_mcmeta(ast: Dict[str, Any], output_dir: Path) -> None:
     
     pack_mcmeta = {
         "pack": {
-            "pack_format": pack_info.pack_format,
-            "description": pack_info.description
+            "pack_format": pack_info['pack_format'],
+            "description": pack_info['description']
         }
     }
     
