@@ -416,12 +416,9 @@ def _generate_function_file(ast: Dict[str, Any], output_dir: Path, namespace: st
         
         # For tag functions, we need to use a different approach since @a can't be used in execute if score
         # We'll use @e[type=marker,limit=1] for server-run functions
-        if is_tag_function:
-            # Add marker entity creation at the start of tag functions
-            commands.append("summon marker ~ ~ ~ {Tags:[\"mdl_server\"]}")
-            selector = "@e[type=marker,tag=mdl_server,limit=1]"
-        else:
-            selector = "@s"
+        # For server-run functions, use @a (all players)
+        # If no players are online, the commands simply won't execute, which is fine
+        selector = "@a" if is_tag_function else "@s"
         
         # Debug output - always print
         print(f"DEBUG: Function {function_name}: is_tag_function={is_tag_function}, selector={selector}")
