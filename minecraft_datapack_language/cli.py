@@ -335,18 +335,148 @@ def build_mdl(input_path: str, output_path: str, verbose: bool = False) -> None:
         print(f"Successfully built datapack: {output_dir}")
 
 
+def create_new_project(project_name: str, pack_name: str = None) -> None:
+    """Create a new MDL project with simplified syntax."""
+    if not pack_name:
+        pack_name = project_name
+    
+    project_dir = Path(project_name)
+    if project_dir.exists():
+        raise SystemExit(f"Project directory '{project_name}' already exists")
+    
+    project_dir.mkdir(parents=True)
+    
+    # Create the main MDL file with simplified syntax
+    mdl_content = f'''// {project_name}.mdl - Simplified MDL Project
+pack "{pack_name}" "A simplified MDL datapack" 82;
+
+namespace "{project_name}";
+
+// Number variables for scoreboard storage
+var num player_count = 0;
+var num game_timer = 0;
+var num player_score = 0;
+
+function "main" {{
+    // Basic variable assignment
+    player_count = 0;
+    game_timer = 0;
+    player_score = 100;
+    
+    // If statement with variable substitution
+    if "$player_score$ > 50" {{
+        say "Player is doing well!";
+    }} else {{
+        say "Player needs to improve!";
+    }}
+    
+    // While loop with counter
+    while "$game_timer$ < 10" {{
+        game_timer = $game_timer$ + 1;
+        say "Timer: $game_timer$";
+    }}
+    
+    // For loop to iterate over players
+    for player in "@a" {{
+        say "Hello $player$!";
+        player_count = $player_count$ + 1;
+    }}
+    
+    // Conditional with variable substitution
+    if "$player_count$ > 0" {{
+        say "Players online: $player_count$";
+    }}
+}}
+
+function "helper" {{
+    var num result = 0;
+    result = 5 + 3;
+    say "Calculation result: $result$";
+    
+    // Variable substitution in tellraw
+    tellraw @s [{{"text":"Score: "}},{{"score":{{"name":"@s","objective":"player_score"}}}}];
+}}
+
+// Hook to run main function every tick
+on_tick "{project_name}:main";
+'''
+    
+    # Write the MDL file
+    mdl_file = project_dir / f"{project_name}.mdl"
+    with open(mdl_file, 'w', encoding='utf-8') as f:
+        f.write(mdl_content)
+    
+    # Create README
+    readme_content = f'''# {project_name}
+
+A simplified MDL (Minecraft Datapack Language) project demonstrating core features.
+
+## Features Demonstrated
+
+- **Number Variables**: Stored in scoreboard objectives
+- **Variable Substitution**: Using `$variable$` syntax
+- **Control Structures**: If/else statements and loops
+- **For Loops**: Entity iteration with `@a` selector
+- **While Loops**: Counter-based loops
+- **Hooks**: Automatic execution with `on_tick`
+
+## Building
+
+```bash
+mdl build --mdl . --output dist
+```
+
+## Simplified Syntax
+
+This project uses the simplified MDL syntax:
+- Only number variables (no strings or lists)
+- Direct scoreboard integration with `$variable$`
+- Simple control structures that actually work
+- Focus on reliability over complexity
+
+## Generated Commands
+
+The compiler will generate:
+- Scoreboard objectives for all variables
+- Minecraft functions with proper control flow
+- Hook files for automatic execution
+- Pack metadata
+'''
+    
+    readme_file = project_dir / "README.md"
+    with open(readme_file, 'w', encoding='utf-8') as f:
+        f.write(readme_content)
+    
+    print(f"Created new MDL project: {project_name}")
+    print(f"  - Main file: {mdl_file}")
+    print(f"  - README: {readme_file}")
+    print(f"  - Build with: mdl build --mdl . --output dist")
+
+
 def main():
     """Main CLI entry point."""
     parser = argparse.ArgumentParser(description="MDL - Minecraft Datapack Language Compiler")
-    parser.add_argument("command", choices=["build"], help="Command to execute")
-    parser.add_argument("--mdl", "-m", required=True, help="Input MDL file or directory")
-    parser.add_argument("--output", "-o", required=True, help="Output directory")
+    parser.add_argument("command", choices=["build", "new"], help="Command to execute")
+    
+    # Build command arguments
+    parser.add_argument("--mdl", "-m", help="Input MDL file or directory (for build command)")
+    parser.add_argument("--output", "-o", help="Output directory (for build command)")
     parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose output")
+    
+    # New command arguments
+    parser.add_argument("--name", help="Pack name (for new command)")
     
     args = parser.parse_args()
     
     if args.command == "build":
+        if not args.mdl or not args.output:
+            raise SystemExit("build command requires --mdl and --output arguments")
         build_mdl(args.mdl, args.output, args.verbose)
+    elif args.command == "new":
+        if len(args._get_args()) < 1:
+            raise SystemExit("new command requires a project name")
+        project_name = args._get_args()[0]
+        create_new_project(project_name, args.name)
     else:
         parser.print_help()
 
