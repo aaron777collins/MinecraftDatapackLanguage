@@ -13,6 +13,7 @@ from typing import Dict, List, Optional, Any
 from .mdl_lexer_js import lex_mdl_js
 from .mdl_parser_js import parse_mdl_js
 from .expression_processor import expression_processor
+from .dir_map import get_dir_map
 
 # Global variable to store conditional functions
 conditional_functions = []
@@ -137,11 +138,9 @@ def _generate_load_function(scoreboard_commands: List[str], output_dir: Path, na
     pack_info = ast.get('pack', {})
     pack_format = pack_info.get('pack_format', 82)
     
-    # Use new directory name for pack format 45+ (functions -> function)
-    if pack_format >= 45:
-        functions_dir = output_dir / "data" / namespace / "function"
-    else:
-        functions_dir = output_dir / "data" / namespace / "functions"
+    # Use directory mapping based on pack format
+    dir_map = get_dir_map(pack_format)
+    functions_dir = output_dir / "data" / namespace / dir_map.function
     
     functions_dir.mkdir(parents=True, exist_ok=True)
     
@@ -383,11 +382,9 @@ def _generate_function_file(ast: Dict[str, Any], output_dir: Path, namespace: st
     pack_info = ast.get('pack', {})
     pack_format = pack_info.get('pack_format', 82)
     
-    # Use new directory name for pack format 45+ (functions -> function)
-    if pack_format >= 45:
-        functions_dir = output_dir / "data" / namespace / "function"
-    else:
-        functions_dir = output_dir / "data" / namespace / "functions"
+    # Use directory mapping based on pack format
+    dir_map = get_dir_map(pack_format)
+    functions_dir = output_dir / "data" / namespace / dir_map.function
     
     functions_dir.mkdir(parents=True, exist_ok=True)
     
@@ -434,11 +431,9 @@ def _generate_hook_files(ast: Dict[str, Any], output_dir: Path, namespace: str) 
     pack_info = ast.get('pack', {})
     pack_format = pack_info.get('pack_format', 82)
     
-    # Use new directory name for pack format 45+ (tags/functions -> tags/function)
-    if pack_format >= 45:
-        tags_dir = output_dir / "data" / "minecraft" / "tags" / "function"
-    else:
-        tags_dir = output_dir / "data" / "minecraft" / "tags" / "functions"
+    # Use directory mapping based on pack format
+    dir_map = get_dir_map(pack_format)
+    tags_dir = output_dir / "data" / "minecraft" / dir_map.tags_function
     
     tags_dir.mkdir(parents=True, exist_ok=True)
     
@@ -478,11 +473,9 @@ def _generate_tag_files(ast: Dict[str, Any], output_dir: Path, namespace: str) -
     pack_info = ast.get('pack', {})
     pack_format = pack_info.get('pack_format', 82)
     
-    # Use new directory name for pack format 45+ (tags/functions -> tags/function)
-    if pack_format >= 45:
-        tags_dir = output_dir / "data" / namespace / "tags" / "function"
-    else:
-        tags_dir = output_dir / "data" / namespace / "tags" / "functions"
+    # Use directory mapping based on pack format
+    dir_map = get_dir_map(pack_format)
+    tags_dir = output_dir / "data" / namespace / dir_map.tags_function
     
     tags_dir.mkdir(parents=True, exist_ok=True)
     
@@ -499,13 +492,12 @@ def _validate_pack_format(pack_format: int) -> None:
     
     print(f"✓ Pack format {pack_format}")
     
-    # Directory structure changes
-    if pack_format >= 45:
-        print("  - Functions: data/<namespace>/function/ (45+)")
-        print("  - Tags: data/minecraft/tags/function/ (45+)")
-    else:
-        print("  - Functions: data/<namespace>/functions/ (<45)")
-        print("  - Tags: data/minecraft/tags/functions/ (<45)")
+    # Get directory mapping for this pack format
+    dir_map = get_dir_map(pack_format)
+    
+    # Directory structure information
+    print(f"  - Functions: data/<namespace>/{dir_map.function}/")
+    print(f"  - Tags: data/minecraft/{dir_map.tags_function}/")
     
     # Pack metadata format changes
     if pack_format >= 82:

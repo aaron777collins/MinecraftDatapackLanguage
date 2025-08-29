@@ -1,0 +1,1 @@
+tellraw @a [{"text":"Testing legacy pack format 15"}]

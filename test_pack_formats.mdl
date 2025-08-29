@@ -1,0 +1,10 @@
+// test_pack_formats.mdl - Test legacy pack format
+pack "test_pack_formats" "Test legacy pack format" 15;
+
+namespace "test_pack_formats";
+
+function "main" {
+    say "Testing legacy pack format 15";
+}
+
+on_tick "test_pack_formats:main";

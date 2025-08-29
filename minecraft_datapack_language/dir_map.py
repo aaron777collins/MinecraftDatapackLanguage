@@ -20,10 +20,11 @@ class DirMap:
 
 def get_dir_map(pack_format: int) -> DirMap:
     """Return the correct directory mapping based on datapack pack_format.
-    >=48 (1.21) uses singular folders and new tag subfolders.
-    <48 uses legacy plural folders.
+    >=45 uses singular function folders (function/ instead of functions/).
+    >=43 uses singular tag folders (item/ instead of items/, etc.).
+    <43 uses legacy plural folders.
     """
-    if pack_format >= 48:
+    if pack_format >= 45:
         return DirMap(
             function="function",
             advancement="advancement",
