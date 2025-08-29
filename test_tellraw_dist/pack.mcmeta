@@ -1,0 +1,13 @@
+{
+  "pack": {
+    "min_format": [
+      82,
+      0
+    ],
+    "max_format": [
+      82,
+      2147483647
+    ],
+    "description": "Test tellraw formatting"
+  }
+}

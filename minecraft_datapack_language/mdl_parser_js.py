@@ -372,7 +372,8 @@ class MDLParser:
         if not self._is_at_end():
             self._match(TokenType.SEMICOLON)
         
-        command = " ".join(command_parts)
+        # Smart join to preserve proper spacing
+        command = _smart_join_command_parts(command_parts)
         return Command(command)
     
     def _parse_hook_declaration(self) -> Dict[str, str]:
@@ -532,6 +533,30 @@ class MDLParser:
     def _is_at_end(self) -> bool:
         """Check if we're at the end of the tokens."""
         return self.current >= len(self.tokens)
+
+
+def _smart_join_command_parts(parts: List[str]) -> str:
+    """Smart join command parts with proper spacing."""
+    if not parts:
+        return ""
+    
+    result = parts[0]
+    
+    for i in range(1, len(parts)):
+        prev_part = parts[i - 1]
+        curr_part = parts[i]
+        
+        # Add space if needed
+        if (prev_part and curr_part and 
+            not prev_part.endswith('[') and not prev_part.endswith('{') and
+            not curr_part.startswith(']') and not curr_part.startswith('}') and
+            not curr_part.startswith(',') and not curr_part.startswith(':') and
+            not prev_part.endswith('"') and not curr_part.startswith('"')):
+            result += " "
+        
+        result += curr_part
+    
+    return result
 
 
 def parse_mdl_js(source: str) -> Dict[str, Any]:

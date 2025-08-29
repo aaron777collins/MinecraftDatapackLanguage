@@ -1,0 +1,21 @@
+// test_tellraw.mdl - Test tellraw formatting
+pack "test_tellraw" "Test tellraw formatting" 82;
+
+namespace "test_tellraw";
+
+// Number variables for scoreboard storage
+var num player_score = 0;
+
+function "main" {
+    // Basic variable assignment
+    player_score = 100;
+    
+    // Test tellraw without variable substitutions (should not be processed)
+    tellraw @s [{"text":"Score: "},{"score":{"name":"@s","objective":"player_score"}}];
+    
+    // Test say command with variable substitution (should be converted to tellraw)
+    say "Calculation result: $player_score$";
+}
+
+// Hook to run main function every tick
+on_tick "test_tellraw:main";

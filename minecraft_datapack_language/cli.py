@@ -336,16 +336,18 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
                             # No variables, simple conversion
                             command = f'tellraw @a [{{"text":"{text_content}"}}]'
                 elif command.startswith('tellraw'):
-                    # For tellraw commands, just do simple variable substitution
+                    # For tellraw commands, only process if there are variable substitutions
                     import re
                     var_pattern = r'\$([a-zA-Z_][a-zA-Z0-9_]*)\$'
                     
-                    def replace_var_in_tellraw(match):
-                        var_name = match.group(1)
-                        return f'{{"score":{{"name":"@s","objective":"{var_name}"}}}}'
-                    
-                    # Replace variable substitutions
-                    command = re.sub(var_pattern, replace_var_in_tellraw, command)
+                    # Only process if there are variable substitutions
+                    if '$' in command:
+                        def replace_var_in_tellraw(match):
+                            var_name = match.group(1)
+                            return f'{{"score":{{"name":"@s","objective":"{var_name}"}}}}'
+                        
+                        # Replace variable substitutions
+                        command = re.sub(var_pattern, replace_var_in_tellraw, command)
                 else:
                     # Simple variable substitution for other commands
                     command = _process_variable_substitutions(command)

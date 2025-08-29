@@ -1,1 +1,1 @@
-say "Player score equals 50"
+say"Player score equals 50"

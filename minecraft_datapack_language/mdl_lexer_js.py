@@ -131,7 +131,7 @@ class MDLLexer:
             return
         
         # Handle identifiers and keywords
-        if char.isalpha() or char == '_':
+        if char.isalpha() or char == '_' or char == '@':
             self._scan_identifier(source)
             return
         
@@ -167,10 +167,21 @@ class MDLLexer:
     
     def _scan_identifier(self, source: str):
         """Scan an identifier or keyword."""
-        while (self.current < len(source) and 
-               (source[self.current].isalnum() or source[self.current] == '_')):
+        # Special handling for @ - it should be followed by alphanumeric characters
+        if source[self.start] == '@':
             self.current += 1
             self.column += 1
+            # Continue scanning for alphanumeric characters after @
+            while (self.current < len(source) and 
+                   (source[self.current].isalnum() or source[self.current] == '_')):
+                self.current += 1
+                self.column += 1
+        else:
+            # Regular identifier scanning
+            while (self.current < len(source) and 
+                   (source[self.current].isalnum() or source[self.current] == '_')):
+                self.current += 1
+                self.column += 1
         
         text = source[self.start:self.current]
         
