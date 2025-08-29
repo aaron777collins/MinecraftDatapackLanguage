@@ -455,32 +455,39 @@ The compiler will generate:
 
 def main():
     """Main CLI entry point."""
-    parser = argparse.ArgumentParser(description="MDL - Minecraft Datapack Language Compiler")
-    parser.add_argument("command", choices=["build", "new"], help="Command to execute")
+    import sys
     
-    # Build command arguments
-    parser.add_argument("--mdl", "-m", help="Input MDL file or directory (for build command)")
-    parser.add_argument("--output", "-o", help="Output directory (for build command)")
-    parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose output")
+    if len(sys.argv) < 2:
+        print("MDL - Minecraft Datapack Language Compiler")
+        print("Usage: mdl <command> [options]")
+        print("Commands:")
+        print("  build --mdl <file> --output <dir>  Build MDL files into datapack")
+        print("  new <project_name> [--name <pack_name>]  Create new MDL project")
+        sys.exit(1)
     
-    # New command arguments
-    parser.add_argument("--name", help="Pack name (for new command)")
+    command = sys.argv[1]
     
-    args = parser.parse_args()
-    
-    if args.command == "build":
-        if not args.mdl or not args.output:
-            raise SystemExit("build command requires --mdl and --output arguments")
+    if command == "build":
+        parser = argparse.ArgumentParser(description="MDL - Build MDL files into datapack")
+        parser.add_argument("--mdl", "-m", required=True, help="Input MDL file or directory")
+        parser.add_argument("--output", "-o", required=True, help="Output directory")
+        parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose output")
+        
+        args = parser.parse_args(sys.argv[2:])
         build_mdl(args.mdl, args.output, args.verbose)
-    elif args.command == "new":
-        # Get the project name from sys.argv since argparse doesn't handle positional args well with subcommands
-        import sys
-        if len(sys.argv) < 3:
-            raise SystemExit("new command requires a project name")
-        project_name = sys.argv[2]
-        create_new_project(project_name, args.name)
+        
+    elif command == "new":
+        parser = argparse.ArgumentParser(description="MDL - Create new MDL project")
+        parser.add_argument("project_name", help="Name of the project to create")
+        parser.add_argument("--name", help="Pack name (defaults to project name)")
+        
+        args = parser.parse_args(sys.argv[2:])
+        create_new_project(args.project_name, args.name)
+        
     else:
-        parser.print_help()
+        print(f"Unknown command: {command}")
+        print("Available commands: build, new")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
