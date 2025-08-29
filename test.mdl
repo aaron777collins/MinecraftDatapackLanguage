@@ -1,0 +1,30 @@
+// test.mdl - Simplified MDL Project (Minecraft 1.21+)
+// Uses pack format 82+ with new directory structure (function/ instead of functions/)
+pack "test" "A simplified MDL datapack" 82;
+
+namespace "test";
+
+// Number variables for scoreboard storage
+var num player_count = 0;
+var num game_timer = 0;
+var num player_score = 0;
+
+function "main" {
+    // While loop with counter
+    while "$game_timer$ < 10" {
+        game_timer = $game_timer$ + 1;
+        say "Timer: $game_timer$";
+    }
+}
+
+function "helper" {
+    var num result = 0;
+    result = 5 + 3;
+    say "Calculation result: $result$";
+    
+    // Variable substitution in tellraw
+    tellraw @a [{"text":"Score: "},{"score":{"name":"@a","objective":"player_score"}}];
+}
+
+// Hook to run main function every tick
+on_tick "test:main";

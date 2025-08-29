@@ -109,6 +109,16 @@ def _merge_mdl_files(files: List[Path], verbose: bool = False) -> Optional[Dict[
     
     root_pack = parse_mdl_js(source)
     
+    # Ensure root_pack has required keys
+    if 'functions' not in root_pack:
+        root_pack['functions'] = []
+    if 'hooks' not in root_pack:
+        root_pack['hooks'] = []
+    if 'tags' not in root_pack:
+        root_pack['tags'] = []
+    if 'variables' not in root_pack:
+        root_pack['variables'] = []
+    
     # Merge additional files
     for file_path in files[1:]:
         with open(file_path, 'r', encoding='utf-8') as f:
@@ -127,6 +137,10 @@ def _merge_mdl_files(files: List[Path], verbose: bool = False) -> Optional[Dict[
         # Merge tags
         if ast.get('tags'):
             root_pack['tags'].extend(ast['tags'])
+        
+        # Merge variables
+        if ast.get('variables'):
+            root_pack['variables'].extend(ast['variables'])
     
     if verbose:
         print(f"Successfully merged {len(files)} file(s) into datapack: {root_pack.get('pack', {}).get('name', 'unknown')}")
@@ -135,7 +149,7 @@ def _merge_mdl_files(files: List[Path], verbose: bool = False) -> Optional[Dict[
 
 def _generate_load_function(scoreboard_commands: List[str], output_dir: Path, namespace: str, ast: Dict[str, Any]) -> None:
     """Generate a load function with scoreboard objectives."""
-    pack_info = ast.get('pack', {})
+    pack_info = ast.get('pack', {}) or {}
     pack_format = pack_info.get('pack_format', 82)
     
     # Use directory mapping based on pack format
