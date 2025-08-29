@@ -40,7 +40,7 @@ A **modern JavaScript-style compiler** that lets you write Minecraft datapacks w
 - ✅ **Easy hooks** into `minecraft:tick` and `minecraft:load` via function tags
 - ✅ **Tag support** for `function`, `item`, `block`, `entity_type`, `fluid`, and `game_event`
 
-> **Note**: Version 10.1+ uses **pack_format 82** by default for the modern JavaScript-style syntax.
+> **Note**: Version 12.0+ uses **pack_format 82** by default for the modern JavaScript-style syntax.
 
 ---
 
@@ -75,13 +75,13 @@ python -m pip install -e .
 
 - **pipx**: `pipx upgrade minecraft-datapack-language`  
 - **pip (venv)**: `pip install -U minecraft-datapack-language`  
-- Pin a version: `pipx install "minecraft-datapack-language==10.1.134"`
+- Pin a version: `pipx install "minecraft-datapack-language==12.0.1"`
 
 ---
 
 ## 💻 CLI
 
-### Modern JavaScript-style MDL (v10.1+)
+### Modern JavaScript-style MDL (v12.0+)
 ```bash
 # Build JavaScript-style MDL files
 mdl build --mdl my_pack/mypack.mdl -o dist --wrapper mypack

@@ -4,7 +4,7 @@ title: Examples
 permalink: /docs/examples/
 ---
 
-# **MODERN** JavaScript-style MDL Examples (v11+)
+# **MODERN** JavaScript-style MDL Examples (v12+)
 
 This page contains complete, working examples of the **modern** JavaScript-style MDL format that demonstrate **control structures, variables, expressions, and multi-file projects**.
 

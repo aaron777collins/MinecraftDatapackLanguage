@@ -90,7 +90,7 @@ For detailed development information, see [DEVELOPMENT.md](https://github.com/aa
 
 - **pipx**: `pipx upgrade minecraft-datapack-language`
 - **pip**: `pip install -U minecraft-datapack-language`
-- **Pin a version**: `pipx install "minecraft-datapack-language==10.1.134"`
+- **Pin a version**: `pipx install "minecraft-datapack-language==12.0.1"`
 
 ## Your First **Modern** Datapack
 
