@@ -340,6 +340,132 @@ tag item "example:swords" {
 }
 ```
 
+## Registry Types
+
+MDL supports all Minecraft registry types for creating recipes, loot tables, advancements, and more. These are defined using file references that point to JSON files relative to your MDL file:
+
+### Recipe Declarations
+
+```mdl
+recipe "recipe_name" "path/to/recipe.json";
+```
+
+**Example:**
+
+```mdl
+recipe "diamond_sword" "recipes/diamond_sword.json";
+```
+
+### Loot Table Declarations
+
+```mdl
+loot_table "loot_table_name" "path/to/loot_table.json";
+```
+
+**Example:**
+
+```mdl
+loot_table "diamond_sword" "loot_tables/diamond_sword.json";
+```
+
+### Advancement Declarations
+
+```mdl
+advancement "advancement_name" "path/to/advancement.json";
+```
+
+**Example:**
+
+```mdl
+advancement "diamond_sword" "advancements/diamond_sword.json";
+```
+
+### Predicate Declarations
+
+```mdl
+predicate "predicate_name" "path/to/predicate.json";
+```
+
+**Example:**
+
+```mdl
+predicate "diamond_sword" "predicates/diamond_sword.json";
+```
+
+### Item Modifier Declarations
+
+```mdl
+item_modifier "modifier_name" "path/to/item_modifier.json";
+```
+
+**Example:**
+
+```mdl
+item_modifier "diamond_sword" "item_modifiers/diamond_sword.json";
+```
+
+### Structure Declarations
+
+```mdl
+structure "structure_name" "path/to/structure.json";
+```
+
+**Example:**
+
+```mdl
+structure "diamond_sword" "structures/diamond_sword.json";
+```
+
+### File Path Resolution
+
+- **Relative paths**: File paths are resolved relative to the MDL file location
+- **JSON validation**: Files are validated as proper JSON during compilation
+- **Error handling**: Missing or invalid JSON files generate warnings but don't stop compilation
+
+### Directory Structure
+
+MDL automatically uses the correct directory structure based on your pack format:
+
+**Pack Format 82+ (Minecraft 1.21+):**
+- `data/<namespace>/recipe/` (singular)
+- `data/<namespace>/loot_table/` (singular)
+- `data/<namespace>/advancement/` (singular)
+- `data/<namespace>/predicate/` (singular)
+- `data/<namespace>/item_modifier/` (singular)
+- `data/<namespace>/structure/` (singular)
+
+**Older Pack Formats:**
+- `data/<namespace>/recipes/` (plural)
+- `data/<namespace>/loot_tables/` (plural)
+- `data/<namespace>/advancements/` (plural)
+- `data/<namespace>/predicates/` (plural)
+- `data/<namespace>/item_modifiers/` (plural)
+- `data/<namespace>/structures/` (plural)
+
+### Complete Registry Example
+
+```mdl
+pack "Registry Example" pack_format 82;
+
+namespace "example";
+
+// Functions
+function "main" {
+    say "Registry example loaded!";
+}
+
+// Registry types with file references
+recipe "diamond_sword" "recipes/diamond_sword.json";
+loot_table "diamond_sword" "loot_tables/diamond_sword.json";
+advancement "diamond_sword" "advancements/diamond_sword.json";
+predicate "diamond_sword" "predicates/diamond_sword.json";
+item_modifier "diamond_sword" "item_modifiers/diamond_sword.json";
+structure "diamond_sword" "structures/diamond_sword.json";
+
+// Hooks
+on_load "example:main";
+```
+
 ## Multi-line Commands
 
 Long JSON commands can be split across multiple lines with a trailing backslash `\`:

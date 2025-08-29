@@ -288,6 +288,145 @@ on_tick "for_loops:item_processing";
 on_tick "for_loops:mob_effects";
 ```
 
+### Registry Types
+
+Demonstrates how to use all Minecraft registry types with file references.
+
+```mdl
+// registry_types.mdl
+pack "Registry Types" description "Shows all supported registry types" pack_format 82;
+
+namespace "registry";
+
+function "main" {
+    say Registry types example loaded!;
+    tellraw @a {"text":"All registry types are ready!","color":"green"};
+}
+
+// Recipe - crafting recipe for a custom item
+recipe "custom_sword" "recipes/custom_sword.json";
+
+// Loot table - what drops from a custom block
+loot_table "custom_block" "loot_tables/custom_block.json";
+
+// Advancement - achievement for crafting the sword
+advancement "craft_sword" "advancements/craft_sword.json";
+
+// Predicate - condition for having the sword equipped
+predicate "has_sword" "predicates/has_sword.json";
+
+// Item modifier - applies NBT data to the sword
+item_modifier "sword_nbt" "item_modifiers/sword_nbt.json";
+
+// Structure - custom structure template
+structure "custom_house" "structures/custom_house.json";
+
+on_load "registry:main";
+```
+
+**Required JSON files:**
+
+`recipes/custom_sword.json`:
+```json
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " D ",
+    " D ",
+    " S "
+  ],
+  "key": {
+    "D": {"item": "minecraft:diamond"},
+    "S": {"item": "minecraft:stick"}
+  },
+  "result": {
+    "item": "minecraft:diamond_sword",
+    "count": 1
+  }
+}
+```
+
+`loot_tables/custom_block.json`:
+```json
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:diamond",
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {"min": 1, "max": 3}
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
+
+`advancements/craft_sword.json`:
+```json
+{
+  "display": {
+    "icon": {"item": "minecraft:diamond_sword"},
+    "title": {"text": "Master Smith"},
+    "description": {"text": "Craft a diamond sword"}
+  },
+  "criteria": {
+    "crafted": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": {
+        "recipe_id": "registry:custom_sword"
+      }
+    }
+  }
+}
+```
+
+`predicates/has_sword.json`:
+```json
+{
+  "condition": "minecraft:entity_properties",
+  "entity": "this",
+  "predicate": {
+    "equipment": {
+      "mainhand": {"item": "minecraft:diamond_sword"}
+    }
+  }
+}
+```
+
+`item_modifiers/sword_nbt.json`:
+```json
+{
+  "function": "minecraft:set_nbt",
+  "tag": "{CustomName:'{\"text\":\"Custom Sword\"}'}"
+}
+```
+
+`structures/custom_house.json`:
+```json
+{
+  "type": "minecraft:jigsaw",
+  "start_pool": "minecraft:empty",
+  "size": 1,
+  "max_distance_from_center": 80
+}
+```
+
+**Build and use:**
+```bash
+mdl build --mdl registry_types.mdl -o dist
+# Copy dist/registry_types/ to your world's datapacks folder
+# Run /reload in-game
+```
+
 ## Advanced Examples
 
 ### **Modern** Game System
