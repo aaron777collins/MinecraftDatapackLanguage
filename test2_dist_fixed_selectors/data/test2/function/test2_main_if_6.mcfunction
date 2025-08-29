@@ -1,0 +1,1 @@
+tellraw @a [{"text":"Players online: "},{"score":{"name":"@a","objective":"player_count"}}]
