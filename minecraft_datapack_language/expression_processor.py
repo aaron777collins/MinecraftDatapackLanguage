@@ -93,7 +93,13 @@ class ExpressionProcessor:
     
     def generate_binary_operation(self, operator: str, left: str, right: str, target: str) -> str:
         """Generate a binary operation command"""
-        # Check if right is a numeric literal
+        # Check if left and right are numeric literals
+        try:
+            left_num = int(left)
+            is_left_literal = True
+        except (ValueError, TypeError):
+            is_left_literal = False
+            
         try:
             right_num = int(right)
             is_right_literal = True
@@ -109,14 +115,22 @@ class ExpressionProcessor:
                 if left == target:
                     # Avoid self-assignment
                     return f"scoreboard players add @s {target} {right}"
+                elif is_left_literal:
+                    # Both are literals, set left then add right
+                    return f"scoreboard players set @s {target} {left}\nscoreboard players add @s {target} {right}"
                 else:
+                    # Left is variable, right is literal
                     return f"scoreboard players operation @s {target} = @s {left}\nscoreboard players add @s {target} {right}"
             else:
                 # For variable operands, use scoreboard operation
                 if left == target:
                     # Avoid self-assignment
                     return f"scoreboard players operation @s {target} += @s {right}"
+                elif is_left_literal:
+                    # Left is literal, right is variable
+                    return f"scoreboard players set @s {target} {left}\nscoreboard players operation @s {target} += @s {right}"
                 else:
+                    # Both are variables
                     return f"scoreboard players operation @s {target} = @s {left}\nscoreboard players operation @s {target} += @s {right}"
         
         elif operator == '-':
@@ -125,14 +139,22 @@ class ExpressionProcessor:
                 if left == target:
                     # Avoid self-assignment
                     return f"scoreboard players remove @s {target} {right}"
+                elif is_left_literal:
+                    # Both are literals, set left then remove right
+                    return f"scoreboard players set @s {target} {left}\nscoreboard players remove @s {target} {right}"
                 else:
+                    # Left is variable, right is literal
                     return f"scoreboard players operation @s {target} = @s {left}\nscoreboard players remove @s {target} {right}"
             else:
                 # For variable operands, use scoreboard operation
                 if left == target:
                     # Avoid self-assignment
                     return f"scoreboard players operation @s {target} -= @s {right}"
+                elif is_left_literal:
+                    # Left is literal, right is variable
+                    return f"scoreboard players set @s {target} {left}\nscoreboard players operation @s {target} -= @s {right}"
                 else:
+                    # Both are variables
                     return f"scoreboard players operation @s {target} = @s {left}\nscoreboard players operation @s {target} -= @s {right}"
         
         elif operator == '*':
@@ -142,14 +164,22 @@ class ExpressionProcessor:
                 if left == target:
                     # Avoid self-assignment
                     return f"scoreboard objectives add {temp_obj} dummy\nscoreboard players set @s {temp_obj} {right}\nscoreboard players operation @s {target} *= @s {temp_obj}"
+                elif is_left_literal:
+                    # Both are literals, set left then multiply by right
+                    return f"scoreboard objectives add {temp_obj} dummy\nscoreboard players set @s {target} {left}\nscoreboard players set @s {temp_obj} {right}\nscoreboard players operation @s {target} *= @s {temp_obj}"
                 else:
+                    # Left is variable, right is literal
                     return f"scoreboard objectives add {temp_obj} dummy\nscoreboard players set @s {temp_obj} {right}\nscoreboard players operation @s {target} = @s {left}\nscoreboard players operation @s {target} *= @s {temp_obj}"
             else:
                 # For variable operands, use scoreboard operation
                 if left == target:
                     # Avoid self-assignment
                     return f"scoreboard players operation @s {target} *= @s {right}"
+                elif is_left_literal:
+                    # Left is literal, right is variable
+                    return f"scoreboard players set @s {target} {left}\nscoreboard players operation @s {target} *= @s {right}"
                 else:
+                    # Both are variables
                     return f"scoreboard players operation @s {target} = @s {left}\nscoreboard players operation @s {target} *= @s {right}"
         
         elif operator == '/':
@@ -159,14 +189,22 @@ class ExpressionProcessor:
                 if left == target:
                     # Avoid self-assignment
                     return f"scoreboard objectives add {temp_obj} dummy\nscoreboard players set @s {temp_obj} {right}\nscoreboard players operation @s {target} /= @s {temp_obj}"
+                elif is_left_literal:
+                    # Both are literals, set left then divide by right
+                    return f"scoreboard objectives add {temp_obj} dummy\nscoreboard players set @s {target} {left}\nscoreboard players set @s {temp_obj} {right}\nscoreboard players operation @s {target} /= @s {temp_obj}"
                 else:
+                    # Left is variable, right is literal
                     return f"scoreboard objectives add {temp_obj} dummy\nscoreboard players set @s {temp_obj} {right}\nscoreboard players operation @s {target} = @s {left}\nscoreboard players operation @s {target} /= @s {temp_obj}"
             else:
                 # For variable operands, use scoreboard operation
                 if left == target:
                     # Avoid self-assignment
                     return f"scoreboard players operation @s {target} /= @s {right}"
+                elif is_left_literal:
+                    # Left is literal, right is variable
+                    return f"scoreboard players set @s {target} {left}\nscoreboard players operation @s {target} /= @s {right}"
                 else:
+                    # Both are variables
                     return f"scoreboard players operation @s {target} = @s {left}\nscoreboard players operation @s {target} /= @s {right}"
         
         else:
@@ -175,13 +213,21 @@ class ExpressionProcessor:
                 if left == target:
                     # Avoid self-assignment
                     return f"scoreboard players add @s {target} {right}"
+                elif is_left_literal:
+                    # Both are literals, set left then add right
+                    return f"scoreboard players set @s {target} {left}\nscoreboard players add @s {target} {right}"
                 else:
+                    # Left is variable, right is literal
                     return f"scoreboard players operation @s {target} = @s {left}\nscoreboard players add @s {target} {right}"
             else:
                 if left == target:
                     # Avoid self-assignment
                     return f"scoreboard players operation @s {target} += @s {right}"
+                elif is_left_literal:
+                    # Left is literal, right is variable
+                    return f"scoreboard players set @s {target} {left}\nscoreboard players operation @s {target} += @s {right}"
                 else:
+                    # Both are variables
                     return f"scoreboard players operation @s {target} = @s {left}\nscoreboard players operation @s {target} += @s {right}"
     
     def process_expression(self, expr, target_var: str) -> ProcessedExpression:
