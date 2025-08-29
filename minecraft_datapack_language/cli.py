@@ -505,8 +505,10 @@ def _generate_hook_files(ast: Dict[str, Any], output_dir: Path, namespace: str) 
     
     # Generate load.json
     if load_functions:
-        # Add the global load function to the list
-        load_functions.append(f"{namespace}:load")
+        # Add the global load function to the list (avoid duplicates)
+        global_load_function = f"{namespace}:load"
+        if global_load_function not in load_functions:
+            load_functions.append(global_load_function)
         load_file = tags_dir / "load.json"
         with open(load_file, 'w', encoding='utf-8') as f:
             f.write('{"values": [' + ', '.join(f'"{func}"' for func in load_functions) + ']}')
