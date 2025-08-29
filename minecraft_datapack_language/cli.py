@@ -606,29 +606,34 @@ def _generate_hook_files(ast: Dict[str, Any], output_dir: Path, namespace: str) 
         with open(load_file, 'w', encoding='utf-8') as f:
             f.write('{"values": [' + ', '.join(f'"{func}"' for func in load_functions) + ']}')
     
-    # Generate a global load function for variable initialization if we have variables
+    # Generate load functions for each namespace if we have variables
     if has_variables:
         _generate_global_load_function(ast, output_dir, namespace)
         
-        # For multi-file builds, we need to ensure each namespace with variables gets its own load function
-        # Check if we have functions from different namespaces
-        namespace_functions = {}
+        # Get all namespaces that have functions or variables
+        pack_info = ast.get('pack', {}) or {}
+        root_namespace = namespace
+        if pack_info and pack_info.get('name'):
+            root_namespace = pack_info['name']
+        
+        # Collect all namespaces that have functions
+        all_namespaces = set()
         for function in ast.get('functions', []):
             if isinstance(function, dict):
-                func_namespace = getattr(function, '_source_namespace', namespace)
+                func_namespace = getattr(function, '_source_namespace', root_namespace)
             else:
-                func_namespace = getattr(function, '_source_namespace', namespace)
-            
-            if func_namespace not in namespace_functions:
-                namespace_functions[func_namespace] = []
-            namespace_functions[func_namespace].append(function)
+                func_namespace = getattr(function, '_source_namespace', root_namespace)
+            all_namespaces.add(func_namespace)
         
-        # For each namespace that has functions, ensure it has a load function in load.json
-        for func_namespace in namespace_functions.keys():
-            if func_namespace != namespace:  # Skip the root namespace as it's already handled
-                namespace_load_function = f"{func_namespace}:load"
-                if namespace_load_function not in load_functions:
-                    load_functions.append(namespace_load_function)
+        # Add the root namespace if it has variables
+        if ast.get('variables', []):
+            all_namespaces.add(root_namespace)
+        
+        # Add load functions for all namespaces to load.json
+        for ns in all_namespaces:
+            namespace_load_function = f"{ns}:load"
+            if namespace_load_function not in load_functions:
+                load_functions.append(namespace_load_function)
         
         # Update the load.json with all namespace load functions
         if load_functions:
@@ -638,7 +643,7 @@ def _generate_hook_files(ast: Dict[str, Any], output_dir: Path, namespace: str) 
 
 
 def _generate_global_load_function(ast: Dict[str, Any], output_dir: Path, namespace: str) -> None:
-    """Generate a global load function for variable initialization."""
+    """Generate load functions for each namespace that has variables."""
     pack_info = ast.get('pack', {}) or {}
     pack_format = pack_info.get('pack_format', 82)
     
@@ -651,8 +656,7 @@ def _generate_global_load_function(ast: Dict[str, Any], output_dir: Path, namesp
         # If we have pack info, use the pack name as the root namespace
         root_namespace = pack_info['name']
     
-    # For multi-file builds, we need to generate load functions for each namespace that has variables
-    # First, identify all namespaces that have functions
+    # Group functions by their source namespace
     namespace_functions = {}
     for function in ast.get('functions', []):
         if isinstance(function, dict):
@@ -664,35 +668,28 @@ def _generate_global_load_function(ast: Dict[str, Any], output_dir: Path, namesp
             namespace_functions[func_namespace] = []
         namespace_functions[func_namespace].append(function)
     
-    # Generate load function for the root namespace (which contains all variables)
-    functions_dir = output_dir / "data" / root_namespace / dir_map.function
-    functions_dir.mkdir(parents=True, exist_ok=True)
+    # Group variables by their source namespace
+    namespace_variables = {}
     
-    # Collect all variable declarations and assignments from all functions
-    variable_initializations = []
-    processed_vars = set()  # Track processed variables to avoid duplicates
-    
-    # Add scoreboard objectives for all top-level variables
+    # Add top-level variables to the root namespace
     for var in ast.get('variables', []):
         if isinstance(var, dict):
             var_name = var.get('name', 'unknown')
         else:
             var_name = getattr(var, 'name', 'unknown')
         
-        if var_name and var_name not in processed_vars:
-            processed_vars.add(var_name)
-            # Add scoreboard objective creation
-            variable_initializations.append(f"scoreboard objectives add {var_name} dummy")
-            
-            # Always initialize to 0 for debugging and reload consistency
-            variable_initializations.append(f"scoreboard players set @e[type=armor_stand,tag=mdl_server,limit=1] {var_name} 0")
+        if root_namespace not in namespace_variables:
+            namespace_variables[root_namespace] = []
+        namespace_variables[root_namespace].append(var_name)
     
-    # Add scoreboard objectives for all variables from function declarations and assignments
+    # Add function-level variables to their respective namespaces
     for function in ast.get('functions', []):
         if isinstance(function, dict):
             body = function.get('body', [])
+            func_namespace = getattr(function, '_source_namespace', root_namespace)
         else:
             body = getattr(function, 'body', [])
+            func_namespace = getattr(function, '_source_namespace', root_namespace)
         
         for statement in body:
             var_name = None
@@ -705,36 +702,44 @@ def _generate_global_load_function(ast: Dict[str, Any], output_dir: Path, namesp
             elif hasattr(statement, '__class__') and statement.__class__.__name__ == 'VariableAssignment':
                 var_name = statement.name if hasattr(statement, 'name') else statement.get('name', 'unknown')
             
-            # Process the variable if we found one
-            if var_name and var_name not in processed_vars:
+            # Add the variable to its namespace
+            if var_name:
+                if func_namespace not in namespace_variables:
+                    namespace_variables[func_namespace] = []
+                if var_name not in namespace_variables[func_namespace]:
+                    namespace_variables[func_namespace].append(var_name)
+    
+    # Generate load function for each namespace that has variables or functions
+    for ns in set(list(namespace_functions.keys()) + list(namespace_variables.keys())):
+        functions_dir = output_dir / "data" / ns / dir_map.function
+        functions_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Collect variables for this namespace
+        ns_variables = namespace_variables.get(ns, [])
+        variable_initializations = []
+        processed_vars = set()
+        
+        # Add scoreboard objectives and initializations for this namespace's variables
+        for var_name in ns_variables:
+            if var_name not in processed_vars:
                 processed_vars.add(var_name)
                 # Add scoreboard objective creation
                 variable_initializations.append(f"scoreboard objectives add {var_name} dummy")
                 
                 # Always initialize to 0 for debugging and reload consistency
                 variable_initializations.append(f"scoreboard players set @e[type=armor_stand,tag=mdl_server,limit=1] {var_name} 0")
-    
-    # Add server armor stand creation
-    if variable_initializations:
-        variable_initializations.insert(0, "execute unless entity @e[type=armor_stand,tag=mdl_server,limit=1] run summon armor_stand ~ 320 ~ {Tags:[\"mdl_server\"],Invisible:1b,Marker:1b,NoGravity:1b,Invulnerable:1b}")
-    
-    # Write the global load function
-    if variable_initializations:
+        
+        # Add server armor stand creation
+        if variable_initializations:
+            variable_initializations.insert(0, "execute unless entity @e[type=armor_stand,tag=mdl_server,limit=1] run summon armor_stand ~ 320 ~ {Tags:[\"mdl_server\"],Invisible:1b,Marker:1b,NoGravity:1b,Invulnerable:1b}")
+        else:
+            # Even if no variables, still create the armor stand for server functions
+            variable_initializations.append("execute unless entity @e[type=armor_stand,tag=mdl_server,limit=1] run summon armor_stand ~ 320 ~ {Tags:[\"mdl_server\"],Invisible:1b,Marker:1b,NoGravity:1b,Invulnerable:1b}")
+        
+        # Write the load function for this namespace
         load_file = functions_dir / "load.mcfunction"
         with open(load_file, 'w', encoding='utf-8') as f:
             f.write('\n'.join(variable_initializations))
-    
-    # Generate load functions for other namespaces that have functions
-    for func_namespace in namespace_functions.keys():
-        if func_namespace != root_namespace:  # Skip the root namespace as it's already handled
-            # Create the namespace directory
-            namespace_functions_dir = output_dir / "data" / func_namespace / dir_map.function
-            namespace_functions_dir.mkdir(parents=True, exist_ok=True)
-            
-            # Create a load.mcfunction file for this namespace with armor stand creation
-            namespace_load_file = namespace_functions_dir / "load.mcfunction"
-            with open(namespace_load_file, 'w', encoding='utf-8') as f:
-                f.write("execute unless entity @e[type=armor_stand,tag=mdl_server,limit=1] run summon armor_stand ~ 320 ~ {Tags:[\"mdl_server\"],Invisible:1b,Marker:1b,NoGravity:1b,Invulnerable:1b}")
 
 
 def _generate_tag_files(ast: Dict[str, Any], output_dir: Path, namespace: str) -> None:
