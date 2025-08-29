@@ -508,8 +508,17 @@ def _generate_hook_files(ast: Dict[str, Any], output_dir: Path, namespace: str) 
         elif hook['hook_type'] == "tick":
             tick_functions.append(full_function_name)
     
-    # Generate load.json
-    if load_functions:
+    # Generate tick.json
+    if tick_functions:
+        tick_file = tags_dir / "tick.json"
+        with open(tick_file, 'w', encoding='utf-8') as f:
+            f.write('{"values": [' + ', '.join(f'"{func}"' for func in tick_functions) + ']}')
+    
+    # Check if we need to generate a global load function for variable initialization
+    has_variables = bool(ast.get('variables', []))
+    
+    # Generate load.json if there are explicit load hooks OR if we have variables to initialize
+    if load_functions or has_variables:
         # Add the global load function to the list (avoid duplicates)
         global_load_function = f"{namespace}:load"
         if global_load_function not in load_functions:
@@ -518,14 +527,8 @@ def _generate_hook_files(ast: Dict[str, Any], output_dir: Path, namespace: str) 
         with open(load_file, 'w', encoding='utf-8') as f:
             f.write('{"values": [' + ', '.join(f'"{func}"' for func in load_functions) + ']}')
     
-    # Generate tick.json
-    if tick_functions:
-        tick_file = tags_dir / "tick.json"
-        with open(tick_file, 'w', encoding='utf-8') as f:
-            f.write('{"values": [' + ', '.join(f'"{func}"' for func in tick_functions) + ']}')
-    
-    # Generate a global load function for variable initialization if there are any load functions
-    if load_functions:
+    # Generate a global load function for variable initialization if we have variables
+    if has_variables:
         _generate_global_load_function(ast, output_dir, namespace)
 
 
