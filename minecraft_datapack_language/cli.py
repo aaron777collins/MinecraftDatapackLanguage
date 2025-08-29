@@ -219,7 +219,7 @@ def _generate_function_file(ast: Dict[str, Any], output_dir: Path, namespace: st
     functions_dir.mkdir(parents=True, exist_ok=True)
     
     for function in ast.get('functions', []):
-        function_name = function.name
+        function_name = function['name']
         function_file = functions_dir / f"{function_name}.mcfunction"
         
         commands = []
