@@ -169,7 +169,7 @@ class MDLParser:
         
         self._match(TokenType.SEMICOLON)
         
-        return PackDeclaration(name, "Generated pack", pack_format)
+        return {"name": name, "description": "Generated pack", "pack_format": pack_format}
     
     def _parse_namespace_declaration(self) -> NamespaceDeclaration:
         """Parse namespace declaration."""
@@ -180,7 +180,7 @@ class MDLParser:
         
         self._match(TokenType.SEMICOLON)
         
-        return NamespaceDeclaration(name)
+        return {"name": name}
     
     def _parse_function_declaration(self) -> FunctionDeclaration:
         """Parse function declaration."""
@@ -197,7 +197,7 @@ class MDLParser:
         
         self._match(TokenType.RBRACE)
         
-        return FunctionDeclaration(name, [], body)
+        return {"name": name, "body": body}
     
     def _parse_statement(self) -> ASTNode:
         """Parse a statement."""

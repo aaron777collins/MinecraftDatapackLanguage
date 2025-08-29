@@ -1,5 +1,5 @@
 // simple_control.mdl - Simple control structures with number variables
-pack "simple_control" description "Simple control structures test" pack_format 82;
+pack "simple_control" "Simple control structures test" 82;
 
 namespace "test";
 
@@ -32,7 +32,7 @@ function "main" {
     }
     
     // For loop (entity iteration)
-    for player in @a {
+    for player in "@a" {
         say "Hello $player$";
     }
 }
