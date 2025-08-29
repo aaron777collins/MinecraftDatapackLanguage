@@ -212,6 +212,14 @@ class MDLParser:
             return self._parse_for_loop()
         elif self._peek().type == TokenType.FUNCTION:
             return self._parse_function_call()
+        elif self._peek().type == TokenType.IDENTIFIER:
+            # Check if this is a variable assignment (identifier followed by =)
+            if (self.current + 1 < len(self.tokens) and 
+                self.tokens[self.current + 1].type == TokenType.ASSIGN):
+                return self._parse_variable_assignment()
+            else:
+                # Assume it's a command
+                return self._parse_command()
         else:
             # Assume it's a command
             return self._parse_command()

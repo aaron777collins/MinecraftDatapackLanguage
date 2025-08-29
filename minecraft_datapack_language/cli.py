@@ -97,15 +97,49 @@ def _merge_mdl_files(files: List[Path], verbose: bool = False) -> Optional[Dict[
     return root_pack
 
 
+def _generate_load_function(scoreboard_commands: List[str], output_dir: Path, namespace: str, ast: Dict[str, Any]) -> None:
+    """Generate a load function with scoreboard objectives."""
+    pack_info = ast.get('pack', {})
+    pack_format = pack_info.get('pack_format', 82)
+    
+    # Use new directory name for pack format 45+ (functions -> function)
+    if pack_format >= 45:
+        functions_dir = output_dir / "data" / namespace / "function"
+    else:
+        functions_dir = output_dir / "data" / namespace / "functions"
+    
+    functions_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Write scoreboard commands to load.mcfunction
+    load_file = functions_dir / "load.mcfunction"
+    with open(load_file, 'w', encoding='utf-8') as f:
+        f.write('\n'.join(scoreboard_commands))
+
+
 def _generate_scoreboard_objectives(ast: Dict[str, Any], output_dir: Path) -> List[str]:
     """Generate scoreboard objectives for all variables."""
     objectives = set()
     
-    # Find all variable declarations
+    # Find all variable declarations and assignments
     for function in ast.get('functions', []):
-        for statement in function.get('body', []):
+        # Handle both dict and AST node objects
+        if isinstance(function, dict):
+            body = function.get('body', [])
+        else:
+            body = getattr(function, 'body', [])
+        
+        for statement in body:
+            # Handle both dict and AST node objects
             if hasattr(statement, 'name') and hasattr(statement, 'data_type'):
                 objectives.add(statement.name)
+            elif hasattr(statement, 'name') and hasattr(statement, 'value'):
+                # Variable assignment
+                objectives.add(statement.name)
+            elif isinstance(statement, dict):
+                if 'name' in statement and 'data_type' in statement:
+                    objectives.add(statement['name'])
+                elif 'name' in statement and 'value' in statement:
+                    objectives.add(statement['name'])
     
     # Generate scoreboard commands
     commands = []
@@ -137,9 +171,17 @@ def _process_statement(statement: Any, namespace: str, function_name: str) -> Li
         elif class_name == 'VariableAssignment':
             # Handle variable assignment
             result = expression_processor.process_expression(statement.value, statement.name)
-            commands.extend(result.temp_assignments)
+            temp_commands = []
+            temp_commands.extend(result.temp_assignments)
             if result.final_command:
-                commands.append(result.final_command)
+                temp_commands.append(result.final_command)
+            
+            # Split any commands that contain newlines
+            for cmd in temp_commands:
+                if '\n' in cmd:
+                    commands.extend(cmd.split('\n'))
+                else:
+                    commands.append(cmd)
         
         elif class_name == 'IfStatement':
             # Handle if statement
@@ -189,7 +231,7 @@ def _process_statement(statement: Any, namespace: str, function_name: str) -> Li
             # Process variable substitutions in strings
             if '$' in command:
                 # Handle variable substitutions in tellraw commands
-                if command.startswith('tellraw') and '{"text":"' in command:
+                if command.startswith('tellraw'):
                     # Convert tellraw with variable substitution to proper JSON format
                     import re
                     var_pattern = r'\$([a-zA-Z_][a-zA-Z0-9_]*)\$'
@@ -200,20 +242,34 @@ def _process_statement(statement: Any, namespace: str, function_name: str) -> Li
                     
                     # Replace variable substitutions
                     command = re.sub(var_pattern, replace_var_in_tellraw, command)
+                    
+                    # Clean up extra spaces in tellraw commands
+                    command = command.replace(' @ s ', ' @s ')
+                    command = command.replace(' , ', ', ')
+                    command = command.replace(' { ', ' {')
+                    command = command.replace(' } ', ' }')
+                    command = command.replace(' : ', ': ')
+                elif command.startswith('say'):
+                    # For say commands, convert to tellraw (simplified for now)
+                    command = command.replace('say "', 'tellraw @a [{"text":"')
+                    command = command.replace('"', '"}]')
                 else:
-                    # Simple variable substitution
+                    # Simple variable substitution for other commands
                     command = _process_variable_substitutions(command)
             
             commands.append(command)
         
         else:
-            # Unknown statement type
-            commands.append(f"# Unknown statement type: {class_name}")
+            # Unknown statement type - try to handle as string
+            if isinstance(statement, str):
+                commands.append(statement)
+            else:
+                commands.append(f"# Unknown statement type: {class_name}")
     
     return commands
 
 
-def _generate_function_file(ast: Dict[str, Any], output_dir: Path, namespace: str) -> None:
+def _generate_function_file(ast: Dict[str, Any], output_dir: Path, namespace: str, verbose: bool = False) -> None:
     """Generate function files with support for different pack format directory structures."""
     pack_info = ast.get('pack', {})
     pack_format = pack_info.get('pack_format', 82)
@@ -227,13 +283,22 @@ def _generate_function_file(ast: Dict[str, Any], output_dir: Path, namespace: st
     functions_dir.mkdir(parents=True, exist_ok=True)
     
     for function in ast.get('functions', []):
-        function_name = function['name']
+        # Handle both dict and AST node objects
+        if isinstance(function, dict):
+            function_name = function['name']
+            body = function.get('body', [])
+        else:
+            function_name = getattr(function, 'name', 'unknown')
+            body = getattr(function, 'body', [])
+        
         function_file = functions_dir / f"{function_name}.mcfunction"
         
         commands = []
         
         # Process each statement in the function
-        for statement in function.get('body', []):
+        for statement in body:
+            if verbose:
+                print(f"Processing statement: {type(statement)} = {statement}")
             commands.extend(_process_statement(statement, namespace, function_name))
         
         # Write the function file
@@ -387,9 +452,17 @@ def build_mdl(input_path: str, output_path: str, verbose: bool = False) -> None:
     
     # Generate scoreboard objectives
     scoreboard_commands = _generate_scoreboard_objectives(ast, output_dir)
+    if verbose:
+        print(f"Generated {len(scoreboard_commands)} scoreboard commands: {scoreboard_commands}")
+    
+    # Write scoreboard objectives to a load function
+    if scoreboard_commands:
+        if verbose:
+            print(f"Generating load function with {len(scoreboard_commands)} scoreboard commands")
+        _generate_load_function(scoreboard_commands, output_dir, namespace, ast)
     
     # Generate function files
-    _generate_function_file(ast, output_dir, namespace)
+    _generate_function_file(ast, output_dir, namespace, verbose)
     
     # Generate hook files
     _generate_hook_files(ast, output_dir, namespace)
