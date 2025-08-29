@@ -554,6 +554,10 @@ def _smart_join_command_parts(parts: List[str]) -> str:
             not prev_part.endswith('"') and not curr_part.startswith('"')):
             result += " "
         
+        # Special case: add space after 'say' before quoted string
+        if prev_part == 'say' and curr_part.startswith('"'):
+            result += " "
+        
         result += curr_part
     
     return result

@@ -1,0 +1,17 @@
+// test_triple_check.mdl - Test project for MDL
+pack "test_triple_check" "Test project for MDL" 82;
+
+namespace "test_triple_check";
+
+// Number variables for scoreboard storage
+var num player_score = 100;
+
+function "main" {
+    // Test conditional logic with say command
+    if "$player_score$ >= 51" {
+        say "High score!";
+    } else {
+        say "Keep trying!";
+    }
+}
+

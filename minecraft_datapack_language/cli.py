@@ -274,8 +274,52 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
             # Handle regular command
             command = statement.command
             
-            # Process variable substitutions in strings
-            if '$' in command:
+            # Always convert say commands to tellraw first
+            if command.startswith('say'):
+                import re
+                var_pattern = r'\$([a-zA-Z_][a-zA-Z0-9_]*)\$'
+                
+                # Extract the text content from say command
+                text_match = re.search(r'say "([^"]*)"', command)
+                if text_match:
+                    text_content = text_match.group(1)
+                    
+                    # Check if there are variable substitutions
+                    if '$' in text_content:
+                        # Build JSON array with text and scoreboard components
+                        var_matches = list(re.finditer(var_pattern, text_content))
+                        json_parts = []
+                        last_end = 0
+                        
+                        for match in var_matches:
+                            # Add text before the variable
+                            if match.start() > last_end:
+                                text_before = text_content[last_end:match.start()]
+                                if text_before:
+                                    json_parts.append(f'{{"text":"{text_before}"}}')
+                            
+                            # Add the variable
+                            var_name = match.group(1)
+                            json_parts.append(f'{{"score":{{"name":"@s","objective":"{var_name}"}}}}')
+                            last_end = match.end()
+                        
+                        # Add any remaining text
+                        if last_end < len(text_content):
+                            text_after = text_content[last_end:]
+                            if text_after:
+                                json_parts.append(f'{{"text":"{text_after}"}}')
+                        
+                        command = f'tellraw @a [{",".join(json_parts)}]'
+                    else:
+                        # No variables, simple conversion
+                        command = f'tellraw @a [{{"text":"{text_content}"}}]'
+                else:
+                    # Fallback: if regex doesn't match, still convert to tellraw
+                    command = command.replace('say "', 'tellraw @a [{"text":"')
+                    command = command.replace('"', '"}]')
+            
+            # Process variable substitutions in strings for other commands
+            elif '$' in command:
                 # Handle variable substitutions in tellraw commands
                 if command.startswith('tellraw'):
                     # Convert tellraw with variable substitution to proper JSON format
@@ -295,62 +339,16 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
                     command = command.replace(' { ', ' {')
                     command = command.replace(' } ', ' }')
                     command = command.replace(' : ', ': ')
-                elif command.startswith('say'):
-                    # For say commands, convert to tellraw with proper variable substitution
-                    import re
-                    var_pattern = r'\$([a-zA-Z_][a-zA-Z0-9_]*)\$'
-                    
-                    # Extract the text content from say command
-                    text_match = re.search(r'say "([^"]*)"', command)
-                    if text_match:
-                        text_content = text_match.group(1)
-                        
-                        # Check if there are variable substitutions
-                        if '$' in text_content:
-                            # Build JSON array with text and scoreboard components
-                            # Find all variables and their positions
-                            var_matches = list(re.finditer(var_pattern, text_content))
-                            json_parts = []
-                            last_end = 0
-                            
-                            for match in var_matches:
-                                # Add text before the variable
-                                if match.start() > last_end:
-                                    text_before = text_content[last_end:match.start()]
-                                    if text_before:
-                                        json_parts.append(f'{{"text":"{text_before}"}}')
-                                
-                                # Add the variable
-                                var_name = match.group(1)
-                                json_parts.append(f'{{"score":{{"name":"@s","objective":"{var_name}"}}}}')
-                                last_end = match.end()
-                            
-                            # Add any remaining text
-                            if last_end < len(text_content):
-                                text_after = text_content[last_end:]
-                                if text_after:
-                                    json_parts.append(f'{{"text":"{text_after}"}}')
-                            
-                            command = f'tellraw @a [{",".join(json_parts)}]'
-                        else:
-                            # No variables, simple conversion
-                            command = f'tellraw @a [{{"text":"{text_content}"}}]'
-                elif command.startswith('tellraw'):
-                    # For tellraw commands, only process if there are variable substitutions
-                    import re
-                    var_pattern = r'\$([a-zA-Z_][a-zA-Z0-9_]*)\$'
-                    
-                    # Only process if there are variable substitutions
-                    if '$' in command:
-                        def replace_var_in_tellraw(match):
-                            var_name = match.group(1)
-                            return f'{{"score":{{"name":"@s","objective":"{var_name}"}}}}'
-                        
-                        # Replace variable substitutions
-                        command = re.sub(var_pattern, replace_var_in_tellraw, command)
                 else:
                     # Simple variable substitution for other commands
                     command = _process_variable_substitutions(command)
+            elif command.startswith('tellraw'):
+                # For tellraw commands without variables, still clean up spacing
+                command = command.replace(' @ s ', ' @s ')
+                command = command.replace(' , ', ', ')
+                command = command.replace(' { ', ' {')
+                command = command.replace(' } ', ' }')
+                command = command.replace(' : ', ': ')
             
             commands.append(command)
         

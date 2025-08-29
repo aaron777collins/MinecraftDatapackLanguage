@@ -6,13 +6,15 @@ sys.path.append('.')
 from minecraft_datapack_language.mdl_parser_js import parse_mdl_js
 from minecraft_datapack_language.mdl_lexer_js import lex_mdl_js
 
-# Test the tellraw command parsing
+# Test the say command parsing in a conditional
 source = '''
 pack "test" "Test" 82;
 namespace "test";
 
 function "main" {
-    tellraw @s [{"text":"Score: "},{"score":{"name":"@s","objective":"player_score"}}];
+    if "true" {
+        say "Hello world";
+    }
 }
 '''
 
@@ -44,3 +46,10 @@ for function in ast.get('functions', []):
             print(f"Raw command: '{statement['command']}'")
         else:
             print(f"Statement type: {type(statement)}")
+            if hasattr(statement, 'body'):
+                print(f"  Body statements:")
+                for stmt in statement.body:
+                    if hasattr(stmt, 'command'):
+                        print(f"    Raw command: '{stmt.command}'")
+                    else:
+                        print(f"    Statement type: {type(stmt)}")
