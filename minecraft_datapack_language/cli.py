@@ -31,30 +31,62 @@ def _process_variable_substitutions(command: str) -> str:
 
 
 def _convert_condition_to_minecraft_syntax(condition: str) -> str:
-    """Convert regular comparison operators to Minecraft matches syntax and handle variable substitutions."""
-    processed_condition = condition
+    """Convert MDL conditions to proper Minecraft scoreboard syntax."""
+    import re
     
     # Process variable substitutions in conditions
-    if '$' in processed_condition:
-        processed_condition = _process_variable_substitutions(processed_condition)
+    if '$' in condition:
+        condition = _process_variable_substitutions(condition)
     
     # Handle dynamic variable references using @{variable_name} syntax
     # This converts @{var_name} to @s var_name for scoreboard references
-    import re
     pattern = r'@\{([^}]+)\}'
     def replace_var_ref(match):
         var_name = match.group(1)
         return f"@s {var_name}"
     
-    processed_condition = re.sub(pattern, replace_var_ref, processed_condition)
+    condition = re.sub(pattern, replace_var_ref, condition)
     
-    # Convert comparison operators to Minecraft syntax
-    processed_condition = processed_condition.replace('==', '=')
-    processed_condition = processed_condition.replace('!=', '=')
-    processed_condition = processed_condition.replace('<=', '=')
-    processed_condition = processed_condition.replace('>=', '=')
+    # Convert MDL conditions to Minecraft scoreboard syntax
+    # Pattern: "$variable$ > 50" -> "score @s variable matches 51.."
+    # Pattern: "$variable$ < 10" -> "score @s variable matches ..9"
+    # Pattern: "$variable$ >= 5" -> "score @s variable matches 5.."
+    # Pattern: "$variable$ <= 20" -> "score @s variable matches ..20"
+    # Pattern: "$variable$ == 100" -> "score @s variable matches 100"
+    # Pattern: "$variable$ != 0" -> "score @s variable matches ..-1 1.."
     
-    return processed_condition
+    # Match patterns like "$variable$ > 50" or "$variable$ < 10"
+    score_pattern = r'\$([a-zA-Z_][a-zA-Z0-9_]*)\$\s*([><=!]+)\s*(\d+)'
+    
+    # Also match patterns like '{"score":{"name":"@s","objective":"variable"}} > 50'
+    score_pattern_substituted = r'\{"score":\{"name":"@s","objective":"([a-zA-Z_][a-zA-Z0-9_]*)"\}\}\s*([><=!]+)\s*(\d+)'
+    
+    def convert_score_comparison(match):
+        var_name = match.group(1)
+        operator = match.group(2)
+        value = int(match.group(3))
+        
+        if operator == '>':
+            return f"score @s {var_name} matches {value + 1}.."
+        elif operator == '>=':
+            return f"score @s {var_name} matches {value}.."
+        elif operator == '<':
+            return f"score @s {var_name} matches ..{value - 1}"
+        elif operator == '<=':
+            return f"score @s {var_name} matches ..{value}"
+        elif operator == '==':
+            return f"score @s {var_name} matches {value}"
+        elif operator == '!=':
+            return f"score @s {var_name} matches ..{value - 1} {value + 1}.."
+        else:
+            # Fallback for unknown operators
+            return f"score @s {var_name} matches {value}"
+    
+    # Apply the conversion for both patterns
+    condition = re.sub(score_pattern, convert_score_comparison, condition)
+    condition = re.sub(score_pattern_substituted, convert_score_comparison, condition)
+    
+    return condition
 
 
 def _find_mdl_files(directory: Path) -> List[Path]:
@@ -185,7 +217,12 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
         
         elif class_name == 'IfStatement':
             # Handle if statement with proper execute commands
-            condition = _convert_condition_to_minecraft_syntax(statement.condition)
+            # Get the condition string from the condition object
+            if hasattr(statement.condition, 'condition_string'):
+                condition_str = statement.condition.condition_string
+            else:
+                condition_str = str(statement.condition)
+            condition = _convert_condition_to_minecraft_syntax(condition_str)
             
             # Generate unique labels for this if statement
             if_label = f"{namespace}_{function_name}_if_{statement_index}"
@@ -197,7 +234,12 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
             # Process else if branches
             for i, elif_branch in enumerate(statement.elif_branches):
                 elif_label = f"{namespace}_{function_name}_elif_{statement_index}_{i}"
-                elif_condition = _convert_condition_to_minecraft_syntax(elif_branch.condition)
+                # Get the condition string from the elif condition object
+                if hasattr(elif_branch.condition, 'condition_string'):
+                    elif_condition_str = elif_branch.condition.condition_string
+                else:
+                    elif_condition_str = str(elif_branch.condition)
+                elif_condition = _convert_condition_to_minecraft_syntax(elif_condition_str)
                 # Only run elif if previous conditions were false
                 commands.append(f"execute unless {condition} if {elif_condition} run function {namespace}:{elif_label}")
             
