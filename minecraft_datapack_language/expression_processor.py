@@ -234,7 +234,7 @@ class ExpressionProcessor:
         """Main entry point for processing any expression"""
         if not hasattr(expr, '__class__'):
             # Simple value
-            commands = [f"scoreboard players set @s {target_var} {expr}"]
+            commands = [f"scoreboard players set {selector} {target_var} {expr}"]
             return ProcessedExpression(commands, "", [])
         
         class_name = expr.__class__.__name__
@@ -245,25 +245,25 @@ class ExpressionProcessor:
             # Handle literal expressions (numbers only)
             try:
                 value = int(expr.value)
-                commands = [f"scoreboard players set @s {target_var} {value}"]
+                commands = [f"scoreboard players set {selector} {target_var} {value}"]
             except (ValueError, TypeError):
                 # If not a number, set to 0
-                commands = [f"scoreboard players set @s {target_var} 0"]
+                commands = [f"scoreboard players set {selector} {target_var} 0"]
             return ProcessedExpression(commands, "", [])
         elif class_name == 'VariableExpression':
             # Variable reference - copy from scoreboard
-            commands = [f"scoreboard players operation @s {target_var} = @s {expr.name}"]
+            commands = [f"scoreboard players operation {selector} {target_var} = {selector} {expr.name}"]
             return ProcessedExpression(commands, "", [])
         elif class_name == 'VariableSubstitutionExpression':
             # Variable substitution ($variable$) - read from scoreboard
-            commands = [f"scoreboard players operation @s {target_var} = @s {expr.variable_name}"]
+            commands = [f"scoreboard players operation {selector} {target_var} = {selector} {expr.variable_name}"]
             return ProcessedExpression(commands, "", [])
         elif hasattr(expr, 'left') and hasattr(expr, 'right') and hasattr(expr, 'operator'):
             # This is a binary expression that wasn't caught by BinaryExpression class
             return self.process_binary_expression(expr, target_var, selector)
         else:
             # Unknown expression type - set to 0
-            commands = [f"scoreboard players set @s {target_var} 0"]
+            commands = [f"scoreboard players set {selector} {target_var} 0"]
             return ProcessedExpression(commands, "", [])
 
 
