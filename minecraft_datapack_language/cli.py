@@ -490,6 +490,11 @@ def _generate_hook_files(ast: Dict[str, Any], output_dir: Path, namespace: str) 
     
     for hook in ast.get('hooks', []):
         function_name = hook['function_name']
+        
+        # Skip hooks for function_name "load" as this is reserved for the global load function
+        if function_name == "load":
+            continue
+            
         # Check if function_name already contains a namespace (has a colon)
         if ':' in function_name:
             # Function name already includes namespace, use as-is
