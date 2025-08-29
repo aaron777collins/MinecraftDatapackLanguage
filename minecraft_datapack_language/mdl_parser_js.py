@@ -363,7 +363,7 @@ class MDLParser:
         command = " ".join(command_parts)
         return Command(command)
     
-    def _parse_hook_declaration(self) -> HookDeclaration:
+    def _parse_hook_declaration(self) -> Dict[str, str]:
         """Parse hook declaration."""
         if self._peek().type == TokenType.ON_LOAD:
             self._match(TokenType.ON_LOAD)
@@ -377,9 +377,9 @@ class MDLParser:
         
         self._match(TokenType.SEMICOLON)
         
-        return HookDeclaration(hook_type, function_name)
+        return {"hook_type": hook_type, "function_name": function_name}
     
-    def _parse_tag_declaration(self) -> TagDeclaration:
+    def _parse_tag_declaration(self) -> Dict[str, Any]:
         """Parse tag declaration."""
         self._match(TokenType.TAG)
         
@@ -403,7 +403,7 @@ class MDLParser:
         
         self._match(TokenType.RBRACE)
         
-        return TagDeclaration(tag_type, name, values)
+        return {"tag_type": tag_type, "name": name, "values": values}
     
     def _parse_expression(self) -> Expression:
         """Parse an expression."""
