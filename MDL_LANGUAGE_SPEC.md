@@ -65,15 +65,22 @@ if "$health$ < 10" {
     say "Health is okay";
 }
 
-// While loops
+// While loops with method selection
 while "$counter$ < 10" {
     counter = $counter$ + 1;
     say "Counter: $counter$";
 }
 
-// For loops (entity iteration)
-for player in @a {
-    say "Hello $player$";
+// While loops with explicit method
+while "$counter$ < 1000" method="recursion" {
+    counter = $counter$ + 1;
+    say "Recursion loop: $counter$";
+}
+
+// While loops with schedule method (better for long loops)
+while "$counter$ < 10000" method="schedule" {
+    counter = $counter$ + 1;
+    say "Schedule loop: $counter$";
 }
 ```
 

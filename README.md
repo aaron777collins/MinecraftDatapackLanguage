@@ -20,8 +20,7 @@ A **simplified** compiler that lets you write Minecraft datapacks in a modern Ja
 - **🎯 JavaScript-style syntax** with curly braces `{}` and semicolons `;`
 - **📝 Modern comments** using `//` and `/* */`
 - **🔢 Number variables only** with `var num` type (stored in scoreboards)
-- **🔄 Advanced control structures** including `if/else/elif` and flexible `while` loops
-- **⚡ Smart while loops** with user-choice methods (`recursion` or `schedule`)
+- **🔄 Control structures** including `if/else`, `while` loops with method selection
 - **💲 Variable substitution** with `$variable$` syntax
 - **📦 Namespace system** for modular code organization
 - **🎨 VS Code extension** with full IntelliSense and snippets
@@ -32,8 +31,7 @@ A **simplified** compiler that lets you write Minecraft datapacks in a modern Ja
 - ✅ Handles the directory renames from snapshots **24w19a** (tag subfolders) and **24w21a** (core registry folders)
 - ✅ Easy hooks into `minecraft:tick` and `minecraft:load` via function tags
 - ✅ Creates tags for `function`, `item`, `block`, `entity_type`, `fluid`, and `game_event`
-- ✅ **Advanced control structures** that actually work - `if/else/elif` and flexible `while` loops
-- ✅ **Smart while loops** with user-choice methods for optimal performance
+- ✅ **Control structures** that actually work - `if/else`, `while` loops with recursion/schedule methods
 - ✅ **Number variables** stored in scoreboards with `$variable$` substitution
 - ✅ **Multi-file projects** with automatic merging and dependency resolution
 - ✅ **Simple expressions** with basic arithmetic operations
@@ -675,22 +673,14 @@ function "hello" {
         effect give @s minecraft:strength 10 1;
     }
     
-    // Smart while loops with user-choice methods
     while "$counter$ < 5" {
         say Counter: $counter$;
         counter = counter + 1;
     }
     
-    // Explicit recursion method (default)
-    while "$level$ < 3" method="recursion" {
-        say Level: $level$;
-        level = level + 1;
-    }
-    
-    // Schedule method for long-running loops
-    while "$health$ < 100" method="schedule" {
-        say Healing: $health$;
-        health = health + 10;
+    for player in @a {
+        say Hello $player$;
+        effect give @s minecraft:speed 5 0;
     }
 }
 
@@ -744,44 +734,6 @@ tag block "example:glassy" {
 - **Nested-like function composition** (`function example:inner` inside `function "hello"`).
 - **Multiple namespaces** (`example`, `util`) calling each other with fully-qualified IDs.
 - **Lifecycle hooks** (`on_load`, `on_tick`) on both `example:hello` and `util:boss`.
-- **Smart while loops** with user-choice methods for optimal performance.
-
-## ⚡ **Smart While Loops** - User-Choice Methods
-
-MDL now features **flexible while loops** with two implementation methods:
-
-### 🔄 **Recursion Method** (Default)
-```mdl
-// Fast execution, good for small loops
-while "$counter$ < 10" {
-    say "Count: $counter$";
-    counter = $counter$ + 1;
-}
-
-// Explicit recursion method
-while "$counter$ < 10" method="recursion" {
-    say "Count: $counter$";
-    counter = $counter$ + 1;
-}
-```
-**Pros**: Fast execution, immediate results  
-**Cons**: Limited by `maxCommandChainLength` (~65,000 commands)
-
-### ⏰ **Schedule Method** (New)
-```mdl
-// Better for long-running loops
-while "$counter$ < 1000" method="schedule" {
-    say "Processing item $counter$";
-    counter = $counter$ + 1;
-}
-```
-**Pros**: No function file limit, better for large loops  
-**Cons**: Slightly slower due to tick scheduling
-
-### 🎯 **When to Use Each Method**
-- **Use `recursion`** (default) for small loops (< 100 iterations)
-- **Use `schedule`** for large loops (> 100 iterations) or when you need unlimited iterations
-- **Let MDL choose** by omitting the `method` parameter (defaults to recursion)
 - **Function tags** to participate in vanilla tags (`minecraft:load`, `minecraft:tick`).
 - **Data tags** (`item`, `block`) in addition to function tags.
 - **Number variables** with `$variable$` substitution.

@@ -284,9 +284,7 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
             else:
                 raise ValueError(f"Unknown while loop method: {method}")
         
-        elif class_name == 'ForLoop':
-            # For loops are deprecated - use while loops instead
-            raise ValueError("For loops are no longer supported. Use while loops with method='schedule' for iteration over selectors.")
+
         
         elif class_name == 'Command':
             # Handle regular command

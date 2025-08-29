@@ -45,11 +45,7 @@ class ElifBranch(ASTNode):
     condition: str
     body: List[ASTNode]
 
-@dataclass
-class ForLoop(ASTNode):
-    variable: str
-    selector: str
-    body: List[ASTNode]
+
 
 @dataclass
 class WhileLoop(ASTNode):
@@ -344,9 +340,7 @@ class MDLParser:
         
         return WhileLoop(condition, body, method)
     
-    def _parse_for_loop(self) -> ForLoop:
-        """Parse for loop - DEPRECATED."""
-        raise ValueError("For loops are no longer supported. Use while loops with method='schedule' for iteration over selectors.")
+
     
     def _parse_function_call(self) -> FunctionCall:
         """Parse function call."""

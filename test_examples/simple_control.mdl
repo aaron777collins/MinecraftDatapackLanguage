@@ -1,4 +1,4 @@
-// simple_control.mdl - Simple control structures with number variables
+// simple_control.mdl - Simple control structures with while loops
 pack "simple_control" "Simple control structures test" 82;
 
 namespace "test";
@@ -25,15 +25,24 @@ function "main" {
         say "Counter is high!";
     }
     
-    // While loop
+    // While loop (default recursion method)
     while "$counter$ < 10" {
         counter = $counter$ + 1;
         say "Counter: $counter$";
     }
     
-    // For loop (entity iteration)
-    for player in "@a" {
-        say "Hello $player$";
+    // While loop with explicit recursion method
+    counter = 0;
+    while "$counter$ < 5" method="recursion" {
+        counter = $counter$ + 1;
+        say "Recursion: $counter$";
+    }
+    
+    // While loop with schedule method
+    counter = 0;
+    while "$counter$ < 8" method="schedule" {
+        counter = $counter$ + 1;
+        say "Schedule: $counter$";
     }
 }
 

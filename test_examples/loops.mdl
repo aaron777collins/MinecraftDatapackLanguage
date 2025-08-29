@@ -1,5 +1,5 @@
-// loops.mdl - Smart while loops showcase
-pack "loops" "Smart while loops test" 82;
+// loops.mdl - While loops with different methods
+pack "loops" "While loops test" 82;
 
 namespace "test";
 
@@ -7,7 +7,6 @@ namespace "test";
 var num counter = 0;
 var num max_count = 10;
 var num step = 1;
-var num level = 1;
 
 function "main" {
     // Reset counter
@@ -26,27 +25,27 @@ function "main" {
         say "Step: $counter$";
     }
     
-    // Explicit recursion method (default)
-    level = 1;
-    while "$level$ < 3" method="recursion" {
-        say "Level: $level$";
-        level = $level$ + 1;
-    }
-    
-    // Schedule method for long-running loops
+    // While loop with explicit recursion method
     counter = 0;
-    while "$counter$ < 100" method="schedule" {
-        say "Processing item $counter$";
-        counter = $counter$ + 10;
+    while "$counter$ < 8" method="recursion" {
+        counter = $counter$ + 1;
+        say "Recursion loop: $counter$";
     }
     
-    // Nested loops with different methods
+    // While loop with schedule method (better for long loops)
+    counter = 0;
+    while "$counter$ < 12" method="schedule" {
+        counter = $counter$ + 1;
+        say "Schedule loop: $counter$";
+    }
+    
+    // Nested loops
     counter = 0;
     while "$counter$ < 3" {
         say "Outer loop: $counter$";
         
         var num inner = 0;
-        while "$inner$ < 2" method="recursion" {
+        while "$inner$ < 2" {
             inner = $inner$ + 1;
             say "  Inner: $inner$";
         }
@@ -66,16 +65,17 @@ function "countdown" {
     say "Blast off!";
 }
 
-function "performance_test" {
-    var num large_counter = 0;
-    
-    // Use schedule method for large loops
-    while "$large_counter$ < 1000" method="schedule" {
-        say "Large loop: $large_counter$";
-        large_counter = $large_counter$ + 100;
+function "long_loop" {
+    // Example of when to use schedule method
+    var num i = 0;
+    while "$i$ < 1000" method="schedule" {
+        i = $i$ + 1;
+        if "$i$ % 100 == 0" {
+            say "Progress: $i$ / 1000";
+        }
     }
+    say "Long loop completed!";
 }
 
 on_tick "test:main";
 on_tick "test:countdown";
-on_tick "test:performance_test";

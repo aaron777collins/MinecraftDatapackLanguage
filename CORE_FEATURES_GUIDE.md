@@ -76,25 +76,24 @@ if "score @s counter > 40" {
 }
 ```
 
-#### While Loops
+#### While Loops with Method Selection
 ```mdl
-while "score @s counter > 0" {
-    say "Counter: " + counter;
-    counter = counter - 1;
+// Default recursion method (good for small loops)
+while "$counter$ > 0" {
+    say "Counter: $counter$";
+    counter = $counter$ - 1;
 }
-```
 
-#### For Loops (Entity Iteration)
-```mdl
-for player in @a {
-    tellraw @s {"text":"Hello player!","color":"blue"};
+// Explicit recursion method
+while "$counter$ < 100" method="recursion" {
+    say "Recursion loop: $counter$";
+    counter = $counter$ + 1;
 }
-```
 
-#### For-In Loops (List Iteration)
-```mdl
-for (var item in items) {
-    say "Processing item: " + item;
+// Schedule method (better for long loops)
+while "$counter$ < 1000" method="schedule" {
+    say "Schedule loop: $counter$";
+    counter = $counter$ + 1;
 }
 ```
 
