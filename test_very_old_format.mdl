@@ -1,0 +1,40 @@
+// test_very_old_format.mdl - Test with pack format 15 (pre-43)
+pack "test_very_old" "Testing very old pack format" 15;
+
+namespace "test";
+
+// Number variables for scoreboard storage
+var num player_count = 0;
+var num game_timer = 0;
+
+function "main" {
+    // Basic variable assignment
+    player_count = 0;
+    game_timer = 0;
+    
+    // While loop with counter
+    while "$game_timer$ < 3" {
+        game_timer = $game_timer$ + 1;
+        say "Timer: $game_timer$";
+    }
+}
+
+// Registry types - these should use plural directory names for pack format 15
+recipe "diamond_sword" "recipes/diamond_sword.json";
+loot_table "diamond_sword" "loot_tables/diamond_sword.json";
+advancement "diamond_sword" "advancements/diamond_sword.json";
+predicate "diamond_sword" "predicates/diamond_sword.json";
+item_modifier "diamond_sword" "item_modifiers/diamond_sword.json";
+structure "diamond_sword" "structures/diamond_sword.json";
+
+// Tags - these should use plural directory names for pack format 15
+tag function "minecraft:load" {
+    add "test:main";
+}
+
+tag item "test:swords" {
+    add "minecraft:diamond_sword";
+}
+
+// Hooks
+on_load "test:main";

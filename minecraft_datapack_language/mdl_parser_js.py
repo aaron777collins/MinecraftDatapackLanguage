@@ -604,8 +604,13 @@ class MDLParser:
         """Parse tag declaration."""
         self._match(TokenType.TAG)
         
-        tag_type_token = self._match(TokenType.IDENTIFIER)
-        tag_type = tag_type_token.value
+        # Tag type can be an identifier or certain keywords
+        token = self._peek()
+        if token.type in [TokenType.IDENTIFIER, TokenType.FUNCTION]:
+            tag_type_token = self._advance()
+            tag_type = tag_type_token.value
+        else:
+            raise RuntimeError(f"Expected tag type identifier, got {token.type}")
         
         name_token = self._match(TokenType.IDENTIFIER)
         name = name_token.value
