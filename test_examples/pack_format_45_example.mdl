@@ -1,0 +1,42 @@
+// pack_format_45_example.mdl - Pack Format 45 Example
+// Uses pack format 45 with new tag directories and new function directories
+pack "pack_format_45_example" "A pack format 45 MDL datapack example" 45;
+
+namespace "example";
+
+// Number variables for scoreboard storage
+var num counter = 0;
+var num health = 20;
+
+function "main" {
+    // Basic variable assignment
+    counter = 0;
+    health = 15;
+    
+    // If statement with variable substitution
+    if "$health$ < 10" {
+        say "Health is low!";
+    } else {
+        say "Health is okay";
+    }
+    
+    // While loop with counter
+    while "$counter$ < 5" {
+        counter = $counter$ + 1;
+        say "Counter: $counter$";
+    }
+    
+    // For loop to iterate over players
+    for player in "@a" {
+        say "Hello $player$!";
+    }
+}
+
+function "helper" {
+    var num result = 0;
+    result = 5 + 3;
+    say "Result: $result$";
+}
+
+// Hook to run main function every tick
+on_tick "example:main";

@@ -214,12 +214,12 @@ def _process_statement(statement: Any, namespace: str, function_name: str) -> Li
 
 
 def _generate_function_file(ast: Dict[str, Any], output_dir: Path, namespace: str) -> None:
-    """Generate function files with support for both pre-82 and post-82 directory structures."""
+    """Generate function files with support for different pack format directory structures."""
     pack_info = ast.get('pack', {})
     pack_format = pack_info.get('pack_format', 82)
     
-    # Use new directory name for pack format 82+ (1.21+)
-    if pack_format >= 82:
+    # Use new directory name for pack format 45+ (functions -> function)
+    if pack_format >= 45:
         functions_dir = output_dir / "data" / namespace / "function"
     else:
         functions_dir = output_dir / "data" / namespace / "functions"
@@ -242,12 +242,12 @@ def _generate_function_file(ast: Dict[str, Any], output_dir: Path, namespace: st
 
 
 def _generate_hook_files(ast: Dict[str, Any], output_dir: Path, namespace: str) -> None:
-    """Generate hook files (load.json, tick.json) with support for both pre-82 and post-82 directory structures."""
+    """Generate hook files (load.json, tick.json) with support for different pack format directory structures."""
     pack_info = ast.get('pack', {})
     pack_format = pack_info.get('pack_format', 82)
     
-    # Use new directory name for pack format 82+ (1.21+)
-    if pack_format >= 82:
+    # Use new directory name for pack format 45+ (tags/functions -> tags/function)
+    if pack_format >= 45:
         tags_dir = output_dir / "data" / "minecraft" / "tags" / "function"
     else:
         tags_dir = output_dir / "data" / "minecraft" / "tags" / "functions"
@@ -277,12 +277,12 @@ def _generate_hook_files(ast: Dict[str, Any], output_dir: Path, namespace: str) 
 
 
 def _generate_tag_files(ast: Dict[str, Any], output_dir: Path, namespace: str) -> None:
-    """Generate tag files with support for both pre-82 and post-82 directory structures."""
+    """Generate tag files with support for different pack format directory structures."""
     pack_info = ast.get('pack', {})
     pack_format = pack_info.get('pack_format', 82)
     
-    # Use new directory name for pack format 82+ (1.21+)
-    if pack_format >= 82:
+    # Use new directory name for pack format 45+ (tags/functions -> tags/function)
+    if pack_format >= 45:
         tags_dir = output_dir / "data" / namespace / "tags" / "function"
     else:
         tags_dir = output_dir / "data" / namespace / "tags" / "functions"
@@ -300,16 +300,27 @@ def _validate_pack_format(pack_format: int) -> None:
     if pack_format < 1:
         raise SystemExit(f"Invalid pack format: {pack_format}. Must be >= 1")
     
-    if pack_format >= 82:
-        print(f"✓ Using post-82 format ({pack_format}) - Minecraft 1.21+ with new directory structure")
-        print("  - Functions: data/<namespace>/function/")
-        print("  - Tags: data/minecraft/tags/function/")
-        print("  - Pack metadata: min_format and max_format")
+    print(f"✓ Pack format {pack_format}")
+    
+    # Directory structure changes
+    if pack_format >= 45:
+        print("  - Functions: data/<namespace>/function/ (45+)")
+        print("  - Tags: data/minecraft/tags/function/ (45+)")
     else:
-        print(f"✓ Using pre-82 format ({pack_format}) - Minecraft 1.20 and below with legacy directory structure")
-        print("  - Functions: data/<namespace>/functions/")
-        print("  - Tags: data/minecraft/tags/functions/")
-        print("  - Pack metadata: pack_format")
+        print("  - Functions: data/<namespace>/functions/ (<45)")
+        print("  - Tags: data/minecraft/tags/functions/ (<45)")
+    
+    # Pack metadata format changes
+    if pack_format >= 82:
+        print("  - Pack metadata: min_format and max_format (82+)")
+    else:
+        print("  - Pack metadata: pack_format (<82)")
+    
+    # Tag directory changes (for other tag types)
+    if pack_format >= 43:
+        print("  - Tag directories: item/, block/, entity_type/, fluid/, game_event/ (43+)")
+    else:
+        print("  - Tag directories: items/, blocks/, entity_types/, fluids/, game_events/ (<43)")
 
 
 def _generate_pack_mcmeta(ast: Dict[str, Any], output_dir: Path) -> None:
