@@ -6,7 +6,7 @@ permalink: /docs/getting-started/
 
 # Getting Started
 
-This guide will help you install Minecraft Datapack Language (MDL) and create your first datapack.
+This guide will help you install Minecraft Datapack Language (MDL) and create your first **simplified** datapack with control structures and number variables.
 
 ## Installation
 
@@ -92,9 +92,9 @@ For detailed development information, see [DEVELOPMENT.md](https://github.com/aa
 - **pip**: `pip install -U minecraft-datapack-language`
 - **Pin a version**: `pipx install "minecraft-datapack-language==1.1.0"`
 
-## Your First Datapack
+## Your First **Simplified** Datapack
 
-Let's create a simple datapack that displays a welcome message when the world loads.
+Let's create a simple datapack that demonstrates **control structures and number variables**.
 
 ### 1. Create the MDL File
 
@@ -108,21 +108,45 @@ This creates a complete template with modern pack format 82+ metadata.
 Create a file called `hello.mdl` with the following content:
 
 ```mdl
-// hello.mdl - My first datapack
-pack "My First Pack" description "A simple example datapack" pack_format 82 min_format [82, 0] max_format [82, 1] min_engine_version "1.21.4";
+// hello.mdl - My first simplified datapack
+pack "My First Pack" description "A simple example datapack" pack_format 82;
 
 namespace "example";
+
+// Number variables only
+var num counter = 0;
+var num health = 20;
 
 function "hello" {
     say Hello, Minecraft!;
     tellraw @a {"text":"Welcome to my datapack!","color":"green"};
+    
+    // Variable substitution
+    say Counter: $counter$;
+    say Health: $health$;
+    
+    // Control structures
+    if "$health$ < 10" {
+        say Health is low!;
+        health = health + 5;
+    }
+    
+    while "$counter$ < 5" {
+        say Counter: $counter$;
+        counter = counter + 1;
+    }
+    
+    for player in @a {
+        say Hello $player$;
+        effect give @s minecraft:speed 5 0;
+    }
 }
 
 // Hook the function to run when the world loads
 on_load "example:hello";
 ```
 
-**Important**: Every MDL project must have a file starting with the `pack` declaration when compiled individually. This tells MDL the name, description, and format of your datapack. If you are compiling multiple MDL files together, you only need 1 file to define the pack info
+**Important**: Every MDL project must have a file starting with the `pack` declaration when compiled individually. This tells MDL the name, description, and format of your datapack. If you are compiling multiple MDL files together, you only need 1 file to define the pack info.
 
 ### 2. Build the Datapack
 
@@ -140,67 +164,88 @@ This will create a `dist/` folder containing your compiled datapack.
    - **Multiplayer**: Copy to the server's `world/datapacks/` folder
 3. Copy the folder from `dist/` to the datapacks folder
 4. In-game, run `/reload` to load the datapack
-5. You should see the welcome message!
+5. You should see the welcome message and control structures working!
 
-## Understanding the Code
+## Understanding the **Simplified** Code
 
 Let's break down what we just created:
 
 - **`pack "My First Pack"`**: Declares the datapack name and metadata
 - **`pack_format 82`**: Specifies compatibility with Minecraft 1.21.4+
-- **`min_format [82, 0]`**: Minimum supported pack format version
-- **`max_format [82, 1]`**: Maximum supported pack format version
-- **`min_engine_version "1.21.4"`**: Minimum Minecraft engine version required
 - **`namespace "example"`**: Creates a namespace for organizing functions
+- **`var num counter = 0`**: Declares a number variable stored in scoreboard
+- **`$counter$`**: Variable substitution - reads value from scoreboard
 - **`function "hello":`**: Defines a function that contains Minecraft commands
 - **`on_load "example:hello"`**: Automatically runs the function when the world loads
 
-## Adding Control Flow
+## **Simplified** Control Flow
 
-MDL supports conditional logic, while loops, and for loops for advanced control flow in your datapacks.
+MDL supports **control structures and number variables** for reliable datapack development.
+
+### Number Variables
+
+MDL supports **number variables only** for simplicity and reliability:
+
+```mdl
+// Number variables
+var num counter = 0;
+var num health = 20;
+var num level = 1;
+
+// Variable substitution in strings
+say Health: $health$;
+say Level: $level$;
+
+// Arithmetic operations
+counter = counter + 1;
+health = health - 5;
+level = level * 2;
+```
+
+**Variable Substitution**: Use `$variable_name$` to read values from scoreboards in strings and conditions.
 
 ### Conditional Logic
 
-> **Enhanced Logic**: The conditional system ensures proper if/else if/else logic where each condition is only checked if all previous conditions were false.
-
-Let's create a more advanced example that uses conditional blocks to detect different types of entities:
+Let's create an example that uses conditional blocks with number variables:
 
 ```mdl
 // conditional.mdl - Conditional logic example
-pack "Conditional Demo" description "Shows if/else if/else functionality" pack_format 82 min_format [82, 0] max_format [82, 1] min_engine_version "1.21.4";
+pack "Conditional Demo" description "Shows if/else if/else functionality" pack_format 82;
 
 namespace "demo";
 
-function "detect_entity" {
-    if "entity @s[type=minecraft:player]" {
-        say Player detected!;
-        effect give @s minecraft:glowing 5 1;
-        tellraw @a {"text":"A player is nearby!","color":"green"};
-    } else if "entity @s[type=minecraft:zombie]" {
-        say Zombie detected!;
-        effect give @s minecraft:poison 5 1;
-        tellraw @a {"text":"A zombie is nearby!","color":"red"};
-    } else if "entity @s[type=minecraft:creeper]" {
-        say Creeper detected!;
-        effect give @s minecraft:slowness 5 1;
-        tellraw @a {"text":"A creeper is nearby!","color":"dark_red"};
+// Number variables
+var num player_level = 15;
+var num player_health = 8;
+
+function "check_player" {
+    if "$player_level$ >= 10" {
+        if "$player_health$ < 10" {
+            say Advanced player with low health!;
+            effect give @s minecraft:regeneration 10 1;
+            player_health = player_health + 5;
+        } else {
+            say Advanced player with good health;
+            effect give @s minecraft:strength 10 1;
+        }
+    } else if "$player_level$ >= 5" {
+        say Intermediate player;
+        effect give @s minecraft:speed 10 0;
     } else {
-        say Unknown entity detected;
-        tellraw @a {"text":"Something unknown is nearby...","color":"gray"};
+        say Beginner player;
+        effect give @s minecraft:jump_boost 10 0;
     }
 }
 
 // Run the detection every tick
-on_tick "demo:detect_entity";
+on_tick "demo:check_player";
 ```
 
 This example demonstrates:
-- **`if "condition":`** - Checks if the condition is true
-- **`else if "condition":`** - Checks another condition if the first was false
+- **`if "$variable$ condition"`** - Checks if the condition is true using variable substitution
+- **`else if "$variable$ condition"`** - Checks another condition if the first was false
 - **`else:`** - Runs if none of the above conditions were true
-- **Indentation** - Commands inside conditional blocks must be indented with 4 spaces
-
-The conditional blocks are compiled into separate functions and called using Minecraft's `execute` command for efficient execution.
+- **Variable substitution** - `$player_level$` and `$player_health$` read from scoreboards
 
 ### While Loops
 
@@ -208,30 +253,32 @@ While loops allow you to repeat commands until a condition becomes false:
 
 ```mdl
 // loops.mdl - Loop examples
-pack "Loop Demo" description "Shows while and for loop functionality" pack_format 82 min_format [82, 0] max_format [82, 1] min_engine_version "1.21.4";
+pack "Loop Demo" description "Shows while and for loop functionality" pack_format 82;
 
 namespace "demo";
 
+var num counter = 5;
+
 function "countdown" {
-    scoreboard players set @s counter 5;
-    while "score @s counter matches 1.." {
-        say Countdown: @s counter;
-        scoreboard players remove @s counter 1;
+    while "$counter$ > 0" {
+        say Countdown: $counter$;
+        counter = counter - 1;
         say Decremented counter;
     }
 }
 
-function "zombie_cleanup" {
-    while "entity @e[type=minecraft:zombie,distance=..10]" {
-        say Zombie nearby!;
-        effect give @e[type=minecraft:zombie,distance=..10,limit=1] minecraft:glowing 5 1;
-        say Applied effect to zombie;
+function "health_regeneration" {
+    var num regen_count = 0;
+    while "$regen_count$ < 3" {
+        say Regenerating health...;
+        effect give @s minecraft:regeneration 5 0;
+        regen_count = regen_count + 1;
     }
 }
 
 // Run the loops every tick
 on_tick "demo:countdown";
-on_tick "demo:zombie_cleanup";
+on_tick "demo:health_regeneration";
 ```
 
 **Important**: Always ensure your while loop body modifies the condition to avoid infinite loops!
@@ -242,8 +289,7 @@ For loops allow you to iterate over collections of entities:
 
 ```mdl
 function "player_effects" {
-    tag @e[type=minecraft:player] add players;
-    for player in @e[tag=players] {
+    for player in @a {
         say Processing player: @s;
         effect give @s minecraft:speed 10 1;
         tellraw @s {"text":"You got speed!","color":"green"};
@@ -251,8 +297,7 @@ function "player_effects" {
 }
 
 function "item_processing" {
-    tag @e[type=minecraft:item] add items;
-    for item in @e[tag=items] {
+    for item in @e[type=minecraft:item] {
         say Processing item: @s;
         effect give @s minecraft:glowing 5 1;
     }
@@ -269,7 +314,7 @@ For loops are perfect for applying effects to multiple entities or processing co
 
 Now that you have the basics, explore:
 
-- **[Language Reference]({{ site.baseurl }}/docs/language-reference/)** - Learn the complete MDL syntax
+- **[Language Reference]({{ site.baseurl }}/docs/language-reference/)** - Learn the complete **simplified** MDL syntax
 - **[Examples]({{ site.baseurl }}/docs/examples/)** - See more complex examples (all tested and verified!)
 - **[CLI Reference]({{ site.baseurl }}/docs/cli-reference/)** - Master the command-line tools
 - **[VS Code Extension]({{ site.baseurl }}/docs/vscode-extension/)** - Get syntax highlighting and linting
@@ -296,6 +341,7 @@ If you get build errors:
 2. Make sure you have a `pack` declaration at the top of your file
 3. Verify that function names are unique within each namespace
 4. Use `mdl check hello.mdl` to validate your file before building
+5. Remember: **only number variables** are supported (`var num`)
 
 ### Datapack Not Working
 
@@ -305,3 +351,4 @@ If your datapack doesn't work in Minecraft:
 2. Run `/reload` in-game to reload datapacks
 3. Check the game logs for error messages
 4. Verify that your pack_format is compatible with your Minecraft version
+5. Check that variable substitutions (`$variable$`) are working correctly

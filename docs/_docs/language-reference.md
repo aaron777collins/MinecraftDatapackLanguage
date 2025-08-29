@@ -4,13 +4,13 @@ title: Language Reference
 permalink: /docs/language-reference/
 ---
 
-# MDL Language Reference
+# **SIMPLIFIED** MDL Language Reference
 
-This is the complete reference for the Minecraft Datapack Language (MDL) syntax.
+This is the complete reference for the **simplified** Minecraft Datapack Language (MDL) syntax.
 
 ## Overview
 
-MDL is a simple language designed to make writing Minecraft datapacks easier. It compiles to standard `.mcfunction` files and follows the 1.21+ datapack structure. MDL uses JavaScript-style syntax with curly braces and semicolons for explicit block boundaries and unlimited nesting support.
+MDL is a **simplified** language designed to make writing Minecraft datapacks easier. It compiles to standard `.mcfunction` files and follows the 1.21+ datapack structure. MDL uses JavaScript-style syntax with curly braces and semicolons for explicit block boundaries and **control structures that actually work**.
 
 ## Basic Syntax
 
@@ -39,16 +39,13 @@ pack "My Pack";  // Inline comments are also supported
 **Multi-file compilation**: Only the first file should have a pack declaration. All other files are treated as modules.
 
 ```mdl
-pack "Pack Name" [description "Description"] [pack_format N] [min_format [major, minor]] [max_format [major, minor]] [min_engine_version "version"];
+pack "Pack Name" [description "Description"] [pack_format N];
 ```
 
 **Parameters:**
 - `"Pack Name"` (required): The name of your datapack
 - `description "Description"` (optional): A description of your datapack
 - `pack_format N` (optional): Minecraft pack format version (default: 82)
-- `min_format [major, minor]` (optional, 82+): Minimum supported pack format version
-- `max_format [major, minor]` (optional, 82+): Maximum supported pack format version
-- `min_engine_version "version"` (optional, 82+): Minimum Minecraft engine version required
 
 **Important Rules:**
 - **Single file**: Must have a pack declaration
@@ -59,9 +56,9 @@ pack "Pack Name" [description "Description"] [pack_format N] [min_format [major,
 **Examples:**
 
 ```mdl
-pack "My Datapack" pack_format 82 min_format [82, 0] max_format [82, 1] min_engine_version "1.21.4";
-pack "My Datapack" description "A cool datapack" pack_format 82 min_format [82, 0] max_format [82, 1];
-pack "My Datapack" description "For newer versions" pack_format 83 min_format [83, 0] max_format [83, 2];
+pack "My Datapack" pack_format 82;
+pack "My Datapack" description "A cool datapack" pack_format 82;
+pack "My Datapack" description "For newer versions" pack_format 83;
 ```
 
 ## Namespaces
@@ -98,101 +95,133 @@ Functions contain Minecraft commands and are the core of your datapack:
 
 ```mdl
 function "function_name" {
-    command1;
-    command2;
-    command3;
+    // Minecraft commands go here
+    say Hello World;
+    tellraw @a {"text":"Welcome!","color":"green"};
 }
 ```
 
 **Rules:**
-- Function names should be descriptive
+- Function names should be lowercase
+- Use underscores or hyphens for multi-word names
 - **Explicit block boundaries**: Functions use curly braces `{` and `}`
 - **Statement termination**: All commands must end with semicolons `;`
-- Each non-empty line becomes a Minecraft command
-- Comments are stripped from the output
-- **Unlimited nesting**: Functions can contain any combination of control structures
+- Functions can call other functions using fully qualified names
 
 **Example:**
 
 ```mdl
-function "welcome" {
-    say Welcome to my datapack!;
-    tellraw @a {"text":"Hello World!","color":"green"};
-    effect give @a minecraft:glowing 10 1;
+function "hello" {
+    say Hello from the hello function;
+}
+
+function "greet" {
+    say I will call the hello function;
+    function example:hello;
+    say Back in the greet function;
 }
 ```
 
-## Conditional Blocks
+## **SIMPLIFIED** Variables
 
-MDL supports if/else if/else statements for conditional execution with unlimited nesting:
+MDL supports **number variables only** for simplicity and reliability.
+
+### Variable Declarations
 
 ```mdl
-function "conditional_example" {
-    if "entity @s[type=minecraft:player]" {
-        say Player detected!;
-        effect give @s minecraft:glowing 5 1;
-    } else if "entity @s[type=minecraft:zombie]" {
-        say Zombie detected!;
-        effect give @s minecraft:poison 5 1;
-    } else {
-        say Unknown entity;
-        effect give @s minecraft:slowness 5 1;
-    }
+var num variable_name = initial_value;
+```
+
+**Rules:**
+- **Only `num` type supported**: All variables are numbers stored in scoreboards
+- Variable names should be lowercase
+- Use underscores for multi-word names
+- **Statement termination**: Variable declarations must end with semicolons `;`
+
+**Examples:**
+
+```mdl
+var num counter = 0;
+var num health = 20;
+var num level = 1;
+var num player_score = 100;
+```
+
+### Variable Assignment
+
+```mdl
+variable_name = expression;
+```
+
+**Examples:**
+
+```mdl
+counter = 5;
+health = health + 10;
+level = level * 2;
+player_score = player_score - 5;
+```
+
+### Variable Substitution
+
+Use `$variable_name$` to read values from scoreboards in strings and conditions:
+
+```mdl
+// In strings
+say Health: $health$;
+tellraw @a {"text":"Level: $level$","color":"gold"};
+
+// In conditions
+if "$health$ < 10" {
+    say Health is low!;
+}
+
+while "$counter$ > 0" {
+    say Counter: $counter$;
+    counter = counter - 1;
+}
+```
+
+## **SIMPLIFIED** Control Flow
+
+MDL supports conditional blocks and loops for control flow.
+
+### Conditional Blocks (if/else if/else)
+
+```mdl
+if "condition" {
+    // commands to run if condition is true
+} else if "condition" {
+    // commands to run if this condition is true
+} else {
+    // commands to run if no conditions were true
 }
 ```
 
 **Rules:**
-- Conditions must be valid Minecraft selector syntax (e.g., `entity @s[type=minecraft:player]`)
-- **Use native Minecraft syntax**: Write conditions in Minecraft's own language
-  - `score @s var matches 10..` (greater than or equal to 10)
-  - `score @s var matches ..10` (less than or equal to 10)  
-  - `score @s var matches 5..15` (between 5 and 15)
-  - `data storage mdl:variables var matches "value"` (string comparison)
+- Conditions use `$variable$` syntax for variable substitution
 - **Explicit block boundaries**: Conditional blocks use curly braces `{` and `}`
 - **Statement termination**: All commands must end with semicolons `;`
 - You can have multiple `else if` blocks
 - The `else` block is optional
-- **Unlimited nesting**: Conditional blocks can be nested to any depth
 - Conditional blocks are compiled to separate functions and called with `execute` commands
-- Each conditional block becomes its own function with a generated name
 
-**Example with complex conditions:**
-
-```mdl
-function "weapon_effects" {
-    if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:\"minecraft:diamond_sword\"}}]" {
-        say Diamond sword detected!;
-        effect give @s minecraft:strength 10 1;
-    } else if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:\"minecraft:golden_sword\"}}]" {
-        say Golden sword detected!;
-        effect give @s minecraft:speed 10 1;
-    } else if "entity @s[type=minecraft:player]" {
-        say Player without special sword;
-        effect give @s minecraft:haste 5 0;
-    } else {
-        say No player found;
-    }
-}
-```
-
-**Example with scoreboard comparisons:**
+**Examples:**
 
 ```mdl
-function "level_system" {
+function "check_player" {
     var num player_level = 15;
-    var str player_class = "warrior";
+    var num player_health = 8;
     
-    if "score @s player_level matches 10.." {
-        if "data storage mdl:variables player_class matches \"warrior\"" {
-            say Advanced warrior detected!;
-            effect give @s minecraft:strength 10 2;
-        } else if "data storage mdl:variables player_class matches \"mage\"" {
-            say Advanced mage detected!;
-            effect give @s minecraft:night_vision 10 0;
+    if "$player_level$ >= 10" {
+        if "$player_health$ < 10" {
+            say Advanced player with low health!;
+            effect give @s minecraft:regeneration 10 1;
         } else {
-            say Unknown advanced class;
+            say Advanced player with good health;
+            effect give @s minecraft:strength 10 1;
         }
-    } else if "score @s player_level matches 5.." {
+    } else if "$player_level$ >= 5" {
         say Intermediate player;
         effect give @s minecraft:speed 10 0;
     } else {
@@ -202,231 +231,98 @@ function "level_system" {
 }
 ```
 
-**Advanced conditional examples:**
-
-```mdl
-// Multiple conditions with different entity types
-function "entity_detection" {
-    if "entity @s[type=minecraft:player]" {
-        say Player detected!;
-        effect give @s minecraft:glowing 5 1;
-        tellraw @a {"text":"A player is nearby!","color":"green"};
-    } else if "entity @s[type=minecraft:zombie]" {
-        say Zombie detected!;
-        effect give @s minecraft:poison 5 1;
-        tellraw @a {"text":"A zombie is nearby!","color":"red"};
-    } else if "entity @s[type=minecraft:creeper]" {
-        say Creeper detected!;
-        effect give @s minecraft:resistance 5 1;
-        tellraw @a {"text":"A creeper is nearby!","color":"dark_red"};
-    } else {
-        say Unknown entity detected;
-        tellraw @a {"text":"Something unknown is nearby...","color":"gray"};
-    }
-}
-
-// Conditional with function calls
-function "main_logic" {
-    if "entity @s[type=minecraft:player]" {
-        say Executing player logic;
-        function example:player_effects;
-        function example:player_ui;
-    } else if "entity @s[type=minecraft:zombie]" {
-        say Executing zombie logic;
-        function example:zombie_ai;
-        function example:zombie_effects;
-    } else {
-        say Executing default logic;
-        function example:default_behavior;
-    }
-}
-
-// Conditional with complex NBT data
-function "item_detection" {
-    if "entity @s[type=minecraft:player,nbt={Inventory:[{Slot:0b,id:\"minecraft:diamond_sword\",Count:1b}]}]" {
-        say Player has diamond sword in first slot!;
-        effect give @s minecraft:strength 10 1;
-    } else if "entity @s[type=minecraft:player,nbt={Inventory:[{Slot:0b,id:\"minecraft:golden_sword\",Count:1b}]}]" {
-        say Player has golden sword in first slot!;
-        effect give @s minecraft:speed 10 1;
-    } else if "entity @s[type=minecraft:player]" {
-        say Player has no special sword;
-        effect give @s minecraft:haste 5 0;
-    }
-}
-```
-
-**How conditionals work:**
-
-When you write conditional blocks in MDL, they are automatically converted to separate functions and called using Minecraft's `execute` command. The system ensures proper logical flow where `else if` blocks only execute if all previous conditions were false, and `else` blocks only execute if all conditions were false.
-
-**Native Minecraft Syntax:**
-MDL uses native Minecraft syntax for conditions, so you write them exactly as you would in vanilla Minecraft:
-- `score @s var matches 10..` (greater than or equal to 10)
-- `score @s var matches ..10` (less than or equal to 10)
-- `score @s var matches 5..15` (between 5 and 15)
-- `data storage mdl:variables var matches "value"` (string comparison)
-
-For example, the above `weapon_effects` function generates:
-
-**Main function (`weapon_effects.mcfunction`):**
-```mcfunction
-execute if entity @s[type=minecraft:player,nbt={SelectedItem:{id:"minecraft:diamond_sword"}}] run function example:weapon_effects_if_1
-execute unless entity @s[type=minecraft:player,nbt={SelectedItem:{id:"minecraft:diamond_sword"}}] if entity @s[type=minecraft:player,nbt={SelectedItem:{id:"minecraft:golden_sword"}}] run function example:weapon_effects_elif_2
-execute unless entity @s[type=minecraft:player,nbt={SelectedItem:{id:"minecraft:diamond_sword"}}] unless entity @s[type=minecraft:player,nbt={SelectedItem:{id:"minecraft:golden_sword"}}] if entity @s[type=minecraft:player] run function example:weapon_effects_elif_3
-execute unless entity @s[type=minecraft:player,nbt={SelectedItem:{id:"minecraft:diamond_sword"}}] unless entity @s[type=minecraft:player,nbt={SelectedItem:{id:"minecraft:golden_sword"}}] unless entity @s[type=minecraft:player] run function example:weapon_effects_else
-```
-
-**Generated conditional functions:**
-- `weapon_effects_if_1.mcfunction` - Diamond sword effects
-- `weapon_effects_elif_2.mcfunction` - Golden sword effects  
-- `weapon_effects_elif_3.mcfunction` - Default player effects
-- `weapon_effects_else.mcfunction` - No player found
-
 ### While Loops
 
-MDL supports while loops for repetitive execution based on conditions with unlimited nesting:
-
 ```mdl
-function "while_example" {
-    scoreboard players set @s counter 5;
-    while "score @s counter matches 1.." {
-        say Counter: @s counter;
-        scoreboard players remove @s counter 1;
-        say Decremented counter;
-    }
+while "condition" {
+    // commands to repeat while condition is true
 }
 ```
 
 **Rules:**
-- Conditions must be valid Minecraft selector syntax
+- Conditions use `$variable$` syntax for variable substitution
 - **Explicit block boundaries**: While loops use curly braces `{` and `}`
 - **Statement termination**: All commands must end with semicolons `;`
 - While loops continue until the condition becomes false
 - **Important**: Ensure your loop body modifies the condition to avoid infinite loops
-- **Unlimited nesting**: While loops can be nested to any depth
-- While loops are compiled to separate functions and use recursive calls
 
-**Example with entity condition:**
+**Examples:**
 
 ```mdl
-function "entity_while" {
-    while "entity @e[type=minecraft:zombie,distance=..10]" {
-        say Zombie nearby!;
-        effect give @e[type=minecraft:zombie,distance=..10,limit=1] minecraft:glowing 5 1;
-        say Applied effect to zombie;
+function "countdown" {
+    var num counter = 5;
+    while "$counter$ > 0" {
+        say Countdown: $counter$;
+        counter = counter - 1;
+        say Decremented counter;
+    }
+}
+
+function "health_regeneration" {
+    var num regen_count = 0;
+    while "$regen_count$ < 3" {
+        say Regenerating health...;
+        effect give @s minecraft:regeneration 5 0;
+        regen_count = regen_count + 1;
     }
 }
 ```
 
 ### For Loops
 
-MDL supports for loops for iterating over entity collections with unlimited nesting:
+```mdl
+for variable in selector {
+    // commands to run for each entity in the selector
+}
+```
+
+**Rules:**
+- Collection must be a valid Minecraft entity selector
+- **Explicit block boundaries**: For loops use curly braces `{` and `}`
+- **Statement termination**: All commands must end with semicolons `;`
+- For loops iterate over each entity in the collection
+- **Efficient execution**: Each conditional block becomes a separate function for optimal performance
+
+**Examples:**
 
 ```mdl
-function "for_example" {
-    tag @e[type=minecraft:player] add players;
-    for player in @e[tag=players] {
+function "player_effects" {
+    for player in @a {
         say Processing player: @s;
         effect give @s minecraft:speed 10 1;
         tellraw @s {"text":"You got speed!","color":"green"};
     }
 }
-```
 
-**Rules:**
-- Variable name (e.g., `player`) is used for reference but doesn't affect execution
-- Collection must be a valid Minecraft entity selector
-- **Explicit block boundaries**: For loops use curly braces `{` and `}`
-- **Statement termination**: All commands must end with semicolons `;`
-- For loops iterate over each entity in the collection
-- **Unlimited nesting**: For loops can be nested to any depth
-- For loops are compiled to separate functions using `execute as` commands
-
-**Example with complex selector:**
-
-```mdl
-function "complex_for" {
-    for player in @a[gamemode=survival] {
-        say Processing survival player: @s;
-        if "entity @s[nbt={SelectedItem:{id:\"minecraft:diamond_sword\"}}]" {
-            say Player has diamond sword!;
-            effect give @s minecraft:strength 10 1;
-        } else {
-            say Player has no diamond sword;
-            effect give @s minecraft:haste 5 0;
-        }
+function "item_processing" {
+    for item in @e[type=minecraft:item] {
+        say Processing item: @s;
+        effect give @s minecraft:glowing 5 1;
     }
 }
 ```
 
-**How loops work:**
+## Hooks
 
-Loops in MDL are implemented using recursive function calls:
-
-**While loops** generate:
-- A main function that starts the loop
-- A loop body function containing the commands
-- A control function that calls the body and then calls itself if the condition is still true
-
-**For loops** generate:
-- A main function that starts the iteration
-- A loop body function containing the commands
-- A control function that uses `execute as` to iterate through entities
-
-This approach ensures proper execution flow and prevents infinite loops while maintaining compatibility with Minecraft's function system.
-
-## Function Calls
-
-Functions can call other functions using fully qualified names:
-
-```mdl
-function "main" {
-    say Starting main function;
-    function example:helper;
-    say Back in main function;
-}
-```
-
-**Rules:**
-- Use the format `namespace:function_name`
-- The called function must exist
-- Cross-namespace calls are supported
-- **Statement termination**: Function calls must end with semicolons `;`
-
-## Lifecycle Hooks
-
-MDL provides easy ways to hook into Minecraft's lifecycle:
-
-### on_load
-
-Runs when the datapack is loaded:
+Hooks automatically run functions at specific times:
 
 ```mdl
 on_load "namespace:function_name";
-```
-
-### on_tick
-
-Runs every tick (20 times per second):
-
-```mdl
 on_tick "namespace:function_name";
 ```
 
-**Example:**
+**Rules:**
+- Function names must be fully qualified (include namespace)
+- **Statement termination**: Hook declarations must end with semicolons `;`
+- `on_load` runs when the datapack loads
+- `on_tick` runs every game tick
+
+**Examples:**
 
 ```mdl
-function "init" {
-    say Datapack loaded!;
-}
-
-function "tick" {
-    execute as @a run particle minecraft:end_rod ~ ~ ~ 0.1 0.1 0.1 0.01 1;
-}
-
 on_load "example:init";
 on_tick "example:tick";
+on_tick "ui:update_hud";
 ```
 
 ## Tags
@@ -434,13 +330,12 @@ on_tick "example:tick";
 Tags allow your functions to participate in vanilla tag systems:
 
 ```mdl
-tag registry "tag_name" {
+tag function "tag_name" {
     add "namespace:function_name";
-    add "another_namespace:another_function";
 }
 ```
 
-**Supported Registries:**
+**Supported tag types:**
 - `function` - Function tags
 - `item` - Item tags
 - `block` - Block tags
@@ -451,7 +346,6 @@ tag registry "tag_name" {
 **Examples:**
 
 ```mdl
-// Function tags
 tag function "minecraft:load" {
     add "example:init";
 }
@@ -461,260 +355,185 @@ tag function "minecraft:tick" {
     add "ui:update_hud";
 }
 
-// Item tags
 tag item "example:swords" {
     add "minecraft:diamond_sword";
     add "minecraft:netherite_sword";
 }
 
-// Block tags
 tag block "example:glassy" {
     add "minecraft:glass";
     add "minecraft:tinted_glass";
 }
 ```
 
-### Tag Replacement
+## **SIMPLIFIED** Expressions
 
-You can replace existing tags instead of adding to them:
+MDL supports basic arithmetic operations with number variables:
+
+### Arithmetic Operators
+
+- `+` - Addition
+- `-` - Subtraction
+- `*` - Multiplication
+- `/` - Division
+
+**Examples:**
 
 ```mdl
-tag function "minecraft:tick" replace {
-    add "example:my_tick_function";
-}
+var num result = 0;
+result = 5 + 3;        // result = 8
+result = 10 - 4;       // result = 6
+result = 3 * 7;        // result = 21
+result = 15 / 3;       // result = 5
+
+// With variables
+var num a = 10;
+var num b = 5;
+result = a + b;        // result = 15
+result = a * b;        // result = 50
 ```
 
-## Multi-line Commands
+### Variable Substitution in Expressions
 
-Long commands can be split across multiple lines using backslashes:
+You can use variable substitution in arithmetic expressions:
 
 ```mdl
-function "complex_command" {
-    tellraw @a \
-        {"text":"This is a very long message",\
-         "color":"gold",\
-         "bold":true};
-}
+var num health = 20;
+var num bonus = 5;
+health = $health$ + $bonus$;  // health = 25
 ```
-
-This compiles to a single line in the `.mcfunction` file.
 
 ## Complete Example
 
-Here's a complete example showing all the features:
+Here's a complete example showing all the **simplified** MDL features:
 
 ```mdl
-// Complete example datapack
-pack "Example Pack" description "Shows all MDL features" pack_format 48;
+// complete_example.mdl - Complete simplified MDL example
+pack "Complete Example" description "Shows all simplified features" pack_format 82;
 
-namespace "core";
+namespace "example";
+
+// Number variables
+var num counter = 0;
+var num health = 20;
+var num level = 1;
 
 function "init" {
-    say [core:init] Initializing datapack...;
-    tellraw @a {"text":"Example Pack loaded!","color":"green"};
+    say Initializing...;
+    counter = 0;
+    health = 20;
+    level = 1;
 }
 
 function "tick" {
-    say [core:tick] Running core systems...;
-    execute as @a run particle minecraft:end_rod ~ ~ ~ 0.1 0.1 0.1 0.01 1;
+    counter = counter + 1;
+    
+    // Variable substitution
+    say Counter: $counter$;
+    say Health: $health$;
+    say Level: $level$;
+    
+    // Conditional logic
+    if "$health$ < 10" {
+        say Health is low!;
+        health = health + 5;
+        effect give @s minecraft:regeneration 10 1;
+    } else if "$level$ > 5" {
+        say High level player!;
+        effect give @s minecraft:strength 10 1;
+    } else {
+        say Normal player;
+        effect give @s minecraft:speed 10 0;
+    }
+    
+    // While loop
+    var num loop_count = 0;
+    while "$loop_count$ < 3" {
+        say Loop iteration: $loop_count$;
+        loop_count = loop_count + 1;
+    }
+    
+    // For loop
+    for player in @a {
+        say Hello $player$;
+        effect give @s minecraft:glowing 5 0;
+    }
 }
 
-// Hook into vanilla lifecycle
-on_load "core:init";
-on_tick "core:tick";
-
-namespace "combat";
-
-function "weapon_effects" {
-    say [combat:weapon_effects] Applying weapon effects...;
-    execute as @a[nbt={SelectedItem:{id:"minecraft:diamond_sword"}}] \
-        run effect give @s minecraft:strength 1 0 true;
+function "helper" {
+    say Helper function called;
+    level = level + 1;
+    say New level: $level$;
 }
 
-function "update_combat" {
-    function core:tick;
-    function combat:weapon_effects;
-}
+// Hooks
+on_load "example:init";
+on_tick "example:tick";
 
-namespace "ui";
-
-function "hud" {
-    say [ui:hud] Updating HUD...;
-    title @a actionbar {"text":"Example Pack Active","color":"gold"};
-}
-
-function "update_ui" {
-    function ui:hud;
-    function combat:update_combat;
-}
-
-// Function tags
+// Tags
 tag function "minecraft:load" {
-    add "core:init";
+    add "example:init";
 }
 
 tag function "minecraft:tick" {
-    add "ui:update_ui";
+    add "example:tick";
 }
 
-// Data tags
-tag item "example:swords" {
-    add "minecraft:diamond_sword";
-    add "minecraft:netherite_sword";
-}
-
-tag block "example:glassy" {
-    add "minecraft:glass";
-    add "minecraft:tinted_glass";
+tag item "example:tools" {
+    add "minecraft:diamond_pickaxe";
+    add "minecraft:diamond_axe";
 }
 ```
 
 ## Best Practices
 
-### Naming Conventions
-
-- **Namespaces**: Use lowercase with underscores (`combat_system`, `ui_components`)
-- **Functions**: Use descriptive names (`weapon_effects`, `update_hud`)
-- **Tags**: Use descriptive names that indicate purpose (`my_swords`, `glassy_blocks`)
-
-### Organization
-
-- Group related functions in the same namespace
-- Use separate namespaces for different systems (combat, UI, data, etc.)
-- Keep functions focused on a single responsibility
-
-### Comments
-
-- Use comments to explain complex logic
-- Document the purpose of each function
-- Add section headers for organization
-
-### Error Prevention
-
-- Always use fully qualified names for function calls
-- Check that function names are unique within each namespace
-- Validate your MDL files with `mdl check` before building
+1. **Use descriptive names**: Choose clear, descriptive names for functions and variables
+2. **Organize with namespaces**: Use namespaces to group related functions
+3. **Comment your code**: Add comments to explain complex logic
+4. **Test incrementally**: Build and test your datapack as you develop
+5. **Use variable substitution**: Use `$variable$` syntax for clean, readable code
+6. **Keep it simple**: The simplified language is designed to be reliable and easy to understand
 
 ## Common Patterns
 
-### Initialization Pattern
+### Counter Pattern
 
 ```mdl
-function "init" {
-    // Set up global variables
-    scoreboard objectives add my_objective dummy;
-    // Initialize systems
-    function example:setup_combat;
-    function example:setup_ui;
-}
+var num counter = 0;
 
-on_load "example:init";
+function "increment" {
+    counter = counter + 1;
+    say Counter: $counter$;
+}
 ```
 
-### Tick Pattern
+### Health Management
 
 ```mdl
-function "tick" {
-    // Update all systems
-    function example:update_combat;
-    function example:update_ui;
-    function example:update_data;
-}
+var num health = 20;
 
-on_tick "example:tick";
-```
-
-### Conditional Execution
-
-MDL provides built-in support for if/else if/else statements with unlimited nesting:
-
-```mdl
-function "weapon_effects" {
-    if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:\"minecraft:diamond_sword\"}}]" {
-        say Diamond sword detected!;
-        effect give @s minecraft:strength 10 1;
-    } else if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:\"minecraft:golden_sword\"}}]" {
-        say Golden sword detected!;
-        effect give @s minecraft:speed 10 1;
-    } else if "entity @s[type=minecraft:player]" {
-        say Player without special sword;
-        effect give @s minecraft:haste 5 0;
-    } else {
-        say No player found;
+function "check_health" {
+    if "$health$ < 10" {
+        say Health is low!;
+        health = health + 5;
     }
 }
 ```
 
-This is equivalent to the traditional approach:
+### Level System
 
 ```mdl
-function "weapon_effects_traditional" {
-    // Check if player has specific item
-    execute as @a[nbt={SelectedItem:{id:"minecraft:diamond_sword"}}] \
-        run function example:sword_effects;
-    // Check if player is in specific dimension
-    execute as @a[dimension=minecraft:the_nether] \
-        run function example:nether_effects;
-}
-```
+var num level = 1;
+var num experience = 0;
 
-## Language Implementation
-
-MDL uses a robust JavaScript-style lexer and parser for unlimited nesting support:
-
-### Lexer Features
-- **Token-based parsing**: Converts source code into structured tokens
-- **Explicit boundaries**: Handles curly braces, semicolons, and keywords
-- **Quoted string support**: Properly handles strings with spaces and special characters
-- **Comment handling**: Supports `//` style comments
-- **Keyword recognition**: Identifies all MDL keywords and control structures
-
-### Parser Features
-- **Recursive descent**: Handles unlimited nesting depth
-- **AST generation**: Creates structured Abstract Syntax Trees
-- **Error recovery**: Provides detailed error messages for debugging
-- **Block parsing**: Correctly parses nested blocks and control structures
-
-### Unlimited Nesting Support
-The JavaScript-style parser supports unlimited nesting of:
-- **Conditional blocks**: `if`, `else if`, `else` statements
-- **Loop structures**: `for` and `while` loops
-- **Function calls**: Nested function invocations
-- **Mixed structures**: Any combination of the above
-
-**Example of extreme nesting (29 levels deep):**
-```mdl
-function "extreme_nesting" {
-    for player in @a {
-        if "entity @s[type=minecraft:player]" {
-            for item in @s {
-                while "entity @s[type=minecraft:item]" {
-                    if "entity @s[nbt={Item:{id:\"minecraft:diamond\"}}]" {
-                        // ... 25 more levels of nesting ...
-                        say This is the deepest level!;
-                    }
-                }
-            }
-        }
+function "gain_experience" {
+    experience = experience + 10;
+    if "$experience$ >= 100" {
+        level = level + 1;
+        experience = 0;
+        say Level up! New level: $level$;
     }
 }
 ```
 
-## Troubleshooting
-
-### Common Errors
-
-1. **Missing semicolons**: All statements must end with semicolons `;`
-2. **Missing curly braces**: All blocks must use explicit curly braces `{` and `}`
-3. **Missing pack declaration**: Single files must have a pack declaration; multi-file projects only need one in the first file
-4. **Duplicate function names**: Function names must be unique within each namespace
-5. **Invalid namespace names**: Use only lowercase letters, numbers, and underscores
-
-### Validation
-
-Use the `mdl check` command to validate your MDL files:
-
-```bash
-mdl check my_file.mdl
-mdl check --json my_file.mdl  # For detailed output
-```
+This **simplified** language focuses on **control structures and number variables** that actually work, making it much easier to create reliable Minecraft datapacks.

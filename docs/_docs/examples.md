@@ -4,9 +4,9 @@ title: Examples
 permalink: /docs/examples/
 ---
 
-# JavaScript-style MDL Examples (v10+)
+# **SIMPLIFIED** JavaScript-style MDL Examples (v10+)
 
-This page contains complete, working examples of the new JavaScript-style MDL format that demonstrate all the modern features and patterns.
+This page contains complete, working examples of the **simplified** JavaScript-style MDL format that demonstrate **control structures and number variables**.
 
 > **📚 Looking for legacy examples?** See [Legacy Examples](legacy-examples.md) for the old MDL format (v9 and below).
 
@@ -37,25 +37,26 @@ mdl build --mdl hello_world.mdl -o dist
 # Run /reload in-game
 ```
 
-### Variable System
+### **Simplified** Variable System
 
-Demonstrates the new variable system with different data types.
+Demonstrates the **simplified** variable system with **number variables only**.
 
 ```mdl
 // variables.mdl
-pack "Variable System" description "Demonstrates variables and data types" pack_format 82;
+pack "Variable System" description "Demonstrates number variables" pack_format 82;
 
 namespace "variables";
 
-// Global variables
+// Number variables only
 var num player_count = 0;
-var str welcome_message = "Welcome to the server!";
-var list effects = ["speed", "jump_boost", "night_vision"];
+var num health = 20;
+var num level = 1;
 
 function "init" {
     say Initializing variable system...;
     player_count = 0;
-    welcome_message = "System ready!";
+    health = 20;
+    level = 1;
 }
 
 function "count_players" {
@@ -63,29 +64,33 @@ function "count_players" {
     for player in @a {
         player_count = player_count + 1;
     }
-    say Player count: player_count;
+    say Player count: $player_count$;
 }
 
-function "show_welcome" {
-    tellraw @a {"text":welcome_message,"color":"green"};
-}
-
-function "apply_effects" {
-    for player in @a {
-        if "entity @s[type=minecraft:player]" {
-            effect give @s minecraft:speed 10 1;
-            effect give @s minecraft:jump_boost 10 0;
-        }
+function "check_health" {
+    if "$health$ < 10" {
+        say Health is low!;
+        health = health + 5;
+        effect give @s minecraft:regeneration 10 1;
+    } else {
+        say Health is good: $health$;
     }
+}
+
+function "level_up" {
+    level = level + 1;
+    say Level up! New level: $level$;
+    effect give @s minecraft:experience 10 0;
 }
 
 on_load "variables:init";
 on_tick "variables:count_players";
+on_tick "variables:check_health";
 ```
 
 ### Particle Effects
 
-A datapack that creates particle effects around players with variables.
+A datapack that creates particle effects around players with **number variables**.
 
 ```mdl
 // particles.mdl
@@ -95,575 +100,478 @@ namespace "particles";
 
 // Configuration variables
 var num particle_count = 5;
-var str particle_type = "minecraft:end_rod";
+var num effect_duration = 10;
 
 function "tick" {
+    // Create particles around all players
     for player in @a {
-        particle minecraft:end_rod ~ ~ ~ 0.1 0.1 0.1 0.01 particle_count;
-        particle minecraft:firework ~ ~ ~ 0.2 0.2 0.2 0.02 2;
+        say Creating particles for $player$;
+        execute as @s run particle minecraft:end_rod ~ ~ ~ 0.1 0.1 0.1 0.01 $particle_count$;
+        effect give @s minecraft:glowing $effect_duration$ 0;
     }
 }
 
-function "init" {
-    say Particle effects enabled!;
-    particle_count = 10;
+function "increase_particles" {
+    particle_count = particle_count + 2;
+    say Increased particle count to: $particle_count$;
 }
 
-on_load "particles:init";
+function "decrease_particles" {
+    if "$particle_count$ > 1" {
+        particle_count = particle_count - 1;
+        say Decreased particle count to: $particle_count$;
+    }
+}
+
 on_tick "particles:tick";
 ```
 
-## Control Flow Examples
+## **Simplified** Control Flow Examples
 
-### Advanced Conditional Logic
+### Conditional Logic
 
-Demonstrates complex conditional statements with variables.
+Demonstrates **if/else if/else** statements with **number variables**.
 
 ```mdl
 // conditionals.mdl
-pack "Advanced Conditionals" description "Complex conditional logic" pack_format 82;
+pack "Conditional Logic" description "Shows if/else if/else functionality" pack_format 82;
 
 namespace "conditionals";
 
-// State variables
-var num player_level = 0;
-var str player_class = "warrior";
-var num experience = 0;
+// Number variables
+var num player_level = 15;
+var num player_health = 8;
+var num player_experience = 75;
 
 function "check_player_status" {
-    for player in @a {
-        if "entity @s[type=minecraft:player]" {
-            if "entity @s[gamemode=survival]" {
-                if "score @s experience matches 100.." {
-                    player_level = player_level + 1;
-                    experience = 0;
-                    say Level up! New level: player_level;
-                }
-                
-                if "entity @s[nbt={SelectedItem:{id:\"minecraft:diamond_sword\"}}]" {
-                    player_class = "warrior";
-                    effect give @s minecraft:strength 10 1;
-                } else if "entity @s[nbt={SelectedItem:{id:\"minecraft:bow\"}}]" {
-                    player_class = "archer";
-                    effect give @s minecraft:speed 10 1;
-                } else if "entity @s[nbt={SelectedItem:{id:\"minecraft:stick\"}}]" {
-                    player_class = "mage";
-                    effect give @s minecraft:night_vision 10 0;
-                }
-            } else {
-                say Creative mode detected;
-            }
+    if "$player_level$ >= 10" {
+        if "$player_health$ < 10" {
+            say Advanced player with low health!;
+            effect give @s minecraft:regeneration 10 1;
+            player_health = player_health + 5;
+        } else {
+            say Advanced player with good health;
+            effect give @s minecraft:strength 10 1;
         }
+    } else if "$player_level$ >= 5" {
+        say Intermediate player;
+        effect give @s minecraft:speed 10 0;
+    } else {
+        say Beginner player;
+        effect give @s minecraft:jump_boost 10 0;
+    }
+}
+
+function "experience_system" {
+    if "$player_experience$ >= 100" {
+        player_level = player_level + 1;
+        player_experience = 0;
+        say Level up! New level: $player_level$;
+        effect give @s minecraft:experience 10 0;
+    } else if "$player_experience$ >= 50" {
+        say Getting close to level up! Experience: $player_experience$;
+    } else {
+        say Keep going! Experience: $player_experience$;
     }
 }
 
 on_tick "conditionals:check_player_status";
+on_tick "conditionals:experience_system";
 ```
 
-### Switch Statements
+### While Loops
 
-Demonstrates the new switch statement feature.
-
-```mdl
-// switch_example.mdl
-pack "Switch Statements" description "Using switch statements" pack_format 82;
-
-namespace "switch_example";
-
-var num item_type = 0;
-
-function "handle_item" {
-    for player in @a {
-        if "entity @s[nbt={SelectedItem:{id:\"minecraft:diamond_sword\"}}]" {
-            item_type = 1;
-        } else if "entity @s[nbt={SelectedItem:{id:\"minecraft:bow\"}}]" {
-            item_type = 2;
-        } else if "entity @s[nbt={SelectedItem:{id:\"minecraft:shield\"}}]" {
-            item_type = 3;
-        } else {
-            item_type = 0;
-        }
-        
-        switch (item_type) {
-            case 1:
-                say You have a sword;
-                effect give @s minecraft:strength 10 1;
-                break;
-            case 2:
-                say You have a bow;
-                effect give @s minecraft:speed 10 1;
-                break;
-            case 3:
-                say You have a shield;
-                effect give @s minecraft:resistance 10 1;
-                break;
-            default:
-                say No special item detected;
-                break;
-        }
-    }
-}
-
-on_tick "switch_example:handle_item";
-```
-
-### Loop Examples
-
-Demonstrates various loop patterns with variables.
+Demonstrates **while loops** with **number variables**.
 
 ```mdl
 // loops.mdl
-pack "Loop Examples" description "Advanced loop patterns" pack_format 82;
+pack "Loop Examples" description "Shows while and for loop functionality" pack_format 82;
 
 namespace "loops";
 
-var num counter = 0;
-var num max_count = 10;
-var list entities = ["zombie", "skeleton", "creeper"];
+// Number variables
+var num counter = 5;
+var num regen_count = 0;
 
 function "countdown" {
-    counter = max_count;
-    while "score @s counter matches 1.." {
-        say Countdown: counter;
+    while "$counter$ > 0" {
+        say Countdown: $counter$;
         counter = counter - 1;
-        if "score @s counter matches 0" {
-            say Blast off!;
-            break;
-        }
+        say Decremented counter;
     }
+    say Countdown complete!;
+    counter = 5; // Reset for next time
 }
 
-function "process_entities" {
-    for entity in @e[type=minecraft:zombie] {
-        effect give @s minecraft:glowing 10 0;
-        particle minecraft:smoke ~ ~ ~ 0.3 0.3 0.3 0.1 3;
+function "health_regeneration" {
+    regen_count = 0;
+    while "$regen_count$ < 3" {
+        say Regenerating health...;
+        effect give @s minecraft:regeneration 5 0;
+        regen_count = regen_count + 1;
+    }
+    say Health regeneration complete!;
+}
+
+function "item_cleanup" {
+    var num cleanup_count = 0;
+    while "$cleanup_count$ < 5" {
+        say Cleaning up items...;
+        execute as @e[type=minecraft:item,limit=1] run kill @s;
+        cleanup_count = cleanup_count + 1;
+    }
+    say Item cleanup complete!;
+}
+
+on_tick "loops:countdown";
+on_tick "loops:health_regeneration";
+on_tick "loops:item_cleanup";
+```
+
+### For Loops
+
+Demonstrates **for loops** for entity iteration.
+
+```mdl
+// for_loops.mdl
+pack "For Loop Examples" description "Shows for loop functionality" pack_format 82;
+
+namespace "for_loops";
+
+// Number variables
+var num player_count = 0;
+var num item_count = 0;
+
+function "player_effects" {
+    player_count = 0;
+    for player in @a {
+        say Processing player: @s;
+        effect give @s minecraft:speed 10 1;
+        tellraw @s {"text":"You got speed!","color":"green"};
+        player_count = player_count + 1;
+    }
+    say Processed $player_count$ players;
+}
+
+function "item_processing" {
+    item_count = 0;
+    for item in @e[type=minecraft:item] {
+        say Processing item: @s;
+        effect give @s minecraft:glowing 5 1;
+        item_count = item_count + 1;
+    }
+    say Processed $item_count$ items;
+}
+
+function "mob_effects" {
+    for mob in @e[type=minecraft:zombie] {
+        say Processing zombie: @s;
+        effect give @s minecraft:slowness 10 1;
     }
     
-    for player in @a {
-        if "entity @s[type=minecraft:player]" {
-            counter = counter + 1;
-            if "score @s counter matches 10" {
-                say Processed 10 players;
-                counter = 0;
-                continue;
-            }
-        }
+    for mob in @e[type=minecraft:skeleton] {
+        say Processing skeleton: @s;
+        effect give @s minecraft:weakness 10 1;
     }
 }
 
-on_tick "loops:process_entities";
+on_tick "for_loops:player_effects";
+on_tick "for_loops:item_processing";
+on_tick "for_loops:mob_effects";
 ```
 
-## Error Handling Examples
+## Advanced Examples
 
-### Try-Catch Blocks
+### **Simplified** Game System
 
-Demonstrates error handling with try-catch blocks.
-
-```mdl
-// error_handling.mdl
-pack "Error Handling" description "Using try-catch blocks" pack_format 82;
-
-namespace "error_handling";
-
-var str error_message = "No error";
-
-function "safe_operation" {
-    for player in @a {
-        try {
-            say Attempting risky operation...;
-            // Simulate a risky operation
-            if "entity @s[type=minecraft:player]" {
-                effect give @s minecraft:levitation 10 1;
-            } else {
-                throw "Invalid entity type";
-            }
-        } catch (error) {
-            error_message = error;
-            say Operation failed: error_message;
-            effect give @s minecraft:slowness 10 0;
-        }
-    }
-}
-
-function "divide_by_zero" {
-    var num result = 0;
-    try {
-        result = 10 / 0;
-        say Result: result;
-    } catch (error) {
-        say Division error: error;
-        result = 0;
-    }
-}
-
-on_tick "error_handling:safe_operation";
-```
-
-## Function System Examples
-
-### Functions with Parameters and Return Values
-
-Demonstrates advanced function features.
+A complete game system using **number variables and control structures**.
 
 ```mdl
-// functions.mdl
-pack "Advanced Functions" description "Functions with parameters and returns" pack_format 82;
+// game_system.mdl
+pack "Game System" description "Complete game system example" pack_format 82;
 
-namespace "functions";
+namespace "game";
 
-var num health = 20;
-var num mana = 100;
+// Game state variables
+var num player_score = 0;
+var num player_lives = 3;
+var num game_level = 1;
+var num enemy_count = 0;
 
-function "heal_player" (amount) {
-    health = health + amount;
-    if "score @s health matches 21.." {
-        health = 20;
-    }
-    effect give @s minecraft:instant_health 1 1;
-    return health;
+function "init_game" {
+    say Initializing game system...;
+    player_score = 0;
+    player_lives = 3;
+    game_level = 1;
+    enemy_count = 0;
+    tellraw @a {"text":"Game system loaded!","color":"green"};
 }
 
-function "use_mana" (cost) {
-    if "score @s mana matches cost.." {
-        mana = mana - cost;
-        return true;
-    } else {
-        return false;
+function "update_game" {
+    // Count enemies
+    enemy_count = 0;
+    for enemy in @e[type=minecraft:zombie] {
+        enemy_count = enemy_count + 1;
     }
-}
-
-function "cast_spell" {
-    var num spell_cost = 25;
-    var bool success = use_mana(spell_cost);
     
-    if (success) {
-        say Spell cast successfully!;
-        effect give @s minecraft:night_vision 30 0;
-    } else {
-        say Not enough mana!;
+    // Check game state
+    if "$player_lives$ <= 0" {
+        say Game Over! Final score: $player_score$;
+        tellraw @a {"text":"Game Over!","color":"red"};
+        function game:init_game;
+    } else if "$enemy_count$ == 0" {
+        say Level complete!;
+        game_level = game_level + 1;
+        player_score = player_score + 100;
+        tellraw @a {"text":"Level $game_level$ complete!","color":"gold"};
     }
+    
+    // Display status
+    say Score: $player_score$ Lives: $player_lives$ Level: $game_level$ Enemies: $enemy_count$;
 }
 
-function "restore_health" {
-    var num old_health = health;
-    health = heal_player(10);
-    say Health restored from old_health to health;
+function "player_hit" {
+    player_lives = player_lives - 1;
+    say Player hit! Lives remaining: $player_lives$;
+    effect give @s minecraft:resistance 5 0;
 }
 
-on_tick "functions:cast_spell";
+function "score_points" {
+    player_score = player_score + 10;
+    say Points scored! Total: $player_score$;
+}
+
+on_load "game:init_game";
+on_tick "game:update_game";
 ```
 
-## Multi-file Project Examples
+### **Simplified** Multi-Namespace System
 
-### Modular Architecture
-
-Demonstrates how to organize code across multiple files.
+Demonstrates organizing code across multiple namespaces.
 
 ```mdl
-// core.mdl
-pack "Modular Project" description "Multi-file project example" pack_format 82;
+// multi_namespace.mdl
+pack "Multi-Namespace System" description "Shows namespace organization" pack_format 82;
 
 namespace "core";
 
-// Global state
-var num game_time = 0;
-var str game_state = "running";
+// Core variables
+var num system_version = 1;
+var num player_count = 0;
 
 function "init" {
-    say Core module initialized;
-    game_time = 0;
-    game_state = "running";
+    say [core:init] Initializing system...;
+    system_version = 1;
+    player_count = 0;
+    tellraw @a {"text":"Multi-namespace system loaded!","color":"green"};
 }
 
 function "tick" {
-    game_time = game_time + 1;
-    if "score @s game_time matches 1200" {
-        say One minute has passed;
-        game_time = 0;
+    say [core:tick] Core systems running...;
+    player_count = 0;
+    for player in @a {
+        player_count = player_count + 1;
     }
+    say Player count: $player_count$;
 }
 
-on_load "core:init";
-on_tick "core:tick";
-```
-
-```mdl
-// combat.mdl
 namespace "combat";
 
-import "core" from "./core.mdl";
+// Combat variables
+var num weapon_damage = 10;
+var num armor_bonus = 5;
 
-function "attack" {
-    for player in @a {
-        if "entity @s[nbt={SelectedItem:{id:\"minecraft:diamond_sword\"}}]" {
-            execute as @s at @s if entity @e[type=minecraft:zombie,distance=..3] run function combat:damage;
-        }
-    }
+function "weapon_effects" {
+    say [combat:weapon_effects] Applying weapon effects...;
+    execute as @a[nbt={SelectedItem:{id:'minecraft:diamond_sword'}}] run effect give @s minecraft:strength 1 0 true;
+    weapon_damage = weapon_damage + 2;
+    say Weapon damage: $weapon_damage$;
 }
 
-function "damage" {
-    effect give @e[type=minecraft:zombie,distance=..3] minecraft:instant_damage 1 1;
-    particle minecraft:crit ~ ~ ~ 0.5 0.5 0.5 0.1 10;
+function "armor_bonus" {
+    say [combat:armor_bonus] Checking armor bonuses...;
+    execute as @a[nbt={Inventory:[{Slot:103b,id:"minecraft:diamond_helmet"}]}] run effect give @s minecraft:resistance 1 0 true;
+    armor_bonus = armor_bonus + 1;
+    say Armor bonus: $armor_bonus$;
 }
 
-on_tick "combat:attack";
-```
-
-```mdl
-// ui.mdl
 namespace "ui";
 
-import "core" from "./core.mdl";
+// UI variables
+var num hud_version = 1;
 
 function "show_hud" {
+    say [ui:show_hud] Updating HUD...;
+    title @a actionbar {"text":"Multi-namespace system active","color":"gold"};
+    hud_version = hud_version + 1;
+    say HUD version: $hud_version$;
+}
+
+function "update_ui" {
+    function ui:show_hud;
+    function combat:weapon_effects;
+    function combat:armor_bonus;
+}
+
+// Hooks
+on_load "core:init";
+on_tick "core:tick";
+on_tick "ui:update_ui";
+
+// Tags
+tag function "minecraft:load" {
+    add "core:init";
+}
+
+tag function "minecraft:tick" {
+    add "core:tick";
+    add "ui:update_ui";
+}
+```
+
+## **Simplified** Patterns and Best Practices
+
+### Counter Pattern
+
+A common pattern for counting and tracking:
+
+```mdl
+// counter_pattern.mdl
+pack "Counter Pattern" description "Shows counter patterns" pack_format 82;
+
+namespace "counter";
+
+var num global_counter = 0;
+var num player_counter = 0;
+
+function "increment_global" {
+    global_counter = global_counter + 1;
+    say Global counter: $global_counter$;
+}
+
+function "reset_counters" {
+    global_counter = 0;
+    player_counter = 0;
+    say Counters reset;
+}
+
+function "count_players" {
+    player_counter = 0;
     for player in @a {
-        tellraw @s {"text":"Game Time: ","color":"yellow","extra":[{"score":{"name":"@s","objective":"game_time"},"color":"white"}]};
-        tellraw @s {"text":"Game State: ","color":"blue","extra":[{"text":"game_state","color":"white"}]};
+        player_counter = player_counter + 1;
+    }
+    say Player counter: $player_counter$;
+}
+
+on_tick "counter:increment_global";
+on_tick "counter:count_players";
+```
+
+### Health Management Pattern
+
+Managing player health with **number variables**:
+
+```mdl
+// health_pattern.mdl
+pack "Health Pattern" description "Shows health management" pack_format 82;
+
+namespace "health";
+
+var num player_health = 20;
+var num max_health = 20;
+var num regeneration_rate = 1;
+
+function "check_health" {
+    if "$player_health$ < 10" {
+        say Health is low! Current: $player_health$;
+        effect give @s minecraft:regeneration 10 1;
+    } else if "$player_health$ < $max_health$" {
+        say Health is recovering. Current: $player_health$;
+        player_health = player_health + $regeneration_rate$;
+    } else {
+        say Health is full: $player_health$;
     }
 }
 
-on_tick "ui:show_hud";
+function "take_damage" {
+    player_health = player_health - 5;
+    say Took damage! Health: $player_health$;
+    effect give @s minecraft:resistance 5 0;
+}
+
+function "heal_full" {
+    player_health = $max_health$;
+    say Fully healed! Health: $player_health$;
+    effect give @s minecraft:instant_health 1 0;
+}
+
+on_tick "health:check_health";
 ```
 
-## Game Mechanics Examples
+### Level System Pattern
 
-### RPG System
-
-A comprehensive RPG system using all new features.
+A complete level system with experience:
 
 ```mdl
-// rpg_system.mdl
-pack "RPG System" description "Complete RPG mechanics" pack_format 82;
+// level_pattern.mdl
+pack "Level Pattern" description "Shows level system" pack_format 82;
 
-namespace "rpg";
+namespace "level";
 
-// Player stats
 var num player_level = 1;
 var num experience = 0;
-var num health = 20;
-var num mana = 100;
-var str player_class = "adventurer";
-var list inventory = ["sword", "shield", "potion"];
+var num experience_needed = 100;
 
-function "init_player" {
-    player_level = 1;
-    experience = 0;
-    health = 20;
-    mana = 100;
-    player_class = "adventurer";
-    say Player initialized as level player_level player_class;
-}
-
-function "gain_experience" (amount) {
-    experience = experience + amount;
-    say Gained amount experience points;
+function "gain_experience" {
+    experience = experience + 10;
+    say Experience gained! Current: $experience$;
     
-    // Level up logic
-    if "score @s experience matches 100.." {
+    if "$experience$ >= $experience_needed$" {
         player_level = player_level + 1;
-        experience = experience - 100;
-        health = health + 5;
-        mana = mana + 10;
-        say Level up! You are now level player_level;
-        effect give @s minecraft:glowing 60 0;
+        experience = 0;
+        experience_needed = experience_needed + 50;
+        say Level up! New level: $player_level$;
+        effect give @s minecraft:experience 10 0;
     }
 }
 
-function "use_item" (item_name) {
-    switch (item_name) {
-        case "potion":
-            if "score @s health matches ..19" {
-                health = heal_player(10);
-                say Used health potion;
-            }
-            break;
-        case "mana_potion":
-            if "score @s mana matches ..99" {
-                mana = mana + 25;
-                say Used mana potion;
-            }
-            break;
-        default:
-            say Unknown item: item_name;
-            break;
-    }
+function "show_status" {
+    say Level: $player_level$ Experience: $experience$/$experience_needed$;
+    tellraw @a {"text":"Level $player_level$ - XP: $experience$/$experience_needed$","color":"gold"};
 }
 
-function "heal_player" (amount) {
-    var num old_health = health;
-    health = health + amount;
-    if "score @s health matches 21.." {
-        health = 20;
-    }
-    effect give @s minecraft:instant_health 1 1;
-    return health;
-}
-
-function "combat_tick" {
-    for player in @a {
-        if "entity @s[type=minecraft:player]" {
-            // Auto-heal over time
-            if "score @s health matches ..19" {
-                health = health + 1;
-            }
-            
-            // Mana regeneration
-            if "score @s mana matches ..99" {
-                mana = mana + 2;
-            }
-        }
-    }
-}
-
-on_load "rpg:init_player";
-on_tick "rpg:combat_tick";
+on_tick "level:gain_experience";
+on_tick "level:show_status";
 ```
 
-### Inventory System
+## Tested Examples
 
-Advanced inventory management with variables and error handling.
+All examples on this page are thoroughly tested and available for download:
 
-```mdl
-// inventory_system.mdl
-pack "Inventory System" description "Advanced inventory management" pack_format 82;
+- **[hello_world.mdl](test_examples/hello_world.mdl)** - Basic hello world
+- **[variables.mdl](test_examples/variables.mdl)** - Number variables
+- **[conditionals.mdl](test_examples/conditionals.mdl)** - If/else logic
+- **[loops.mdl](test_examples/loops.mdl)** - While and for loops
+- **[game_system.mdl](test_examples/game_system.mdl)** - Complete game system
+- **[multi_namespace.mdl](test_examples/multi_namespace.mdl)** - Multi-namespace organization
 
-namespace "inventory";
-
-var num inventory_size = 36;
-var list items = [];
-var num gold_coins = 0;
-
-function "add_item" (item_name) {
-    try {
-        if "score @s items matches ..35" {
-            items = items + [item_name];
-            say Added item_name to inventory;
-        } else {
-            throw "Inventory full";
-        }
-    } catch (error) {
-        say Cannot add item: error;
-    }
-}
-
-function "remove_item" (item_name) {
-    try {
-        var num index = find_item(item_name);
-        if (index >= 0) {
-            items = remove_from_list(items, index);
-            say Removed item_name from inventory;
-        } else {
-            throw "Item not found";
-        }
-    } catch (error) {
-        say Cannot remove item: error;
-    }
-}
-
-function "find_item" (item_name) {
-    for i in range(len(items)) {
-        if (items[i] == item_name) {
-            return i;
-        }
-    }
-    return -1;
-}
-
-function "show_inventory" {
-    for player in @a {
-        tellraw @s {"text":"Inventory: ","color":"yellow"};
-        for item in items {
-            tellraw @s {"text":"- item","color":"white"};
-        }
-        tellraw @s {"text":"Gold: gold_coins","color":"gold"};
-    }
-}
-
-on_tick "inventory:show_inventory";
-```
-
-## Performance Examples
-
-### Optimized Systems
-
-Demonstrates performance optimization techniques.
-
-```mdl
-// performance.mdl
-pack "Performance" description "Optimized systems" pack_format 82;
-
-namespace "performance";
-
-var num frame_count = 0;
-var num update_interval = 20;
-
-function "optimized_tick" {
-    frame_count = frame_count + 1;
-    
-    // Only update every 20 ticks (1 second)
-    if "score @s frame_count % update_interval == 0" {
-        // Process only nearby entities
-        for entity in @e[type=minecraft:zombie,distance=..32] {
-            effect give @s minecraft:glowing 10 0;
-        }
-        
-        // Batch process players
-        for player in @a[limit=5] {
-            effect give @s minecraft:speed 10 0;
-        }
-    }
-}
-
-function "memory_management" {
-    // Clear old data periodically
-    if "score @s frame_count matches 1200.." {
-        frame_count = 0;
-        say Memory cleanup performed;
-    }
-}
-
-on_tick "performance:optimized_tick";
-on_tick "performance:memory_management";
-```
-
-## Building and Testing
-
-To build these examples:
-
+**Build and test any example:**
 ```bash
-# Build a single file
-mdl build --mdl example.mdl -o dist
-
-# Build multi-file project
-mdl build --mdl "core.mdl combat.mdl ui.mdl" -o dist
-
-# Check syntax
-mdl check example.mdl
-
-# Run tests
-mdl test --mdl example.mdl
+mdl build --mdl test_examples/example_name.mdl -o dist
+# Copy dist/example_name/ to your world's datapacks folder
+# Run /reload in-game
 ```
 
-## VS Code Integration
+## **Simplified** Language Benefits
 
-These examples work perfectly with the VS Code extension:
+The **simplified** MDL language focuses on:
 
-1. **Install the extension** from the marketplace
-2. **Open any .mdl file** to get syntax highlighting
-3. **Use snippets** for rapid development
-4. **Get IntelliSense** for all keywords and functions
-5. **Build directly** from the command palette
+1. **Reliability**: Control structures that actually work
+2. **Simplicity**: Number variables only with `$variable$` substitution
+3. **Clarity**: Clear, readable syntax with explicit block boundaries
+4. **Performance**: Efficient compilation to Minecraft commands
+5. **Maintainability**: Easy to understand and modify
 
-## Next Steps
+This **simplified** approach makes it much easier to create reliable Minecraft datapacks without the complexity of the previous version.
 
-After exploring these examples:
 
-1. **Try the VS Code extension** for the best development experience
-2. **Check the language reference** for complete syntax documentation
-3. **Explore the Python API** for programmatic datapack creation
-4. **Join the community** to share your creations
-
----
-
-**Previous**: [Language Reference](language-reference.md) | **Next**: [Python API](python-api.md)
