@@ -1,0 +1,6 @@
+{
+  "pack": {
+    "description": "Testing very old pack format",
+    "pack_format": 15
+  }
+}

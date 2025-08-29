@@ -612,8 +612,8 @@ class MDLParser:
         else:
             raise RuntimeError(f"Expected tag type identifier, got {token.type}")
         
-        name_token = self._match(TokenType.IDENTIFIER)
-        name = name_token.value
+        name_token = self._match(TokenType.STRING)
+        name = name_token.value.strip('"').strip("'")
         
         self._match(TokenType.LBRACE)
         
