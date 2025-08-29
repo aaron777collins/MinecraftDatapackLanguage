@@ -1,1 +1,0 @@
-scoreboard objectives add player_score dummy
