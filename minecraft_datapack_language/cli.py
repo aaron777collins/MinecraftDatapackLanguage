@@ -120,6 +120,14 @@ def _merge_mdl_files(files: List[Path], verbose: bool = False) -> Optional[Dict[
             else:
                 setattr(func, '_source_namespace', first_file_namespace)
     
+    # Add namespace information to variables from the first file
+    if root_pack.get('variables'):
+        for var in root_pack['variables']:
+            if isinstance(var, dict):
+                var['_source_namespace'] = first_file_namespace
+            else:
+                setattr(var, '_source_namespace', first_file_namespace)
+    
     # Ensure root_pack has required keys
     if 'functions' not in root_pack:
         root_pack['functions'] = []
@@ -159,8 +167,15 @@ def _merge_mdl_files(files: List[Path], verbose: bool = False) -> Optional[Dict[
         if ast.get('tags'):
             root_pack['tags'].extend(ast['tags'])
         
-        # Merge variables
+        # Merge variables with namespace information
         if ast.get('variables'):
+            for var in ast['variables']:
+                # Add namespace information to the variable
+                if isinstance(var, dict):
+                    var['_source_namespace'] = file_namespace
+                else:
+                    # For AST node objects, we'll handle this differently
+                    setattr(var, '_source_namespace', file_namespace)
             root_pack['variables'].extend(ast['variables'])
     
     if verbose:
@@ -677,16 +692,20 @@ def _generate_global_load_function(ast: Dict[str, Any], output_dir: Path, namesp
     # Group variables by their source namespace
     namespace_variables = {}
     
-    # Add top-level variables to the root namespace (the one with the pack declaration)
+    # Add top-level variables to their source namespace
     for var in ast.get('variables', []):
         if isinstance(var, dict):
             var_name = var.get('name', 'unknown')
+            # Check if this variable has a source namespace attribute
+            var_namespace = var.get('_source_namespace', root_namespace)
         else:
             var_name = getattr(var, 'name', 'unknown')
+            # Check if this variable has a source namespace attribute
+            var_namespace = getattr(var, '_source_namespace', root_namespace)
         
-        if root_namespace not in namespace_variables:
-            namespace_variables[root_namespace] = []
-        namespace_variables[root_namespace].append(var_name)
+        if var_namespace not in namespace_variables:
+            namespace_variables[var_namespace] = []
+        namespace_variables[var_namespace].append(var_name)
     
     # Add function-level variables to their respective namespaces
     for function in ast.get('functions', []):
