@@ -864,6 +864,7 @@ Get syntax highlighting, linting, and build commands for `.mdl` files in VS Code
 - **Real-time linting** with error detection
 - **Build commands**: `MDL: Build current file` and `MDL: Check Workspace`
 - **Workspace validation** for multi-file projects
+- **Server function support**: Proper `@a` selector usage for tag-called functions
 
 ### Development Setup
 ```bash

@@ -15,7 +15,7 @@ function "main" {
 ```
 
 ### 2. Variables
-MDL supports three types of variables:
+MDL supports number variables stored in scoreboard objectives:
 
 #### Numbers (stored in scoreboard)
 ```mdl
@@ -25,49 +25,29 @@ counter = 100;
 result = (counter + 10) * 2;
 ```
 
-#### Strings (stored in NBT)
+**Important**: Functions called via tags (like `on_tick`) run as the server and use `@a` selector for player targeting. Functions called directly by players use `@s` selector.
+
+### 3. Variable Substitution
+MDL supports variable substitution in commands and conditions:
+
+#### In Commands
 ```mdl
-var str message = "Hello, MDL!";
-var str greeting = "Welcome";
-message = "Updated message";
+say "Current score: $score$";
+tellraw @a [{"text":"Score: "},{"score":{"name":"@a","objective":"score"}}];
 ```
 
-#### Lists (stored in NBT)
+#### In Conditions
 ```mdl
-var list items = ["sword", "shield", "potion"];
-var list numbers = [1, 2, 3, 4, 5];
-```
-
-### 3. List Operations
-All list operations are fully implemented:
-
-#### Access Elements
-```mdl
-var str first_item = items[0];
-var str second_item = items[1];
-var num index = 2;
-var str dynamic_item = items[index];
-```
-
-#### Modify Lists
-```mdl
-append items "axe";           // Add to end
-insert items[1] "new_item";   // Insert at specific index
-remove items[2];              // Remove by index
-pop items;                    // Remove last element
-clear items;                  // Clear entire list
-```
-
-#### List Information
-```mdl
-var num list_size = length(items);  // Get list length
+if "$counter$ > 10" {
+    say "Counter is high!";
+}
 ```
 
 ### 4. Control Flow
 
 #### If/Else Statements
 ```mdl
-if "score @s counter > 40" {
+if "$counter$ > 40" {
     say "Counter is greater than 40";
     counter = counter - 10;
 } else {

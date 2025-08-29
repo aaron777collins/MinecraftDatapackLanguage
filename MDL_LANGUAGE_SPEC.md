@@ -35,6 +35,9 @@ if "$health$ < 10" {
 if "$counter$ > 5" {
     say "Counter is high!";
 }
+
+// Note: Functions called via tags (on_tick, on_load) use @a selector
+// Functions called directly by players use @s selector
 ```
 
 ### 4. Function Declarations

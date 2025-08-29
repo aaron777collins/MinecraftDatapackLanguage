@@ -19,7 +19,7 @@ from .dir_map import get_dir_map
 conditional_functions = []
 
 
-def _process_variable_substitutions(command: str) -> str:
+def _process_variable_substitutions(command: str, selector: str = "@s") -> str:
     """Process $variable$ substitutions in commands."""
     import re
     
@@ -28,42 +28,42 @@ def _process_variable_substitutions(command: str) -> str:
     
     def replace_var(match):
         var_name = match.group(1)
-        return f'{{"score":{{"name":"@s","objective":"{var_name}"}}}}'
+        return f'{{"score":{{"name":"{selector}","objective":"{var_name}"}}}}'
     
     # Replace variable substitutions in the command
     return re.sub(var_pattern, replace_var, command)
 
 
-def _convert_condition_to_minecraft_syntax(condition: str) -> str:
+def _convert_condition_to_minecraft_syntax(condition: str, selector: str = "@s") -> str:
     """Convert MDL conditions to proper Minecraft scoreboard syntax."""
     import re
     
     # Process variable substitutions in conditions
     if '$' in condition:
-        condition = _process_variable_substitutions(condition)
+        condition = _process_variable_substitutions(condition, selector)
     
     # Handle dynamic variable references using @{variable_name} syntax
-    # This converts @{var_name} to @s var_name for scoreboard references
+    # This converts @{var_name} to selector var_name for scoreboard references
     pattern = r'@\{([^}]+)\}'
     def replace_var_ref(match):
         var_name = match.group(1)
-        return f"@s {var_name}"
+        return f"{selector} {var_name}"
     
     condition = re.sub(pattern, replace_var_ref, condition)
     
     # Convert MDL conditions to Minecraft scoreboard syntax
-    # Pattern: "$variable$ > 50" -> "score @s variable matches 51.."
-    # Pattern: "$variable$ < 10" -> "score @s variable matches ..9"
-    # Pattern: "$variable$ >= 5" -> "score @s variable matches 5.."
-    # Pattern: "$variable$ <= 20" -> "score @s variable matches ..20"
-    # Pattern: "$variable$ == 100" -> "score @s variable matches 100"
-    # Pattern: "$variable$ != 0" -> "score @s variable matches ..-1 1.."
+    # Pattern: "$variable$ > 50" -> "score selector variable matches 51.."
+    # Pattern: "$variable$ < 10" -> "score selector variable matches ..9"
+    # Pattern: "$variable$ >= 5" -> "score selector variable matches 5.."
+    # Pattern: "$variable$ <= 20" -> "score selector variable matches ..20"
+    # Pattern: "$variable$ == 100" -> "score selector variable matches 100"
+    # Pattern: "$variable$ != 0" -> "score selector variable matches ..-1 1.."
     
     # Match patterns like "$variable$ > 50" or "$variable$ < 10"
     score_pattern = r'\$([a-zA-Z_][a-zA-Z0-9_]*)\$\s*([><=!]+)\s*(\d+)'
     
-    # Also match patterns like '{"score":{"name":"@s","objective":"variable"}} > 50'
-    score_pattern_substituted = r'\{"score":\{"name":"@s","objective":"([a-zA-Z_][a-zA-Z0-9_]*)"\}\}\s*([><=!]+)\s*(\d+)'
+    # Also match patterns like '{"score":{"name":"selector","objective":"variable"}} > 50'
+    score_pattern_substituted = r'\{"score":\{"name":"[^"]*","objective":"([a-zA-Z_][a-zA-Z0-9_]*)"\}\}\s*([><=!]+)\s*(\d+)'
     
     def convert_score_comparison(match):
         var_name = match.group(1)
@@ -71,20 +71,20 @@ def _convert_condition_to_minecraft_syntax(condition: str) -> str:
         value = int(match.group(3))
         
         if operator == '>':
-            return f"score @s {var_name} matches {value + 1}.."
+            return f"score {selector} {var_name} matches {value + 1}.."
         elif operator == '>=':
-            return f"score @s {var_name} matches {value}.."
+            return f"score {selector} {var_name} matches {value}.."
         elif operator == '<':
-            return f"score @s {var_name} matches ..{value - 1}"
+            return f"score {selector} {var_name} matches ..{value - 1}"
         elif operator == '<=':
-            return f"score @s {var_name} matches ..{value}"
+            return f"score {selector} {var_name} matches ..{value}"
         elif operator == '==':
-            return f"score @s {var_name} matches {value}"
+            return f"score {selector} {var_name} matches {value}"
         elif operator == '!=':
-            return f"score @s {var_name} matches ..{value - 1} {value + 1}.."
+            return f"score {selector} {var_name} matches ..{value - 1} {value + 1}.."
         else:
             # Fallback for unknown operators
-            return f"score @s {var_name} matches {value}"
+            return f"score {selector} {var_name} matches {value}"
     
     # Apply the conversion for both patterns
     condition = re.sub(score_pattern, convert_score_comparison, condition)
@@ -199,7 +199,7 @@ def _generate_scoreboard_objectives(ast: Dict[str, Any], output_dir: Path) -> Li
     return commands
 
 
-def _process_statement(statement: Any, namespace: str, function_name: str, statement_index: int = 0) -> List[str]:
+def _process_statement(statement: Any, namespace: str, function_name: str, statement_index: int = 0, context: str = "player", selector: str = "@s") -> List[str]:
     """Process a single statement into Minecraft commands."""
     commands = []
     
@@ -216,7 +216,7 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
                     commands.append(result.final_command)
             else:
                 # Initialize to 0
-                commands.append(f"scoreboard players set @s {statement.name} 0")
+                commands.append(f"scoreboard players set {selector} {statement.name} 0")
         
         elif class_name == 'VariableAssignment':
             # Handle variable assignment
@@ -240,7 +240,7 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
                 condition_str = statement.condition.condition_string
             else:
                 condition_str = str(statement.condition)
-            condition = _convert_condition_to_minecraft_syntax(condition_str)
+            condition = _convert_condition_to_minecraft_syntax(condition_str, selector)
             
             # Generate unique labels for this if statement
             if_label = f"{namespace}_{function_name}_if_{statement_index}"
@@ -257,7 +257,7 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
                     elif_condition_str = elif_branch.condition.condition_string
                 else:
                     elif_condition_str = str(elif_branch.condition)
-                elif_condition = _convert_condition_to_minecraft_syntax(elif_condition_str)
+                elif_condition = _convert_condition_to_minecraft_syntax(elif_condition_str, selector)
                 # Only run elif if previous conditions were false
                 commands.append(f"execute unless {condition} if {elif_condition} run function {namespace}:{elif_label}")
             
@@ -271,15 +271,15 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
         
         elif class_name == 'WhileLoop':
             # Handle while loop with method selection
-            condition = _convert_condition_to_minecraft_syntax(statement.condition.condition_string)
+            condition = _convert_condition_to_minecraft_syntax(statement.condition.condition_string, selector)
             method = getattr(statement, 'method', 'recursion')  # Default to recursion
             
             if method == "recursion":
                 # Use current recursion approach (creates multiple function files)
-                commands.extend(_process_while_loop_recursion(statement, namespace, function_name, statement_index))
+                commands.extend(_process_while_loop_recursion(statement, namespace, function_name, statement_index, context, selector))
             elif method == "schedule":
                 # Use schedule-based approach (single function with counter)
-                commands.extend(_process_while_loop_schedule(statement, namespace, function_name, statement_index))
+                commands.extend(_process_while_loop_schedule(statement, namespace, function_name, statement_index, context, selector))
             else:
                 raise ValueError(f"Unknown while loop method: {method}")
         
@@ -315,7 +315,7 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
                             
                             # Add the variable
                             var_name = match.group(1)
-                            json_parts.append(f'{{"score":{{"name":"@s","objective":"{var_name}"}}}}')
+                            json_parts.append(f'{{"score":{{"name":"{selector}","objective":"{var_name}"}}}}')
                             last_end = match.end()
                         
                         # Add any remaining text
@@ -324,13 +324,13 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
                             if text_after:
                                 json_parts.append(f'{{"text":"{text_after}"}}')
                         
-                        command = f'tellraw @a [{",".join(json_parts)}]'
+                        command = f'tellraw {selector} [{",".join(json_parts)}]'
                     else:
                         # No variables, simple conversion
-                        command = f'tellraw @a [{{"text":"{text_content}"}}]'
+                        command = f'tellraw {selector} [{{"text":"{text_content}"}}]'
                 else:
                     # Fallback: if regex doesn't match, still convert to tellraw
-                    command = command.replace('say "', 'tellraw @a [{"text":"')
+                    command = command.replace('say "', f'tellraw {selector} [{{"text":"')
                     command = command.replace('"', '"}]')
             
             # Process variable substitutions in strings for other commands
@@ -343,7 +343,7 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
                     
                     def replace_var_in_tellraw(match):
                         var_name = match.group(1)
-                        return f'{{"score":{{"name":"@s","objective":"{var_name}"}}}}'
+                        return f'{{"score":{{"name":"{selector}","objective":"{var_name}"}}}}'
                     
                     # Replace variable substitutions
                     command = re.sub(var_pattern, replace_var_in_tellraw, command)
@@ -356,7 +356,7 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
                     command = command.replace(' : ', ': ')
                 else:
                     # Simple variable substitution for other commands
-                    command = _process_variable_substitutions(command)
+                    command = _process_variable_substitutions(command, selector)
             elif command.startswith('tellraw'):
                 # For tellraw commands without variables, still clean up spacing
                 command = command.replace(' @ s ', ' @s ')
@@ -376,6 +376,34 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
     
     return commands
 
+
+def _determine_function_context(function_name: str, namespace: str, ast: Dict[str, Any]) -> str:
+    """Determine the context of a function (server, player, or mixed)."""
+    # Check if function is called via tags (server context)
+    is_server_function = False
+    for hook in ast.get('hooks', []):
+        hook_function_name = hook['function_name']
+        # Check if this hook calls our function (with or without namespace)
+        if (hook_function_name == function_name or 
+            hook_function_name == f"{namespace}:{function_name}" or
+            hook_function_name.endswith(f":{function_name}")):
+            is_server_function = True
+            break
+    
+    # For now, if it's a server function, use @a
+    # If it's only called directly by players, use @s
+    # This is a simplified approach - in a more complex system we'd track both contexts
+    if is_server_function:
+        return "server"  # Use @a selector
+    else:
+        return "player"  # Use @s selector
+
+def _get_selector_for_context(context: str) -> str:
+    """Get the appropriate selector for a given context."""
+    if context == "server":
+        return "@a"  # Server functions target all players
+    else:
+        return "@s"  # Player functions target the executing player
 
 def _generate_function_file(ast: Dict[str, Any], output_dir: Path, namespace: str, verbose: bool = False) -> None:
     """Generate function files with support for different pack format directory structures."""
@@ -405,15 +433,29 @@ def _generate_function_file(ast: Dict[str, Any], output_dir: Path, namespace: st
         
         commands = []
         
+        # Determine function context and selector
+        context = _determine_function_context(function_name, namespace, ast)
+        selector = _get_selector_for_context(context)
+        
+        # Debug output - always print
+        print(f"DEBUG: Function {function_name}: context={context}, selector={selector}")
+        print(f"DEBUG: Hooks: {ast.get('hooks', [])}")
+        
+        if verbose:
+            print(f"Function {function_name}: context={context}, selector={selector}")
+            print(f"  Hooks: {ast.get('hooks', [])}")
+            print(f"  Looking for: {function_name} or {namespace}:{function_name}")
+            print(f"  Hook function names: {[hook.get('function_name', '') for hook in ast.get('hooks', [])]}")
+        
         # Process each statement in the function
         for i, statement in enumerate(body):
             if verbose:
                 print(f"Processing statement: {type(statement)} = {statement}")
-            commands.extend(_process_statement(statement, namespace, function_name, i))
+            commands.extend(_process_statement(statement, namespace, function_name, i, context, selector))
             
             # Collect conditional functions for if statements
             if hasattr(statement, '__class__') and statement.__class__.__name__ == 'IfStatement':
-                conditional_functions.extend(_collect_conditional_functions(statement, namespace, function_name, i))
+                conditional_functions.extend(_collect_conditional_functions(statement, namespace, function_name, i, context, selector))
         
         # Write the function file
         with open(function_file, 'w', encoding='utf-8') as f:
@@ -512,7 +554,7 @@ def _validate_pack_format(pack_format: int) -> None:
         print("  - Tag directories: items/, blocks/, entity_types/, fluids/, game_events/ (<43)")
 
 
-def _collect_conditional_functions(if_statement, namespace: str, function_name: str, statement_index: int) -> List[tuple]:
+def _collect_conditional_functions(if_statement, namespace: str, function_name: str, statement_index: int, context: str = "player", selector: str = "@s") -> List[tuple]:
     """Collect all conditional functions from an if statement"""
     functions = []
     
@@ -520,7 +562,7 @@ def _collect_conditional_functions(if_statement, namespace: str, function_name: 
     if_label = f"{namespace}_{function_name}_if_{statement_index}"
     if_commands = []
     for j, stmt in enumerate(if_statement.body):
-        if_commands.extend(_process_statement(stmt, namespace, function_name, j))
+        if_commands.extend(_process_statement(stmt, namespace, function_name, j, context, selector))
     functions.append((if_label, if_commands))
     
     # Generate elif body functions
@@ -528,7 +570,7 @@ def _collect_conditional_functions(if_statement, namespace: str, function_name: 
         elif_label = f"{namespace}_{function_name}_elif_{statement_index}_{i}"
         elif_commands = []
         for j, stmt in enumerate(elif_branch.body):
-            elif_commands.extend(_process_statement(stmt, namespace, function_name, j))
+            elif_commands.extend(_process_statement(stmt, namespace, function_name, j, context, selector))
         functions.append((elif_label, elif_commands))
     
     # Generate else body function
@@ -536,7 +578,7 @@ def _collect_conditional_functions(if_statement, namespace: str, function_name: 
         else_label = f"{namespace}_{function_name}_else_{statement_index}"
         else_commands = []
         for j, stmt in enumerate(if_statement.else_body):
-            else_commands.extend(_process_statement(stmt, namespace, function_name, j))
+            else_commands.extend(_process_statement(stmt, namespace, function_name, j, context, selector))
         functions.append((else_label, else_commands))
     
     # Generate end function (empty)
@@ -546,16 +588,16 @@ def _collect_conditional_functions(if_statement, namespace: str, function_name: 
     return functions
 
 
-def _process_while_loop_recursion(while_statement, namespace: str, function_name: str, statement_index: int) -> List[str]:
+def _process_while_loop_recursion(while_statement, namespace: str, function_name: str, statement_index: int, context: str = "player", selector: str = "@s") -> List[str]:
     """Process while loop using recursion method (creates multiple function files)"""
     commands = []
-    condition = _convert_condition_to_minecraft_syntax(while_statement.condition.condition_string)
+    condition = _convert_condition_to_minecraft_syntax(while_statement.condition.condition_string, selector)
     
     # Generate loop body function
     loop_label = f"{namespace}_{function_name}_while_{statement_index}"
     loop_commands = []
     for j, stmt in enumerate(while_statement.body):
-        loop_commands.extend(_process_statement(stmt, namespace, function_name, j))
+        loop_commands.extend(_process_statement(stmt, namespace, function_name, j, context, selector))
     
     # Add recursive call to continue the loop
     loop_commands.append(f"execute if {condition} run function {namespace}:{loop_label}")
@@ -571,16 +613,16 @@ def _process_while_loop_recursion(while_statement, namespace: str, function_name
     return commands
 
 
-def _process_while_loop_schedule(while_statement, namespace: str, function_name: str, statement_index: int) -> List[str]:
+def _process_while_loop_schedule(while_statement, namespace: str, function_name: str, statement_index: int, context: str = "player", selector: str = "@s") -> List[str]:
     """Process while loop using schedule method (single function with counter)"""
     commands = []
-    condition = _convert_condition_to_minecraft_syntax(while_statement.condition.condition_string)
+    condition = _convert_condition_to_minecraft_syntax(while_statement.condition.condition_string, selector)
     
     # Generate loop body function
     loop_label = f"{namespace}_{function_name}_while_{statement_index}"
     loop_commands = []
     for j, stmt in enumerate(while_statement.body):
-        loop_commands.extend(_process_statement(stmt, namespace, function_name, j))
+        loop_commands.extend(_process_statement(stmt, namespace, function_name, j, context, selector))
     
     # Add recursive schedule call to continue the loop
     loop_commands.append(f"execute if {condition} run schedule function {namespace}:{loop_label} 1t")
@@ -760,7 +802,7 @@ function "helper" {{
     say "Calculation result: $result$";
     
     // Variable substitution in tellraw
-    tellraw @s [{{"text":"Score: "}},{{"score":{{"name":"@s","objective":"player_score"}}}}];
+    tellraw @a [{{"text":"Score: "}},{{"score":{{"name":"@a","objective":"player_score"}}}}];
 }}
 
 // Hook to run main function every tick
