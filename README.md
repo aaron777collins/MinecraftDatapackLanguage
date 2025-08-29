@@ -564,15 +564,23 @@ function "conditional_example" {
 
 #### While Loops
 
-MDL supports while loops for repetitive execution:
+MDL supports while loops with method selection for repetitive execution:
 
 ```mdl
 function "while_example" {
     var num counter = 5;
+    
+    // Default recursion method (immediate execution)
     while "$counter$ > 0" {
-        say Counter: $counter$;
-        counter = counter - 1;
-        say Decremented counter;
+        say "Counter: $counter$";
+        counter = $counter$ - 1;
+    }
+    
+    // Schedule method (spreads across ticks for performance)
+    counter = 10;
+    while "$counter$ > 0" method="schedule" {
+        say "Schedule counter: $counter$";
+        counter = $counter$ - 1;
     }
 }
 ```
@@ -582,28 +590,12 @@ function "while_example" {
 - **Explicit block boundaries**: While loops use curly braces `{` and `}`
 - **Statement termination**: All commands must end with semicolons `;`
 - While loops continue until the condition becomes false
+- **Method Selection**: Choose `method="recursion"` (default) or `method="schedule"`
+- **Recursion method**: Executes all iterations immediately (good for small loops)
+- **Schedule method**: Spreads iterations across ticks (better for long loops, prevents lag)
 - **Important**: Ensure your loop body modifies the condition to avoid infinite loops
 
-#### For Loops
-
-MDL supports for loops for iterating over entity collections:
-
-```mdl
-function "for_example" {
-    for player in @a {
-        say Processing player: @s;
-        effect give @s minecraft:speed 10 1;
-        tellraw @s {"text":"You got speed!","color":"green"};
-    }
-}
-```
-
-**Rules:**
-- Collection must be a valid Minecraft entity selector
-- **Explicit block boundaries**: For loops use curly braces `{` and `}`
-- **Statement termination**: All commands must end with semicolons `;`
-- For loops iterate over each entity in the collection
-- **Efficient execution**: Each conditional block becomes a separate function for optimal performance
+**Implementation**: While loops generate separate function files with proper recursive calls to continue execution until the condition becomes false.
 
 ---
 

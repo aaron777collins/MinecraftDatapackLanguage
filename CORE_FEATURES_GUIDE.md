@@ -77,6 +77,8 @@ if "score @s counter > 40" {
 ```
 
 #### While Loops with Method Selection
+While loops implement proper recursive logic to continue execution until the condition becomes false.
+
 ```mdl
 // Default recursion method (good for small loops)
 while "$counter$ > 0" {
@@ -90,11 +92,26 @@ while "$counter$ < 100" method="recursion" {
     counter = $counter$ + 1;
 }
 
-// Schedule method (better for long loops)
+// Schedule method (better for long loops - spreads across ticks)
 while "$counter$ < 1000" method="schedule" {
     say "Schedule loop: $counter$";
     counter = $counter$ + 1;
 }
+```
+
+**How it works:**
+- **Recursion method**: Each loop function calls itself recursively when the condition is still true, executing all iterations immediately
+- **Schedule method**: Each loop function schedules itself to run 1 tick later when the condition is still true, spreading iterations across multiple game ticks for better performance
+
+**Generated code example (recursion):**
+```mcfunction
+# Main function
+execute if score @s counter matches 1.. run function namespace:loop_function
+
+# Loop function (recursively calls itself)
+tellraw @a [{"text":"Counter: "},{"score":{"name":"@s","objective":"counter"}}]
+scoreboard players remove @s counter 1
+execute if score @s counter matches 1.. run function namespace:loop_function
 ```
 
 ### 5. Arithmetic Operations
