@@ -131,7 +131,8 @@ class MDLParser:
             'hooks': [],
             'tags': [],
             'imports': [],
-            'exports': []
+            'exports': [],
+            'variables': []  # Add support for top-level variable declarations
         }
         
         while not self._is_at_end():
@@ -147,6 +148,9 @@ class MDLParser:
                 ast['hooks'].append(self._parse_hook_declaration())
             elif self._peek().type == TokenType.TAG:
                 ast['tags'].append(self._parse_tag_declaration())
+            elif self._peek().type == TokenType.VAR:
+                # Handle top-level variable declarations
+                ast['variables'].append(self._parse_variable_declaration())
             else:
                 # Skip unknown tokens
                 self._advance()

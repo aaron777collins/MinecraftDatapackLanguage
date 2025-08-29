@@ -166,7 +166,7 @@ def _generate_scoreboard_objectives(ast: Dict[str, Any], output_dir: Path) -> Li
     """Generate scoreboard objectives for all variables."""
     objectives = set()
     
-    # Find all variable declarations and assignments
+    # Find all variable declarations and assignments in functions
     for function in ast.get('functions', []):
         # Handle both dict and AST node objects
         if isinstance(function, dict):
@@ -186,6 +186,11 @@ def _generate_scoreboard_objectives(ast: Dict[str, Any], output_dir: Path) -> Li
                     objectives.add(statement['name'])
                 elif 'name' in statement and 'value' in statement:
                     objectives.add(statement['name'])
+    
+    # Also look for top-level variable declarations (outside functions)
+    for variable in ast.get('variables', []):
+        if hasattr(variable, 'name'):
+            objectives.add(variable.name)
     
     # Generate scoreboard commands
     commands = []
