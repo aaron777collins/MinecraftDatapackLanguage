@@ -414,10 +414,14 @@ def _generate_function_file(ast: Dict[str, Any], output_dir: Path, namespace: st
                 is_tag_function = True
                 break
         
-        # For server-run functions (tick/load hooks), use @a (all players)
+        # For server-run functions (tick/load hooks), use a server armor stand
         # For player-called functions, use @s (self)
-        # If no players are online, the commands simply won't execute, which is fine
-        selector = "@a" if is_tag_function else "@s"
+        if is_tag_function:
+            # Create a server armor stand for server-run functions
+            commands.append("execute unless entity @e[type=armor_stand,tag=mdl_server,limit=1] run summon armor_stand ~ ~ ~ {Tags:[\"mdl_server\"],Invisible:1b,Marker:1b,NoGravity:1b}")
+            selector = "@e[type=armor_stand,tag=mdl_server,limit=1]"
+        else:
+            selector = "@s"
         
         # Debug output - always print
         print(f"DEBUG: Function {function_name}: is_tag_function={is_tag_function}, selector={selector}")
