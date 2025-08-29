@@ -203,9 +203,6 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
     """Process a single statement into Minecraft commands."""
     commands = []
     
-    # Determine selector based on function context
-    selector = "@a" if is_tag_function else "@s"
-    
     if hasattr(statement, '__class__'):
         class_name = statement.__class__.__name__
         
