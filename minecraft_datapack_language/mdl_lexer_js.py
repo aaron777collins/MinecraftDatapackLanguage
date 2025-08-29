@@ -27,8 +27,6 @@ class TokenType:
     ELSE = "ELSE"
     ELSE_IF = "ELSE_IF"
     WHILE = "WHILE"
-    FOR = "FOR"
-    IN = "IN"
     ON_TICK = "ON_TICK"
     ON_LOAD = "ON_LOAD"
     TAG = "TAG"
@@ -195,8 +193,6 @@ class MDLLexer:
             'if': TokenType.IF,
             'else': TokenType.ELSE,
             'while': TokenType.WHILE,
-            'for': TokenType.FOR,
-            'in': TokenType.IN,
             'on_tick': TokenType.ON_TICK,
             'on_load': TokenType.ON_LOAD,
             'tag': TokenType.TAG,

@@ -750,9 +750,9 @@ function "main" {{
         say "Timer: $game_timer$";
     }}
     
-    // For loop to iterate over players
-    for player in "@a" {{
-        say "Hello $player$!";
+    // While loop example (for loops are no longer supported)
+    while "$player_count$ < 5" {{
+        say "Player count: $player_count$";
         player_count = $player_count$ + 1;
     }}
     

@@ -212,6 +212,10 @@ class MDLParser:
         elif self._peek().type == TokenType.FUNCTION:
             return self._parse_function_call()
         elif self._peek().type == TokenType.IDENTIFIER:
+            # Check for for loops (which are no longer supported)
+            if self._peek().value == "for":
+                raise ValueError("For loops are no longer supported in MDL. Use while loops instead.")
+            
             # Check if this is a variable assignment (identifier followed by =)
             if (self.current + 1 < len(self.tokens) and 
                 self.tokens[self.current + 1].type == TokenType.ASSIGN):
