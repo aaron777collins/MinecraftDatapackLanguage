@@ -184,45 +184,47 @@ def _process_statement(statement: Any, namespace: str, function_name: str) -> Li
                     commands.append(cmd)
         
         elif class_name == 'IfStatement':
-            # Handle if statement
+            # Handle if statement - simplified inline approach
             condition = _convert_condition_to_minecraft_syntax(statement.condition)
             
-            # Generate unique labels
-            if_label = f"{namespace}_{function_name}_if_{len(commands)}"
-            end_label = f"{namespace}_{function_name}_if_end_{len(commands)}"
+            # For now, just add a comment about the if statement
+            commands.append(f"# if {condition}")
             
-            # Add condition check
-            commands.append(f"execute if {condition} run function {namespace}:{if_label}")
+            # Process the if body statements
+            for stmt in statement.body:
+                commands.extend(_process_statement(stmt, namespace, function_name))
             
-            # Add else if branches
-            for i, elif_branch in enumerate(statement.elif_branches):
-                elif_label = f"{namespace}_{function_name}_elif_{len(commands)}_{i}"
+            # Process else if branches
+            for elif_branch in statement.elif_branches:
                 elif_condition = _convert_condition_to_minecraft_syntax(elif_branch.condition)
-                commands.append(f"execute unless {condition} if {elif_condition} run function {namespace}:{elif_label}")
+                commands.append(f"# else if {elif_condition}")
+                for stmt in elif_branch.body:
+                    commands.extend(_process_statement(stmt, namespace, function_name))
             
-            # Add else branch
+            # Process else body
             if statement.else_body:
-                else_label = f"{namespace}_{function_name}_else_{len(commands)}"
-                commands.append(f"execute unless {condition} run function {namespace}:{else_label}")
-            
-            # Add end label
-            commands.append(f"function {namespace}:{end_label}")
+                commands.append("# else")
+                for stmt in statement.else_body:
+                    commands.extend(_process_statement(stmt, namespace, function_name))
         
         elif class_name == 'WhileLoop':
-            # Handle while loop
+            # Handle while loop - simplified inline approach
             condition = _convert_condition_to_minecraft_syntax(statement.condition.condition_string)
             
-            # Generate unique labels
-            loop_label = f"{namespace}_{function_name}_while_{len(commands)}"
-            end_label = f"{namespace}_{function_name}_while_end_{len(commands)}"
+            # For now, just add a comment about the while loop
+            commands.append(f"# while {condition}")
             
-            # Add loop start
-            commands.append(f"execute if {condition} run function {namespace}:{loop_label}")
-            commands.append(f"function {namespace}:{end_label}")
+            # Process the loop body statements
+            for stmt in statement.body:
+                commands.extend(_process_statement(stmt, namespace, function_name))
         
         elif class_name == 'ForLoop':
-            # Handle for loop (entity iteration)
-            commands.append(f"execute as {statement.selector} run function {namespace}:{function_name}_for_{len(commands)}")
+            # Handle for loop - simplified inline approach
+            commands.append(f"# for {statement.variable} in {statement.selector}")
+            
+            # Process the loop body statements
+            for stmt in statement.body:
+                commands.extend(_process_statement(stmt, namespace, function_name))
         
         elif class_name == 'Command':
             # Handle regular command
@@ -388,6 +390,18 @@ def _validate_pack_format(pack_format: int) -> None:
         print("  - Tag directories: items/, blocks/, entity_types/, fluids/, game_events/ (<43)")
 
 
+def _create_zip_file(source_dir: Path, zip_path: Path) -> None:
+    """Create a zip file from the datapack directory."""
+    import zipfile
+    
+    with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
+        for file_path in source_dir.rglob('*'):
+            if file_path.is_file():
+                # Get the relative path from the source directory
+                arcname = file_path.relative_to(source_dir)
+                zipf.write(file_path, arcname)
+
+
 def _generate_pack_mcmeta(ast: Dict[str, Any], output_dir: Path) -> None:
     """Generate pack.mcmeta file with support for both pre-82 and post-82 formats."""
     pack_info = ast.get('pack')
@@ -473,8 +487,12 @@ def build_mdl(input_path: str, output_path: str, verbose: bool = False) -> None:
     # Generate pack.mcmeta
     _generate_pack_mcmeta(ast, output_dir)
     
+    # Create zip file
+    _create_zip_file(output_dir, output_dir.parent / f"{output_dir.name}.zip")
+    
     if verbose:
         print(f"Successfully built datapack: {output_dir}")
+        print(f"Created zip file: {output_dir.parent / f'{output_dir.name}.zip'}")
 
 
 def create_new_project(project_name: str, pack_name: str = None) -> None:

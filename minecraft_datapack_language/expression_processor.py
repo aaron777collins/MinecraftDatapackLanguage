@@ -85,6 +85,9 @@ class ExpressionProcessor:
             return expr.name
         elif hasattr(expr, 'value'):
             return str(expr.value)
+        elif hasattr(expr, 'variable_name'):
+            # Handle VariableSubstitutionExpression
+            return expr.variable_name
         else:
             return str(expr)
     
