@@ -599,7 +599,7 @@ class MDLLexer:
             elif part == "clear":
                 self.tokens.append(Token(TokenType.CLEAR, "clear", line_num, 0))
             elif part == "length":
-                self.tokens.append(Token(TokenType.LENGTH, "length", line_num, 0))
+                self.tokens.append(Token(TokenType.IDENTIFIER, "length", line_num, 0))
             # length is now treated as a regular identifier for function calls
             elif part == "break":
                 self.tokens.append(Token(TokenType.BREAK, "break", line_num, 0))

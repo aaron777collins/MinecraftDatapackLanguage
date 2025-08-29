@@ -846,7 +846,8 @@ class MDLParser:
             self._advance()
             return LiteralExpression(token.value, "string")
         elif token.type == TokenType.IDENTIFIER:
-            self._advance()
+            identifier_name = token.value
+            self._advance()  # consume the identifier
             # Check if this is a function call (identifier followed by ()
             if self._peek() and self._peek().type == TokenType.LPAREN:
                 # Parse function call
@@ -858,20 +859,25 @@ class MDLParser:
                         self._advance()  # consume comma
                         arguments.append(self._parse_expression())
                 self._match(TokenType.RPAREN)
-                return FunctionCall(token.value, arguments)
+                
+                # Check if this is a built-in function call
+                if identifier_name == "length":
+                    return BuiltInFunctionCall("length", arguments)
+                else:
+                    return FunctionCall(identifier_name, arguments)
             # Check if this is a list access (identifier followed by [)
             elif self._peek() and self._peek().type == TokenType.LBRACKET:
                 self._advance()  # consume [
                 index = self._parse_expression()
                 self._match(TokenType.RBRACKET)
-                return ListAccessExpression(token.value, index)
+                return ListAccessExpression(identifier_name, index)
             # Check if this is a list length (identifier.length)
             elif self._peek() and self._peek().type == TokenType.DOT:
                 self._advance()  # consume .
-                if self._peek() and self._peek().type == TokenType.LENGTH:
+                if self._peek() and self._peek().type == TokenType.IDENTIFIER and self._peek().value == "length":
                     self._advance()  # consume length
-                    return ListLengthExpression(token.value)
-            return VariableExpression(token.value)
+                    return ListLengthExpression(identifier_name)
+            return VariableExpression(identifier_name)
         elif token.type == TokenType.LPAREN:
             self._advance()  # consume (
             expr = self._parse_expression()

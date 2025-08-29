@@ -1,0 +1,14 @@
+pack "list_test" description "Simple list test" pack_format 82;
+
+namespace "test";
+
+function "list_demo" {
+    var list items = ["sword", "shield"];
+    var str first = items[0];
+    var num count = length(items);
+    
+    tellraw @s {"text":"First item: "};
+    tellraw @s [{"text":"Count: "},{"score":{"name":"@s","objective":"count"}}];
+}
+
+on_tick "test:list_demo";
