@@ -620,7 +620,7 @@ def _generate_hook_files(ast: Dict[str, Any], output_dir: Path, namespace: str) 
         all_namespaces = set()
         for function in ast.get('functions', []):
             if isinstance(function, dict):
-                func_namespace = getattr(function, '_source_namespace', root_namespace)
+                func_namespace = function.get('_source_namespace', root_namespace)
             else:
                 func_namespace = getattr(function, '_source_namespace', root_namespace)
             all_namespaces.add(func_namespace)
