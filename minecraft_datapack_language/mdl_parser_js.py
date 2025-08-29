@@ -111,6 +111,48 @@ class ConditionExpression(Expression):
     condition_string: str
 
 
+@dataclass
+class RecipeDeclaration(ASTNode):
+    """Recipe declaration."""
+    name: str
+    data: dict
+
+
+@dataclass
+class LootTableDeclaration(ASTNode):
+    """Loot table declaration."""
+    name: str
+    data: dict
+
+
+@dataclass
+class AdvancementDeclaration(ASTNode):
+    """Advancement declaration."""
+    name: str
+    data: dict
+
+
+@dataclass
+class PredicateDeclaration(ASTNode):
+    """Predicate declaration."""
+    name: str
+    data: dict
+
+
+@dataclass
+class ItemModifierDeclaration(ASTNode):
+    """Item modifier declaration."""
+    name: str
+    data: dict
+
+
+@dataclass
+class StructureDeclaration(ASTNode):
+    """Structure declaration."""
+    name: str
+    data: dict
+
+
 class MDLParser:
     """Parser for simplified MDL language."""
     
@@ -128,7 +170,13 @@ class MDLParser:
             'tags': [],
             'imports': [],
             'exports': [],
-            'variables': []  # Add support for top-level variable declarations
+            'variables': [],  # Add support for top-level variable declarations
+            'recipes': [],
+            'loot_tables': [],
+            'advancements': [],
+            'predicates': [],
+            'item_modifiers': [],
+            'structures': []
         }
         
         while not self._is_at_end():
@@ -147,6 +195,18 @@ class MDLParser:
             elif self._peek().type == TokenType.VAR:
                 # Handle top-level variable declarations
                 ast['variables'].append(self._parse_variable_declaration())
+            elif self._peek().type == TokenType.RECIPE:
+                ast['recipes'].append(self._parse_recipe_declaration())
+            elif self._peek().type == TokenType.LOOT_TABLE:
+                ast['loot_tables'].append(self._parse_loot_table_declaration())
+            elif self._peek().type == TokenType.ADVANCEMENT:
+                ast['advancements'].append(self._parse_advancement_declaration())
+            elif self._peek().type == TokenType.PREDICATE:
+                ast['predicates'].append(self._parse_predicate_declaration())
+            elif self._peek().type == TokenType.ITEM_MODIFIER:
+                ast['item_modifiers'].append(self._parse_item_modifier_declaration())
+            elif self._peek().type == TokenType.STRUCTURE:
+                ast['structures'].append(self._parse_structure_declaration())
             else:
                 # Skip unknown tokens
                 self._advance()
@@ -200,6 +260,168 @@ class MDLParser:
         self._match(TokenType.RBRACE)
         
         return {"name": name, "body": body}
+    
+    def _parse_recipe_declaration(self) -> RecipeDeclaration:
+        """Parse recipe declaration."""
+        self._match(TokenType.RECIPE)
+        
+        name_token = self._match(TokenType.STRING)
+        name = name_token.value.strip('"').strip("'")
+        
+        # Check if next token is a brace (inline JSON) or string (file path)
+        if self._peek().type == TokenType.LBRACE:
+            # Inline JSON
+            self._match(TokenType.LBRACE)
+            json_data = self._parse_json_block()
+            data = json_data
+        else:
+            # JSON file path
+            json_file_token = self._match(TokenType.STRING)
+            json_file = json_file_token.value.strip('"').strip("'")
+            self._match(TokenType.SEMICOLON)
+            data = {"json_file": json_file}
+        
+        return {"name": name, "data": data}
+    
+    def _parse_json_block(self) -> dict:
+        """Parse a JSON block until matching closing brace."""
+        import json
+        
+        # Collect all tokens until matching closing brace
+        brace_count = 1
+        json_tokens = []
+        
+        while not self._is_at_end() and brace_count > 0:
+            token = self._peek()
+            if token.type == TokenType.LBRACE:
+                brace_count += 1
+            elif token.type == TokenType.RBRACE:
+                brace_count -= 1
+            
+            if brace_count > 0:  # Don't include the final closing brace
+                json_tokens.append(token)
+            
+            self._advance()
+        
+        # Convert tokens back to string
+        json_string = "".join([token.value for token in json_tokens])
+        
+        try:
+            # Parse as JSON
+            return json.loads(json_string)
+        except json.JSONDecodeError as e:
+            # Return as raw string if JSON parsing fails
+            return {"raw_json": json_string}
+    
+    def _parse_loot_table_declaration(self) -> LootTableDeclaration:
+        """Parse loot table declaration."""
+        self._match(TokenType.LOOT_TABLE)
+        
+        name_token = self._match(TokenType.STRING)
+        name = name_token.value.strip('"').strip("'")
+        
+        # Check if next token is a brace (inline JSON) or string (file path)
+        if self._peek().type == TokenType.LBRACE:
+            # Inline JSON
+            self._match(TokenType.LBRACE)
+            json_data = self._parse_json_block()
+            data = json_data
+        else:
+            # JSON file path
+            json_file_token = self._match(TokenType.STRING)
+            json_file = json_file_token.value.strip('"').strip("'")
+            self._match(TokenType.SEMICOLON)
+            data = {"json_file": json_file}
+        
+        return {"name": name, "data": data}
+    
+    def _parse_advancement_declaration(self) -> AdvancementDeclaration:
+        """Parse advancement declaration."""
+        self._match(TokenType.ADVANCEMENT)
+        
+        name_token = self._match(TokenType.STRING)
+        name = name_token.value.strip('"').strip("'")
+        
+        # Check if next token is a brace (inline JSON) or string (file path)
+        if self._peek().type == TokenType.LBRACE:
+            # Inline JSON
+            self._match(TokenType.LBRACE)
+            json_data = self._parse_json_block()
+            data = json_data
+        else:
+            # JSON file path
+            json_file_token = self._match(TokenType.STRING)
+            json_file = json_file_token.value.strip('"').strip("'")
+            self._match(TokenType.SEMICOLON)
+            data = {"json_file": json_file}
+        
+        return {"name": name, "data": data}
+    
+    def _parse_predicate_declaration(self) -> PredicateDeclaration:
+        """Parse predicate declaration."""
+        self._match(TokenType.PREDICATE)
+        
+        name_token = self._match(TokenType.STRING)
+        name = name_token.value.strip('"').strip("'")
+        
+        # Check if next token is a brace (inline JSON) or string (file path)
+        if self._peek().type == TokenType.LBRACE:
+            # Inline JSON
+            self._match(TokenType.LBRACE)
+            json_data = self._parse_json_block()
+            data = json_data
+        else:
+            # JSON file path
+            json_file_token = self._match(TokenType.STRING)
+            json_file = json_file_token.value.strip('"').strip("'")
+            self._match(TokenType.SEMICOLON)
+            data = {"json_file": json_file}
+        
+        return {"name": name, "data": data}
+    
+    def _parse_item_modifier_declaration(self) -> ItemModifierDeclaration:
+        """Parse item modifier declaration."""
+        self._match(TokenType.ITEM_MODIFIER)
+        
+        name_token = self._match(TokenType.STRING)
+        name = name_token.value.strip('"').strip("'")
+        
+        # Check if next token is a brace (inline JSON) or string (file path)
+        if self._peek().type == TokenType.LBRACE:
+            # Inline JSON
+            self._match(TokenType.LBRACE)
+            json_data = self._parse_json_block()
+            data = json_data
+        else:
+            # JSON file path
+            json_file_token = self._match(TokenType.STRING)
+            json_file = json_file_token.value.strip('"').strip("'")
+            self._match(TokenType.SEMICOLON)
+            data = {"json_file": json_file}
+        
+        return {"name": name, "data": data}
+    
+    def _parse_structure_declaration(self) -> StructureDeclaration:
+        """Parse structure declaration."""
+        self._match(TokenType.STRUCTURE)
+        
+        name_token = self._match(TokenType.STRING)
+        name = name_token.value.strip('"').strip("'")
+        
+        # Check if next token is a brace (inline JSON) or string (file path)
+        if self._peek().type == TokenType.LBRACE:
+            # Inline JSON
+            self._match(TokenType.LBRACE)
+            json_data = self._parse_json_block()
+            data = json_data
+        else:
+            # JSON file path
+            json_file_token = self._match(TokenType.STRING)
+            json_file = json_file_token.value.strip('"').strip("'")
+            self._match(TokenType.SEMICOLON)
+            data = {"json_file": json_file}
+        
+        return {"name": name, "data": data}
     
     def _parse_statement(self) -> ASTNode:
         """Parse a statement."""

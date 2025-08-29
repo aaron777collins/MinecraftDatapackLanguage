@@ -14,6 +14,7 @@ from .mdl_lexer_js import lex_mdl_js
 from .mdl_parser_js import parse_mdl_js
 from .expression_processor import expression_processor
 from .dir_map import get_dir_map
+from .pack import Pack, Namespace, Function, Tag, Recipe, Advancement, LootTable, Predicate, ItemModifier, Structure
 
 # Global variable to store conditional functions
 conditional_functions = []
@@ -945,6 +946,234 @@ def _generate_pack_mcmeta(ast: Dict[str, Any], output_dir: Path) -> None:
         json.dump(pack_mcmeta, f, indent=2)
 
 
+def _ast_to_pack(ast: Dict[str, Any]) -> Pack:
+    """Convert AST to Pack object to enable all registry types."""
+    pack_info = ast.get('pack', {}) or {}
+    pack_name = pack_info.get('name', 'mdl_pack')
+    pack_description = pack_info.get('description', 'MDL generated pack')
+    pack_format = pack_info.get('pack_format', 82)
+    
+    # Create pack with proper format support
+    pack = Pack(pack_name, pack_description, pack_format)
+    
+    # Get namespace
+    namespace_name = ast.get('namespace', {}).get('name', 'mdl') if ast.get('namespace') else 'mdl'
+    namespace = pack.namespace(namespace_name)
+    
+    # Add functions
+    for func in ast.get('functions', []):
+        if isinstance(func, dict):
+            func_name = func.get('name', 'unknown')
+            body = func.get('body', [])
+        else:
+            func_name = getattr(func, 'name', 'unknown')
+            body = getattr(func, 'body', [])
+        
+        # Convert body to commands
+        commands = []
+        for statement in body:
+            if hasattr(statement, '__class__'):
+                class_name = statement.__class__.__name__
+                if class_name in ['VariableDeclaration', 'VariableAssignment']:
+                    # Skip variable declarations/assignments - they're handled by the CLI
+                    continue
+                elif class_name == 'Command':
+                    commands.append(statement.command)
+                elif class_name == 'FunctionCall':
+                    commands.append(f"function {statement.function_name}")
+                elif class_name == 'IfStatement':
+                    # Handle if statements - they'll be processed by the CLI
+                    continue
+                elif class_name == 'WhileStatement':
+                    # Handle while statements - they'll be processed by the CLI
+                    continue
+            elif isinstance(statement, dict):
+                if 'command' in statement:
+                    commands.append(statement['command'])
+                elif 'function_name' in statement:
+                    commands.append(f"function {statement['function_name']}")
+        
+        if commands:
+            namespace.function(func_name, *commands)
+    
+    # Add hooks
+    for hook in ast.get('hooks', []):
+        if isinstance(hook, dict):
+            hook_type = hook.get('hook_type', 'load')
+            function_name = hook.get('function_name', 'unknown')
+        else:
+            hook_type = getattr(hook, 'hook_type', 'load')
+            function_name = getattr(hook, 'function_name', 'unknown')
+        
+        full_function_id = f"{namespace_name}:{function_name}"
+        if hook_type == 'load':
+            pack.on_load(full_function_id)
+        elif hook_type == 'tick':
+            pack.on_tick(full_function_id)
+    
+    # Add tags
+    for tag in ast.get('tags', []):
+        if isinstance(tag, dict):
+            registry = tag.get('registry', 'function')
+            name = tag.get('name', 'unknown')
+            values = tag.get('values', [])
+            replace = tag.get('replace', False)
+        else:
+            registry = getattr(tag, 'registry', 'function')
+            name = getattr(tag, 'name', 'unknown')
+            values = getattr(tag, 'values', [])
+            replace = getattr(tag, 'replace', False)
+        
+        pack.tag(registry, name, values, replace)
+    
+    # Add recipes, loot tables, etc. if they exist in the AST
+    print(f"DEBUG: Found {len(ast.get('recipes', []))} recipes in AST")
+    print(f"DEBUG: Found {len(ast.get('loot_tables', []))} loot_tables in AST")
+    print(f"DEBUG: Found {len(ast.get('advancements', []))} advancements in AST")
+    print(f"DEBUG: Found {len(ast.get('predicates', []))} predicates in AST")
+    print(f"DEBUG: Found {len(ast.get('item_modifiers', []))} item_modifiers in AST")
+    print(f"DEBUG: Found {len(ast.get('structures', []))} structures in AST")
+    for recipe in ast.get('recipes', []):
+        if isinstance(recipe, dict):
+            name = recipe.get('name', 'unknown')
+            data = recipe.get('data', {})
+        else:
+            name = getattr(recipe, 'name', 'unknown')
+            data = getattr(recipe, 'data', {})
+        
+        # Load JSON data from file if specified
+        if isinstance(data, dict) and 'json_file' in data:
+            json_file_path = data['json_file']
+            try:
+                with open(json_file_path, 'r', encoding='utf-8') as f:
+                    import json
+                    json_data = json.load(f)
+                    namespace.recipe(name, json_data)
+            except (FileNotFoundError, json.JSONDecodeError) as e:
+                print(f"Warning: Could not load recipe JSON file '{json_file_path}': {e}")
+                # Use empty data as fallback
+                namespace.recipe(name, {})
+        else:
+            namespace.recipe(name, data)
+    
+    for loot_table in ast.get('loot_tables', []):
+        if isinstance(loot_table, dict):
+            name = loot_table.get('name', 'unknown')
+            data = loot_table.get('data', {})
+        else:
+            name = getattr(loot_table, 'name', 'unknown')
+            data = getattr(loot_table, 'data', {})
+        
+        # Load JSON data from file if specified
+        if isinstance(data, dict) and 'json_file' in data:
+            json_file_path = data['json_file']
+            try:
+                with open(json_file_path, 'r', encoding='utf-8') as f:
+                    import json
+                    json_data = json.load(f)
+                    namespace.loot_table(name, json_data)
+            except (FileNotFoundError, json.JSONDecodeError) as e:
+                print(f"Warning: Could not load loot table JSON file '{json_file_path}': {e}")
+                # Use empty data as fallback
+                namespace.loot_table(name, {})
+        else:
+            namespace.loot_table(name, data)
+    
+    for advancement in ast.get('advancements', []):
+        if isinstance(advancement, dict):
+            name = advancement.get('name', 'unknown')
+            data = advancement.get('data', {})
+        else:
+            name = getattr(advancement, 'name', 'unknown')
+            data = getattr(advancement, 'data', {})
+        
+        # Load JSON data from file if specified
+        if isinstance(data, dict) and 'json_file' in data:
+            json_file_path = data['json_file']
+            try:
+                with open(json_file_path, 'r', encoding='utf-8') as f:
+                    import json
+                    json_data = json.load(f)
+                    namespace.advancement(name, json_data)
+            except (FileNotFoundError, json.JSONDecodeError) as e:
+                print(f"Warning: Could not load advancement JSON file '{json_file_path}': {e}")
+                # Use empty data as fallback
+                namespace.advancement(name, {})
+        else:
+            namespace.advancement(name, data)
+    
+    for predicate in ast.get('predicates', []):
+        if isinstance(predicate, dict):
+            name = predicate.get('name', 'unknown')
+            data = predicate.get('data', {})
+        else:
+            name = getattr(predicate, 'name', 'unknown')
+            data = getattr(predicate, 'data', {})
+        
+        # Load JSON data from file if specified
+        if isinstance(data, dict) and 'json_file' in data:
+            json_file_path = data['json_file']
+            try:
+                with open(json_file_path, 'r', encoding='utf-8') as f:
+                    import json
+                    json_data = json.load(f)
+                    namespace.predicate(name, json_data)
+            except (FileNotFoundError, json.JSONDecodeError) as e:
+                print(f"Warning: Could not load predicate JSON file '{json_file_path}': {e}")
+                # Use empty data as fallback
+                namespace.predicate(name, {})
+        else:
+            namespace.predicate(name, data)
+    
+    for item_modifier in ast.get('item_modifiers', []):
+        if isinstance(item_modifier, dict):
+            name = item_modifier.get('name', 'unknown')
+            data = item_modifier.get('data', {})
+        else:
+            name = getattr(item_modifier, 'name', 'unknown')
+            data = getattr(item_modifier, 'data', {})
+        
+        # Load JSON data from file if specified
+        if isinstance(data, dict) and 'json_file' in data:
+            json_file_path = data['json_file']
+            try:
+                with open(json_file_path, 'r', encoding='utf-8') as f:
+                    import json
+                    json_data = json.load(f)
+                    namespace.item_modifier(name, json_data)
+            except (FileNotFoundError, json.JSONDecodeError) as e:
+                print(f"Warning: Could not load item modifier JSON file '{json_file_path}': {e}")
+                # Use empty data as fallback
+                namespace.item_modifier(name, {})
+        else:
+            namespace.item_modifier(name, data)
+    
+    for structure in ast.get('structures', []):
+        if isinstance(structure, dict):
+            name = structure.get('name', 'unknown')
+            data = structure.get('data', {})
+        else:
+            name = getattr(structure, 'name', 'unknown')
+            data = getattr(structure, 'data', {})
+        
+        # Load JSON data from file if specified
+        if isinstance(data, dict) and 'json_file' in data:
+            json_file_path = data['json_file']
+            try:
+                with open(json_file_path, 'r', encoding='utf-8') as f:
+                    import json
+                    json_data = json.load(f)
+                    namespace.structure(name, json_data)
+            except (FileNotFoundError, json.JSONDecodeError) as e:
+                print(f"Warning: Could not load structure JSON file '{json_file_path}': {e}")
+                # Use empty data as fallback
+                namespace.structure(name, {})
+        else:
+            namespace.structure(name, data)
+    
+    return pack
+
+
 def build_mdl(input_path: str, output_path: str, verbose: bool = False) -> None:
     """Build MDL files into a Minecraft datapack."""
     input_dir = Path(input_path)
@@ -993,7 +1222,18 @@ def build_mdl(input_path: str, output_path: str, verbose: bool = False) -> None:
     _generate_tag_files(ast, output_dir, namespace)
     
     # Generate pack.mcmeta
+    print("DEBUG: About to generate pack.mcmeta")
     _generate_pack_mcmeta(ast, output_dir)
+    print("DEBUG: pack.mcmeta generated")
+    
+    print("DEBUG: About to call _ast_to_pack")
+    # Use Pack class to generate additional registry types (recipes, loot tables, etc.)
+    # This ensures all registry types are supported
+    pack = _ast_to_pack(ast)
+    print("DEBUG: _ast_to_pack completed")
+    
+    # Build using Pack class to generate all registry types
+    pack.build(str(output_dir))
     
     # Create zip file
     _create_zip_file(output_dir, output_dir.parent / f"{output_dir.name}.zip")
@@ -1001,6 +1241,7 @@ def build_mdl(input_path: str, output_path: str, verbose: bool = False) -> None:
     if verbose:
         print(f"Successfully built datapack: {output_dir}")
         print(f"Created zip file: {output_dir.parent / f'{output_dir.name}.zip'}")
+        print(f"Supported registry types: functions, tags, recipes, loot_tables, advancements, predicates, item_modifiers, structures")
 
 
 def create_new_project(project_name: str, pack_name: str = None) -> None:

@@ -32,6 +32,14 @@ class TokenType:
     TAG = "TAG"
     ADD = "ADD"
     
+    # Registry types
+    RECIPE = "RECIPE"
+    LOOT_TABLE = "LOOT_TABLE"
+    ADVANCEMENT = "ADVANCEMENT"
+    PREDICATE = "PREDICATE"
+    ITEM_MODIFIER = "ITEM_MODIFIER"
+    STRUCTURE = "STRUCTURE"
+    
     # Operators
     ASSIGN = "ASSIGN"
     PLUS = "PLUS"
@@ -197,6 +205,14 @@ class MDLLexer:
             'on_load': TokenType.ON_LOAD,
             'tag': TokenType.TAG,
             'add': TokenType.ADD,
+            
+            # Registry types
+            'recipe': TokenType.RECIPE,
+            'loot_table': TokenType.LOOT_TABLE,
+            'advancement': TokenType.ADVANCEMENT,
+            'predicate': TokenType.PREDICATE,
+            'item_modifier': TokenType.ITEM_MODIFIER,
+            'structure': TokenType.STRUCTURE,
         }
         
         token_type = keyword_map.get(text, TokenType.IDENTIFIER)
