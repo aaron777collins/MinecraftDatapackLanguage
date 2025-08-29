@@ -629,11 +629,12 @@ def _generate_hook_files(ast: Dict[str, Any], output_dir: Path, namespace: str) 
                 namespace_load_function = f"{func_namespace}:load"
                 if namespace_load_function not in load_functions:
                     load_functions.append(namespace_load_function)
-                    
-                    # Update the load.json with the additional namespace load function
-                    load_file = tags_dir / "load.json"
-                    with open(load_file, 'w', encoding='utf-8') as f:
-                        f.write('{"values": [' + ', '.join(f'"{func}"' for func in load_functions) + ']}')
+        
+        # Update the load.json with all namespace load functions
+        if load_functions:
+            load_file = tags_dir / "load.json"
+            with open(load_file, 'w', encoding='utf-8') as f:
+                f.write('{"values": [' + ', '.join(f'"{func}"' for func in load_functions) + ']}')
 
 
 def _generate_global_load_function(ast: Dict[str, Any], output_dir: Path, namespace: str) -> None:
@@ -730,7 +731,7 @@ def _generate_global_load_function(ast: Dict[str, Any], output_dir: Path, namesp
             namespace_functions_dir = output_dir / "data" / func_namespace / dir_map.function
             namespace_functions_dir.mkdir(parents=True, exist_ok=True)
             
-            # Create a load.mcfunction file for this namespace (it will be empty but ensures the function exists)
+            # Create a load.mcfunction file for this namespace with armor stand creation
             namespace_load_file = namespace_functions_dir / "load.mcfunction"
             with open(namespace_load_file, 'w', encoding='utf-8') as f:
                 f.write("execute unless entity @e[type=armor_stand,tag=mdl_server,limit=1] run summon armor_stand ~ 320 ~ {Tags:[\"mdl_server\"],Invisible:1b,Marker:1b,NoGravity:1b,Invulnerable:1b}")
