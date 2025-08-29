@@ -192,9 +192,53 @@
   "Tag Declaration": {
     "prefix": "tag",
     "body": [
-      "tag \"${1:function|item|block}\" \"${2:tag_name}\" values [${3:value1}, ${4:value2}];"
+      "tag ${1:function|item|block|entity_type|fluid|game_event} \"${2:namespace:tag_name}\" {",
+      "    add \"${3:value}\";",
+      "}"
     ],
     "description": "Tag declaration"
+  },
+  "Recipe Declaration": {
+    "prefix": "recipe",
+    "body": [
+      "recipe \"${1:recipe_name}\" \"${2:recipes/recipe.json}\";"
+    ],
+    "description": "Recipe declaration with JSON file reference"
+  },
+  "Loot Table Declaration": {
+    "prefix": "loot_table",
+    "body": [
+      "loot_table \"${1:loot_name}\" \"${2:loot_tables/loot.json}\";"
+    ],
+    "description": "Loot table declaration with JSON file reference"
+  },
+  "Advancement Declaration": {
+    "prefix": "advancement",
+    "body": [
+      "advancement \"${1:advancement_name}\" \"${2:advancements/advancement.json}\";"
+    ],
+    "description": "Advancement declaration with JSON file reference"
+  },
+  "Predicate Declaration": {
+    "prefix": "predicate",
+    "body": [
+      "predicate \"${1:predicate_name}\" \"${2:predicates/predicate.json}\";"
+    ],
+    "description": "Predicate declaration with JSON file reference"
+  },
+  "Item Modifier Declaration": {
+    "prefix": "item_modifier",
+    "body": [
+      "item_modifier \"${1:modifier_name}\" \"${2:item_modifiers/modifier.json}\";"
+    ],
+    "description": "Item modifier declaration with JSON file reference"
+  },
+  "Structure Declaration": {
+    "prefix": "structure",
+    "body": [
+      "structure \"${1:structure_name}\" \"${2:structures/structure.json}\";"
+    ],
+    "description": "Structure declaration with JSON file reference"
   },
   "Execute Command": {
     "prefix": "execute",
@@ -291,10 +335,27 @@
       "    }",
       "}",
       "",
+      "// Registry types",
+      "recipe \"custom_sword\" \"recipes/custom_sword.json\";",
+      "loot_table \"custom_block\" \"loot_tables/custom_block.json\";",
+      "advancement \"craft_sword\" \"advancements/craft_sword.json\";",
+      "predicate \"has_sword\" \"predicates/has_sword.json\";",
+      "item_modifier \"sword_nbt\" \"item_modifiers/sword_nbt.json\";",
+      "structure \"custom_house\" \"structures/custom_house.json\";",
+      "",
+      "// Tags",
+      "tag function \"minecraft:load\" {",
+      "    add \"${3:init}\";",
+      "}",
+      "",
+      "tag item \"${3:swords}\" {",
+      "    add \"minecraft:diamond_sword\";",
+      "}",
+      "",
       "// Lifecycle hooks",
       "on_load \"${3:init}\";",
       "on_tick \"${3:tick}\";"
     ],
-    "description": "Complete MDL example with all features"
+    "description": "Complete MDL example with all features including registry types"
   }
 }

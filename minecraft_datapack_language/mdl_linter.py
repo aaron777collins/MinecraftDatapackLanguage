@@ -56,6 +56,8 @@ class MDLLinter:
                 self._check_hook_syntax(line, line_num)
                 self._check_pack_declaration(line, line_num)
                 self._check_namespace_declaration(line, line_num)
+                self._check_registry_type_declaration(line, line_num)
+                self._check_tag_declaration(line, line_num)
             
             return self.issues
             
@@ -195,6 +197,90 @@ class MDLLinter:
                     category='namespace',
                     message=f"Namespace should use lowercase letters, numbers, and underscores only: '{namespace}'",
                     suggestion="Use lowercase letters, numbers, and underscores for namespace names",
+                    code=line
+                ))
+    
+    def _check_registry_type_declaration(self, line: str, line_num: int):
+        """Check registry type declaration syntax"""
+        # Match registry type patterns
+        registry_patterns = [
+            (r'recipe\s+"([^"]+)"\s+"([^"]+)";', 'recipe'),
+            (r'loot_table\s+"([^"]+)"\s+"([^"]+)";', 'loot_table'),
+            (r'advancement\s+"([^"]+)"\s+"([^"]+)";', 'advancement'),
+            (r'predicate\s+"([^"]+)"\s+"([^"]+)";', 'predicate'),
+            (r'item_modifier\s+"([^"]+)"\s+"([^"]+)";', 'item_modifier'),
+            (r'structure\s+"([^"]+)"\s+"([^"]+)";', 'structure')
+        ]
+        
+        for pattern, registry_type in registry_patterns:
+            match = re.search(pattern, line)
+            if match:
+                name = match.group(1)
+                file_path = match.group(2)
+                
+                # Check registry name
+                if not re.match(r'^[a-z0-9_]+$', name):
+                    self.issues.append(MDLLintIssue(
+                        line_number=line_num,
+                        severity='warning',
+                        category='registry_type',
+                        message=f"{registry_type} name should use lowercase letters, numbers, and underscores only: '{name}'",
+                        suggestion="Use lowercase letters, numbers, and underscores for registry type names",
+                        code=line
+                    ))
+                
+                # Check file path
+                if not file_path.endswith('.json'):
+                    self.issues.append(MDLLintIssue(
+                        line_number=line_num,
+                        severity='error',
+                        category='registry_type',
+                        message=f"{registry_type} file path must end with '.json': '{file_path}'",
+                        suggestion="Ensure the file path points to a JSON file",
+                        code=line
+                    ))
+                
+                # Check for relative path
+                if file_path.startswith('/'):
+                    self.issues.append(MDLLintIssue(
+                        line_number=line_num,
+                        severity='warning',
+                        category='registry_type',
+                        message=f"{registry_type} file path should be relative: '{file_path}'",
+                        suggestion="Use relative paths instead of absolute paths",
+                        code=line
+                    ))
+    
+    def _check_tag_declaration(self, line: str, line_num: int):
+        """Check tag declaration syntax"""
+        # Match tag declaration pattern
+        tag_pattern = r'tag\s+(function|item|block|entity_type|fluid|game_event)\s+"([^"]+)"\s*\{'
+        match = re.search(tag_pattern, line)
+        
+        if match:
+            tag_type = match.group(1)
+            tag_name = match.group(2)
+            
+            # Check tag name format
+            if ':' not in tag_name:
+                self.issues.append(MDLLintIssue(
+                    line_number=line_num,
+                    severity='warning',
+                    category='tag',
+                    message=f"Tag name should include namespace: '{tag_name}'",
+                    suggestion="Use format 'namespace:tag_name' for tag names",
+                    code=line
+                ))
+            
+            # Check tag type validity
+            valid_tag_types = ['function', 'item', 'block', 'entity_type', 'fluid', 'game_event']
+            if tag_type not in valid_tag_types:
+                self.issues.append(MDLLintIssue(
+                    line_number=line_num,
+                    severity='error',
+                    category='tag',
+                    message=f"Invalid tag type: '{tag_type}'",
+                    suggestion=f"Valid tag types are: {', '.join(valid_tag_types)}",
                     code=line
                 ))
     

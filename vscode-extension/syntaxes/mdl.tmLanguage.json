@@ -4,11 +4,11 @@
   "patterns": [
     {
       "name": "keyword.control.mdl",
-      "match": "\\b(pack|description|pack_format|min_format|max_format|min_engine_version|namespace|function|on_tick|on_load|tag|add|if|else if|else|while|for|in|var|let|const|num|str|list|try|catch|throw|switch|case|default|break|continue|return|import|from|as)\\b"
+      "match": "\\b(pack|description|pack_format|min_format|max_format|min_engine_version|namespace|function|on_tick|on_load|tag|add|if|else if|else|while|for|in|var|let|const|num|str|list|try|catch|throw|switch|case|default|break|continue|return|import|from|as|recipe|loot_table|advancement|predicate|item_modifier|structure)\\b"
     },
     {
       "name": "entity.name.section.mdl",
-      "match": "^(\\s*)(pack|namespace|function|tag)\\b"
+      "match": "^(\\s*)(pack|namespace|function|tag|recipe|loot_table|advancement|predicate|item_modifier|structure)\\b"
     },
     {
       "name": "string.quoted.double.mdl",

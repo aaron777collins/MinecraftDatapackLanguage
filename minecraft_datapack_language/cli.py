@@ -1428,6 +1428,36 @@ pack "my_pack" "My datapack" 15;
     print(f"  - Build with: mdl build --mdl . --output dist")
 
 
+def lint_mdl_file(file_path: str, verbose: bool = False):
+    """Lint an MDL file and display issues."""
+    from .mdl_linter import lint_mdl_file as lint_file
+    
+    print(f"Linting {file_path}...")
+    issues = lint_file(file_path)
+    
+    if not issues:
+        print("✅ No issues found!")
+        return
+    
+    print(f"\nFound {len(issues)} issue(s):")
+    print()
+    
+    for issue in issues:
+        severity_icon = {
+            'error': '❌',
+            'warning': '⚠️',
+            'info': 'ℹ️'
+        }.get(issue.severity, '❓')
+        
+        print(f"{severity_icon} Line {issue.line_number}: {issue.severity.upper()}")
+        print(f"   {issue.message}")
+        if issue.suggestion:
+            print(f"   💡 {issue.suggestion}")
+        if verbose and issue.code:
+            print(f"   📝 {issue.code.strip()}")
+        print()
+
+
 def main():
     """Main CLI entry point."""
     import sys
@@ -1437,6 +1467,7 @@ def main():
         print("Usage: mdl <command> [options]")
         print("Commands:")
         print("  build --mdl <file> --output <dir>  Build MDL files into datapack")
+        print("  lint <file>  Lint MDL file for syntax issues")
         print("  new <project_name> [--name <pack_name>]  Create new MDL project")
         sys.exit(1)
     
@@ -1451,6 +1482,14 @@ def main():
         args = parser.parse_args(sys.argv[2:])
         build_mdl(args.mdl, args.output, args.verbose)
         
+    elif command == "lint":
+        parser = argparse.ArgumentParser(description="MDL - Lint MDL file for syntax issues")
+        parser.add_argument("file", help="MDL file to lint")
+        parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose output")
+        
+        args = parser.parse_args(sys.argv[2:])
+        lint_mdl_file(args.file, args.verbose)
+        
     elif command == "new":
         parser = argparse.ArgumentParser(description="MDL - Create new MDL project")
         parser.add_argument("project_name", help="Name of the project to create")
@@ -1461,7 +1500,7 @@ def main():
         
     else:
         print(f"Unknown command: {command}")
-        print("Available commands: build, new")
+        print("Available commands: build, lint, new")
         sys.exit(1)
 
 

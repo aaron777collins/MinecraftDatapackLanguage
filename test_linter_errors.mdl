@@ -1,0 +1,39 @@
+// test_linter_errors.mdl - Test file with intentional errors for linter testing
+pack "test_linter" "Testing linter errors" 82;
+
+namespace "test";
+
+// Valid registry types
+recipe "diamond_sword" "recipes/diamond_sword.json";
+loot_table "diamond_sword" "loot_tables/diamond_sword.json";
+
+// Invalid registry types (should trigger linter errors)
+recipe "DiamondSword" "recipes/diamond_sword.json";  // Invalid name (uppercase)
+loot_table "diamond_sword" "loot_tables/diamond_sword.txt";  // Wrong file extension
+advancement "diamond_sword" "/absolute/path/diamond_sword.json";  // Absolute path
+
+// Valid tags
+tag function "minecraft:load" {
+    add "test:main";
+}
+
+tag item "test:swords" {
+    add "minecraft:diamond_sword";
+}
+
+// Invalid tags (should trigger linter errors)
+tag invalid_type "test:invalid" {  // Invalid tag type
+    add "test:main";
+}
+
+tag function "load" {  // Missing namespace
+    add "test:main";
+}
+
+// Valid function
+function "main" {
+    say "Hello World";
+}
+
+// Valid hooks
+on_load "test:main";
