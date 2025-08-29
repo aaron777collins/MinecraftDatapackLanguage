@@ -640,6 +640,12 @@ def _generate_hook_files(ast: Dict[str, Any], output_dir: Path, namespace: str) 
             load_file = tags_dir / "load.json"
             with open(load_file, 'w', encoding='utf-8') as f:
                 f.write('{"values": [' + ', '.join(f'"{func}"' for func in load_functions) + ']}')
+        
+        # Update the load.json with all namespace load functions
+        if load_functions:
+            load_file = tags_dir / "load.json"
+            with open(load_file, 'w', encoding='utf-8') as f:
+                f.write('{"values": [' + ', '.join(f'"{func}"' for func in load_functions) + ']}')
 
 
 def _generate_global_load_function(ast: Dict[str, Any], output_dir: Path, namespace: str) -> None:
