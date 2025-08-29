@@ -1,1 +1,0 @@
-tellraw @e[type=armor_stand,tag=mdl_server,limit=1] [{"text":"Player is doing well!"}]
