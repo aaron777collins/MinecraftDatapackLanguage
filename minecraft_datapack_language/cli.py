@@ -565,6 +565,9 @@ def _process_while_loop_recursion(while_statement, namespace: str, function_name
     for j, stmt in enumerate(while_statement.body):
         loop_commands.extend(_process_statement(stmt, namespace, function_name, j))
     
+    # Add recursive call to continue the loop
+    loop_commands.append(f"execute if {condition} run function {namespace}:{loop_label}")
+    
     # Add the loop body commands to the conditional functions list
     # (This will be handled by the _generate_function_file method)
     global conditional_functions
@@ -581,17 +584,14 @@ def _process_while_loop_schedule(while_statement, namespace: str, function_name:
     commands = []
     condition = _convert_condition_to_minecraft_syntax(while_statement.condition.condition_string)
     
-    # Create a unique counter for this while loop
-    counter_name = f"while_{statement_index}_counter"
-    
-    # Initialize counter to 0
-    commands.append(f"scoreboard players set @s {counter_name} 0")
-    
     # Generate loop body function
     loop_label = f"{namespace}_{function_name}_while_{statement_index}"
     loop_commands = []
     for j, stmt in enumerate(while_statement.body):
         loop_commands.extend(_process_statement(stmt, namespace, function_name, j))
+    
+    # Add recursive schedule call to continue the loop
+    loop_commands.append(f"execute if {condition} run schedule function {namespace}:{loop_label} 1t")
     
     # Add the loop body commands to the conditional functions list
     global conditional_functions
@@ -599,7 +599,6 @@ def _process_while_loop_schedule(while_statement, namespace: str, function_name:
     
     # Add condition check and schedule
     commands.append(f"execute if {condition} run function {namespace}:{loop_label}")
-    commands.append(f"execute if {condition} run schedule function {namespace}:{loop_label} 1t")
     
     return commands
 

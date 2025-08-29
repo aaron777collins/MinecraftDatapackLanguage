@@ -1,0 +1,29 @@
+// test_while_fix.mdl - Test while loop fix
+pack "test_while_fix" "Test while loop fix" 82;
+
+namespace "test_while_fix";
+
+// Number variables for scoreboard storage
+var num counter = 0;
+var num game_timer = 0;
+
+function "main" {
+    // Reset counter
+    counter = 0;
+    game_timer = 0;
+    
+    // Test while loop with recursion method
+    while "$game_timer$ < 5" {
+        game_timer = $game_timer$ + 1;
+        say "Timer: $game_timer$";
+    }
+    
+    // Test while loop with schedule method
+    while "$counter$ < 3" method="schedule" {
+        counter = $counter$ + 1;
+        say "Schedule counter: $counter$";
+    }
+}
+
+// Hook to run main function every tick
+on_tick "test_while_fix:main";
