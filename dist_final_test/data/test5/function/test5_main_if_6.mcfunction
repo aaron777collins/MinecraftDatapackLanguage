@@ -1,0 +1,1 @@
+tellraw @a [{"text":"Players online: "},{"score":{"name":"@e[type=armor_stand,tag=mdl_server,limit=1]","objective":"player_count"}}]

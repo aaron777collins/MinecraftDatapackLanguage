@@ -415,6 +415,163 @@ This will create a datapack with:
 
 ---
 
+## 🎯 **Advanced Multi-File Examples with Namespaces**
+
+### **Modern Namespace System**
+
+MDL's namespace system allows you to organize code across multiple files with proper separation:
+
+**`game.mdl`** - Core Game Logic:
+```mdl
+pack "multi_game" "A multi-file game example" 82;
+
+namespace "game";
+
+var num player_score = 0;
+var num game_timer = 0;
+var num health = 20;
+
+function "main" {
+    // If-else if-else chain
+    if "$health$ < 10" {
+        say "Health is low: $health$";
+        health = $health$ + 5;
+    } else if "$health$ > 15" {
+        say "Health is good: $health$";
+    } else {
+        say "Health is moderate: $health$";
+    }
+    
+    // While loop with counter
+    while "$game_timer$ < 5" {
+        game_timer = $game_timer$ + 1;
+        say "Game Timer: $game_timer$";
+    }
+}
+
+function "score_update" {
+    player_score = $player_score$ + 10;
+    say "Score updated: $player_score$";
+}
+
+on_tick "game:main";
+```
+
+**`ui.mdl`** - User Interface:
+```mdl
+namespace "ui";
+
+var num menu_state = 0;
+var num selected_option = 1;
+
+function "main" {
+    // Show menu based on state
+    if "$menu_state$ == 0" {
+        say "=== Main Menu ===";
+        say "1. Start Game";
+        say "2. Options";
+        say "3. Exit";
+    }
+    
+    // Handle selection
+    if "$selected_option$ == 1" {
+        say "Starting game...";
+    } else if "$selected_option$ == 2" {
+        say "Opening options...";
+    } else if "$selected_option$ == 3" {
+        say "Exiting...";
+    }
+}
+
+function "button_handler" {
+    var num button_id = 0;
+    
+    if "$button_id$ == 1" {
+        selected_option = 1;
+        say "Option 1 selected";
+    } else if "$button_id$ == 2" {
+        selected_option = 2;
+        say "Option 2 selected";
+    }
+}
+
+on_load "ui:main";
+```
+
+**`combat.mdl`** - Combat System:
+```mdl
+namespace "combat";
+
+var num enemy_count = 5;
+var num damage = 0;
+
+function "main" {
+    var num total_damage = 0;
+    total_damage = $damage$ * 2;
+    
+    if "$total_damage$ > 20" {
+        say "Critical hit! Damage: $total_damage$";
+    } else {
+        say "Normal hit. Damage: $total_damage$";
+    }
+    
+    // Variable substitution in tellraw
+    tellraw @a [{"text":"Enemy Count: "},{"score":{"name":"@a","objective":"enemy_count"}}];
+}
+
+on_tick "combat:main";
+```
+
+### **Build and Generated Structure**
+
+```bash
+# Build all files together
+mdl build --mdl . -o dist
+
+# Or build specific files
+mdl build --mdl "game.mdl ui.mdl combat.mdl" -o dist
+```
+
+**Generated Structure:**
+```
+dist/
+├── data/
+│   ├── minecraft/tags/function/
+│   │   ├── load.json    # Contains all load functions
+│   │   └── tick.json    # Contains all tick functions
+│   ├── game/            # game.mdl namespace
+│   │   └── function/
+│   │       ├── main.mcfunction
+│   │       └── score_update.mcfunction
+│   ├── ui/              # ui.mdl namespace
+│   │   └── function/
+│   │       ├── main.mcfunction
+│   │       └── button_handler.mcfunction
+│   └── combat/          # combat.mdl namespace
+│       └── function/
+│           └── main.mcfunction
+└── pack.mcmeta
+```
+
+### **Key Benefits of Namespace System**
+
+- ✅ **No function name conflicts** - Each namespace is completely separate
+- ✅ **Modular development** - Work on different features in separate files
+- ✅ **Automatic merging** - All variables and functions are combined intelligently
+- ✅ **Proper initialization** - Variables are automatically set up in load functions
+- ✅ **Clean organization** - Each module has its own directory structure
+- ✅ **Easy maintenance** - Update individual modules without affecting others
+
+### **Complete Example Project**
+
+Check out the `examples/multi_file_example/` directory for a complete working example with:
+- Multiple namespaces (`test`, `other`, `ui`)
+- Various control structures and expressions
+- Comprehensive documentation
+- Ready-to-build files
+
+---
+
 ## 📝 The **MODERN** `.mdl` Language
 
 ### Grammar you can rely on (based on the parser)
