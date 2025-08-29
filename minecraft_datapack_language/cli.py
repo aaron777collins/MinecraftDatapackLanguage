@@ -229,18 +229,24 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
         
         elif class_name == 'VariableAssignment':
             # Handle variable assignment
-            result = expression_processor.process_expression(statement.value, statement.name, selector)
-            temp_commands = []
-            temp_commands.extend(result.temp_assignments)
-            if result.final_command:
-                temp_commands.append(result.final_command)
-            
-            # Split any commands that contain newlines
-            for cmd in temp_commands:
-                if '\n' in cmd:
-                    commands.extend(cmd.split('\n'))
-                else:
-                    commands.append(cmd)
+            # Check if it's a simple assignment to 0 (which can be optimized out)
+            if hasattr(statement.value, 'value') and statement.value.value == 0:
+                # Skip assignment to 0 - it's handled in load function
+                pass
+            else:
+                # Process the expression for non-zero values
+                result = expression_processor.process_expression(statement.value, statement.name, selector)
+                temp_commands = []
+                temp_commands.extend(result.temp_assignments)
+                if result.final_command:
+                    temp_commands.append(result.final_command)
+                
+                # Split any commands that contain newlines
+                for cmd in temp_commands:
+                    if '\n' in cmd:
+                        commands.extend(cmd.split('\n'))
+                    else:
+                        commands.append(cmd)
         
         elif class_name == 'IfStatement':
             # Handle if statement with proper execute commands
