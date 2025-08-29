@@ -34,94 +34,10 @@ function "helper" {
 // Hook to run main function every tick
 on_load "test:main";
 
-// Registry types with inline JSON
-recipe "diamond_sword" {
-  "type": "minecraft:crafting_shaped",
-  "pattern": [
-    " D ",
-    " D ",
-    " S "
-  ],
-  "key": {
-    "D": {
-      "item": "minecraft:diamond"
-    },
-    "S": {
-      "item": "minecraft:stick"
-    }
-  },
-  "result": {
-    "item": "minecraft:diamond_sword",
-    "count": 1
-  }
-}
-
-loot_table "diamond_sword" {
-  "type": "minecraft:block",
-  "pools": [
-    {
-      "rolls": 1,
-      "entries": [
-        {
-          "type": "minecraft:item",
-          "name": "minecraft:diamond_sword",
-          "functions": [
-            {
-              "function": "minecraft:enchant_randomly",
-              "enchantments": [
-                "minecraft:sharpness",
-                "minecraft:looting"
-              ]
-            }
-          ]
-        }
-      ]
-    }
-  ]
-}
-
-advancement "diamond_sword" {
-  "display": {
-    "icon": {
-      "item": "minecraft:diamond_sword"
-    },
-    "title": {
-      "text": "Diamond Sword"
-    },
-    "description": {
-      "text": "Craft a diamond sword"
-    }
-  },
-  "criteria": {
-    "crafted": {
-      "trigger": "minecraft:recipe_crafted",
-      "conditions": {
-        "recipe_id": "minecraft:diamond_sword"
-      }
-    }
-  }
-}
-
-predicate "diamond_sword" {
-  "condition": "minecraft:entity_properties",
-  "entity": "this",
-  "predicate": {
-    "equipment": {
-      "mainhand": {
-        "item": "minecraft:diamond_sword"
-      }
-    }
-  }
-}
-
-item_modifier "diamond_sword" {
-  "function": "minecraft:set_nbt",
-  "tag": "{CustomName:'{\"text\":\"Diamond Sword\"}'}"
-}
-
-structure "diamond_sword" {
-  "type": "minecraft:jigsaw",
-  "start_pool": "minecraft:empty",
-  "size": 1,
-  "max_distance_from_center": 80
-}
+// Registry types - these reference JSON files relative to this MDL file
+recipe "diamond_sword" "recipes/diamond_sword.json";
+loot_table "diamond_sword" "loot_tables/diamond_sword.json";
+advancement "diamond_sword" "advancements/diamond_sword.json";
+predicate "diamond_sword" "predicates/diamond_sword.json";
+item_modifier "diamond_sword" "item_modifiers/diamond_sword.json";
+structure "diamond_sword" "structures/diamond_sword.json";

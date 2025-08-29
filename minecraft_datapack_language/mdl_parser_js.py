@@ -268,18 +268,14 @@ class MDLParser:
         name_token = self._match(TokenType.STRING)
         name = name_token.value.strip('"').strip("'")
         
-        # Check if next token is a brace (inline JSON) or string (file path)
-        if self._peek().type == TokenType.LBRACE:
-            # Inline JSON
-            self._match(TokenType.LBRACE)
-            json_data = self._parse_json_block()
-            data = json_data
-        else:
-            # JSON file path
-            json_file_token = self._match(TokenType.STRING)
-            json_file = json_file_token.value.strip('"').strip("'")
-            self._match(TokenType.SEMICOLON)
-            data = {"json_file": json_file}
+        # Expect a JSON file path
+        json_file_token = self._match(TokenType.STRING)
+        json_file = json_file_token.value.strip('"').strip("'")
+        
+        self._match(TokenType.SEMICOLON)
+        
+        # Store reference to JSON file
+        data = {"json_file": json_file}
         
         return {"name": name, "data": data}
     
@@ -323,18 +319,14 @@ class MDLParser:
         name_token = self._match(TokenType.STRING)
         name = name_token.value.strip('"').strip("'")
         
-        # Check if next token is a brace (inline JSON) or string (file path)
-        if self._peek().type == TokenType.LBRACE:
-            # Inline JSON
-            self._match(TokenType.LBRACE)
-            json_data = self._parse_json_block()
-            data = json_data
-        else:
-            # JSON file path
-            json_file_token = self._match(TokenType.STRING)
-            json_file = json_file_token.value.strip('"').strip("'")
-            self._match(TokenType.SEMICOLON)
-            data = {"json_file": json_file}
+        # Expect a JSON file path
+        json_file_token = self._match(TokenType.STRING)
+        json_file = json_file_token.value.strip('"').strip("'")
+        
+        self._match(TokenType.SEMICOLON)
+        
+        # Store reference to JSON file
+        data = {"json_file": json_file}
         
         return {"name": name, "data": data}
     
@@ -345,18 +337,14 @@ class MDLParser:
         name_token = self._match(TokenType.STRING)
         name = name_token.value.strip('"').strip("'")
         
-        # Check if next token is a brace (inline JSON) or string (file path)
-        if self._peek().type == TokenType.LBRACE:
-            # Inline JSON
-            self._match(TokenType.LBRACE)
-            json_data = self._parse_json_block()
-            data = json_data
-        else:
-            # JSON file path
-            json_file_token = self._match(TokenType.STRING)
-            json_file = json_file_token.value.strip('"').strip("'")
-            self._match(TokenType.SEMICOLON)
-            data = {"json_file": json_file}
+        # Expect a JSON file path
+        json_file_token = self._match(TokenType.STRING)
+        json_file = json_file_token.value.strip('"').strip("'")
+        
+        self._match(TokenType.SEMICOLON)
+        
+        # Store reference to JSON file
+        data = {"json_file": json_file}
         
         return {"name": name, "data": data}
     

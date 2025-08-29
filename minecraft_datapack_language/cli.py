@@ -946,7 +946,7 @@ def _generate_pack_mcmeta(ast: Dict[str, Any], output_dir: Path) -> None:
         json.dump(pack_mcmeta, f, indent=2)
 
 
-def _ast_to_pack(ast: Dict[str, Any]) -> Pack:
+def _ast_to_pack(ast: Dict[str, Any], mdl_files: List[Path]) -> Pack:
     """Convert AST to Pack object to enable all registry types."""
     pack_info = ast.get('pack', {}) or {}
     pack_name = pack_info.get('name', 'mdl_pack')
@@ -1044,6 +1044,13 @@ def _ast_to_pack(ast: Dict[str, Any]) -> Pack:
         # Load JSON data from file if specified
         if isinstance(data, dict) and 'json_file' in data:
             json_file_path = data['json_file']
+            
+            # Make path relative to the MDL file location
+            if not os.path.isabs(json_file_path):
+                # Get the directory of the first MDL file
+                mdl_file_dir = os.path.dirname(os.path.abspath(mdl_files[0]))
+                json_file_path = os.path.join(mdl_file_dir, json_file_path)
+            
             try:
                 with open(json_file_path, 'r', encoding='utf-8') as f:
                     import json
@@ -1067,6 +1074,13 @@ def _ast_to_pack(ast: Dict[str, Any]) -> Pack:
         # Load JSON data from file if specified
         if isinstance(data, dict) and 'json_file' in data:
             json_file_path = data['json_file']
+            
+            # Make path relative to the MDL file location
+            if not os.path.isabs(json_file_path):
+                # Get the directory of the first MDL file
+                mdl_file_dir = os.path.dirname(os.path.abspath(mdl_files[0]))
+                json_file_path = os.path.join(mdl_file_dir, json_file_path)
+            
             try:
                 with open(json_file_path, 'r', encoding='utf-8') as f:
                     import json
@@ -1090,6 +1104,13 @@ def _ast_to_pack(ast: Dict[str, Any]) -> Pack:
         # Load JSON data from file if specified
         if isinstance(data, dict) and 'json_file' in data:
             json_file_path = data['json_file']
+            
+            # Make path relative to the MDL file location
+            if not os.path.isabs(json_file_path):
+                # Get the directory of the first MDL file
+                mdl_file_dir = os.path.dirname(os.path.abspath(mdl_files[0]))
+                json_file_path = os.path.join(mdl_file_dir, json_file_path)
+            
             try:
                 with open(json_file_path, 'r', encoding='utf-8') as f:
                     import json
@@ -1113,6 +1134,13 @@ def _ast_to_pack(ast: Dict[str, Any]) -> Pack:
         # Load JSON data from file if specified
         if isinstance(data, dict) and 'json_file' in data:
             json_file_path = data['json_file']
+            
+            # Make path relative to the MDL file location
+            if not os.path.isabs(json_file_path):
+                # Get the directory of the first MDL file
+                mdl_file_dir = os.path.dirname(os.path.abspath(mdl_files[0]))
+                json_file_path = os.path.join(mdl_file_dir, json_file_path)
+            
             try:
                 with open(json_file_path, 'r', encoding='utf-8') as f:
                     import json
@@ -1136,6 +1164,13 @@ def _ast_to_pack(ast: Dict[str, Any]) -> Pack:
         # Load JSON data from file if specified
         if isinstance(data, dict) and 'json_file' in data:
             json_file_path = data['json_file']
+            
+            # Make path relative to the MDL file location
+            if not os.path.isabs(json_file_path):
+                # Get the directory of the first MDL file
+                mdl_file_dir = os.path.dirname(os.path.abspath(mdl_files[0]))
+                json_file_path = os.path.join(mdl_file_dir, json_file_path)
+            
             try:
                 with open(json_file_path, 'r', encoding='utf-8') as f:
                     import json
@@ -1159,6 +1194,13 @@ def _ast_to_pack(ast: Dict[str, Any]) -> Pack:
         # Load JSON data from file if specified
         if isinstance(data, dict) and 'json_file' in data:
             json_file_path = data['json_file']
+            
+            # Make path relative to the MDL file location
+            if not os.path.isabs(json_file_path):
+                # Get the directory of the first MDL file
+                mdl_file_dir = os.path.dirname(os.path.abspath(mdl_files[0]))
+                json_file_path = os.path.join(mdl_file_dir, json_file_path)
+            
             try:
                 with open(json_file_path, 'r', encoding='utf-8') as f:
                     import json
@@ -1229,7 +1271,7 @@ def build_mdl(input_path: str, output_path: str, verbose: bool = False) -> None:
     print("DEBUG: About to call _ast_to_pack")
     # Use Pack class to generate additional registry types (recipes, loot tables, etc.)
     # This ensures all registry types are supported
-    pack = _ast_to_pack(ast)
+    pack = _ast_to_pack(ast, mdl_files)
     print("DEBUG: _ast_to_pack completed")
     
     # Build using Pack class to generate all registry types
