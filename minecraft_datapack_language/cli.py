@@ -109,6 +109,17 @@ def _merge_mdl_files(files: List[Path], verbose: bool = False) -> Optional[Dict[
     
     root_pack = parse_mdl_js(source)
     
+    # Get the namespace for the first file
+    first_file_namespace = root_pack.get('namespace', {}).get('name', 'unknown') if root_pack.get('namespace') else 'unknown'
+    
+    # Add namespace information to functions from the first file
+    if root_pack.get('functions'):
+        for func in root_pack['functions']:
+            if isinstance(func, dict):
+                func['_source_namespace'] = first_file_namespace
+            else:
+                setattr(func, '_source_namespace', first_file_namespace)
+    
     # Ensure root_pack has required keys
     if 'functions' not in root_pack:
         root_pack['functions'] = []
@@ -126,8 +137,18 @@ def _merge_mdl_files(files: List[Path], verbose: bool = False) -> Optional[Dict[
         
         ast = parse_mdl_js(source)
         
-        # Merge functions
+        # Get the namespace for this file
+        file_namespace = ast.get('namespace', {}).get('name', 'unknown') if ast.get('namespace') else 'unknown'
+        
+        # Merge functions with namespace information
         if ast.get('functions'):
+            for func in ast['functions']:
+                # Add namespace information to the function
+                if isinstance(func, dict):
+                    func['_source_namespace'] = file_namespace
+                else:
+                    # For AST node objects, we'll handle this differently
+                    setattr(func, '_source_namespace', file_namespace)
             root_pack['functions'].extend(ast['functions'])
         
         # Merge hooks
@@ -437,19 +458,11 @@ def _generate_function_file(ast: Dict[str, Any], output_dir: Path, namespace: st
             function_name = getattr(function, 'name', 'unknown')
             body = getattr(function, 'body', [])
         
-        # Find the namespace for this function by looking at hooks
-        function_namespace = namespace  # Default to root namespace
-        for hook in ast.get('hooks', []):
-            hook_function_name = hook['function_name']
-            if ':' in hook_function_name:
-                hook_namespace, hook_func_name = hook_function_name.split(':', 1)
-                if hook_func_name == function_name:
-                    function_namespace = hook_namespace
-                    break
-            elif hook_function_name == function_name:
-                # This function is called without namespace, use root namespace
-                function_namespace = namespace
-                break
+        # Get the namespace from the function's source information
+        if isinstance(function, dict):
+            function_namespace = function.get('_source_namespace', namespace)
+        else:
+            function_namespace = getattr(function, '_source_namespace', namespace)
         
         # Group function by namespace
         if function_namespace not in namespace_functions:
