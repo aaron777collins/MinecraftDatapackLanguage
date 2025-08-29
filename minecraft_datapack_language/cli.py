@@ -144,10 +144,14 @@ def _generate_load_function(scoreboard_commands: List[str], output_dir: Path, na
     
     functions_dir.mkdir(parents=True, exist_ok=True)
     
+    # Add armor stand creation for server-run functions
+    load_commands = scoreboard_commands.copy()
+    load_commands.append("execute unless entity @e[type=armor_stand,tag=mdl_server,limit=1] run summon armor_stand ~ 320 ~ {Tags:[\"mdl_server\"],Invisible:1b,Marker:1b,NoGravity:1b,Invulnerable:1b}")
+    
     # Write scoreboard commands to load.mcfunction
     load_file = functions_dir / "load.mcfunction"
     with open(load_file, 'w', encoding='utf-8') as f:
-        f.write('\n'.join(scoreboard_commands))
+        f.write('\n'.join(load_commands))
     
     # Add load function as a hook to the AST
     if 'hooks' not in ast:
@@ -417,8 +421,7 @@ def _generate_function_file(ast: Dict[str, Any], output_dir: Path, namespace: st
         # For server-run functions (tick/load hooks), use a server armor stand
         # For player-called functions, use @s (self)
         if is_tag_function:
-            # Create a server armor stand for server-run functions
-            commands.append("execute unless entity @e[type=armor_stand,tag=mdl_server,limit=1] run summon armor_stand ~ ~ ~ {Tags:[\"mdl_server\"],Invisible:1b,Marker:1b,NoGravity:1b}")
+            # Use the server armor stand created in load function (high in the sky, invisible)
             selector = "@e[type=armor_stand,tag=mdl_server,limit=1]"
         else:
             selector = "@s"
