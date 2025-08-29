@@ -14,6 +14,9 @@ from .mdl_lexer_js import lex_mdl_js
 from .mdl_parser_js import parse_mdl_js
 from .expression_processor import expression_processor
 
+# Global variable to store conditional functions
+conditional_functions = []
+
 
 def _process_variable_substitutions(command: str) -> str:
     """Process $variable$ substitutions in commands."""
@@ -263,15 +266,18 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
             commands.append(f"function {namespace}:{end_label}")
         
         elif class_name == 'WhileLoop':
-            # Handle while loop - simplified inline approach
+            # Handle while loop with method selection
             condition = _convert_condition_to_minecraft_syntax(statement.condition.condition_string)
+            method = getattr(statement, 'method', 'recursion')  # Default to recursion
             
-            # For now, just add a comment about the while loop
-            commands.append(f"# while {condition}")
-            
-            # Process the loop body statements
-            for stmt in statement.body:
-                commands.extend(_process_statement(stmt, namespace, function_name))
+            if method == "recursion":
+                # Use current recursion approach (creates multiple function files)
+                commands.extend(_process_while_loop_recursion(statement, namespace, function_name, statement_index))
+            elif method == "schedule":
+                # Use schedule-based approach (single function with counter)
+                commands.extend(_process_while_loop_schedule(statement, namespace, function_name, statement_index))
+            else:
+                raise ValueError(f"Unknown while loop method: {method}")
         
         elif class_name == 'ForLoop':
             # Handle for loop - simplified inline approach
@@ -387,6 +393,7 @@ def _generate_function_file(ast: Dict[str, Any], output_dir: Path, namespace: st
     functions_dir.mkdir(parents=True, exist_ok=True)
     
     # Track all conditional functions that need to be generated
+    global conditional_functions
     conditional_functions = []
     
     for function in ast.get('functions', []):
@@ -546,6 +553,56 @@ def _collect_conditional_functions(if_statement, namespace: str, function_name: 
     functions.append((end_label, []))
     
     return functions
+
+
+def _process_while_loop_recursion(while_statement, namespace: str, function_name: str, statement_index: int) -> List[str]:
+    """Process while loop using recursion method (creates multiple function files)"""
+    commands = []
+    condition = _convert_condition_to_minecraft_syntax(while_statement.condition.condition_string)
+    
+    # Generate loop body function
+    loop_label = f"{namespace}_{function_name}_while_{statement_index}"
+    loop_commands = []
+    for j, stmt in enumerate(while_statement.body):
+        loop_commands.extend(_process_statement(stmt, namespace, function_name, j))
+    
+    # Add the loop body commands to the conditional functions list
+    # (This will be handled by the _generate_function_file method)
+    global conditional_functions
+    conditional_functions.append((loop_label, loop_commands))
+    
+    # Add condition check and function call
+    commands.append(f"execute if {condition} run function {namespace}:{loop_label}")
+    
+    return commands
+
+
+def _process_while_loop_schedule(while_statement, namespace: str, function_name: str, statement_index: int) -> List[str]:
+    """Process while loop using schedule method (single function with counter)"""
+    commands = []
+    condition = _convert_condition_to_minecraft_syntax(while_statement.condition.condition_string)
+    
+    # Create a unique counter for this while loop
+    counter_name = f"while_{statement_index}_counter"
+    
+    # Initialize counter to 0
+    commands.append(f"scoreboard players set @s {counter_name} 0")
+    
+    # Generate loop body function
+    loop_label = f"{namespace}_{function_name}_while_{statement_index}"
+    loop_commands = []
+    for j, stmt in enumerate(while_statement.body):
+        loop_commands.extend(_process_statement(stmt, namespace, function_name, j))
+    
+    # Add the loop body commands to the conditional functions list
+    global conditional_functions
+    conditional_functions.append((loop_label, loop_commands))
+    
+    # Add condition check and schedule
+    commands.append(f"execute if {condition} run function {namespace}:{loop_label}")
+    commands.append(f"execute if {condition} run schedule function {namespace}:{loop_label} 1t")
+    
+    return commands
 
 
 def _create_zip_file(source_dir: Path, zip_path: Path) -> None:

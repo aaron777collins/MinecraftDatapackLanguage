@@ -55,6 +55,7 @@ class ForLoop(ASTNode):
 class WhileLoop(ASTNode):
     condition: 'Expression'  # Changed from str to Expression
     body: List[ASTNode]
+    method: str = "recursion"  # "recursion" or "schedule", defaults to recursion
 
 @dataclass
 class FunctionCall(ASTNode):
@@ -319,6 +320,18 @@ class MDLParser:
         condition_token = self._match(TokenType.STRING)
         condition = ConditionExpression(condition_token.value.strip('"').strip("'"))
         
+        # Parse optional method parameter
+        method = "recursion"  # default
+        if self._peek().type == TokenType.IDENTIFIER and self._peek().value == "method":
+            self._match(TokenType.IDENTIFIER)  # consume "method"
+            self._match(TokenType.ASSIGN)  # consume "="
+            method_token = self._match(TokenType.STRING)
+            method = method_token.value.strip('"').strip("'")
+            
+            # Validate method value
+            if method not in ["recursion", "schedule"]:
+                raise ValueError(f"Invalid while loop method: {method}. Must be 'recursion' or 'schedule'")
+        
         self._match(TokenType.LBRACE)
         
         body = []
@@ -327,7 +340,7 @@ class MDLParser:
         
         self._match(TokenType.RBRACE)
         
-        return WhileLoop(condition, body)
+        return WhileLoop(condition, body, method)
     
     def _parse_for_loop(self) -> ForLoop:
         """Parse for loop."""
