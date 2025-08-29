@@ -660,7 +660,7 @@ def _generate_global_load_function(ast: Dict[str, Any], output_dir: Path, namesp
     namespace_functions = {}
     for function in ast.get('functions', []):
         if isinstance(function, dict):
-            func_namespace = getattr(function, '_source_namespace', root_namespace)
+            func_namespace = function.get('_source_namespace', root_namespace)
         else:
             func_namespace = getattr(function, '_source_namespace', root_namespace)
         
@@ -687,7 +687,7 @@ def _generate_global_load_function(ast: Dict[str, Any], output_dir: Path, namesp
         if isinstance(function, dict):
             body = function.get('body', [])
             # Get the actual source namespace for this function
-            func_namespace = getattr(function, '_source_namespace', root_namespace)
+            func_namespace = function.get('_source_namespace', root_namespace)
         else:
             body = getattr(function, 'body', [])
             # Get the actual source namespace for this function
