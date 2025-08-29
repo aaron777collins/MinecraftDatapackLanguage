@@ -1,0 +1,49 @@
+// simple_control.mdl - Simple control structures with number variables
+pack "simple_control" description "Simple control structures test" pack_format 82;
+
+namespace "test";
+
+// Simple number variables
+var num counter = 0;
+var num health = 20;
+var num level = 1;
+
+function "main" {
+    // Basic variable assignment
+    counter = 5;
+    health = 15;
+    
+    // If statement with variable substitution
+    if "$health$ < 10" {
+        say "Health is low!";
+    } else {
+        say "Health is okay";
+    }
+    
+    // If statement with counter
+    if "$counter$ > 3" {
+        say "Counter is high!";
+    }
+    
+    // While loop
+    while "$counter$ < 10" {
+        counter = $counter$ + 1;
+        say "Counter: $counter$";
+    }
+    
+    // For loop (entity iteration)
+    for player in @a {
+        say "Hello $player$";
+    }
+}
+
+function "helper" {
+    var num result = 0;
+    result = 5 + 3;
+    say "Result: $result$";
+    
+    // Variable substitution in tellraw
+    tellraw @s [{"text":"Health: "},{"score":{"name":"@s","objective":"health"}}];
+}
+
+on_tick "test:main";

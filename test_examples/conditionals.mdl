@@ -1,89 +1,66 @@
-// conditionals.mdl - Test conditional logic and control flow
+// conditionals.mdl - Simple conditional logic test
 pack "conditionals" description "Conditional logic test" pack_format 82;
 
 namespace "test";
 
-function "basic_conditionals" {
-    var num player_level = 15;
-    var str player_class = "warrior";
-    var num experience = 75;
+// Simple number variables
+var num player_level = 15;
+var num player_health = 20;
+var num experience = 75;
+var num min_level = 10;
+var num max_level = 20;
+var num required_exp = 50;
+
+function "main" {
+    // Set initial values
+    player_level = 15;
+    player_health = 8;
+    experience = 75;
     
-    if "score @s player_level >= 10" {
-        if "score @s player_class == 'warrior'" {
-            if "score @s experience >= 50" {
-                say Advanced warrior detected!;
-                effect give @s minecraft:strength 10 2;
-                effect give @s minecraft:glowing 10 0;
-            } else {
-                say Novice warrior;
-                effect give @s minecraft:haste 10 0;
-            }
-        } else if "score @s player_class == 'mage'" {
-            say Advanced mage detected!;
-            effect give @s minecraft:night_vision 10 0;
-            effect give @s minecraft:levitation 5 0;
-        } else {
-            say Unknown advanced class;
-            effect give @s minecraft:glowing 10 0;
-        }
-    } else if "score @s player_level >= 5" {
-        say Intermediate player;
-        effect give @s minecraft:speed 10 0;
-    } else {
-        say Beginner player;
-        effect give @s minecraft:jump_boost 10 0;
+    // Simple if statement
+    if "$player_level$ > 10" {
+        say "Player is experienced!";
     }
-}
-
-function "entity_conditionals" {
-    if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:'minecraft:diamond_sword'}}]" {
-        say Diamond sword detected!;
-        effect give @s minecraft:strength 10 1;
-        effect give @s minecraft:glowing 10 0;
-    } else if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:'minecraft:golden_sword'}}]" {
-        say Golden sword detected!;
-        effect give @s minecraft:speed 10 1;
-        effect give @s minecraft:night_vision 10 0;
-    } else if "entity @s[type=minecraft:player,nbt={SelectedItem:{id:'minecraft:bow'}}]" {
-        say Bow detected!;
-        effect give @s minecraft:jump_boost 10 1;
-    } else if "entity @s[type=minecraft:player]" {
-        say Player without special weapon;
-        effect give @s minecraft:haste 5 0;
-    } else {
-        say No player found;
-    }
-}
-
-function "complex_conditionals" {
-    var num health = 15;
-    var num hunger = 8;
-    var str biome = "plains";
     
-    if "score @s health < 10" {
-        if "score @s hunger < 5" {
-            say Player is in critical condition!;
-            effect give @s minecraft:regeneration 10 1;
-            effect give @s minecraft:saturation 5 0;
-        } else {
-            say Player is low on health;
-            effect give @s minecraft:regeneration 5 0;
-        }
-    } else if "score @s hunger < 5" {
-        say Player is hungry;
-        effect give @s minecraft:saturation 10 0;
-    } else if "score @s biome == 'desert'" {
-        say Player in desert - hydration needed;
-        effect give @s minecraft:water_breathing 10 0;
-    } else if "score @s biome == 'nether'" {
-        say Player in nether - fire resistance;
-        effect give @s minecraft:fire_resistance 10 0;
+    // If-else statement
+    if "$player_health$ < 10" {
+        say "Health is low!";
+        effect give @s minecraft:regeneration 10 1;
     } else {
-        say Player is healthy;
-        effect give @s minecraft:speed 5 0;
+        say "Health is okay";
+    }
+    
+    // Nested if statements
+    if "$player_level$ >= 15" {
+        if "$experience$ >= 50" {
+            say "Advanced player detected!";
+            effect give @s minecraft:strength 10 1;
+        } else {
+            say "Experienced but needs more XP";
+        }
+    } else {
+        say "Novice player";
+    }
+    
+    // Multiple conditions
+    if "$player_level$ >= 20" {
+        say "Master level!";
+    } else if "$player_level$ >= 15" {
+        say "Expert level!";
+    } else if "$player_level$ >= 10" {
+        say "Intermediate level!";
+    } else {
+        say "Beginner level!";
+    }
+    
+    // Variable comparison
+    if "$player_level$ > $min_level$" {
+        say "Above minimum level";
+    }
+    
+    if "$experience$ >= $required_exp$" {
+        say "Has required experience";
     }
 }
 
-on_tick "test:basic_conditionals";
-on_tick "test:entity_conditionals";
-on_tick "test:complex_conditionals";
+on_tick "test:main";

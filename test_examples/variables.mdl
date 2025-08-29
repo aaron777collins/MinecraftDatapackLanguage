@@ -1,77 +1,42 @@
-// variables.mdl - Test variable declarations and operations
-pack "variables" description "Variable operations test" pack_format 82;
+// variables.mdl - Simple number variables test
+pack "variables" description "Simple variables test" pack_format 82;
 
 namespace "test";
 
-// Global variables
-var num global_counter = 0;
-var str global_message = "System Ready";
-var list global_items = ["sword", "shield", "potion"];
+// Simple number variables only
+var num counter = 0;
+var num health = 20;
+var num level = 1;
+var num experience = 0;
 
-function "variable_demo" {
-    // Local variable declarations
-    var num local_counter = 10;
-    var str player_name = "Steve";
-    var list local_items = ["apple", "bread", "steak"];
+function "main" {
+    // Basic variable assignment
+    counter = 42;
+    health = 15;
+    level = 5;
+    experience = 100;
     
-    // Number operations
-    local_counter = local_counter + 5;
-    global_counter = global_counter + 1;
+    // Variable substitution in strings
+    say "Counter: $counter$";
+    say "Health: $health$";
+    say "Level: $level$";
+    say "Experience: $experience$";
     
-    // String operations
-    player_name = "Alex";
-    global_message = "Updated: " + player_name;
-    var str full_name = player_name + " Minecraft";
+    // Variable substitution in tellraw
+    tellraw @s [{"text":"Counter: "},{"score":{"name":"@s","objective":"counter"}}];
+    tellraw @s [{"text":"Health: "},{"score":{"name":"@s","objective":"health"}}];
     
-    // List operations
-    local_items.append("golden_apple");
-    local_items.insert(1, "enchanted_sword");
-    var num first_item = local_items[0];
-    var num item_count = length(local_items);
+    // Simple arithmetic
+    counter = $counter$ + 1;
+    health = $health$ - 5;
+    level = $level$ * 2;
+    experience = $experience$ / 2;
     
-    // Complex calculations
-    var num result = (local_counter * 2) + global_counter;
-    var num modulo_result = result % 7;
-    
-    // String concatenation with variables
-    var str status = player_name + " has " + item_count + " items";
-    
-    say Variable demo complete;
-    tellraw @s {"text":"Result: ", "extra":[{"score":{"name":"result","objective":"result"}}]};
-    tellraw @s {"text":"Modulo: ", "extra":[{"score":{"name":"modulo_result","objective":"modulo_result"}}]};
-    tellraw @s {"text":"Status: ", "extra":[{"nbt":"status","storage":"mdl:variables"}]};
+    // Show updated values
+    say "Updated Counter: $counter$";
+    say "Updated Health: $health$";
+    say "Updated Level: $level$";
+    say "Updated Experience: $experience$";
 }
 
-function "list_operations" {
-    var list weapons = ["diamond_sword", "golden_sword", "bow"];
-    var list armor = ["diamond_helmet", "diamond_chestplate"];
-    
-    // Append operations
-    weapons.append("crossbow");
-    armor.append("diamond_leggings");
-    
-    // Insert operations
-    weapons.insert(1, "netherite_sword");
-    armor.insert(0, "netherite_helmet");
-    
-    // Access operations
-    var str primary_weapon = weapons[0];
-    var num weapon_count = length(weapons);
-    var num armor_count = length(armor);
-    
-    // Remove operations
-    weapons.remove("golden_sword");
-    armor.remove("diamond_helmet");
-    
-    // Pop operations
-    weapons.pop();
-    armor.pop();
-    
-    say List operations complete;
-    tellraw @s {"text":"Weapon count: ", "extra":[{"score":{"name":"weapon_count","objective":"weapon_count"}}]};
-    tellraw @s {"text":"Armor count: ", "extra":[{"score":{"name":"armor_count","objective":"armor_count"}}]};
-    tellraw @s {"text":"Primary weapon: ", "extra":[{"nbt":"primary_weapon","storage":"mdl:variables"}]};
-}
-
-on_tick "test:variable_demo";
-on_tick "test:list_operations";
+on_tick "test:main";

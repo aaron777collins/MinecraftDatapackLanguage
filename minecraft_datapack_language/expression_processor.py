@@ -1,12 +1,12 @@
 """
 Expression Processor for MDL to Minecraft Command Translation
 
-This module handles the systematic breakdown of complex expressions into
-simple operations that can be translated to Minecraft commands.
+This module handles simple expressions for the simplified MDL language.
+Only supports number variables, simple arithmetic, and variable substitutions.
 """
 
 import re
-from typing import List, Tuple, Dict, Any, Optional
+from typing import List, Optional
 from dataclasses import dataclass
 
 
@@ -19,7 +19,7 @@ class ProcessedExpression:
 
 
 class ExpressionProcessor:
-    """Handles the systematic breakdown of complex expressions"""
+    """Handles simple expressions for the simplified MDL language"""
     
     def __init__(self):
         self.temp_counter = 0
@@ -41,72 +41,17 @@ class ExpressionProcessor:
         
         class_name = expr.__class__.__name__
         
-        # Complex expressions that need breakdown
+        # Only complex expressions we support
         complex_types = [
             'BinaryExpression',      # a + b, a * b, etc.
-            'ListAccessExpression',  # list[index]
-            'ListLengthExpression',  # list.length
-            'StringConcatenation',   # "a" + "b"
         ]
-        
-        # Also check for literal expressions that might be list length
-        if class_name == 'LiteralExpression' and hasattr(expr, 'value'):
-            if isinstance(expr.value, str) and '.length' in expr.value:
-                return True
         
         return class_name in complex_types
-    
-    def process_list_access(self, list_name: str, index_expr, target_var: str) -> ProcessedExpression:
-        """Process list access expressions like list[index]"""
-        commands = []
-        temp_vars = []
-        
-        # Handle the index expression
-        if hasattr(index_expr, 'name'):
-            # Variable index - use directly
-            index_var = index_expr.name
-            commands.extend([
-                f"execute store result storage mdl:temp index int 1 run scoreboard players get @s {index_var}",
-                f"data modify storage mdl:temp element set from storage mdl:variables {list_name}[storage mdl:temp index]",
-                f"data modify storage mdl:variables {target_var} set from storage mdl:temp element"
-            ])
-        elif hasattr(index_expr, 'value'):
-            # Literal index - use directly
-            index = index_expr.value
-            commands.extend([
-                f"data modify storage mdl:temp element set from storage mdl:variables {list_name}[{index}]",
-                f"data modify storage mdl:variables {target_var} set from storage mdl:temp element"
-            ])
-        else:
-            # Complex index expression - break it down
-            temp_index_var = self.generate_temp_var("index")
-            temp_vars.append(temp_index_var)
-            index_commands = self.process_expression(index_expr, temp_index_var)
-            commands.extend(index_commands.temp_assignments)
-            commands.extend([
-                f"execute store result storage mdl:temp index int 1 run scoreboard players get @s {temp_index_var}",
-                f"data modify storage mdl:temp element set from storage mdl:variables {list_name}[storage mdl:temp index]",
-                f"data modify storage mdl:variables {target_var} set from storage mdl:temp element"
-            ])
-            commands.extend(index_commands.final_command)
-        
-        return ProcessedExpression(commands, "", temp_vars)
-    
-    def process_list_length(self, list_name: str, target_var: str) -> ProcessedExpression:
-        """Process list length expressions like list.length"""
-        commands = [
-            f"execute store result score @s {target_var} run data get storage mdl:variables {list_name}"
-        ]
-        return ProcessedExpression(commands, "", [])
     
     def process_binary_expression(self, expr, target_var: str) -> ProcessedExpression:
         """Process binary expressions like a + b, a * b, etc."""
         commands = []
         temp_vars = []
-        
-        # Check if this is string concatenation
-        if expr.operator == '+' and self.is_string_operation(expr):
-            return self.process_string_concatenation([expr.left, expr.right], target_var)
         
         # Process left operand
         if self.is_complex_expression(expr.left):
@@ -140,9 +85,6 @@ class ExpressionProcessor:
             return expr.name
         elif hasattr(expr, 'value'):
             return str(expr.value)
-        elif hasattr(expr, '__class__') and expr.__class__.__name__ == 'ListLengthExpression':
-            # ListLengthExpression should be treated as a complex expression
-            raise ValueError("ListLengthExpression should be processed as complex expression")
         else:
             return str(expr)
     
@@ -224,23 +166,6 @@ class ExpressionProcessor:
                 else:
                     return f"scoreboard players operation @s {target} = @s {left}\nscoreboard players operation @s {target} /= @s {right}"
         
-        elif operator == '%':
-            if is_right_literal:
-                # For modulo with literal, we need to create a temporary objective
-                temp_obj = f"temp_{right}"
-                if left == target:
-                    # Avoid self-assignment
-                    return f"scoreboard objectives add {temp_obj} dummy\nscoreboard players set @s {temp_obj} {right}\nscoreboard players operation @s {target} %= @s {temp_obj}"
-                else:
-                    return f"scoreboard objectives add {temp_obj} dummy\nscoreboard players set @s {temp_obj} {right}\nscoreboard players operation @s {target} = @s {left}\nscoreboard players operation @s {target} %= @s {temp_obj}"
-            else:
-                # For variable operands, use scoreboard operation
-                if left == target:
-                    # Avoid self-assignment
-                    return f"scoreboard players operation @s {target} %= @s {right}"
-                else:
-                    return f"scoreboard players operation @s {target} = @s {left}\nscoreboard players operation @s {target} %= @s {right}"
-        
         else:
             # Default to addition for unknown operators
             if is_right_literal:
@@ -256,78 +181,6 @@ class ExpressionProcessor:
                 else:
                     return f"scoreboard players operation @s {target} = @s {left}\nscoreboard players operation @s {target} += @s {right}"
     
-    def process_string_concatenation(self, parts: List, target_var: str) -> ProcessedExpression:
-        """Process string concatenation like "a" + b + "c" """
-        commands = []
-        temp_vars = []
-        
-        # Start with the first part instead of empty string
-        if parts:
-            first_part = parts[0]
-            if self.is_literal_string(first_part):
-                # Literal string - start with it
-                value = first_part.value.strip('"').strip("'")
-                commands.append(f"data modify storage mdl:variables {target_var} set value \"{value}\"")
-            elif hasattr(first_part, 'name'):
-                # Variable reference - start with it
-                commands.append(f"data modify storage mdl:variables {target_var} set from storage mdl:variables {first_part.name}")
-            else:
-                # Simple value - start with it
-                value = str(first_part).strip('"').strip("'")
-                commands.append(f"data modify storage mdl:variables {target_var} set value \"{value}\"")
-            
-            # Process remaining parts
-            for part in parts[1:]:
-                if self.is_literal_string(part):
-                    # Literal string - direct append
-                    value = part.value.strip('"').strip("'")
-                    commands.append(f"data modify storage mdl:variables {target_var} append value \"{value}\"")
-                elif hasattr(part, 'name'):
-                    # Variable reference - directly copy from storage
-                    commands.append(f"data modify storage mdl:variables {target_var} append from storage mdl:variables {part.name}")
-                elif self.is_complex_expression(part):
-                    # Complex expression - evaluate first
-                    temp_var = self.generate_temp_var("concat")
-                    temp_vars.append(temp_var)
-                    part_result = self.process_expression(part, temp_var)
-                    commands.extend(part_result.temp_assignments)
-                    commands.append(f"data modify storage mdl:variables {target_var} append from storage mdl:variables {temp_var}")
-                else:
-                    # Simple value
-                    value = str(part).strip('"').strip("'")
-                    commands.append(f"data modify storage mdl:variables {target_var} append value \"{value}\"")
-        else:
-            # Empty concatenation - set empty string
-            commands.append(f"data modify storage mdl:variables {target_var} set value \"\"")
-        
-        return ProcessedExpression(commands, "", temp_vars)
-    
-    def is_literal_string(self, expr) -> bool:
-        """Check if expression is a literal string"""
-        if isinstance(expr, str):
-            return expr.startswith('"') and expr.endswith('"') or expr.startswith("'") and expr.endswith("'")
-        elif hasattr(expr, 'type') and expr.type == 'string':
-            return True
-        return False
-    
-    def is_string_operation(self, expr) -> bool:
-        """Check if this is a string concatenation operation"""
-        # Check if either operand is a string literal
-        if self.is_literal_string(expr.left) or self.is_literal_string(expr.right):
-            return True
-        
-        # Check if either operand is a string variable (any variable could be a string)
-        if hasattr(expr.left, 'name'):
-            return True
-        if hasattr(expr.right, 'name'):
-            return True
-        
-        # Check if either operand is a complex expression that might result in a string
-        if self.is_complex_expression(expr.left) or self.is_complex_expression(expr.right):
-            return True
-        
-        return False
-    
     def process_expression(self, expr, target_var: str) -> ProcessedExpression:
         """Main entry point for processing any expression"""
         if not hasattr(expr, '__class__'):
@@ -336,137 +189,33 @@ class ExpressionProcessor:
             return ProcessedExpression(commands, "", [])
         
         class_name = expr.__class__.__name__
-        print(f"DEBUG: Processing expression {class_name}: {expr}") # Debug added
         
-        if class_name == 'ListAccessExpression':
-            print(f"DEBUG: Processing ListAccessExpression: {expr.list_name}[{expr.index}]") # Debug added
-            return self.process_list_access(expr.list_name, expr.index, target_var)
-        elif class_name == 'ListLengthExpression':
-            return self.process_list_length(expr.list_name, target_var)
-        elif class_name == 'BinaryExpression':
-            print(f"DEBUG: Processing BinaryExpression: {expr.left} {expr.operator} {expr.right}") # Debug added
+        if class_name == 'BinaryExpression':
             return self.process_binary_expression(expr, target_var)
         elif class_name == 'LiteralExpression':
-            if hasattr(expr, 'type'):
-                if expr.type == 'string':
-                    value = expr.value.strip('"').strip("'")
-                    # Check if this is a list length expression
-                    if '.length' in value:
-                        list_name = value.split('.')[0]
-                        commands = [
-                            f"# Get length of {list_name}",
-                            f"execute store result score @s {target_var} run data get storage mdl:variables {list_name}"
-                        ]
-                    else:
-                        commands = [f"data modify storage mdl:variables {target_var} set value \"{value}\""]
-            else:
-                # Try to determine type
-                try:
-                    value = int(expr.value)
-                    commands = [f"scoreboard players set @s {target_var} {value}"]
-                except (ValueError, TypeError):
-                    value = str(expr.value).strip('"').strip("'")
-                    # Check if this is a list length expression
-                    if '.length' in value:
-                        list_name = value.split('.')[0]
-                        commands = [
-                            f"# Get length of {list_name}",
-                            f"execute store result score @s {target_var} run data get storage mdl:variables {list_name}"
-                        ]
-                    else:
-                        commands = [f"data modify storage mdl:variables {target_var} set value \"{value}\""]
+            # Handle literal expressions (numbers only)
+            try:
+                value = int(expr.value)
+                commands = [f"scoreboard players set @s {target_var} {value}"]
+            except (ValueError, TypeError):
+                # If not a number, set to 0
+                commands = [f"scoreboard players set @s {target_var} 0"]
             return ProcessedExpression(commands, "", [])
-        elif class_name == 'Identifier' or class_name == 'VariableExpression':
-            # Variable reference - check if this should be stored as a string or number
-            # For now, assume it's a number and use scoreboard operation
+        elif class_name == 'VariableExpression':
+            # Variable reference - copy from scoreboard
             commands = [f"scoreboard players operation @s {target_var} = @s {expr.name}"]
+            return ProcessedExpression(commands, "", [])
+        elif class_name == 'VariableSubstitutionExpression':
+            # Variable substitution ($variable$) - read from scoreboard
+            commands = [f"scoreboard players operation @s {target_var} = @s {expr.variable_name}"]
             return ProcessedExpression(commands, "", [])
         elif hasattr(expr, 'left') and hasattr(expr, 'right') and hasattr(expr, 'operator'):
             # This is a binary expression that wasn't caught by BinaryExpression class
             return self.process_binary_expression(expr, target_var)
-        elif class_name == 'ListExpression':
-            # Handle list assignments
-            commands = [f"data modify storage mdl:variables {target_var} set value []"]
-            if hasattr(expr, 'elements'):
-                for item in expr.elements:
-                    if hasattr(item, 'value'):
-                        # Handle string literals in lists
-                        item_value = item.value.strip('"').strip("'")
-                        commands.append(f"data modify storage mdl:variables {target_var} append value \"{item_value}\"")
-                    elif hasattr(item, 'elements'):
-                        # Handle nested lists
-                        temp_nested = self.generate_temp_var("nested")
-                        nested_result = self.process_expression(item, temp_nested)
-                        commands.extend(nested_result.temp_assignments)
-                        commands.append(f"data modify storage mdl:variables {target_var} append value storage mdl:variables {temp_nested}")
-                    else:
-                        # Handle other types - convert to string for now
-                        commands.append(f"data modify storage mdl:variables {target_var} append value \"unknown\"")
-            return ProcessedExpression(commands, "", [])
-        elif class_name == 'FunctionCall':
-            # Handle built-in function calls
-            if expr.function_name == 'length':
-                if len(expr.arguments) == 1:
-                    # length(list) - get the length of a list
-                    list_arg = expr.arguments[0]
-                    if hasattr(list_arg, 'name'):
-                        # Variable reference
-                        list_name = list_arg.name
-                        commands = [
-                            f"# Get length of {list_name}",
-                            f"execute store result score @s {target_var} run data get storage mdl:variables {list_name}"
-                        ]
-                    else:
-                        # Complex expression - evaluate first
-                        temp_list_var = self.generate_temp_var("list")
-                        list_result = self.process_expression(list_arg, temp_list_var)
-                        commands.extend(list_result.temp_assignments)
-                        commands.extend([
-                            f"# Get length of complex list expression",
-                            f"execute store result score @s {target_var} run data get storage mdl:variables {temp_list_var}"
-                        ])
-                    return ProcessedExpression(commands, "", [])
-                else:
-                    # Wrong number of arguments
-                    commands = [f"# Error: length() expects exactly 1 argument"]
-                    return ProcessedExpression(commands, "", [])
-            else:
-                # Unknown function - convert to string
-                commands = [f"data modify storage mdl:variables {target_var} set value \"{str(expr)}\""]
-                return ProcessedExpression(commands, "", [])
         else:
-            # Unknown expression type - try to handle it more intelligently
-            if hasattr(expr, 'name'):
-                # This might be a variable reference that wasn't caught by Identifier
-                commands = [f"scoreboard players operation @s {target_var} = @s {expr.name}"]
-            elif hasattr(expr, 'left') and hasattr(expr, 'right') and hasattr(expr, 'operator'):
-                # This is a binary expression that wasn't caught - process it
-                return self.process_binary_expression(expr, target_var)
-            else:
-                # Fallback to string conversion with warning
-                print(f"WARNING: Unknown expression type {type(expr)}: {expr}")
-                # Don't store the string representation of the object - this causes issues
-                # Instead, try to extract a meaningful value
-                if hasattr(expr, 'value'):
-                    commands = [f"data modify storage mdl:variables {target_var} set value \"{expr.value}\""]
-                elif hasattr(expr, '__str__'):
-                    # Only use str() if it's not a complex object
-                    expr_str = str(expr)
-                    if not any(keyword in expr_str for keyword in ['VariableExpression', 'BinaryExpression', 'LiteralExpression']):
-                        commands = [f"data modify storage mdl:variables {target_var} set value \"{expr_str}\""]
-                    else:
-                        # This is a complex object - don't store it as a string
-                        commands = [f"# Error: Cannot convert complex expression to string"]
-                else:
-                    commands = [f"# Error: Unknown expression type"]
+            # Unknown expression type - set to 0
+            commands = [f"scoreboard players set @s {target_var} 0"]
             return ProcessedExpression(commands, "", [])
-    
-    def process_condition(self, condition: str) -> ProcessedExpression:
-        """Process conditions that may contain complex expressions"""
-        # This is a simplified version - in practice, we'd need to parse the condition
-        # and identify complex expressions within it
-        commands = [f"# Process condition: {condition}"]
-        return ProcessedExpression(commands, condition, [])
 
 
 # Global instance for use in other modules

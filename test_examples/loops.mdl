@@ -1,114 +1,67 @@
-// loops.mdl - Test loop constructs and iteration
-pack "loops" description "Loop functionality test" pack_format 82;
+// loops.mdl - Simple loops test
+pack "loops" description "Loops test" pack_format 82;
 
 namespace "test";
 
-function "simple_while" {
-    say Testing simple while loop;
-    var num counter = 5;
-    while "score @s counter matches 1.." {
-        say Counter: @s counter;
-        counter = counter - 1;
-        say Decremented counter;
-    }
-}
+// Simple number variables
+var num counter = 0;
+var num max_count = 10;
+var num step = 1;
 
-function "entity_while" {
-    say Testing while loop with entity condition;
-    while "entity @e[type=minecraft:zombie,distance=..10]" {
-        say Zombie nearby!;
-        effect give @e[type=minecraft:zombie,distance=..10,limit=1] minecraft:glowing 5 1;
-        say Applied effect to zombie;
-    }
-}
-
-function "entity_for" {
-    say Testing for loop with entity collection;
-    tag @e[type=minecraft:player] add players;
-    for player in "@e[tag=players]" {
-        say Processing player: @s;
-        effect give @s minecraft:speed 10 1;
-        tellraw @s {"text":"You got speed!","color":"green"};
-    }
-}
-
-function "nested_loops" {
-    say Testing nested loops;
-    var num outer = 3;
-    while "score @s outer matches 1.." {
-        say Outer loop: @s outer;
-        var num inner = 2;
-        while "score @s inner matches 1.." {
-            say Inner loop: @s inner;
-            effect give @s minecraft:glowing 1 1;
-            inner = inner - 1;
-        }
-        outer = outer - 1;
-    }
-}
-
-function "complex_for" {
-    say Testing for loop with complex selector;
-    for player in "@a[gamemode=survival]" {
-        say Processing survival player: @s;
-        if "entity @s[nbt={SelectedItem:{id:\"minecraft:diamond_sword\"}}]" {
-            say Player has diamond sword!;
-            effect give @s minecraft:strength 10 1;
-        } else {
-            say Player has no diamond sword;
-            effect give @s minecraft:haste 5 0;
-        }
-    }
-}
-
-function "list_iteration" {
-    var list items = ["sword", "shield", "potion", "food"];
-    var num index = 0;
-    
-    while "score @s index < length(items)" {
-        var str current_item = items[index];
-        say Processing item: current_item;
-        index = index + 1;
-    }
-}
-
-function "break_continue" {
-    var num counter = 0;
-    var num break_sum = 0;
-    var num continue_sum = 0;
-    
-    // Test break
-    while "score @s counter < 10" {
-        counter = counter + 1;
-        
-        if "score @s counter == 7" {
-            break;
-        }
-        
-        break_sum = break_sum + counter;
-    }
-    
-    // Test continue
+function "main" {
+    // Reset counter
     counter = 0;
-    while "score @s counter < 10" {
-        counter = counter + 1;
-        
-        if "score @s counter % 2 == 0" {
-            continue;
-        }
-        
-        continue_sum = continue_sum + counter;
+    
+    // Simple while loop
+    while "$counter$ < 5" {
+        counter = $counter$ + 1;
+        say "Counter: $counter$";
     }
     
-    say Break and continue test complete;
-    tellraw @s {"text":"Break sum: ", "extra":[{"score":{"name":"break_sum","objective":"break_sum"}}]};
-    tellraw @s {"text":"Continue sum: ", "extra":[{"score":{"name":"continue_sum","objective":"continue_sum"}}]};
+    // While loop with variable condition
+    counter = 0;
+    while "$counter$ < $max_count$" {
+        counter = $counter$ + $step$;
+        say "Step: $counter$";
+    }
+    
+    // For loop (entity iteration)
+    for player in @a {
+        say "Hello $player$";
+        tellraw @s [{"text":"Greeting player: "},{"selector":"@s"}];
+    }
+    
+    // For loop with specific selector
+    for zombie in @e[type=zombie] {
+        say "Found zombie: $zombie$";
+        effect give @s minecraft:glowing 5 0;
+    }
+    
+    // Nested loops
+    counter = 0;
+    while "$counter$ < 3" {
+        say "Outer loop: $counter$";
+        
+        var num inner = 0;
+        while "$inner$ < 2" {
+            inner = $inner$ + 1;
+            say "  Inner: $inner$";
+        }
+        
+        counter = $counter$ + 1;
+    }
 }
 
-on_tick "test:simple_while";
-on_tick "test:entity_while";
-on_tick "test:entity_for";
-on_tick "test:nested_loops";
-on_tick "test:complex_for";
-on_tick "test:list_iteration";
-on_tick "test:break_continue";
+function "countdown" {
+    var num count = 10;
+    
+    while "$count$ > 0" {
+        say "Countdown: $count$";
+        count = $count$ - 1;
+    }
+    
+    say "Blast off!";
+}
+
+on_tick "test:main";
+on_tick "test:countdown";
