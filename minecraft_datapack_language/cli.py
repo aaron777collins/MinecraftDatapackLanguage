@@ -196,7 +196,7 @@ def _process_statement(statement: Any, namespace: str, function_name: str) -> Li
                     
                     def replace_var_in_tellraw(match):
                         var_name = match.group(1)
-                        return f'{"score":{"name":"@s","objective":"' + var_name + '"}}'
+                        return f'{{"score":{{"name":"@s","objective":"{var_name}"}}}}'
                     
                     # Replace variable substitutions
                     command = re.sub(var_pattern, replace_var_in_tellraw, command)
