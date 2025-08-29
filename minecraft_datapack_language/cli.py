@@ -576,7 +576,25 @@ def _generate_hook_files(ast: Dict[str, Any], output_dir: Path, namespace: str) 
             f.write('{"values": [' + ', '.join(f'"{func}"' for func in tick_functions) + ']}')
     
     # Check if we need to generate a global load function for variable initialization
+    # Look for variables in both top-level variables and within functions
     has_variables = bool(ast.get('variables', []))
+    
+    # Also check if any functions contain variable declarations
+    for function in ast.get('functions', []):
+        if isinstance(function, dict):
+            body = function.get('body', [])
+        else:
+            body = getattr(function, 'body', [])
+        
+        for statement in body:
+            if hasattr(statement, '__class__') and statement.__class__.__name__ == 'VariableDeclaration':
+                has_variables = True
+                break
+            elif hasattr(statement, '__class__') and statement.__class__.__name__ == 'VariableAssignment':
+                has_variables = True
+                break
+        if has_variables:
+            break
     
     # Generate load.json if there are explicit load hooks OR if we have variables to initialize
     if load_functions or has_variables:
