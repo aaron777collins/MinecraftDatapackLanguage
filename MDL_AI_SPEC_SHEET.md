@@ -346,7 +346,7 @@ This document serves as the comprehensive specification and implementation guide
 
 ## Current Version Status
 
-**Latest Version**: v10.1.70
+**Latest Version**: v10.1.71
 **Status**: Highly functional MDL compiler with comprehensive feature set
 **Known Issues**: All major issues resolved!
 **Next Priority**: Continue testing and documentation improvements
@@ -362,7 +362,7 @@ The MDL language implementation is now substantially complete with all major fea
 - **Dual Validation**: Mecha (real syntax validation) + Custom linter (performance/style analysis)
 - **Professional-Grade**: Uses the same validation tool as major Minecraft projects
 - **Output**: Comprehensive reports with both syntax errors and optimization suggestions
-- **Status**: Implemented in v10.1.70
+- **Status**: Implemented in v10.1.70, Enhanced in v10.1.71
 
 **Mecha Integration**:
 - Real mcfunction syntax validation using industry-standard tool
@@ -425,7 +425,7 @@ The MDL language implementation is now substantially complete with all major fea
    - **Impact**: Inefficient, potentially unreliable
    - **Fix**: Simplify list operations to use direct NBT manipulation
 
-6. **Tellraw Command Issues** ✅ **FIXED**
+6. **Tellraw Command Issues** ✅ **FIXED** (v10.1.71)
    - **Issue**: Tellraw commands use string concatenation that doesn't work in Minecraft
    - **Example**: `tellraw @s {"text":"Result: " + result}` - Minecraft doesn't support `+` in JSON
    - **Impact**: Commands will fail in-game
