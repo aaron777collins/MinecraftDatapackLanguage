@@ -24,7 +24,7 @@ def _process_variable_substitutions(command: str) -> str:
     
     def replace_var(match):
         var_name = match.group(1)
-        return f'{"score":{"name":"@s","objective":"' + var_name + '"}}'
+        return f'{{"score":{{"name":"@s","objective":"{var_name}"}}}}'
     
     # Replace variable substitutions in the command
     return re.sub(var_pattern, replace_var, command)
