@@ -429,10 +429,19 @@ def _generate_hook_files(ast: Dict[str, Any], output_dir: Path, namespace: str) 
     tick_functions = []
     
     for hook in ast.get('hooks', []):
+        function_name = hook['function_name']
+        # Check if function_name already contains a namespace (has a colon)
+        if ':' in function_name:
+            # Function name already includes namespace, use as-is
+            full_function_name = function_name
+        else:
+            # Function name doesn't include namespace, add it
+            full_function_name = f"{namespace}:{function_name}"
+        
         if hook['hook_type'] == "load":
-            load_functions.append(f"{namespace}:{hook['function_name']}")
+            load_functions.append(full_function_name)
         elif hook['hook_type'] == "tick":
-            tick_functions.append(f"{namespace}:{hook['function_name']}")
+            tick_functions.append(full_function_name)
     
     # Generate load.json
     if load_functions:
