@@ -213,8 +213,6 @@ class MDLParser:
             return self._parse_if_statement()
         elif self._peek().type == TokenType.WHILE:
             return self._parse_while_loop()
-        elif self._peek().type == TokenType.FOR:
-            return self._parse_for_loop()
         elif self._peek().type == TokenType.FUNCTION:
             return self._parse_function_call()
         elif self._peek().type == TokenType.IDENTIFIER:
@@ -347,26 +345,8 @@ class MDLParser:
         return WhileLoop(condition, body, method)
     
     def _parse_for_loop(self) -> ForLoop:
-        """Parse for loop."""
-        self._match(TokenType.FOR)
-        
-        variable_token = self._match(TokenType.IDENTIFIER)
-        variable = variable_token.value
-        
-        self._match(TokenType.IN)
-        
-        selector_token = self._match(TokenType.STRING)
-        selector = selector_token.value.strip('"').strip("'")
-        
-        self._match(TokenType.LBRACE)
-        
-        body = []
-        while not self._is_at_end() and self._peek().type != TokenType.RBRACE:
-            body.append(self._parse_statement())
-        
-        self._match(TokenType.RBRACE)
-        
-        return ForLoop(variable, selector, body)
+        """Parse for loop - DEPRECATED."""
+        raise ValueError("For loops are no longer supported. Use while loops with method='schedule' for iteration over selectors.")
     
     def _parse_function_call(self) -> FunctionCall:
         """Parse function call."""

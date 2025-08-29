@@ -233,8 +233,21 @@ function "check_player" {
 
 ### While Loops
 
+MDL supports **flexible while loops** with user-choice implementation methods:
+
 ```mdl
+// Default recursion method
 while "condition" {
+    // commands to repeat while condition is true
+}
+
+// Explicit recursion method
+while "condition" method="recursion" {
+    // commands to repeat while condition is true
+}
+
+// Schedule method for long-running loops
+while "condition" method="schedule" {
     // commands to repeat while condition is true
 }
 ```
@@ -245,6 +258,19 @@ while "condition" {
 - **Statement termination**: All commands must end with semicolons `;`
 - While loops continue until the condition becomes false
 - **Important**: Ensure your loop body modifies the condition to avoid infinite loops
+- **Method selection**: Choose between `recursion` (default) and `schedule` methods
+
+**Implementation Methods:**
+
+**🔄 Recursion Method (Default):**
+- Fast execution, immediate results
+- Limited by `maxCommandChainLength` (~65,000 commands)
+- Good for small loops (< 100 iterations)
+
+**⏰ Schedule Method:**
+- No function file limit, better for large loops
+- Slightly slower due to tick scheduling
+- Good for large loops (> 100 iterations)
 
 **Examples:**
 
@@ -254,52 +280,27 @@ function "countdown" {
     while "$counter$ > 0" {
         say Countdown: $counter$;
         counter = counter - 1;
-        say Decremented counter;
     }
 }
 
 function "health_regeneration" {
     var num regen_count = 0;
-    while "$regen_count$ < 3" {
+    while "$regen_count$ < 3" method="recursion" {
         say Regenerating health...;
         effect give @s minecraft:regeneration 5 0;
         regen_count = regen_count + 1;
     }
 }
-```
 
-### For Loops
-
-```mdl
-for variable in selector {
-    // commands to run for each entity in the selector
-}
-```
-
-**Rules:**
-- Collection must be a valid Minecraft entity selector
-- **Explicit block boundaries**: For loops use curly braces `{` and `}`
-- **Statement termination**: All commands must end with semicolons `;`
-- For loops iterate over each entity in the collection
-- **Efficient execution**: Each conditional block becomes a separate function for optimal performance
-
-**Examples:**
-
-```mdl
-function "player_effects" {
-    for player in @a {
-        say Processing player: @s;
-        effect give @s minecraft:speed 10 1;
-        tellraw @s {"text":"You got speed!","color":"green"};
+function "large_processing" {
+    var num item_count = 0;
+    while "$item_count$ < 1000" method="schedule" {
+        say Processing item $item_count$;
+        item_count = item_count + 10;
     }
 }
 
-function "item_processing" {
-    for item in @e[type=minecraft:item] {
-        say Processing item: @s;
-        effect give @s minecraft:glowing 5 1;
-    }
-}
+```
 ```
 
 ## Hooks
@@ -446,17 +447,18 @@ function "tick" {
         effect give @s minecraft:speed 10 0;
     }
     
-    // While loop
+    // While loop with different methods
     var num loop_count = 0;
     while "$loop_count$ < 3" {
         say Loop iteration: $loop_count$;
         loop_count = loop_count + 1;
     }
     
-    // For loop
-    for player in @a {
-        say Hello $player$;
-        effect give @s minecraft:glowing 5 0;
+    // Schedule method for large loops
+    var num large_counter = 0;
+    while "$large_counter$ < 100" method="schedule" {
+        say Processing item $large_counter$;
+        large_counter = large_counter + 10;
     }
 }
 

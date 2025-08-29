@@ -1,5 +1,5 @@
-// loops.mdl - Simple loops test
-pack "loops" "Loops test" 82;
+// loops.mdl - Smart while loops showcase
+pack "loops" "Smart while loops test" 82;
 
 namespace "test";
 
@@ -7,12 +7,13 @@ namespace "test";
 var num counter = 0;
 var num max_count = 10;
 var num step = 1;
+var num level = 1;
 
 function "main" {
     // Reset counter
     counter = 0;
     
-    // Simple while loop
+    // Simple while loop (default recursion method)
     while "$counter$ < 5" {
         counter = $counter$ + 1;
         say "Counter: $counter$";
@@ -25,25 +26,27 @@ function "main" {
         say "Step: $counter$";
     }
     
-    // For loop (entity iteration)
-    for player in "@a" {
-        say "Hello $player$";
-        tellraw @s [{"text":"Greeting player: "},{"selector":"@s"}];
+    // Explicit recursion method (default)
+    level = 1;
+    while "$level$ < 3" method="recursion" {
+        say "Level: $level$";
+        level = $level$ + 1;
     }
     
-    // For loop with specific selector
-    for zombie in "@e[type=zombie]" {
-        say "Found zombie: $zombie$";
-        effect give @s minecraft:glowing 5 0;
+    // Schedule method for long-running loops
+    counter = 0;
+    while "$counter$ < 100" method="schedule" {
+        say "Processing item $counter$";
+        counter = $counter$ + 10;
     }
     
-    // Nested loops
+    // Nested loops with different methods
     counter = 0;
     while "$counter$ < 3" {
         say "Outer loop: $counter$";
         
         var num inner = 0;
-        while "$inner$ < 2" {
+        while "$inner$ < 2" method="recursion" {
             inner = $inner$ + 1;
             say "  Inner: $inner$";
         }
@@ -63,5 +66,16 @@ function "countdown" {
     say "Blast off!";
 }
 
+function "performance_test" {
+    var num large_counter = 0;
+    
+    // Use schedule method for large loops
+    while "$large_counter$ < 1000" method="schedule" {
+        say "Large loop: $large_counter$";
+        large_counter = $large_counter$ + 100;
+    }
+}
+
 on_tick "test:main";
 on_tick "test:countdown";
+on_tick "test:performance_test";

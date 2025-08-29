@@ -285,12 +285,8 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
                 raise ValueError(f"Unknown while loop method: {method}")
         
         elif class_name == 'ForLoop':
-            # Handle for loop - simplified inline approach
-            commands.append(f"# for {statement.variable} in {statement.selector}")
-            
-            # Process the loop body statements
-            for stmt in statement.body:
-                commands.extend(_process_statement(stmt, namespace, function_name))
+            # For loops are deprecated - use while loops instead
+            raise ValueError("For loops are no longer supported. Use while loops with method='schedule' for iteration over selectors.")
         
         elif class_name == 'Command':
             # Handle regular command
