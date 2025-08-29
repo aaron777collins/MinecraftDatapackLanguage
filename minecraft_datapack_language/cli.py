@@ -537,6 +537,21 @@ def _generate_global_load_function(ast: Dict[str, Any], output_dir: Path, namesp
     variable_initializations = []
     processed_vars = set()  # Track processed variables to avoid duplicates
     
+    # Add scoreboard objectives for all top-level variables
+    for var in ast.get('variables', []):
+        if isinstance(var, dict):
+            var_name = var.get('name', 'unknown')
+        else:
+            var_name = getattr(var, 'name', 'unknown')
+        
+        if var_name and var_name not in processed_vars:
+            processed_vars.add(var_name)
+            # Add scoreboard objective creation
+            variable_initializations.append(f"scoreboard objectives add {var_name} dummy")
+            
+            # Always initialize to 0 for debugging and reload consistency
+            variable_initializations.append(f"scoreboard players set @e[type=armor_stand,tag=mdl_server,limit=1] {var_name} 0")
+    
     # Add scoreboard objectives for all variables from function declarations and assignments
     for function in ast.get('functions', []):
         if isinstance(function, dict):
