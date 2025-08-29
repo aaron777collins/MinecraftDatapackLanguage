@@ -422,6 +422,8 @@ def _generate_function_file(ast: Dict[str, Any], output_dir: Path, namespace: st
         # For player-called functions, use @s (self)
         if is_tag_function:
             # Use the server armor stand created in load function (high in the sky, invisible)
+            # Add safety check to recreate if it doesn't exist (e.g., after /kill @e)
+            commands.append("execute unless entity @e[type=armor_stand,tag=mdl_server,limit=1] run summon armor_stand ~ 320 ~ {Tags:[\"mdl_server\"],Invisible:1b,Marker:1b,NoGravity:1b,Invulnerable:1b}")
             selector = "@e[type=armor_stand,tag=mdl_server,limit=1]"
         else:
             selector = "@s"
