@@ -414,9 +414,8 @@ def _generate_function_file(ast: Dict[str, Any], output_dir: Path, namespace: st
                 is_tag_function = True
                 break
         
-        # For tag functions, we need to use a different approach since @a can't be used in execute if score
-        # We'll use @e[type=marker,limit=1] for server-run functions
-        # For server-run functions, use @a (all players)
+        # For server-run functions (tick/load hooks), use @a (all players)
+        # For player-called functions, use @s (self)
         # If no players are online, the commands simply won't execute, which is fine
         selector = "@a" if is_tag_function else "@s"
         
