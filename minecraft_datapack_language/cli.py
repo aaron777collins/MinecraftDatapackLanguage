@@ -213,14 +213,19 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
         if class_name == 'VariableDeclaration':
             # Handle variable declaration
             if statement.value:
-                # Process the expression
-                result = expression_processor.process_expression(statement.value, statement.name, selector)
-                commands.extend(result.temp_assignments)
-                if result.final_command:
-                    commands.append(result.final_command)
+                # Check if it's a simple 0 value (which will be handled in load function)
+                if hasattr(statement.value, 'value') and statement.value.value == 0:
+                    # Skip initialization for 0 values - they're handled in load function
+                    pass
+                else:
+                    # Process the expression for non-zero values
+                    result = expression_processor.process_expression(statement.value, statement.name, selector)
+                    commands.extend(result.temp_assignments)
+                    if result.final_command:
+                        commands.append(result.final_command)
             else:
-                # Initialize to 0
-                commands.append(f"scoreboard players set {selector} {statement.name} 0")
+                # Skip initialization for 0 values - they're handled in load function
+                pass
         
         elif class_name == 'VariableAssignment':
             # Handle variable assignment
@@ -494,6 +499,8 @@ def _generate_hook_files(ast: Dict[str, Any], output_dir: Path, namespace: str) 
     
     # Generate load.json
     if load_functions:
+        # Add the global load function to the list
+        load_functions.append(f"{namespace}:load")
         load_file = tags_dir / "load.json"
         with open(load_file, 'w', encoding='utf-8') as f:
             f.write('{"values": [' + ', '.join(f'"{func}"' for func in load_functions) + ']}')
@@ -503,6 +510,62 @@ def _generate_hook_files(ast: Dict[str, Any], output_dir: Path, namespace: str) 
         tick_file = tags_dir / "tick.json"
         with open(tick_file, 'w', encoding='utf-8') as f:
             f.write('{"values": [' + ', '.join(f'"{func}"' for func in tick_functions) + ']}')
+    
+    # Generate a global load function for variable initialization if there are any load functions
+    if load_functions:
+        _generate_global_load_function(ast, output_dir, namespace)
+
+
+def _generate_global_load_function(ast: Dict[str, Any], output_dir: Path, namespace: str) -> None:
+    """Generate a global load function for variable initialization."""
+    pack_info = ast.get('pack', {})
+    pack_format = pack_info.get('pack_format', 82)
+    
+    # Use directory mapping based on pack format
+    dir_map = get_dir_map(pack_format)
+    functions_dir = output_dir / "data" / namespace / dir_map.function
+    
+    functions_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Collect all variable declarations from all functions
+    variable_initializations = []
+    
+    # Add scoreboard objectives for all variables
+    for function in ast.get('functions', []):
+        if isinstance(function, dict):
+            body = function.get('body', [])
+        else:
+            body = getattr(function, 'body', [])
+        
+        for statement in body:
+            if hasattr(statement, '__class__') and statement.__class__.__name__ == 'VariableDeclaration':
+                var_name = statement.name if hasattr(statement, 'name') else statement.get('name', 'unknown')
+                # Add scoreboard objective creation
+                variable_initializations.append(f"scoreboard objectives add {var_name} dummy")
+                
+                # Always initialize to 0 for debugging and reload consistency
+                variable_initializations.append(f"scoreboard players set @e[type=armor_stand,tag=mdl_server,limit=1] {var_name} 0")
+                
+                # If there's a non-zero initial value, set it after the 0 initialization
+                if statement.value and hasattr(statement.value, 'value'):
+                    try:
+                        value = int(statement.value.value)
+                        if value != 0:
+                            # Use server armor stand for global variables
+                            variable_initializations.append(f"scoreboard players set @e[type=armor_stand,tag=mdl_server,limit=1] {var_name} {value}")
+                    except (ValueError, AttributeError):
+                        # If we can't determine the value, skip additional initialization
+                        pass
+    
+    # Add server armor stand creation
+    if variable_initializations:
+        variable_initializations.insert(0, "execute unless entity @e[type=armor_stand,tag=mdl_server,limit=1] run summon armor_stand ~ 320 ~ {Tags:[\"mdl_server\"],Invisible:1b,Marker:1b,NoGravity:1b,Invulnerable:1b}")
+    
+    # Write the global load function
+    if variable_initializations:
+        load_file = functions_dir / "load.mcfunction"
+        with open(load_file, 'w', encoding='utf-8') as f:
+            f.write('\n'.join(variable_initializations))
 
 
 def _generate_tag_files(ast: Dict[str, Any], output_dir: Path, namespace: str) -> None:
