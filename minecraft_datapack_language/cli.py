@@ -414,7 +414,7 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
 
 def _generate_function_file(ast: Dict[str, Any], output_dir: Path, namespace: str, verbose: bool = False) -> None:
     """Generate function files with support for different pack format directory structures."""
-    pack_info = ast.get('pack', {})
+    pack_info = ast.get('pack', {}) or {}
     pack_format = pack_info.get('pack_format', 82)
     
     # Use directory mapping based on pack format
@@ -490,7 +490,7 @@ def _generate_function_file(ast: Dict[str, Any], output_dir: Path, namespace: st
 
 def _generate_hook_files(ast: Dict[str, Any], output_dir: Path, namespace: str) -> None:
     """Generate hook files (load.json, tick.json) with support for different pack format directory structures."""
-    pack_info = ast.get('pack', {})
+    pack_info = ast.get('pack', {}) or {}
     pack_format = pack_info.get('pack_format', 82)
     
     # Use directory mapping based on pack format
@@ -548,7 +548,7 @@ def _generate_hook_files(ast: Dict[str, Any], output_dir: Path, namespace: str) 
 
 def _generate_global_load_function(ast: Dict[str, Any], output_dir: Path, namespace: str) -> None:
     """Generate a global load function for variable initialization."""
-    pack_info = ast.get('pack', {})
+    pack_info = ast.get('pack', {}) or {}
     pack_format = pack_info.get('pack_format', 82)
     
     # Use directory mapping based on pack format
@@ -616,7 +616,7 @@ def _generate_global_load_function(ast: Dict[str, Any], output_dir: Path, namesp
 
 def _generate_tag_files(ast: Dict[str, Any], output_dir: Path, namespace: str) -> None:
     """Generate tag files with support for different pack format directory structures."""
-    pack_info = ast.get('pack', {})
+    pack_info = ast.get('pack', {}) or {}
     pack_format = pack_info.get('pack_format', 82)
     
     # Use directory mapping based on pack format
