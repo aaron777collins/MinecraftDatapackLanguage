@@ -693,18 +693,30 @@ class Pack:
 
             # Recipes, Advancements, etc.
             for name, r in ns.recipes.items():
-                write_json(os.path.join(ns_root, dm.recipe, f"{name}.json"), r.data)
+                recipe_dir = os.path.join(ns_root, dm.recipe)
+                ensure_dir(recipe_dir)
+                write_json(os.path.join(recipe_dir, f"{name}.json"), r.data)
             for name, a in ns.advancements.items():
-                write_json(os.path.join(ns_root, dm.advancement, f"{name}.json"), a.data)
+                advancement_dir = os.path.join(ns_root, dm.advancement)
+                ensure_dir(advancement_dir)
+                write_json(os.path.join(advancement_dir, f"{name}.json"), a.data)
             for name, lt in ns.loot_tables.items():
-                write_json(os.path.join(ns_root, dm.loot_table, f"{name}.json"), lt.data)
+                loot_table_dir = os.path.join(ns_root, dm.loot_table)
+                ensure_dir(loot_table_dir)
+                write_json(os.path.join(loot_table_dir, f"{name}.json"), lt.data)
             for name, p in ns.predicates.items():
-                write_json(os.path.join(ns_root, dm.predicate, f"{name}.json"), p.data)
+                predicate_dir = os.path.join(ns_root, dm.predicate)
+                ensure_dir(predicate_dir)
+                write_json(os.path.join(predicate_dir, f"{name}.json"), p.data)
             for name, im in ns.item_modifiers.items():
-                write_json(os.path.join(ns_root, dm.item_modifier, f"{name}.json"), im.data)
+                item_modifier_dir = os.path.join(ns_root, dm.item_modifier)
+                ensure_dir(item_modifier_dir)
+                write_json(os.path.join(item_modifier_dir, f"{name}.json"), im.data)
             for name, s in ns.structures.items():
                 # Structure typically NBT; here we store JSON placeholder
-                write_json(os.path.join(ns_root, dm.structure, f"{name}.json"), s.data)
+                structure_dir = os.path.join(ns_root, dm.structure)
+                ensure_dir(structure_dir)
+                write_json(os.path.join(structure_dir, f"{name}.json"), s.data)
 
         # Autowire special function tags
         if self._tick_functions:
