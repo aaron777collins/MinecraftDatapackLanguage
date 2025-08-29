@@ -419,14 +419,15 @@ def _generate_function_file(ast: Dict[str, Any], output_dir: Path, namespace: st
     
     # Use directory mapping based on pack format
     dir_map = get_dir_map(pack_format)
-    functions_dir = output_dir / "data" / namespace / dir_map.function
-    
-    functions_dir.mkdir(parents=True, exist_ok=True)
     
     # Track all conditional functions that need to be generated
     global conditional_functions
     conditional_functions = []
     
+    # Group functions by their namespace based on hooks
+    namespace_functions = {}
+    
+    # First, collect all functions and determine their namespace from hooks
     for function in ast.get('functions', []):
         # Handle both dict and AST node objects
         if isinstance(function, dict):
@@ -436,54 +437,87 @@ def _generate_function_file(ast: Dict[str, Any], output_dir: Path, namespace: st
             function_name = getattr(function, 'name', 'unknown')
             body = getattr(function, 'body', [])
         
-        function_file = functions_dir / f"{function_name}.mcfunction"
-        
-        commands = []
-        
-        # Check if this function is called via a tag (tick/load)
-        is_tag_function = False
+        # Find the namespace for this function by looking at hooks
+        function_namespace = namespace  # Default to root namespace
         for hook in ast.get('hooks', []):
-            if hook['function_name'] == function_name or hook['function_name'] == f"{namespace}:{function_name}":
-                is_tag_function = True
+            hook_function_name = hook['function_name']
+            if ':' in hook_function_name:
+                hook_namespace, hook_func_name = hook_function_name.split(':', 1)
+                if hook_func_name == function_name:
+                    function_namespace = hook_namespace
+                    break
+            elif hook_function_name == function_name:
+                # This function is called without namespace, use root namespace
+                function_namespace = namespace
                 break
         
-        # For server-run functions (tick/load hooks), use a server armor stand
-        # For player-called functions, use @s (self)
-        if is_tag_function:
-            # Use the server armor stand created in load function (high in the sky, invisible)
-            # Add safety check to recreate if it doesn't exist (e.g., after /kill @e)
-            commands.append("execute unless entity @e[type=armor_stand,tag=mdl_server,limit=1] run summon armor_stand ~ 320 ~ {Tags:[\"mdl_server\"],Invisible:1b,Marker:1b,NoGravity:1b,Invulnerable:1b}")
-            selector = "@e[type=armor_stand,tag=mdl_server,limit=1]"
-        else:
-            selector = "@s"
-        
-        # Debug output - always print
-        print(f"DEBUG: Function {function_name}: is_tag_function={is_tag_function}, selector={selector}")
-        print(f"DEBUG: Hooks: {ast.get('hooks', [])}")
-        
-        if verbose:
-            print(f"Function {function_name}: is_tag_function={is_tag_function}, selector={selector}")
-            print(f"  Hooks: {ast.get('hooks', [])}")
-            print(f"  Looking for: {function_name} or {namespace}:{function_name}")
-            print(f"  Hook function names: {[hook.get('function_name', '') for hook in ast.get('hooks', [])]}")
-        
-        # Process each statement in the function
-        for i, statement in enumerate(body):
-            if verbose:
-                print(f"Processing statement: {type(statement)} = {statement}")
-            commands.extend(_process_statement(statement, namespace, function_name, i, is_tag_function, selector))
-            
-            # Collect conditional functions for if statements
-            if hasattr(statement, '__class__') and statement.__class__.__name__ == 'IfStatement':
-                conditional_functions.extend(_collect_conditional_functions(statement, namespace, function_name, i, is_tag_function, selector))
-        
-        # Write the function file
-        with open(function_file, 'w', encoding='utf-8') as f:
-            f.write('\n'.join(commands))
+        # Group function by namespace
+        if function_namespace not in namespace_functions:
+            namespace_functions[function_namespace] = []
+        namespace_functions[function_namespace].append((function_name, body))
     
-    # Generate all conditional function files
+    # Generate functions for each namespace
+    for func_namespace, functions in namespace_functions.items():
+        functions_dir = output_dir / "data" / func_namespace / dir_map.function
+        functions_dir.mkdir(parents=True, exist_ok=True)
+        
+        for function_name, body in functions:
+            function_file = functions_dir / f"{function_name}.mcfunction"
+            
+            commands = []
+            
+            # Check if this function is called via a tag (tick/load)
+            is_tag_function = False
+            for hook in ast.get('hooks', []):
+                if hook['function_name'] == function_name or hook['function_name'] == f"{func_namespace}:{function_name}":
+                    is_tag_function = True
+                    break
+            
+            # For server-run functions (tick/load hooks), use a server armor stand
+            # For player-called functions, use @s (self)
+            if is_tag_function:
+                # Use the server armor stand created in load function (high in the sky, invisible)
+                # Add safety check to recreate if it doesn't exist (e.g., after /kill @e)
+                commands.append("execute unless entity @e[type=armor_stand,tag=mdl_server,limit=1] run summon armor_stand ~ 320 ~ {Tags:[\"mdl_server\"],Invisible:1b,Marker:1b,NoGravity:1b,Invulnerable:1b}")
+                selector = "@e[type=armor_stand,tag=mdl_server,limit=1]"
+            else:
+                selector = "@s"
+            
+            # Debug output - always print
+            print(f"DEBUG: Function {func_namespace}:{function_name}: is_tag_function={is_tag_function}, selector={selector}")
+            print(f"DEBUG: Hooks: {ast.get('hooks', [])}")
+            
+            if verbose:
+                print(f"Function {func_namespace}:{function_name}: is_tag_function={is_tag_function}, selector={selector}")
+                print(f"  Hooks: {ast.get('hooks', [])}")
+                print(f"  Looking for: {function_name} or {func_namespace}:{function_name}")
+                print(f"  Hook function names: {[hook.get('function_name', '') for hook in ast.get('hooks', [])]}")
+            
+            # Process each statement in the function
+            for i, statement in enumerate(body):
+                if verbose:
+                    print(f"Processing statement: {type(statement)} = {statement}")
+                commands.extend(_process_statement(statement, func_namespace, function_name, i, is_tag_function, selector))
+                
+                # Collect conditional functions for if statements
+                if hasattr(statement, '__class__') and statement.__class__.__name__ == 'IfStatement':
+                    conditional_functions.extend(_collect_conditional_functions(statement, func_namespace, function_name, i, is_tag_function, selector))
+            
+            # Write the function file
+            with open(function_file, 'w', encoding='utf-8') as f:
+                f.write('\n'.join(commands))
+    
+    # Generate all conditional function files in their respective namespaces
     for func_name, func_body in conditional_functions:
-        func_file = functions_dir / f"{func_name}.mcfunction"
+        # Extract namespace from function name (format: namespace_functionname_...)
+        if '_' in func_name:
+            func_namespace = func_name.split('_')[0]
+        else:
+            func_namespace = namespace  # fallback to root namespace
+        
+        func_dir = output_dir / "data" / func_namespace / dir_map.function
+        func_dir.mkdir(parents=True, exist_ok=True)
+        func_file = func_dir / f"{func_name}.mcfunction"
         with open(func_file, 'w', encoding='utf-8') as f:
             f.write('\n'.join(func_body))
 
@@ -553,8 +587,14 @@ def _generate_global_load_function(ast: Dict[str, Any], output_dir: Path, namesp
     
     # Use directory mapping based on pack format
     dir_map = get_dir_map(pack_format)
-    functions_dir = output_dir / "data" / namespace / dir_map.function
     
+    # Find the namespace that has the pack declaration (root namespace)
+    root_namespace = namespace
+    if pack_info and pack_info.get('name'):
+        # If we have pack info, use the pack name as the root namespace
+        root_namespace = pack_info['name']
+    
+    functions_dir = output_dir / "data" / root_namespace / dir_map.function
     functions_dir.mkdir(parents=True, exist_ok=True)
     
     # Collect all variable declarations and assignments from all functions
