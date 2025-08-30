@@ -426,6 +426,10 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
             var_selector = selector  # Default to current selector
             if variable_scopes and statement.name in variable_scopes:
                 var_selector = variable_scopes[statement.name]
+                print(f"DEBUG: Variable {statement.name} found in scopes: {var_selector}")
+            else:
+                print(f"DEBUG: Variable {statement.name} not found in scopes, using default: {selector}")
+                print(f"DEBUG: Available scopes: {variable_scopes}")
             
             # Check if it's a simple assignment to 0 (which can be optimized out)
             if hasattr(statement.value, 'value') and statement.value.value == 0:
@@ -673,15 +677,20 @@ def _generate_function_file(ast: Dict[str, Any], output_dir: Path, namespace: st
             # Check if this function is called via a tag (tick/load)
             is_tag_function = False
             for hook in ast.get('hooks', []):
-                if hook['function_name'] == function_name or hook['function_name'] == f"{func_namespace}:{function_name}":
+                print(f"DEBUG: Checking hook {hook} against function {function_name}")
+                if (hook['function_name'] == function_name or hook['function_name'] == f"{func_namespace}:{function_name}") and hook['hook_type'] in ['tick', 'load']:
                     is_tag_function = True
+                    print(f"DEBUG: Function {function_name} is a tag function!")
                     break
             
-            # Always use server armor stand for variable storage to ensure consistency
-            # This allows functions to share variables regardless of how they're called
-            # Add safety check to recreate if it doesn't exist (e.g., after /kill @e)
-            commands.append("execute unless entity @e[type=armor_stand,tag=mdl_server,limit=1] run summon armor_stand ~ 320 ~ {Tags:[\"mdl_server\"],Invisible:1b,Marker:1b,NoGravity:1b,Invulnerable:1b}")
-            selector = "@e[type=armor_stand,tag=mdl_server,limit=1]"
+            # Determine the appropriate selector based on function type
+            if is_tag_function:
+                # Tag functions (tick/load) use global storage
+                commands.append("execute unless entity @e[type=armor_stand,tag=mdl_server,limit=1] run summon armor_stand ~ 320 ~ {Tags:[\"mdl_server\"],Invisible:1b,Marker:1b,NoGravity:1b,Invulnerable:1b}")
+                selector = "@e[type=armor_stand,tag=mdl_server,limit=1]"
+            else:
+                # Regular functions use @s (the executing entity)
+                selector = "@s"
             
             # Debug output - always print
             print(f"DEBUG: Function {func_namespace}:{function_name}: is_tag_function={is_tag_function}, selector={selector}")
