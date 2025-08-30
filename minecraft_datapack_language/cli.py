@@ -617,6 +617,8 @@ def _generate_function_file(ast: Dict[str, Any], output_dir: Path, namespace: st
 
 def _generate_hook_files(ast: Dict[str, Any], output_dir: Path, namespace: str) -> None:
     """Generate hook files (load.json, tick.json) with support for different pack format directory structures."""
+    print(f"DEBUG: _generate_hook_files called with namespace: '{namespace}'")
+    print(f"DEBUG: Hooks in AST: {ast.get('hooks', [])}")
     pack_info = ast.get('pack', {}) or {}
     pack_format = pack_info.get('pack_format', 82)
     
@@ -643,6 +645,8 @@ def _generate_hook_files(ast: Dict[str, Any], output_dir: Path, namespace: str) 
         else:
             # Function name doesn't include namespace, add it
             full_function_name = f"{namespace}:{function_name}"
+        
+        print(f"DEBUG: _generate_hook_files - function_name: '{function_name}', namespace: '{namespace}', full_function_name: '{full_function_name}'")
         
         if hook['hook_type'] == "load":
             load_functions.append(full_function_name)
@@ -1043,6 +1047,7 @@ def _generate_pack_mcmeta(ast: Dict[str, Any], output_dir: Path) -> None:
 
 def _ast_to_pack(ast: Dict[str, Any], mdl_files: List[Path]) -> Pack:
     """Convert AST to Pack object to enable all registry types."""
+    print(f"DEBUG: _ast_to_pack called with {len(ast.get('hooks', []))} hooks")
     pack_info = ast.get('pack', {}) or {}
     pack_name = pack_info.get('name', 'mdl_pack')
     pack_description = pack_info.get('description', 'MDL generated pack')
@@ -1178,6 +1183,7 @@ def _ast_to_pack(ast: Dict[str, Any], mdl_files: List[Path]) -> Pack:
             namespace.function(func_name, *commands)
     
     # Add hooks
+    print(f"DEBUG: _ast_to_pack processing {len(ast.get('hooks', []))} hooks")
     for hook in ast.get('hooks', []):
         if isinstance(hook, dict):
             hook_type = hook.get('hook_type', 'load')
@@ -1190,7 +1196,16 @@ def _ast_to_pack(ast: Dict[str, Any], mdl_files: List[Path]) -> Pack:
         if function_name == "load":
             continue
             
-        full_function_id = f"{namespace_name}:{function_name}"
+        # Check if function_name already contains a namespace (has a colon)
+        if ':' in function_name:
+            # Function name already includes namespace, use as-is
+            full_function_id = function_name
+        else:
+            # Function name doesn't include namespace, add it
+            full_function_id = f"{namespace_name}:{function_name}"
+            
+        print(f"DEBUG: Hook processing - function_name: '{function_name}', namespace_name: '{namespace_name}', full_function_id: '{full_function_id}'")
+            
         if hook_type == 'load':
             pack.on_load(full_function_id)
         elif hook_type == 'tick':

@@ -2,41 +2,39 @@
 
 For full documentation, visit: https://aaron777collins.github.io/MinecraftDatapackLanguage/docs/
 
-## Pack and Namespace
+## Basic Structure
 ```mdl
 pack "my_pack" "Description" 82;
 namespace "example";
 ```
 
-## Variables and Substitution
+## Variables
 ```mdl
 var num counter = 0;
-counter = $counter$ + 1;
-say "Counter: $counter$";
+counter = counter + 1;
 ```
 
 ## Functions
 ```mdl
-function "main" {
-    say "Hello";
+function "hello" {
+    say Hello, Minecraft!;
+    tellraw @a {"text":"Welcome!","color":"green"};
 }
 ```
 
-## Control Flow
+## Variable Substitution
 ```mdl
-if "$counter$ > 5" {
-    say "High";
-} else {
-    say "Low";
-}
-
-while "$counter$ < 10" {
-    counter = $counter$ + 1;
-}
+say Counter: $counter$;
 ```
 
 ## Hooks
 ```mdl
-on_load "example:init";
-on_tick "example:main";
+on_load "example:hello";  // Runs when datapack loads
+on_tick "example:main";    // Runs every tick
+```
+
+## Output Commands
+```mdl
+say Hello World;                    // Simple text output
+tellraw @a {"text":"Hello"};        // JSON text with formatting
 ```
