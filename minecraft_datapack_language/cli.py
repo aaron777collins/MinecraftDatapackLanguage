@@ -1166,6 +1166,10 @@ def _ast_to_pack(ast: Dict[str, Any], mdl_files: List[Path]) -> Pack:
                         command = _process_variable_substitutions(command, selector)
                     
                     commands.append(command)
+                elif class_name == 'RawText':
+                    # Handle raw text - insert directly without any processing
+                    print(f"DEBUG: Processing RawText in _ast_to_pack: '{statement.text}'")
+                    commands.append(statement.text)
                 elif class_name == 'FunctionCall':
                     commands.append(f"function {statement.function_name}")
                 elif class_name == 'IfStatement':
