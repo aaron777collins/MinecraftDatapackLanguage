@@ -66,6 +66,25 @@
     {
       "name": "entity.name.selector.mdl",
       "match": "\\b(@p|@r|@a|@e|@s)\\b"
+    },
+    {
+      "name": "keyword.raw.mdl",
+      "match": "\\$!raw\\b"
+    },
+    {
+      "name": "keyword.raw.end.mdl",
+      "match": "\\braw!\\$"
+    },
+    {
+      "name": "string.raw.mdl",
+      "begin": "\\$!raw",
+      "end": "raw!\\$",
+      "patterns": [
+        {
+          "name": "string.raw.content.mdl",
+          "match": "."
+        }
+      ]
     }
   ]
 }

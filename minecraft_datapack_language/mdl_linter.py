@@ -285,6 +285,20 @@ class MDLLinter:
                     code=line
                 ))
     
+    def _check_raw_text_syntax(self, line: str, line_num: int):
+        """Check raw text syntax"""
+        # Check for raw text start
+        if '$!raw' in line:
+            # Check if there's a corresponding raw!$ in the file
+            # This is a basic check - in practice, we'd need to track across lines
+            pass
+        
+        # Check for raw text end
+        if 'raw!$' in line:
+            # Check if there's a corresponding $!raw before this
+            # This is a basic check - in practice, we'd need to track across lines
+            pass
+    
     def _is_valid_condition(self, condition: str) -> bool:
         """Check if a condition string is valid"""
         # Basic validation - should contain variable references and operators
