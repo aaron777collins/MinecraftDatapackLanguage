@@ -23,8 +23,63 @@ conditional_functions = []
 def _process_variable_substitutions(command: str, selector: str = "@s") -> str:
     """Process $variable$ substitutions in commands."""
     import re
+    import json
     
-    # Find all variable substitutions
+    # Check if this is a tellraw command with JSON
+    if command.strip().startswith('tellraw') and '{"text":' in command:
+        # Special handling for tellraw commands with variable substitutions
+        try:
+            # Find the JSON part of the tellraw command
+            json_start = command.find('{')
+            json_end = command.rfind('}') + 1
+            
+            if json_start != -1 and json_end != -1:
+                prefix = command[:json_start]
+                json_part = command[json_start:json_end]
+                suffix = command[json_end:]
+                
+                # Parse the JSON to handle variable substitutions properly
+                try:
+                    data = json.loads(json_part)
+                    if 'text' in data and '$' in data['text']:
+                        # Split the text into parts before and after variables
+                        text = data['text']
+                        parts = []
+                        current_pos = 0
+                        
+                        # Find all variable substitutions
+                        var_pattern = r'\$([a-zA-Z_][a-zA-Z0-9_]*)\$'
+                        for match in re.finditer(var_pattern, text):
+                            # Add text before the variable
+                            if match.start() > current_pos:
+                                parts.append({"text": text[current_pos:match.start()]})
+                            
+                            # Add the score object for the variable
+                            var_name = match.group(1)
+                            parts.append({"score": {"name": selector, "objective": var_name}})
+                            current_pos = match.end()
+                        
+                        # Add remaining text after the last variable
+                        if current_pos < len(text):
+                            parts.append({"text": text[current_pos:]})
+                        
+                        # Preserve other properties like color
+                        for part in parts:
+                            if 'text' in part and 'color' in data:
+                                part['color'] = data['color']
+                            elif 'score' in part and 'color' in data:
+                                part['color'] = data['color']
+                        
+                        # Create the new JSON
+                        new_json = json.dumps(parts if len(parts) > 1 else parts[0])
+                        return f"{prefix}{new_json}{suffix}"
+                        
+                except json.JSONDecodeError:
+                    pass  # Fall back to simple replacement
+        except Exception:
+            pass  # Fall back to simple replacement
+    
+    # Simple replacement for non-tellraw commands
     var_pattern = r'\$([a-zA-Z_][a-zA-Z0-9_]*)\$'
     
     def replace_var(match):
