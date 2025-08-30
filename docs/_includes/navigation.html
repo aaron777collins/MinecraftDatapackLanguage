@@ -27,7 +27,7 @@
         {%- endfor -%}
         
         <!-- Desktop: Dropdown -->
-        <li class="nav-item nav-dropdown desktop-only{% if is_doc_page %} active{% endif %}" aria-haspopup="true" aria-expanded="false">
+        <li class="nav-item nav-dropdown desktop-only" aria-haspopup="true" aria-expanded="false">
           <button class="nav-link nav-dropdown-toggle" aria-haspopup="true" aria-expanded="false" aria-controls="nav-docs-menu">
             Documentation
             <svg class="caret" width="12" height="12" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 011.08 1.04l-4.25 4.25a.75.75 0 01-1.06 0L5.21 8.27a.75.75 0 01.02-1.06z"/></svg>
@@ -175,6 +175,7 @@
 .nav-dropdown .nav-dropdown-toggle {
   display: inline-flex;
   align-items: center;
+  justify-content: flex-start;
   gap: 0.35rem;
   background: transparent;
   border: none;
@@ -184,6 +185,7 @@
   cursor: pointer;
   font-weight: 500;
   transition: background-color 0.2s, color 0.2s;
+  text-align: left;
 }
 
 .nav-dropdown .nav-dropdown-toggle:hover {
@@ -407,28 +409,13 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // Hybrid dropdown behavior: hover to open, click to keep open
+  // Simple dropdown behavior: hover to open, click to toggle
   dropdownToggles.forEach(function(btn) {
     const parent = btn.closest('.nav-dropdown');
     const menu = parent ? parent.querySelector('.nav-dropdown-menu') : null;
     if (!parent || !menu) return;
 
-    // Hover to open (handled by CSS)
-    parent.addEventListener('mouseenter', function() {
-      // Don't interfere if already clicked open
-      if (!parent.classList.contains('open')) {
-        parent.classList.add('active');
-      }
-    });
-
-    parent.addEventListener('mouseleave', function() {
-      // Only remove active if not clicked open
-      if (!parent.classList.contains('open')) {
-        parent.classList.remove('active');
-      }
-    });
-
-    // Click to toggle persistent open state
+    // Click to toggle
     btn.addEventListener('click', function(e) {
       e.preventDefault();
       e.stopPropagation();
@@ -437,18 +424,12 @@ document.addEventListener('DOMContentLoaded', function() {
       document.querySelectorAll('.nav-dropdown').forEach(function(otherDropdown) {
         if (otherDropdown !== parent) {
           otherDropdown.classList.remove('open');
-          otherDropdown.classList.remove('active');
         }
       });
       
       // Toggle current dropdown
       const isOpen = parent.classList.toggle('open');
       btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-      
-      // If closing, also remove active state
-      if (!isOpen) {
-        parent.classList.remove('active');
-      }
     });
   });
 
@@ -458,7 +439,6 @@ document.addEventListener('DOMContentLoaded', function() {
     dropdowns.forEach(function(dropdown) {
       if (!dropdown.contains(event.target)) {
         dropdown.classList.remove('open');
-        dropdown.classList.remove('active');
         const btn = dropdown.querySelector('.nav-dropdown-toggle');
         if (btn) btn.setAttribute('aria-expanded', 'false');
       }
