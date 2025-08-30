@@ -11,9 +11,8 @@ Get the latest version of Minecraft Datapack Language (MDL) and the VS Code exte
 ## Latest Release
 
 <div class="download-section">
-  {% assign latest_release = site.github.releases | first %}
-  <h2>🎯 Version {% if latest_release and latest_release.tag_name %}{{ latest_release.tag_name | remove: 'v' }}{% elsif site.github.latest_release and site.github.latest_release.tag_name %}{{ site.github.latest_release.tag_name | remove: 'v' }}{% else %}{{ site.github.project_version | default: site.data.version.current | default: site.title }}{% endif %}</h2>
-  <p class="release-date">Released: {% if latest_release and latest_release.published_at %}{{ latest_release.published_at | date: "%B %d, %Y" }}{% elsif site.github.latest_release and site.github.latest_release.published_at %}{{ site.github.latest_release.published_at | date: "%B %d, %Y" }}{% else %}Latest{% endif %}</p>
+  <h2>🎯 Latest Version</h2>
+  <p class="release-date">Check GitHub for the most up-to-date version information</p>
   
   <div class="download-grid">
     <div class="download-card">
@@ -23,7 +22,7 @@ Get the latest version of Minecraft Datapack Language (MDL) and the VS Code exte
         <a href="https://pypi.org/project/minecraft-datapack-language/" class="btn btn-primary" target="_blank">
           📦 View on PyPI
         </a>
-        <a href="{% if latest_release %}{{ latest_release.html_url }}{% else %}https://github.com/{{ site.github_username }}/{{ site.github_repo }}/releases/latest{% endif %}" class="btn btn-secondary" target="_blank">
+        <a href="https://github.com/aaron777collins/MinecraftDatapackLanguage/releases/latest" class="btn btn-secondary" target="_blank">
           📥 Download Source
         </a>
       </div>
@@ -36,27 +35,11 @@ Get the latest version of Minecraft Datapack Language (MDL) and the VS Code exte
       <h3>🔧 VS Code Extension</h3>
       <p>Syntax highlighting, linting, and build commands for VS Code/Cursor</p>
       <div class="download-buttons">
-        {% assign release = latest_release | default: site.github.latest_release %}
-        {% assign vsix = nil %}
-        {% if release and release.assets %}
-        {% for asset in release.assets %}
-        {% if asset.name contains '.vsix' %}
-        {% assign vsix = asset %}
-        {% break %}
-        {% endif %}
-        {% endfor %}
-        {% endif %}
-        {% if vsix %}
-        <a href="{{ vsix.browser_download_url }}" class="btn btn-primary">
+        <a href="https://github.com/aaron777collins/MinecraftDatapackLanguage/releases/latest" class="btn btn-primary" target="_blank">
           📥 Download VSIX
         </a>
-        {% else %}
-        <a href="https://github.com/{{ site.github_username }}/{{ site.github_repo }}/releases/latest" class="btn btn-primary" target="_blank">
-          📥 Download VSIX
-        </a>
-        {% endif %}
-        <a href="{% if latest_release %}{{ latest_release.html_url }}{% else %}https://github.com/{{ site.github_username }}/{{ site.github_repo }}/releases/latest{% endif %}" class="btn btn-secondary" target="_blank">
-          📋 View Release
+        <a href="https://github.com/aaron777collins/MinecraftDatapackLanguage/releases" class="btn btn-secondary" target="_blank">
+          📋 View All Releases
         </a>
       </div>
       <div class="install-code">
@@ -65,6 +48,18 @@ Get the latest version of Minecraft Datapack Language (MDL) and the VS Code exte
     </div>
   </div>
 </div>
+
+## How to Get the Latest Version
+
+### For Python Package
+1. **Check PyPI**: Visit [PyPI project page](https://pypi.org/project/minecraft-datapack-language/) for the latest version
+2. **Install**: Use `pipx install minecraft-datapack-language` to get the latest version
+3. **Update**: Use `pipx upgrade minecraft-datapack-language` to update to the latest version
+
+### For VS Code Extension
+1. **Check Releases**: Visit [GitHub Releases](https://github.com/aaron777collins/MinecraftDatapackLanguage/releases/latest)
+2. **Download**: Look for the `.vsix` file in the latest release
+3. **Install**: Follow the installation instructions below
 
 ## Installation Methods
 
@@ -81,6 +76,9 @@ pipx install minecraft-datapack-language
 
 # Verify installation
 mdl --help
+
+# Update to latest version
+pipx upgrade minecraft-datapack-language
 ```
 
 #### Option 2: pip (Virtual Environment)
@@ -94,6 +92,9 @@ pip install minecraft-datapack-language
 
 # Verify installation
 mdl --help
+
+# Update to latest version
+pip install --upgrade minecraft-datapack-language
 ```
 
 #### Option 3: From Source
@@ -104,15 +105,18 @@ cd MinecraftDatapackLanguage
 
 # Install in development mode
 python -m pip install -e .
+
+# Update from source
+git pull origin main
 ```
 
 ### VS Code Extension
 
-1. Download the `.vsix` file from the latest release
-2. In VS Code/Cursor, go to Extensions (Ctrl+Shift+X)
-3. Click the "..." menu and select "Install from VSIX..."
-4. Choose the downloaded file
-5. Restart VS Code/Cursor
+1. **Download**: Go to [GitHub Releases](https://github.com/aaron777collins/MinecraftDatapackLanguage/releases/latest) and download the `.vsix` file
+2. **Install**: In VS Code/Cursor, go to Extensions (Ctrl+Shift+X)
+3. **Install from VSIX**: Click the "..." menu and select "Install from VSIX..."
+4. **Choose file**: Select the downloaded `.vsix` file
+5. **Restart**: Restart VS Code/Cursor to activate the extension
 
 ## Features
 
@@ -137,24 +141,21 @@ python -m pip install -e .
 - **Operating System**: Windows, macOS, or Linux
 - **VS Code**: 1.60+ (for extension)
 
-## Version History
+## Version Information
 
-### Recent Releases
+To check the current version you have installed:
 
-- **v12.0.10** - Namespace mapping fixes, improved multi-file support
-- **v12.0.9** - Bug fixes and performance improvements
-- **v12.0.8** - Enhanced error handling and documentation
-- **v12.0.7** - Control structure improvements
-- **v12.0.6** - Variable system enhancements
+```bash
+# Check Python package version
+mdl --version
 
-### Major Features
+# Or check via pip
+pip show minecraft-datapack-language
+```
 
-- **Modern Syntax**: JavaScript-style with curly braces and semicolons
-- **Control Structures**: Real if/else statements and while loops
-- **Variables**: Number variables with expressions and arithmetic
-- **Multi-file Projects**: Organize code across multiple files
-- **Registry Support**: All Minecraft registry types
-- **VS Code Integration**: Full IDE support with extension
+For the latest version information and release notes, visit:
+- **GitHub Releases**: [Latest Release](https://github.com/aaron777collins/MinecraftDatapackLanguage/releases/latest)
+- **PyPI**: [Package Page](https://pypi.org/project/minecraft-datapack-language/)
 
 ## Getting Started
 

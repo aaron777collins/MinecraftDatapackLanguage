@@ -161,6 +161,30 @@ export function activate(context: vscode.ExtensionContext) {
         completionItems.push(item);
       });
       
+      // Raw text syntax
+      const rawTextItems = [
+        { 
+          name: '$!raw', 
+          detail: 'Raw text block start', 
+          doc: 'Start a raw text block. Content inside will be inserted directly without MDL parsing.',
+          insertText: '$!raw\n    ${1:Insert raw text here}\nraw!$'
+        },
+        { 
+          name: 'raw!$', 
+          detail: 'Raw text block end', 
+          doc: 'End a raw text block.',
+          insertText: 'raw!$'
+        }
+      ];
+      
+      rawTextItems.forEach(item => {
+        const completionItem = new vscode.CompletionItem(item.name, vscode.CompletionItemKind.Keyword);
+        completionItem.detail = item.detail;
+        completionItem.documentation = item.doc;
+        completionItem.insertText = new vscode.SnippetString(item.insertText);
+        completionItems.push(completionItem);
+      });
+      
       return completionItems;
     }
   });

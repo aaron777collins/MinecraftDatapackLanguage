@@ -305,6 +305,25 @@
     ],
     "description": "Single line comment"
   },
+  "Raw Text Block": {
+    "prefix": "raw",
+    "body": [
+      "$!raw",
+      "    ${1:Insert raw text here - this will be inserted directly into the function without parsing}",
+      "raw!$"
+    ],
+    "description": "Raw text block - content is inserted directly without MDL parsing"
+  },
+  "Raw Text with Function Example": {
+    "prefix": "rawfunction",
+    "body": [
+      "$!raw",
+      "    say \"This contains the word function without breaking the parser\";",
+      "    say \"You can put any text here, including function, if, while, etc.\";",
+      "raw!$"
+    ],
+    "description": "Example raw text block showing how to use the word 'function' in commands"
+  },
   "Complete Example": {
     "prefix": "example",
     "body": [
@@ -333,6 +352,11 @@
       "    for player in @a {",
       "        effect give @s minecraft:speed 1 0;",
       "    }",
+      "    ",
+      "    // Raw text example",
+      "    $!raw",
+      "    say \"This contains the word function without breaking the parser\";",
+      "    raw!$",
       "}",
       "",
       "// Registry types",
@@ -356,6 +380,6 @@
       "on_load \"${3:init}\";",
       "on_tick \"${3:tick}\";"
     ],
-    "description": "Complete MDL example with all features including registry types"
+    "description": "Complete MDL example with all features including registry types and raw text"
   }
 }
