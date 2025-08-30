@@ -48,11 +48,14 @@ mdlbeta check "$TEST_DIR/test_project.mdl"
 echo "📋 Testing build..."
 mdlbeta build --mdl "$TEST_DIR/test_project.mdl" -o "$TEST_DIR/dist"
 
-# Test if the build output exists
-if [ -f "$TEST_DIR/dist/mdl.zip" ]; then
-    echo "✅ Build test passed"
+# Test if the build output exists (support both current and legacy zip locations)
+if [ -f "$TEST_DIR/dist.zip" ]; then
+    echo "✅ Build test passed (found dist.zip)"
+elif [ -f "$TEST_DIR/dist/mdl.zip" ]; then
+    echo "✅ Build test passed (found dist/mdl.zip)"
 else
-    echo "❌ Build test failed"
+    echo "❌ Build test failed (no zip found)"
+    echo "Checked: $TEST_DIR/dist.zip and $TEST_DIR/dist/mdl.zip"
     exit 1
 fi
 

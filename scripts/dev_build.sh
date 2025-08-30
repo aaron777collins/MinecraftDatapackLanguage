@@ -19,7 +19,7 @@ rm -rf dist/ build/ *.egg-info/
 
 # Build the package
 echo "📦 Building package..."
-python -m build
+python3 -m build || python -m build
 
 # Check if build was successful
 if [ ! "$(ls -A dist/ 2>/dev/null)" ]; then

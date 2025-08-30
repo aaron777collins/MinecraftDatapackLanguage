@@ -1367,7 +1367,15 @@ def build_mdl(input_path: str, output_path: str, verbose: bool = False) -> None:
         print(f"Supported registry types: functions, tags, recipes, loot_tables, advancements, predicates, item_modifiers, structures")
 
 
-def create_new_project(project_name: str, pack_name: str = None) -> None:
+def _slugify(name: str) -> str:
+    import re
+    slug = name.strip().lower()
+    slug = re.sub(r"[^a-z0-9]+", "_", slug)
+    slug = re.sub(r"_+", "_", slug).strip("_")
+    return slug or "mdl"
+
+
+def create_new_project(project_name: str, pack_name: str = None, pack_format: int = 82) -> None:
     """Create a new MDL project with simplified syntax."""
     if not pack_name:
         pack_name = project_name
@@ -1381,7 +1389,7 @@ def create_new_project(project_name: str, pack_name: str = None) -> None:
     # Create the main MDL file with simplified syntax (post-82 format)
     mdl_content = f'''// {project_name}.mdl - Simplified MDL Project (Minecraft 1.21+)
 // Uses pack format 82+ with new directory structure (function/ instead of functions/)
-pack "{pack_name}" "A simplified MDL datapack" 82;
+pack "{pack_name}" "A simplified MDL datapack" {pack_format};
 
 namespace "{project_name}";
 
@@ -1435,7 +1443,9 @@ on_tick "{project_name}:main";
 '''
     
     # Write the MDL file
-    mdl_file = project_dir / f"{project_name}.mdl"
+    # Prefer file name based on pack name (slugified) so tests can predict it
+    mdl_basename = _slugify(pack_name)
+    mdl_file = project_dir / f"{mdl_basename}.mdl"
     with open(mdl_file, 'w', encoding='utf-8') as f:
         f.write(mdl_content)
     
@@ -1542,14 +1552,30 @@ def lint_mdl_file(file_path: str, verbose: bool = False):
 def main():
     """Main CLI entry point."""
     import sys
+    from . import __version__
     
+    # Top-level flags
+    if len(sys.argv) >= 2 and sys.argv[1] in ("--help", "-h"):
+        print("MDL - Minecraft Datapack Language Compiler")
+        print("Usage: mdl <command> [options]")
+        print("Commands:")
+        print("  build --mdl <file|dir> --output <dir>  Build MDL into datapack")
+        print("  lint <file>                             Lint MDL file")
+        print("  check <file|dir>                        Alias for lint")
+        print("  new <project_name> [--name <pack_name>] [--pack-format <N>]  Create project")
+        return
+    if len(sys.argv) >= 2 and sys.argv[1] in ("--version", "-V", "-v"):
+        print(__version__)
+        return
+
     if len(sys.argv) < 2:
         print("MDL - Minecraft Datapack Language Compiler")
         print("Usage: mdl <command> [options]")
         print("Commands:")
-        print("  build --mdl <file> --output <dir>  Build MDL files into datapack")
+        print("  build --mdl <file|dir> --output <dir>  Build MDL files into datapack")
         print("  lint <file>  Lint MDL file for syntax issues")
-        print("  new <project_name> [--name <pack_name>]  Create new MDL project")
+        print("  check <file|dir>  Alias for lint")
+        print("  new <project_name> [--name <pack_name>] [--pack-format <N>]  Create new MDL project")
         sys.exit(1)
     
     command = sys.argv[1]
@@ -1563,7 +1589,7 @@ def main():
         args = parser.parse_args(sys.argv[2:])
         build_mdl(args.mdl, args.output, args.verbose)
         
-    elif command == "lint":
+    elif command == "lint" or command == "check":
         parser = argparse.ArgumentParser(description="MDL - Lint MDL file for syntax issues")
         parser.add_argument("file", help="MDL file to lint")
         parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose output")
@@ -1575,9 +1601,10 @@ def main():
         parser = argparse.ArgumentParser(description="MDL - Create new MDL project")
         parser.add_argument("project_name", help="Name of the project to create")
         parser.add_argument("--name", help="Pack name (defaults to project name)")
+        parser.add_argument("--pack-format", type=int, default=82, help="Pack format (default 82)")
         
         args = parser.parse_args(sys.argv[2:])
-        create_new_project(args.project_name, args.name)
+        create_new_project(args.project_name, args.name, args.pack_format)
         
     else:
         print(f"Unknown command: {command}")
