@@ -159,6 +159,11 @@ function "namespace:helper";
 - **Build Scripts**: `scripts/dev_build.sh` and `scripts/dev_build.ps1`
 - **Test Scripts**: `scripts/test_dev.sh` and `scripts/test_dev.ps1`
 
+### Project Scaffolding (mdl new)
+- Generates main `.mdl` file and `README.md`
+- Now also generates `LANGUAGE_REFERENCE.md` in the project root
+- README includes a link to the website docs: https://aaron777collins.github.io/MinecraftDatapackLanguage/docs/
+
 JSON registry handling:
 - Recipe, loot_table, advancement, predicate, item_modifier, structure declarations now resolve `"json_file"` paths relative to the MDL file where they are declared (multi-file safe).
 - Missing or invalid JSON emits a warning and compiles with an empty object.
@@ -199,9 +204,16 @@ JSON registry handling:
 - `test_examples/conditionals.mdl` ✅
 - `test_examples/loops.mdl` ✅
 
+### 2025-08-30 Cleanup
+- Removed generated debug/test dist folders and zip artifacts at repo root (dist_debug*, dist_multi*, dist_test*, dist_old*, dist_*_run, dist_final, test_output*, etc.). None are referenced by CI/docs/runtime.
+- Removed root-level MDL test files: `test.mdl`, `test_linter_errors.mdl`, `test_old_format.mdl`, `test_very_old_format.mdl`, and stray `other.mdl`. CI uses `test_examples/**` instead.
+- Trimmed `test_new_pack/dist_test_new` and related zip artifacts. Kept the actual example sources.
+- Fixed dead code in `minecraft_datapack_language/pack.py`: removed unused import `ns_path` and dropped unused parameter `cmd_index` from `_process_list_access_in_condition`; updated callsite accordingly. Recompiled; static scan clean.
+- Verified functionality: dev build installed `mdlbeta`; `mdlbeta check` and `check-advanced` on `test_examples/hello_world.mdl` passed; `mdlbeta build` produced a valid `dist/`.
+
 ## Current Version Status
 
-**Latest Version**: v10.1.71
+**Latest Version**: Sourced dynamically on website via GitHub Releases
 **Status**: Simplified MDL compiler focused on control structures
 **Known Issues**: All major complexity removed!
 **Next Priority**: Ensure control structures work perfectly
@@ -226,3 +238,10 @@ The MDL language implementation is now **SIMPLIFIED** and focused on the core pr
 - Advanced error handling (keep it simple)
 
 This simplified approach focuses on **MAKING CONTROL STRUCTURES WORK** rather than building a complex language that doesn't compile correctly.
+
+## Documentation and Website Automation
+
+- Docs navigation cleaned to remove unused legacy links in `docs/_config.yml`.
+- Downloads page now auto-sources the latest release using `jekyll-github-metadata` with fallbacks to `docs/_data/version.yml`.
+- Added scheduled and release-triggered workflow `update-website-version.yml` to update `docs/_data/version.yml` with the latest GitHub release tag and version.
+- Docs deploy workflow passes `JEKYLL_GITHUB_TOKEN` to enable GitHub release metadata during Jekyll builds.

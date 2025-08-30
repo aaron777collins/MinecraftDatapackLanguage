@@ -118,7 +118,7 @@ python -m pip install -e .
 #### Command Line Install
 ```bash
 # Install directly from command line
-code --install-extension minecraft-datapack-language-{% if site.github.latest_release.tag_name %}{{ site.github.latest_release.tag_name | remove: 'v' }}{% else %}{{ site.current_version }}{% endif %}.vsix
+code --install-extension minecraft-datapack-language-{% if site.github.latest_release and site.github.latest_release.tag_name %}{{ site.github.latest_release.tag_name | remove: 'v' }}{% elsif site.github.releases and site.github.releases.first and site.github.releases.first.tag_name %}{{ site.github.releases.first.tag_name | remove: 'v' }}{% else %}{{ site.data.version.current | default: 'latest' }}{% endif %}.vsix
 ```
 
 #### Features Included
