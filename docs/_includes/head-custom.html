@@ -144,4 +144,30 @@ code[class*="language-"] {
     color: #a0aec0;
   }
 }
+
+/* Fix main content area shadow */
+.main-content {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+  border-radius: 8px !important;
+  margin-top: 2rem !important;
+  margin-bottom: 2rem !important;
+  padding: 2rem !important;
+  background: white !important;
+}
+
+/* Ensure proper spacing and remove weird light shadows */
+.page-header {
+  margin-bottom: 0 !important;
+}
+
+.page-header + .main-content {
+  margin-top: 0 !important;
+}
+
+/* Fix any theme default shadows */
+.main-content,
+.page-content,
+main {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+}
 </style>
