@@ -13,7 +13,6 @@ dev = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
 ]
-authors = [{name="Minecraft Datapack Language Team"}]
 classifiers = [
   "Programming Language :: Python :: 3",
   "License :: OSI Approved :: MIT License",
