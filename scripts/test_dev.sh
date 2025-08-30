@@ -23,6 +23,10 @@ mdlbeta --version
 echo "📋 Testing help command..."
 mdlbeta --help > /dev/null
 
+# Test check-advanced alias too
+echo "📋 Testing check-advanced..."
+mdlbeta check-advanced test_examples/hello_world.mdl > /dev/null
+
 # Test if we can create a simple test project
 echo "📋 Testing project creation..."
 TEST_DIR="test_dev_project"

@@ -412,6 +412,7 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
         elif class_name == 'Command':
             # Handle regular command
             command = statement.command
+            already_appended = False
             
             # Always convert say commands to tellraw first
             if command.startswith('say'):
@@ -433,10 +434,11 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
                         command = command.replace('say "', f'tellraw @a [{{"text":"')
                         command = command.replace('"', '"}]')
                         commands.append(command)
-                        continue
+                        already_appended = True
+                        text_content = None
                 
                 # Check if there are variable substitutions
-                if '$' in text_content:
+                if text_content is not None and '$' in text_content:
                     # Build JSON array with text and scoreboard components
                     var_matches = list(re.finditer(var_pattern, text_content))
                     json_parts = []
@@ -461,7 +463,7 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
                             json_parts.append(f'{{"text":"{text_after}"}}')
                     
                     command = f'tellraw @a [{",".join(json_parts)}]'
-                else:
+                elif text_content is not None:
                     # No variables, simple conversion
                     command = f'tellraw @a [{{"text":"{text_content}"}}]'
                 
@@ -501,7 +503,8 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
                 command = command.replace(' } ', ' }')
                 command = command.replace(' : ', ': ')
             
-            commands.append(command)
+            if (not already_appended) and command:
+                commands.append(command)
         
         else:
             # Unknown statement type - try to handle as string

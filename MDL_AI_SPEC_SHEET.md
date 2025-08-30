@@ -159,6 +159,14 @@ function "namespace:helper";
 - **Build Scripts**: `scripts/dev_build.sh` and `scripts/dev_build.ps1`
 - **Test Scripts**: `scripts/test_dev.sh` and `scripts/test_dev.ps1`
 
+### Local Build Workflow (mirrors production assets)
+- **Sync production goodies**: `make dev-sync` (runs `scripts/sync_prod_assets.sh`)
+- **Install editable as mdlbeta**: `make dev-build`
+- **Smoke test**: `make dev-test`
+- **One-shot**: `make local-mdl` (sync + build + test)
+
+Docs: see Local MDL Build and Testing at `/docs/local-dev-build/`.
+
 ### Project Scaffolding (mdl new)
 - Generates main `.mdl` file and `README.md`
 - Now also generates `LANGUAGE_REFERENCE.md` in the project root

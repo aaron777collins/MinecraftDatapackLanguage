@@ -1,0 +1,3 @@
+[console_scripts]
+mdl = minecraft_datapack_language.cli:main
+mdlbeta = minecraft_datapack_language.cli:main

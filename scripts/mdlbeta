@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Wrapper to run the local MDL CLI from source as "mdlbeta"
+# Usage: scripts/mdlbeta [args]
+
+ROOT_DIR=$(cd "$(dirname "$0")/.." && pwd)
+cd "$ROOT_DIR"
+
+if command -v python3 >/dev/null 2>&1; then
+  PYBIN=python3
+elif command -v python >/dev/null 2>&1; then
+  PYBIN=python
+else
+  echo "[mdlbeta] Error: python3/python not found in PATH" >&2
+  exit 1
+fi
+
+export PYTHONPATH="$ROOT_DIR:${PYTHONPATH:-}"
+exec "$PYBIN" -m minecraft_datapack_language.cli "$@"
+
