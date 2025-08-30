@@ -36,7 +36,7 @@ jobs:
 
       - name: Install package (editable)
         run: |
-          python -m pip install -e .
+          python -m pip install -e .[dev]
 
       - name: Build sdist & wheel
         run: |
@@ -146,6 +146,11 @@ jobs:
           ast = parse_mdl_js(test_code)
           print('[+] Basic MDL file test passed')
           PY
+
+      - name: Run Basic Test Suite
+        run: |
+          echo "Running basic test suite..."
+          python -m pytest tests/test_basic.py -v --tb=short
 
       - name: Upload dist artifacts
         uses: actions/upload-artifact@v4
