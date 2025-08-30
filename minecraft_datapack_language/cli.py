@@ -393,7 +393,7 @@ def _generate_scoreboard_objectives(ast: Dict[str, Any], output_dir: Path) -> Li
     return commands
 
 
-def _process_statement(statement: Any, namespace: str, function_name: str, statement_index: int = 0, is_tag_function: bool = False, selector: str = "@s") -> List[str]:
+def _process_statement(statement: Any, namespace: str, function_name: str, statement_index: int = 0, is_tag_function: bool = False, selector: str = "@s", variable_scopes: Dict[str, str] = None) -> List[str]:
     """Process a single statement into Minecraft commands."""
     commands = []
     
@@ -423,8 +423,9 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
         elif class_name == 'VariableAssignment':
             # Handle variable assignment
             # For variable assignments, we need to determine the scope from the variable declaration
-            # For now, we'll use the default selector, but this could be enhanced to track variable scopes
-            var_selector = selector  # TODO: Look up variable scope from declaration
+            var_selector = selector  # Default to current selector
+            if variable_scopes and statement.name in variable_scopes:
+                var_selector = variable_scopes[statement.name]
             
             # Check if it's a simple assignment to 0 (which can be optimized out)
             if hasattr(statement.value, 'value') and statement.value.value == 0:
@@ -502,10 +503,10 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
             
             if method == "recursion":
                 # Use current recursion approach (creates multiple function files)
-                commands.extend(_process_while_loop_recursion(statement, namespace, function_name, statement_index, is_tag_function, selector))
+                commands.extend(_process_while_loop_recursion(statement, namespace, function_name, statement_index, is_tag_function, selector, variable_scopes))
             elif method == "schedule":
                 # Use schedule-based approach (single function with counter)
-                commands.extend(_process_while_loop_schedule(statement, namespace, function_name, statement_index, is_tag_function, selector))
+                commands.extend(_process_while_loop_schedule(statement, namespace, function_name, statement_index, is_tag_function, selector, variable_scopes))
             else:
                 raise ValueError(f"Unknown while loop method: {method}")
         
@@ -615,6 +616,26 @@ def _generate_function_file(ast: Dict[str, Any], output_dir: Path, namespace: st
     global conditional_functions
     conditional_functions = []
     
+    # Collect variable scopes for use in statement processing
+    variable_scopes = {}
+    
+    # Collect scopes from top-level variables
+    for variable in ast.get('variables', []):
+        if hasattr(variable, 'name') and hasattr(variable, 'scope') and variable.scope:
+            variable_scopes[variable.name] = variable.scope
+    
+    # Collect scopes from variables in functions
+    for function in ast.get('functions', []):
+        if isinstance(function, dict):
+            body = function.get('body', [])
+        else:
+            body = getattr(function, 'body', [])
+        
+        for statement in body:
+            if hasattr(statement, '__class__') and statement.__class__.__name__ == 'VariableDeclaration':
+                if hasattr(statement, 'name') and hasattr(statement, 'scope') and statement.scope:
+                    variable_scopes[statement.name] = statement.scope
+    
     # Group functions by their namespace based on hooks
     namespace_functions = {}
     
@@ -677,13 +698,13 @@ def _generate_function_file(ast: Dict[str, Any], output_dir: Path, namespace: st
             for i, statement in enumerate(body):
                 if verbose:
                     print(f"Processing statement: {type(statement)} = {statement}")
-                statement_commands = _process_statement(statement, func_namespace, function_name, i, is_tag_function, selector)
+                statement_commands = _process_statement(statement, func_namespace, function_name, i, is_tag_function, selector, variable_scopes)
                 print(f"DEBUG: Statement {i} returned commands: {statement_commands}")
                 commands.extend(statement_commands)
                 
                 # Collect conditional functions for if statements
                 if hasattr(statement, '__class__') and statement.__class__.__name__ == 'IfStatement':
-                    conditional_functions.extend(_collect_conditional_functions(statement, func_namespace, function_name, i, is_tag_function, selector))
+                    conditional_functions.extend(_collect_conditional_functions(statement, func_namespace, function_name, i, is_tag_function, selector, variable_scopes))
             
             # Write the function file
             print(f"DEBUG: Final commands list for {func_namespace}:{function_name}: {commands}")
@@ -1044,7 +1065,7 @@ def _validate_pack_format(pack_format: int) -> None:
         print("  - Tag directories: items/, blocks/, entity_types/, fluids/, game_events/ (<43)")
 
 
-def _collect_conditional_functions(if_statement, namespace: str, function_name: str, statement_index: int, is_tag_function: bool = False, selector: str = "@s") -> List[tuple]:
+def _collect_conditional_functions(if_statement, namespace: str, function_name: str, statement_index: int, is_tag_function: bool = False, selector: str = "@s", variable_scopes: Dict[str, str] = None) -> List[tuple]:
     """Collect all conditional functions from an if statement"""
     functions = []
     
@@ -1054,10 +1075,10 @@ def _collect_conditional_functions(if_statement, namespace: str, function_name: 
     nested_conditionals = []  # Track nested conditional functions
     
     for j, stmt in enumerate(if_statement.body):
-        if_commands.extend(_process_statement(stmt, namespace, function_name, j, is_tag_function, selector))
+        if_commands.extend(_process_statement(stmt, namespace, function_name, j, is_tag_function, selector, variable_scopes))
         # Check for nested if statements and collect their conditional functions
         if hasattr(stmt, '__class__') and stmt.__class__.__name__ == 'IfStatement':
-            nested_conditionals.extend(_collect_conditional_functions(stmt, namespace, function_name, j, is_tag_function, selector))
+            nested_conditionals.extend(_collect_conditional_functions(stmt, namespace, function_name, j, is_tag_function, selector, variable_scopes))
     
     functions.append((if_label, if_commands))
     functions.extend(nested_conditionals)  # Add nested conditional functions
@@ -1069,10 +1090,10 @@ def _collect_conditional_functions(if_statement, namespace: str, function_name: 
         elif_nested_conditionals = []
         
         for j, stmt in enumerate(elif_branch.body):
-            elif_commands.extend(_process_statement(stmt, namespace, function_name, j, is_tag_function, selector))
+            elif_commands.extend(_process_statement(stmt, namespace, function_name, j, is_tag_function, selector, variable_scopes))
             # Check for nested if statements in elif branches
             if hasattr(stmt, '__class__') and stmt.__class__.__name__ == 'IfStatement':
-                elif_nested_conditionals.extend(_collect_conditional_functions(stmt, namespace, function_name, j, is_tag_function, selector))
+                elif_nested_conditionals.extend(_collect_conditional_functions(stmt, namespace, function_name, j, is_tag_function, selector, variable_scopes))
         
         functions.append((elif_label, elif_commands))
         functions.extend(elif_nested_conditionals)
@@ -1084,10 +1105,10 @@ def _collect_conditional_functions(if_statement, namespace: str, function_name: 
         else_nested_conditionals = []
         
         for j, stmt in enumerate(if_statement.else_body):
-            else_commands.extend(_process_statement(stmt, namespace, function_name, j, is_tag_function, selector))
+            else_commands.extend(_process_statement(stmt, namespace, function_name, j, is_tag_function, selector, variable_scopes))
             # Check for nested if statements in else branches
             if hasattr(stmt, '__class__') and stmt.__class__.__name__ == 'IfStatement':
-                else_nested_conditionals.extend(_collect_conditional_functions(stmt, namespace, function_name, j, is_tag_function, selector))
+                else_nested_conditionals.extend(_collect_conditional_functions(stmt, namespace, function_name, j, is_tag_function, selector, variable_scopes))
         
         functions.append((else_label, else_commands))
         functions.extend(else_nested_conditionals)
@@ -1099,7 +1120,7 @@ def _collect_conditional_functions(if_statement, namespace: str, function_name: 
     return functions
 
 
-def _process_while_loop_recursion(while_statement, namespace: str, function_name: str, statement_index: int, is_tag_function: bool = False, selector: str = "@s") -> List[str]:
+def _process_while_loop_recursion(while_statement, namespace: str, function_name: str, statement_index: int, is_tag_function: bool = False, selector: str = "@s", variable_scopes: Dict[str, str] = None) -> List[str]:
     """Process while loop using recursion method (creates multiple function files)"""
     commands = []
     
@@ -1109,7 +1130,7 @@ def _process_while_loop_recursion(while_statement, namespace: str, function_name
     loop_label = f"{namespace}_{function_name}_while_{statement_index}"
     loop_commands = []
     for j, stmt in enumerate(while_statement.body):
-        loop_commands.extend(_process_statement(stmt, namespace, function_name, j, is_tag_function, selector))
+        loop_commands.extend(_process_statement(stmt, namespace, function_name, j, is_tag_function, selector, variable_scopes))
     
     # Add recursive call to continue the loop
     loop_commands.append(f"execute if {condition} run function {namespace}:{loop_label}")
@@ -1125,7 +1146,7 @@ def _process_while_loop_recursion(while_statement, namespace: str, function_name
     return commands
 
 
-def _process_while_loop_schedule(while_statement, namespace: str, function_name: str, statement_index: int, is_tag_function: bool = False, selector: str = "@s") -> List[str]:
+def _process_while_loop_schedule(while_statement, namespace: str, function_name: str, statement_index: int, is_tag_function: bool = False, selector: str = "@s", variable_scopes: Dict[str, str] = None) -> List[str]:
     """Process while loop using schedule method (single function with counter)"""
     commands = []
     
@@ -1135,7 +1156,7 @@ def _process_while_loop_schedule(while_statement, namespace: str, function_name:
     loop_label = f"{namespace}_{function_name}_while_{statement_index}"
     loop_commands = []
     for j, stmt in enumerate(while_statement.body):
-        loop_commands.extend(_process_statement(stmt, namespace, function_name, j, is_tag_function, selector))
+        loop_commands.extend(_process_statement(stmt, namespace, function_name, j, is_tag_function, selector, variable_scopes))
     
     # Add recursive schedule call to continue the loop
     loop_commands.append(f"execute if {condition} run schedule function {namespace}:{loop_label} 1t")

@@ -19,23 +19,23 @@ var num team_bonus scope<@a[team=blue]> = 0;
 // World-scoped variables (stored on a specific armor stand)
 var num world_timer scope<@e[type=armor_stand,tag=world_timer,limit=1]> = 0;
 
-function enabletimer() {
+function "enabletimer" {
     global_timer = 1;
     player_score = player_score + 10;
     team_score = team_score + 5;
     world_timer = world_timer + 1;
 }
 
-function disabletimer() {
+function "disabletimer" {
     global_timer = 0;
 }
 
-on_load {
+function "load" {
     global_counter = 0;
     global_timer = 0;
 }
 
-on_tick {
+function "tick" {
     if "score global_timer matches 1" {
         global_counter = global_counter + 1;
         player_score = player_score + 1;
@@ -43,3 +43,6 @@ on_tick {
         world_timer = world_timer + 1;
     }
 }
+
+on_load "test_scope:load";
+on_tick "test_scope:tick";
