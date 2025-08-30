@@ -76,7 +76,7 @@ Create a file called `hello.mdl` with this content:
 
 ```mdl
 // hello.mdl
-pack "My First Pack" description "A simple example" pack_format 82;
+pack "My First Pack" "A simple example" 82;
 
 namespace "example";
 
@@ -180,7 +180,7 @@ MDL supports organizing code across multiple files. Only the main file needs a p
 
 **`main.mdl`** (with pack declaration):
 ```mdl
-pack "My Game" description "A multi-file game" pack_format 82;
+pack "My Game" "A multi-file game" 82;
 
 namespace "game";
 

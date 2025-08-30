@@ -97,7 +97,7 @@ pip install minecraft-datapack-language
 
 ```mdl
 // hello.mdl
-pack "My First Pack" description "A simple example" pack_format 82;
+pack "My First Pack" "A simple example" 82;
 
 namespace "example";
 

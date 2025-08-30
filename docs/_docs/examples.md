@@ -16,7 +16,7 @@ A simple datapack that displays a welcome message when loaded.
 
 ```mdl
 // hello_world.mdl
-pack "Hello World" description "A simple example datapack" pack_format 82;
+pack "Hello World" "A simple example datapack" 82;
 
 namespace "example";
 
@@ -41,7 +41,7 @@ Demonstrates the modern variable system with expressions and arithmetic operatio
 
 ```mdl
 // variables.mdl
-pack "Variable System" description "Demonstrates modern variables and expressions" pack_format 82;
+pack "Variable System" "Demonstrates modern variables and expressions" 82;
 
 namespace "variables";
 
@@ -100,7 +100,7 @@ on_tick "variables:check_health";
 
 ```mdl
 // conditionals.mdl
-pack "Conditionals" description "Demonstrates if/else logic" pack_format 82;
+pack "Conditionals" "Demonstrates if/else logic" 82;
 
 namespace "conditionals";
 
@@ -137,7 +137,7 @@ on_tick "conditionals:update_game";
 
 ```mdl
 // loops.mdl
-pack "Loops" description "Demonstrates while loops" pack_format 82;
+pack "Loops" "Demonstrates while loops" 82;
 
 namespace "loops";
 
@@ -167,7 +167,7 @@ on_tick "loops:count_up";
 
 ```mdl
 // health_system.mdl
-pack "Health System" description "Complete health management" pack_format 82;
+pack "Health System" "Complete health management" 82;
 
 namespace "health";
 
@@ -206,7 +206,7 @@ on_tick "health:check_health";
 
 ```mdl
 // level_system.mdl
-pack "Level System" description "Experience and leveling" pack_format 82;
+pack "Level System" "Experience and leveling" 82;
 
 namespace "level";
 
@@ -255,7 +255,7 @@ my_game/
 
 ```mdl
 // main.mdl
-pack "My Game" description "A complete game system" pack_format 82;
+pack "My Game" "A complete game system" 82;
 
 namespace "game";
 
@@ -330,7 +330,7 @@ on_tick "combat:calculate_damage";
 
 ```mdl
 // recipes.mdl
-pack "Custom Recipes" description "Custom crafting recipes" pack_format 82;
+pack "Custom Recipes" "Custom crafting recipes" 82;
 
 namespace "custom";
 
@@ -347,7 +347,7 @@ function "announce_recipes" {
 
 ```mdl
 // loot.mdl
-pack "Custom Loot" description "Custom loot tables" pack_format 82;
+pack "Custom Loot" "Custom loot tables" 82;
 
 namespace "loot";
 
