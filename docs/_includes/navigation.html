@@ -152,7 +152,7 @@
   text-decoration: none;
   padding: 0.5rem 0.85rem;
   border-radius: 999px;
-  transition: background-color 0.2s, color 0.2s, transform 0.15s ease;
+  transition: background-color 0.2s, color 0.2s;
   font-weight: 500;
 }
 
@@ -167,7 +167,7 @@
   color: #ffffff;
 }
 
-/* Dropdown */
+/* Dropdown - Hover + Click Hybrid */
 .nav-dropdown {
   position: relative;
 }
@@ -183,11 +183,17 @@
   border-radius: 999px;
   cursor: pointer;
   font-weight: 500;
+  transition: background-color 0.2s, color 0.2s;
 }
 
-.nav-dropdown .nav-dropdown-toggle:hover,
-.nav-dropdown.active .nav-dropdown-toggle {
+.nav-dropdown .nav-dropdown-toggle:hover {
   background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+
+.nav-dropdown.active .nav-dropdown-toggle,
+.nav-dropdown.open .nav-dropdown-toggle {
+  background: rgba(255, 255, 255, 0.18);
   color: #ffffff;
 }
 
@@ -206,11 +212,15 @@
   z-index: 1001;
 }
 
-.nav-dropdown:hover .nav-dropdown-menu {
+/* Show on hover OR when clicked */
+.nav-dropdown:hover .nav-dropdown-menu,
+.nav-dropdown.open .nav-dropdown-menu {
   display: block;
 }
 
-.nav-dropdown-item { list-style: none; }
+.nav-dropdown-item { 
+  list-style: none; 
+}
 
 .nav-dropdown-link {
   display: block;
@@ -218,10 +228,19 @@
   border-radius: 8px;
   color: rgba(255,255,255,0.9);
   text-decoration: none;
+  transition: background-color 0.2s;
 }
 
-.nav-dropdown-link:hover { background: rgba(255,255,255,0.12); color: #fff; text-decoration: none; }
-.nav-dropdown-link.active { background: rgba(255,255,255,0.18); color: #fff; }
+.nav-dropdown-link:hover { 
+  background: rgba(255,255,255,0.12); 
+  color: #fff; 
+  text-decoration: none; 
+}
+
+.nav-dropdown-link.active { 
+  background: rgba(255,255,255,0.18); 
+  color: #fff; 
+}
 
 .nav-actions {
   display: flex;
@@ -368,18 +387,19 @@
 </style>
 
 <script>
-// Mobile Navigation Toggle
+// Standard Dropdown Implementation
 document.addEventListener('DOMContentLoaded', function() {
   const toggle = document.querySelector('.nav-toggle');
   const navList = document.querySelector('.nav-list');
   const dropdownToggles = document.querySelectorAll('.nav-dropdown-toggle');
   
+  // Mobile menu toggle
   if (toggle && navList) {
     toggle.addEventListener('click', function() {
       navList.classList.toggle('show');
     });
     
-    // Close menu when clicking outside
+    // Close mobile menu when clicking outside
     document.addEventListener('click', function(event) {
       if (!toggle.contains(event.target) && !navList.contains(event.target)) {
         navList.classList.remove('show');
@@ -387,31 +407,61 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // Dropdown interactions
+  // Hybrid dropdown behavior: hover to open, click to keep open
   dropdownToggles.forEach(function(btn) {
     const parent = btn.closest('.nav-dropdown');
     const menu = parent ? parent.querySelector('.nav-dropdown-menu') : null;
     if (!parent || !menu) return;
 
-    // Desktop: open on hover handled via CSS. Ensure ARIA reflects state
-    parent.addEventListener('mouseenter', function(){
-      if (window.matchMedia('(min-width: 769px)').matches) {
+    // Hover to open (handled by CSS)
+    parent.addEventListener('mouseenter', function() {
+      // Don't interfere if already clicked open
+      if (!parent.classList.contains('open')) {
         parent.classList.add('active');
-        btn.setAttribute('aria-expanded', 'true');
-      }
-    });
-    parent.addEventListener('mouseleave', function(){
-      if (window.matchMedia('(min-width: 769px)').matches) {
-        parent.classList.remove('active');
-        btn.setAttribute('aria-expanded', 'false');
       }
     });
 
-    // Mobile: toggle on click
+    parent.addEventListener('mouseleave', function() {
+      // Only remove active if not clicked open
+      if (!parent.classList.contains('open')) {
+        parent.classList.remove('active');
+      }
+    });
+
+    // Click to toggle persistent open state
     btn.addEventListener('click', function(e) {
       e.preventDefault();
+      e.stopPropagation();
+      
+      // Close other dropdowns
+      document.querySelectorAll('.nav-dropdown').forEach(function(otherDropdown) {
+        if (otherDropdown !== parent) {
+          otherDropdown.classList.remove('open');
+          otherDropdown.classList.remove('active');
+        }
+      });
+      
+      // Toggle current dropdown
       const isOpen = parent.classList.toggle('open');
       btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      
+      // If closing, also remove active state
+      if (!isOpen) {
+        parent.classList.remove('active');
+      }
+    });
+  });
+
+  // Close dropdowns when clicking outside
+  document.addEventListener('click', function(event) {
+    const dropdowns = document.querySelectorAll('.nav-dropdown');
+    dropdowns.forEach(function(dropdown) {
+      if (!dropdown.contains(event.target)) {
+        dropdown.classList.remove('open');
+        dropdown.classList.remove('active');
+        const btn = dropdown.querySelector('.nav-dropdown-toggle');
+        if (btn) btn.setAttribute('aria-expanded', 'false');
+      }
     });
   });
 });
