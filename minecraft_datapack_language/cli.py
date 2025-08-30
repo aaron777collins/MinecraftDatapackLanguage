@@ -1555,60 +1555,24 @@ def create_new_project(project_name: str, pack_name: str = None, pack_format: in
     else:
         project_dir.mkdir(parents=True)
     
-    # Create the main MDL file with simplified syntax (post-82 format)
-    mdl_content = f'''// {project_name}.mdl - Simplified MDL Project (Minecraft 1.21+)
-// Uses pack format 82+ with new directory structure (function/ instead of functions/)
-pack "{pack_name}" "A simplified MDL datapack" {pack_format};
+    # Create the main MDL file with simple hello world example
+    mdl_content = f'''// {project_name}.mdl - Hello World Example
+pack "{pack_name}" "A simple hello world datapack" {pack_format};
 
 namespace "{project_name}";
 
-// Number variables for scoreboard storage
-var num player_count = 0;
-var num game_timer = 0;
-var num player_score = 0;
+// Simple counter variable
+var num counter = 0;
 
-function "main" {{
-    // Basic variable assignment
-    player_count = 0;
-    game_timer = 0;
-    player_score = 100;
-    
-    // If statement with variable substitution
-    if "$player_score$ > 50" {{
-        say "Player is doing well!";
-    }} else {{
-        say "Player needs to improve!";
-    }}
-    
-    // While loop with counter
-    while "$game_timer$ < 10" {{
-        game_timer = $game_timer$ + 1;
-        say "Timer: $game_timer$";
-    }}
-    
-    // While loop example (for loops are no longer supported)
-    while "$player_count$ < 5" {{
-        say "Player count: $player_count$";
-        player_count = $player_count$ + 1;
-    }}
-    
-    // Conditional with variable substitution
-    if "$player_count$ > 0" {{
-        say "Players online: $player_count$";
-    }}
+function "hello" {{
+    say Hello, Minecraft!;
+    tellraw @a {{"text":"Welcome to my datapack!","color":"green"}};
+    counter = counter + 1;
+    say Counter: $counter$;
 }}
 
-function "helper" {{
-    var num result = 0;
-    result = 5 + 3;
-    say "Calculation result: $result$";
-    
-    // Variable substitution in tellraw
-    tellraw @a [{{"text":"Score: "}},{{"score":{{"name":"@a","objective":"player_score"}}}}];
-}}
-
-// Hook to run main function every tick
-on_tick "{project_name}:main";
+// Hook to run hello function when datapack loads
+on_load "{project_name}:hello";
 '''
     
     # Write the MDL file
@@ -1622,30 +1586,20 @@ on_tick "{project_name}:main";
     # Create README (ensure it links to the website)
     readme_content = f'''# {project_name}
 
-A simplified MDL (Minecraft Datapack Language) project demonstrating core features.
+A simple hello world MDL (Minecraft Datapack Language) project.
 
 ## Documentation
 
 - Full docs: https://aaron777collins.github.io/MinecraftDatapackLanguage/docs/
 - Language quick reference: see `LANGUAGE_REFERENCE.md` in this folder
 
-## Pack Format Information
+## What This Does
 
-This project uses **pack format 82** (Minecraft 1.21+) with the new directory structure:
-- **Functions**: `data/<namespace>/function/` (not `functions/`)
-- **Tags**: `data/minecraft/tags/function/` (not `functions/`)
-- **Pack Metadata**: Uses `min_format` and `max_format` instead of `pack_format`
-
-For Minecraft 1.20 and below, use pack format < 82 with legacy directory structure.
-
-## Features Demonstrated
-
-- **Number Variables**: Stored in scoreboard objectives
-- **Variable Substitution**: Using `$variable$` syntax
-- **Control Structures**: If/else statements and loops
-- **For Loops**: Entity iteration with `@a` selector
-- **While Loops**: Counter-based loops
-- **Hooks**: Automatic execution with `on_tick`
+This simple datapack demonstrates:
+- **Basic Output**: Uses `say` and `tellraw` commands to display messages
+- **Variables**: A simple counter that increments each time the function runs
+- **Variable Substitution**: Shows how to embed variables in text using `$variable$`
+- **Load Hooks**: Automatically runs when the datapack loads in Minecraft
 
 ## Building
 
@@ -1653,35 +1607,27 @@ For Minecraft 1.20 and below, use pack format < 82 with legacy directory structu
 mdl build --mdl . --output dist
 ```
 
-## Simplified Syntax
+## Testing
 
-This project uses the simplified MDL syntax:
-- Only number variables (no strings or lists)
-- Direct scoreboard integration with `$variable$`
-- Simple control structures that actually work
-- Focus on reliability over complexity
+1. Build the datapack: `mdl build --mdl . --output dist`
+2. Copy the generated `dist` folder to your Minecraft world's `datapacks` folder
+3. In Minecraft, run `/reload` to load the datapack
+4. You should see the hello messages appear!
 
-## Generated Commands
+## What You'll See
 
-The compiler will generate:
-- Scoreboard objectives for all variables
-- Minecraft functions with proper control flow
-- Hook files for automatic execution
-- Pack metadata with correct format for pack version 82+
+When the datapack loads, you'll see:
+- "Hello, Minecraft!" in chat
+- A green "Welcome to my datapack!" message
+- "Counter: 1" showing the variable substitution working
 
-## Pack Format Examples
+## Next Steps
 
-### Post-82 (Minecraft 1.21+)
-```mdl
-pack "my_pack" "My datapack" 82;
-// Uses: data/<namespace>/function/ and min_format/max_format
-```
-
-### Pre-82 (Minecraft 1.20 and below)
-```mdl
-pack "my_pack" "My datapack" 15;
-// Uses: data/<namespace>/functions/ and pack_format
-```
+Check out the full documentation for more advanced features like:
+- Control structures (if/else, while loops)
+- More complex variable operations
+- Multi-file projects
+- Registry types (recipes, loot tables, etc.)
 '''
     
     readme_file = project_dir / "README.md"
@@ -1693,43 +1639,41 @@ pack "my_pack" "My datapack" 15;
 
 For full documentation, visit: https://aaron777collins.github.io/MinecraftDatapackLanguage/docs/
 
-## Pack and Namespace
+## Basic Structure
 ```mdl
 pack "my_pack" "Description" 82;
 namespace "example";
 ```
 
-## Variables and Substitution
+## Variables
 ```mdl
 var num counter = 0;
-counter = $counter$ + 1;
-say "Counter: $counter$";
+counter = counter + 1;
 ```
 
 ## Functions
 ```mdl
-function "main" {
-    say "Hello";
+function "hello" {
+    say Hello, Minecraft!;
+    tellraw @a {"text":"Welcome!","color":"green"};
 }
 ```
 
-## Control Flow
+## Variable Substitution
 ```mdl
-if "$counter$ > 5" {
-    say "High";
-} else {
-    say "Low";
-}
-
-while "$counter$ < 10" {
-    counter = $counter$ + 1;
-}
+say Counter: $counter$;
 ```
 
 ## Hooks
 ```mdl
-on_load "example:init";
-on_tick "example:main";
+on_load "example:hello";  // Runs when datapack loads
+on_tick "example:main";    // Runs every tick
+```
+
+## Output Commands
+```mdl
+say Hello World;                    // Simple text output
+tellraw @a {"text":"Hello"};        // JSON text with formatting
 ```
 '''
     lang_ref_file = project_dir / "LANGUAGE_REFERENCE.md"
