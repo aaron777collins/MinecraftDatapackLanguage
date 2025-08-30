@@ -304,7 +304,6 @@ class Pack:
 
     def on_tick(self, full_id: str):
         """Add a function id to minecraft:tick tag for running every tick."""
-        print(f"DEBUG: Pack.on_tick called with full_id: '{full_id}'")
         self._tick_functions.append(full_id)
 
     def on_load(self, full_id: str):
