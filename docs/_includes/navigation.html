@@ -19,7 +19,7 @@
 
       <!-- Documentation and Examples as main links -->
       <li class="nav-item">
-        <a href="/docs/" class="nav-link{% if page.url contains '/docs/' %} active{% endif %}">Documentation</a>
+        <a href="/docs/documentation/" class="nav-link{% if page.url contains '/docs/documentation/' %} active{% endif %}">Documentation</a>
       </li>
       <li class="nav-item">
         <a href="/docs/examples/" class="nav-link{% if page.url contains '/docs/examples/' %} active{% endif %}">Examples</a>
@@ -52,9 +52,9 @@
         Home
       </a>
     </li>
-    {% if page.url contains "/docs/" %}
+    {% if page.url contains "/docs/" and page.url != "/docs/documentation/" %}
       <li class="breadcrumb-item">
-        <a href="{{ "/docs/" | relative_url }}" class="breadcrumb-link">Documentation</a>
+        <a href="{{ "/docs/documentation/" | relative_url }}" class="breadcrumb-link">Documentation</a>
       </li>
     {% endif %}
     <li class="breadcrumb-item active" aria-current="page">
