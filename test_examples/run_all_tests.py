@@ -11,6 +11,24 @@ import tempfile
 import shutil
 from pathlib import Path
 
+def resolve_mdl_cmd() -> str:
+    """Resolve the MDL command to use.
+
+    Preference order:
+    1) Environment variable MDL_CMD if set
+    2) Installed 'mdl' binary if available on PATH
+    3) Python module execution fallback
+    """
+    env_cmd = os.environ.get("MDL_CMD")
+    if env_cmd:
+        return env_cmd
+    if shutil.which("mdl"):
+        return "mdl"
+    # Module fallback with PYTHONPATH pointing to repo root so imports work
+    repo_root = Path(__file__).resolve().parents[1]
+    return f"PYTHONPATH={repo_root} python3 -m minecraft_datapack_language.cli"
+
+
 def run_command(cmd, description):
     """Run a command and return success status"""
     print(f"Testing: {description}")
@@ -23,23 +41,23 @@ def run_command(cmd, description):
         print(f"Error: {e.stderr}")
         return False
 
-def test_mdl_file(mdl_file, description):
+def test_mdl_file(mdl_file, description, mdl_cmd: str):
     """Test an MDL file by building it"""
     # Test build
-    if not run_command(f"mdl build --mdl {mdl_file} -o dist", f"Build: {description}"):
+    if not run_command(f"{mdl_cmd} build --mdl {mdl_file} -o dist", f"Build: {description}"):
         return False
     
     return True
 
-def test_cli_functionality():
+def test_cli_functionality(mdl_cmd: str):
     """Test CLI functionality"""
     print("\n[CLI] Testing CLI Functionality:")
     print("-" * 30)
     
     tests = [
-        ("mdl build --help", "CLI build help command"),
-        ("mdl new --help", "CLI new help command"),
-        ('mdl new test_pack --name "Test Pack"', "CLI new command"),
+        (f"{mdl_cmd} build --help", "CLI build help command"),
+        (f"{mdl_cmd} new --help", "CLI new help command"),
+        (f'{mdl_cmd} new test_pack --name "Test Pack"', "CLI new command"),
     ]
     
     results = []
@@ -57,6 +75,8 @@ def main():
     print("[TEST] Starting Modern MDL Test Suite...")
     print("=" * 60)
     
+    mdl_cmd = resolve_mdl_cmd()
+
     # Create test directory
     os.makedirs("dist", exist_ok=True)
     
@@ -85,14 +105,14 @@ def main():
     for mdl_file, description in mdl_examples:
         if os.path.exists(mdl_file):
             total_tests += 1
-            if test_mdl_file(mdl_file, description):
+            if test_mdl_file(mdl_file, description, mdl_cmd):
                 passed_tests += 1
         else:
             print(f"[!] Skipping {mdl_file} - file not found")
     
     # Test CLI functionality
     total_tests += 1
-    if test_cli_functionality():
+    if test_cli_functionality(mdl_cmd):
         passed_tests += 1
     
     # Summary
