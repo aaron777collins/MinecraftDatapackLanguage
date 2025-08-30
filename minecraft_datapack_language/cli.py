@@ -544,28 +544,8 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
             
             # Process variable substitutions in strings for other commands
             elif '$' in command:
-                # Handle variable substitutions in tellraw commands
-                if command.startswith('tellraw'):
-                    # Convert tellraw with variable substitution to proper JSON format
-                    import re
-                    var_pattern = r'\$([a-zA-Z_][a-zA-Z0-9_]*)\$'
-                    
-                    def replace_var_in_tellraw(match):
-                        var_name = match.group(1)
-                        return f'{{"score":{{"name":"{selector}","objective":"{var_name}"}}}}'
-                    
-                    # Replace variable substitutions
-                    command = re.sub(var_pattern, replace_var_in_tellraw, command)
-                    
-                    # Clean up extra spaces in tellraw commands
-                    command = command.replace(' @ s ', ' @s ')
-                    command = command.replace(' , ', ', ')
-                    command = command.replace(' { ', ' {')
-                    command = command.replace(' } ', ' }')
-                    command = command.replace(' : ', ': ')
-                else:
-                    # Simple variable substitution for other commands
-                    command = _process_variable_substitutions(command, selector)
+                # Always use _process_variable_substitutions for proper JSON handling
+                command = _process_variable_substitutions(command, selector)
             elif command.startswith('tellraw'):
                 # For tellraw commands, only replace @s with @a, leave @a unchanged
                 command = command.replace('tellraw @s ', 'tellraw @a ')
