@@ -329,9 +329,23 @@ def _generate_load_function(scoreboard_commands: List[str], output_dir: Path, na
     })
 
 
+def _validate_selector(selector: str, variable_name: str) -> None:
+    """Validate a Minecraft selector and warn about potentially problematic ones."""
+    if selector == "@a":
+        print(f"WARNING: Variable '{variable_name}' uses @a selector - this will modify ALL players' scores!")
+        print(f"  Consider using @s for single player or a more specific selector.")
+    elif selector == "@e":
+        print(f"WARNING: Variable '{variable_name}' uses @e selector - this will modify ALL entities' scores!")
+        print(f"  Consider using a more specific selector like @e[type=armor_stand,tag=mdl_server,limit=1].")
+    elif selector == "@r":
+        print(f"WARNING: Variable '{variable_name}' uses @r selector - this will modify a RANDOM player's score!")
+        print(f"  Consider using @s for single player or a more specific selector.")
+
+
 def _generate_scoreboard_objectives(ast: Dict[str, Any], output_dir: Path) -> List[str]:
     """Generate scoreboard objectives for all variables."""
     objectives = set()
+    variable_scopes = {}  # Track variable scopes for validation
     
     # Find all variable declarations and assignments in functions
     for function in ast.get('functions', []):
@@ -345,12 +359,20 @@ def _generate_scoreboard_objectives(ast: Dict[str, Any], output_dir: Path) -> Li
             # Handle both dict and AST node objects
             if hasattr(statement, 'name') and hasattr(statement, 'data_type'):
                 objectives.add(statement.name)
+                # Track scope for validation
+                if hasattr(statement, 'scope') and statement.scope:
+                    variable_scopes[statement.name] = statement.scope
+                    _validate_selector(statement.scope, statement.name)
             elif hasattr(statement, 'name') and hasattr(statement, 'value'):
                 # Variable assignment
                 objectives.add(statement.name)
             elif isinstance(statement, dict):
                 if 'name' in statement and 'data_type' in statement:
                     objectives.add(statement['name'])
+                    # Track scope for validation
+                    if 'scope' in statement and statement['scope']:
+                        variable_scopes[statement['name']] = statement['scope']
+                        _validate_selector(statement['scope'], statement['name'])
                 elif 'name' in statement and 'value' in statement:
                     objectives.add(statement['name'])
     
@@ -358,6 +380,10 @@ def _generate_scoreboard_objectives(ast: Dict[str, Any], output_dir: Path) -> Li
     for variable in ast.get('variables', []):
         if hasattr(variable, 'name'):
             objectives.add(variable.name)
+            # Track scope for validation
+            if hasattr(variable, 'scope') and variable.scope:
+                variable_scopes[variable.name] = variable.scope
+                _validate_selector(variable.scope, variable.name)
     
     # Generate scoreboard commands
     commands = []
@@ -376,6 +402,9 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
         
         if class_name == 'VariableDeclaration':
             # Handle variable declaration
+            # Use scope if specified, otherwise use default selector
+            var_selector = getattr(statement, 'scope', None) or selector
+            
             if statement.value:
                 # Check if it's a simple 0 value (which will be handled in load function)
                 if hasattr(statement.value, 'value') and statement.value.value == 0:
@@ -383,7 +412,7 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
                     pass
                 else:
                     # Process the expression for non-zero values
-                    result = expression_processor.process_expression(statement.value, statement.name, selector)
+                    result = expression_processor.process_expression(statement.value, statement.name, var_selector)
                     commands.extend(result.temp_assignments)
                     if result.final_command:
                         commands.append(result.final_command)
@@ -393,13 +422,17 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
         
         elif class_name == 'VariableAssignment':
             # Handle variable assignment
+            # For variable assignments, we need to determine the scope from the variable declaration
+            # For now, we'll use the default selector, but this could be enhanced to track variable scopes
+            var_selector = selector  # TODO: Look up variable scope from declaration
+            
             # Check if it's a simple assignment to 0 (which can be optimized out)
             if hasattr(statement.value, 'value') and statement.value.value == 0:
                 # Skip assignment to 0 - it's handled in load function
                 pass
             else:
                 # Process the expression for non-zero values
-                result = expression_processor.process_expression(statement.value, statement.name, selector)
+                result = expression_processor.process_expression(statement.value, statement.name, var_selector)
                 temp_commands = []
                 temp_commands.extend(result.temp_assignments)
                 if result.final_command:
@@ -623,15 +656,11 @@ def _generate_function_file(ast: Dict[str, Any], output_dir: Path, namespace: st
                     is_tag_function = True
                     break
             
-            # For server-run functions (tick/load hooks), use a server armor stand
-            # For player-called functions, use @s (self)
-            if is_tag_function:
-                # Use the server armor stand created in load function (high in the sky, invisible)
-                # Add safety check to recreate if it doesn't exist (e.g., after /kill @e)
-                commands.append("execute unless entity @e[type=armor_stand,tag=mdl_server,limit=1] run summon armor_stand ~ 320 ~ {Tags:[\"mdl_server\"],Invisible:1b,Marker:1b,NoGravity:1b,Invulnerable:1b}")
-                selector = "@e[type=armor_stand,tag=mdl_server,limit=1]"
-            else:
-                selector = "@s"
+            # Always use server armor stand for variable storage to ensure consistency
+            # This allows functions to share variables regardless of how they're called
+            # Add safety check to recreate if it doesn't exist (e.g., after /kill @e)
+            commands.append("execute unless entity @e[type=armor_stand,tag=mdl_server,limit=1] run summon armor_stand ~ 320 ~ {Tags:[\"mdl_server\"],Invisible:1b,Marker:1b,NoGravity:1b,Invulnerable:1b}")
+            selector = "@e[type=armor_stand,tag=mdl_server,limit=1]"
             
             # Debug output - always print
             print(f"DEBUG: Function {func_namespace}:{function_name}: is_tag_function={is_tag_function}, selector={selector}")
@@ -642,6 +671,7 @@ def _generate_function_file(ast: Dict[str, Any], output_dir: Path, namespace: st
                 print(f"  Hooks: {ast.get('hooks', [])}")
                 print(f"  Looking for: {function_name} or {func_namespace}:{function_name}")
                 print(f"  Hook function names: {[hook.get('function_name', '') for hook in ast.get('hooks', [])]}")
+                print(f"  Using global variable storage (server armor stand) for consistency")
             
             # Process each statement in the function
             for i, statement in enumerate(body):
@@ -892,8 +922,44 @@ def _generate_global_load_function(ast: Dict[str, Any], output_dir: Path, namesp
                 # Add scoreboard objective creation
                 variable_initializations.append(f"scoreboard objectives add {var_name} dummy")
                 
-                # Always initialize to 0 for debugging and reload consistency
-                variable_initializations.append(f"scoreboard players set @e[type=armor_stand,tag=mdl_server,limit=1] {var_name} 0")
+                # Check if this variable has a specific scope
+                var_scope = None
+                for var in ast.get('variables', []):
+                    if hasattr(var, 'name') and var.name == var_name and hasattr(var, 'scope') and var.scope:
+                        var_scope = var.scope
+                        break
+                
+                # If no scope found in top-level variables, check function-level variables
+                if not var_scope:
+                    for function in ast.get('functions', []):
+                        if isinstance(function, dict):
+                            body = function.get('body', [])
+                        else:
+                            body = getattr(function, 'body', [])
+                        
+                        for statement in body:
+                            if (hasattr(statement, '__class__') and 
+                                statement.__class__.__name__ == 'VariableDeclaration' and
+                                hasattr(statement, 'name') and statement.name == var_name and
+                                hasattr(statement, 'scope') and statement.scope):
+                                var_scope = statement.scope
+                                break
+                        if var_scope:
+                            break
+                
+                # Initialize variable on the appropriate entity
+                if var_scope:
+                    # For scoped variables, we need to ensure the entity exists
+                    if var_scope.startswith('@e[') and 'tag=mdl_server' not in var_scope:
+                        # This is a custom entity, we need to ensure it exists
+                        # For now, we'll just initialize it (the entity should be created elsewhere)
+                        variable_initializations.append(f"scoreboard players set {var_scope} {var_name} 0")
+                    else:
+                        # Standard selector, just initialize
+                        variable_initializations.append(f"scoreboard players set {var_scope} {var_name} 0")
+                else:
+                    # Default to server armor stand for global variables
+                    variable_initializations.append(f"scoreboard players set @e[type=armor_stand,tag=mdl_server,limit=1] {var_name} 0")
         
         # Add server armor stand creation
         if variable_initializations:

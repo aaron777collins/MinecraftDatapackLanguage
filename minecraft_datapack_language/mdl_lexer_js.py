@@ -23,6 +23,7 @@ class TokenType:
     FUNCTION = "FUNCTION"
     VAR = "VAR"
     NUM = "NUM"
+    SCOPE = "SCOPE"
     IF = "IF"
     ELSE = "ELSE"
     ELSE_IF = "ELSE_IF"
@@ -68,6 +69,8 @@ class TokenType:
     RBRACE = "RBRACE"
     LBRACKET = "LBRACKET"
     RBRACKET = "RBRACKET"
+    LANGLE = "LANGLE"  # < for scope syntax
+    RANGLE = "RANGLE"  # > for scope syntax
     DOT = "DOT"
     COLON = "COLON"
     
@@ -207,6 +210,7 @@ class MDLLexer:
             'function': TokenType.FUNCTION,
             'var': TokenType.VAR,
             'num': TokenType.NUM,
+            'scope': TokenType.SCOPE,
             'if': TokenType.IF,
             'else': TokenType.ELSE,
             'while': TokenType.WHILE,
@@ -394,8 +398,8 @@ class MDLLexer:
             '*': TokenType.MULTIPLY,
             '/': TokenType.DIVIDE,
             '%': TokenType.MODULO,
-            '<': TokenType.LESS,
-            '>': TokenType.GREATER,
+            '<': TokenType.LANGLE,  # Use LANGLE for scope syntax, handle LESS in context
+            '>': TokenType.RANGLE,  # Use RANGLE for scope syntax, handle GREATER in context
             ';': TokenType.SEMICOLON,
             ',': TokenType.COMMA,
             '(': TokenType.LPAREN,

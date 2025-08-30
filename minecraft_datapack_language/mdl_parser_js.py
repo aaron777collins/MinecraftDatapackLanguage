@@ -80,6 +80,7 @@ class VariableDeclaration(ASTNode):
     data_type: str  # 'num'
     name: str
     value: Optional['Expression']
+    scope: Optional[str] = None  # Minecraft selector like @s, @e[type=armor_stand,tag=mdl_server,limit=1], etc.
 
 @dataclass
 class VariableAssignment(ASTNode):
@@ -458,6 +459,23 @@ class MDLParser:
         name_token = self._match(TokenType.IDENTIFIER)
         name = name_token.value
         
+        # Check for scope declaration
+        scope = None
+        if self._peek().type == TokenType.SCOPE:
+            self._match(TokenType.SCOPE)
+            # Expect opening angle bracket
+            self._match(TokenType.LANGLE)
+            # Parse the selector (can be a string or identifier)
+            if self._peek().type == TokenType.STRING:
+                scope_token = self._match(TokenType.STRING)
+                scope = scope_token.value.strip('"').strip("'")
+            else:
+                # Handle unquoted selectors like @s, @a, etc.
+                scope_token = self._match(TokenType.IDENTIFIER)
+                scope = scope_token.value
+            # Expect closing angle bracket
+            self._match(TokenType.RANGLE)
+        
         # Parse assignment
         self._match(TokenType.ASSIGN)
         
@@ -466,7 +484,7 @@ class MDLParser:
         
         self._match(TokenType.SEMICOLON)
         
-        return VariableDeclaration("var", "num", name, value)
+        return VariableDeclaration("var", "num", name, value, scope)
     
     def _parse_variable_assignment(self) -> VariableAssignment:
         """Parse variable assignment."""

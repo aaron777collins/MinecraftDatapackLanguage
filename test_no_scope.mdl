@@ -1,0 +1,13 @@
+// test_no_scope.mdl - Test without scope
+pack "test_no_scope" "Test without scope" 82;
+
+namespace "test_no_scope";
+
+var num counter = 0;
+
+function "main" {
+    counter = counter + 1;
+    say "Counter: $counter$";
+}
+
+on_load "test_no_scope:main";
