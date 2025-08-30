@@ -66,6 +66,7 @@ class TokenType:
     LBRACKET = "LBRACKET"
     RBRACKET = "RBRACKET"
     DOT = "DOT"
+    COLON = "COLON"
     
     # Literals
     IDENTIFIER = "IDENTIFIER"
@@ -347,6 +348,7 @@ class MDLLexer:
             '[': TokenType.LBRACKET,
             ']': TokenType.RBRACKET,
             '.': TokenType.DOT,
+            ':': TokenType.COLON,
         }
         
         if char in operator_map:

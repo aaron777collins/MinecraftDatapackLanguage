@@ -418,44 +418,52 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
                 import re
                 var_pattern = r'\$([a-zA-Z_][a-zA-Z0-9_]*)\$'
                 
-                # Extract the text content from say command
+                # Extract the text content from say command (handle both quoted and unquoted)
                 text_match = re.search(r'say "([^"]*)"', command)
                 if text_match:
+                    # Quoted text
                     text_content = text_match.group(1)
-                    
-                    # Check if there are variable substitutions
-                    if '$' in text_content:
-                        # Build JSON array with text and scoreboard components
-                        var_matches = list(re.finditer(var_pattern, text_content))
-                        json_parts = []
-                        last_end = 0
-                        
-                        for match in var_matches:
-                            # Add text before the variable
-                            if match.start() > last_end:
-                                text_before = text_content[last_end:match.start()]
-                                if text_before:
-                                    json_parts.append(f'{{"text":"{text_before}"}}')
-                            
-                            # Add the variable
-                            var_name = match.group(1)
-                            json_parts.append(f'{{"score":{{"name":"{selector}","objective":"{var_name}"}}}}')
-                            last_end = match.end()
-                        
-                        # Add any remaining text
-                        if last_end < len(text_content):
-                            text_after = text_content[last_end:]
-                            if text_after:
-                                json_parts.append(f'{{"text":"{text_after}"}}')
-                        
-                        command = f'tellraw @a [{",".join(json_parts)}]'
-                    else:
-                        # No variables, simple conversion
-                        command = f'tellraw @a [{{"text":"{text_content}"}}]'
                 else:
-                    # Fallback: if regex doesn't match, still convert to tellraw
-                    command = command.replace('say "', f'tellraw @a [{{"text":"')
-                    command = command.replace('"', '"}]')
+                    # Unquoted text - extract everything after "say " until the end (before semicolon)
+                    text_match = re.search(r'say (.+?);?$', command)
+                    if text_match:
+                        text_content = text_match.group(1).rstrip(';')
+                    else:
+                        # Fallback: if regex doesn't match, still convert to tellraw
+                        command = command.replace('say "', f'tellraw @a [{{"text":"')
+                        command = command.replace('"', '"}]')
+                        commands.append(command)
+                        continue
+                
+                # Check if there are variable substitutions
+                if '$' in text_content:
+                    # Build JSON array with text and scoreboard components
+                    var_matches = list(re.finditer(var_pattern, text_content))
+                    json_parts = []
+                    last_end = 0
+                    
+                    for match in var_matches:
+                        # Add text before the variable
+                        if match.start() > last_end:
+                            text_before = text_content[last_end:match.start()]
+                            if text_before:
+                                json_parts.append(f'{{"text":"{text_before}"}}')
+                        
+                        # Add the variable
+                        var_name = match.group(1)
+                        json_parts.append(f'{{"score":{{"name":"{selector}","objective":"{var_name}"}}}}')
+                        last_end = match.end()
+                    
+                    # Add any remaining text
+                    if last_end < len(text_content):
+                        text_after = text_content[last_end:]
+                        if text_after:
+                            json_parts.append(f'{{"text":"{text_after}"}}')
+                    
+                    command = f'tellraw @a [{",".join(json_parts)}]'
+                else:
+                    # No variables, simple conversion
+                    command = f'tellraw @a [{{"text":"{text_content}"}}]'
                 
 
             

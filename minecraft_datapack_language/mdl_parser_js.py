@@ -575,7 +575,12 @@ class MDLParser:
         command_parts = []
         
         while not self._is_at_end() and self._peek().type != TokenType.SEMICOLON:
-            command_parts.append(self._advance().value)
+            token = self._advance()
+            # Preserve variable substitutions with $ symbols
+            if token.type == TokenType.VARIABLE_SUB:
+                command_parts.append(f"${token.value}$")
+            else:
+                command_parts.append(token.value)
         
         if not self._is_at_end():
             self._match(TokenType.SEMICOLON)
