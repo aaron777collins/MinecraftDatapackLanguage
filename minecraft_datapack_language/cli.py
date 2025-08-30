@@ -421,12 +421,18 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
                 condition_str = str(statement.condition)
             condition = _convert_condition_to_minecraft_syntax(condition_str, selector)
             
+            print(f"DEBUG: Processing IfStatement with condition: {condition_str} -> {condition}")
+            
             # Generate unique labels for this if statement
             if_label = f"{function_name}_if_{statement_index}"
             end_label = f"{function_name}_if_end_{statement_index}"
             
+            print(f"DEBUG: Generated labels: if_label={if_label}, end_label={end_label}")
+            
             # Add condition check - if true, run the if body
-            commands.append(f"execute if {condition} run function {namespace}:{if_label}")
+            if_command = f"execute if {condition} run function {namespace}:{if_label}"
+            commands.append(if_command)
+            print(f"DEBUG: Added if command: {if_command}")
             
             # Process else if branches
             for i, elif_branch in enumerate(statement.elif_branches):
@@ -438,15 +444,23 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
                     elif_condition_str = str(elif_branch.condition)
                 elif_condition = _convert_condition_to_minecraft_syntax(elif_condition_str, selector)
                 # Only run elif if previous conditions were false
-                commands.append(f"execute unless {condition} if {elif_condition} run function {namespace}:{elif_label}")
+                elif_command = f"execute unless {condition} if {elif_condition} run function {namespace}:{elif_label}"
+                commands.append(elif_command)
+                print(f"DEBUG: Added elif command: {elif_command}")
             
             # Process else body
             if statement.else_body:
                 else_label = f"{function_name}_else_{statement_index}"
-                commands.append(f"execute unless {condition} run function {namespace}:{else_label}")
+                else_command = f"execute unless {condition} run function {namespace}:{else_label}"
+                commands.append(else_command)
+                print(f"DEBUG: Added else command: {else_command}")
             
             # Add end label
-            commands.append(f"function {namespace}:{end_label}")
+            end_command = f"function {namespace}:{end_label}"
+            commands.append(end_command)
+            print(f"DEBUG: Added end command: {end_command}")
+            
+            print(f"DEBUG: Final commands for IfStatement: {commands}")
         
         elif class_name == 'WhileLoop':
             # Handle while loop with method selection
