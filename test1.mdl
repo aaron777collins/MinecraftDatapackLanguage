@@ -46,3 +46,4 @@ function "tick" {
 
 // Hook to run hello function when datapack loads
 on_load "test1:hello";
+on_tick "test1:tick";

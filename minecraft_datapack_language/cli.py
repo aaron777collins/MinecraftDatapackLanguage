@@ -667,7 +667,9 @@ def _generate_function_file(ast: Dict[str, Any], output_dir: Path, namespace: st
             for i, statement in enumerate(body):
                 if verbose:
                     print(f"Processing statement: {type(statement)} = {statement}")
-                commands.extend(_process_statement(statement, func_namespace, function_name, i, is_tag_function, selector))
+                statement_commands = _process_statement(statement, func_namespace, function_name, i, is_tag_function, selector)
+                print(f"DEBUG: Statement {i} returned commands: {statement_commands}")
+                commands.extend(statement_commands)
                 
                 # Collect conditional functions for if statements
                 if hasattr(statement, '__class__') and statement.__class__.__name__ == 'IfStatement':
