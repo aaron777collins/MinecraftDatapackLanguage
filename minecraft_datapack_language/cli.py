@@ -1020,11 +1020,10 @@ def _generate_pack_mcmeta(ast: Dict[str, Any], output_dir: Path) -> None:
     
     # Handle different pack format versions
     if pack_format >= 82:
-        # Post-82 format (1.21+) with min_format and max_format
+        # Post-82 format (1.21+) with pack_format
         pack_mcmeta = {
             "pack": {
-                "min_format": [pack_format, 0],
-                "max_format": [pack_format, 0x7fffffff],
+                "pack_format": pack_format,
                 "description": pack_info['description']
             }
         }
