@@ -563,8 +563,15 @@ class MDLParser:
         """Parse function call."""
         self._match(TokenType.FUNCTION)
         
-        name_token = self._match(TokenType.STRING)
-        name = name_token.value.strip('"').strip("'")
+        # Handle both quoted and unquoted function names
+        if self._peek().type == TokenType.STRING:
+            name_token = self._match(TokenType.STRING)
+            name = name_token.value.strip('"').strip("'")
+        elif self._peek().type == TokenType.IDENTIFIER:
+            name_token = self._match(TokenType.IDENTIFIER)
+            name = name_token.value
+        else:
+            raise RuntimeError(f"Expected STRING or IDENTIFIER for function name, got {self._peek().type}")
         
         self._match(TokenType.SEMICOLON)
         
