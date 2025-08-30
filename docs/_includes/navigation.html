@@ -8,24 +8,22 @@
       </a>
     </div>
     <ul class="nav-list">
-      {%- assign doc_items = site.nav | where_exp: "i", "i.url contains '/docs/'" -%}
-      {%- assign non_doc_items = site.nav | where_exp: "i", "i.url contains '/docs/' | not" -%}
+      {%- assign top_level_items = site.nav | slice: 0, 4 -%}
+      {%- assign doc_items = site.nav | slice: 4, 5 -%}
 
-      {%- for item in non_doc_items -%}
-        {%- if item.title != "Home" -%}
-          <li class="nav-item">
-            <a href="{{ item.url | relative_url }}" class="nav-link{% if page.url == item.url or page.url contains item.url %} active{% endif %}">{{ item.title }}</a>
-          </li>
-        {%- endif -%}
+      {%- for item in top_level_items -%}
+        <li class="nav-item">
+          <a href="{{ item.url | relative_url }}" class="nav-link{% if page.url == item.url or page.url contains item.url %} active{% endif %}">{{ item.title }}</a>
+        </li>
       {%- endfor -%}
 
       {%- if doc_items and doc_items.size > 0 -%}
         <li class="nav-item nav-dropdown{% if page.url contains '/docs/' %} active{% endif %}" aria-haspopup="true" aria-expanded="false">
           <button class="nav-link nav-dropdown-toggle" aria-haspopup="true" aria-expanded="false" aria-controls="nav-docs-menu">
-            Docs
+            Documentation
             <svg class="caret" width="12" height="12" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 011.08 1.04l-4.25 4.25a.75.75 0 01-1.06 0L5.21 8.27a.75.75 0 01.02-1.06z"/></svg>
           </button>
-          <ul id="nav-docs-menu" class="nav-dropdown-menu" role="menu" aria-label="Docs">
+          <ul id="nav-docs-menu" class="nav-dropdown-menu" role="menu" aria-label="Documentation">
             {%- for item in doc_items -%}
               <li class="nav-dropdown-item" role="none">
                 <a role="menuitem" href="{{ item.url | relative_url }}" class="nav-dropdown-link{% if page.url == item.url or page.url contains item.url %} active{% endif %}">{{ item.title }}</a>

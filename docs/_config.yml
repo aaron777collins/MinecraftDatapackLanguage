@@ -61,10 +61,12 @@ nav:
     url: /downloads/
   - title: Getting Started
     url: /docs/getting-started/
-  - title: Language Reference
-    url: /docs/language-reference/
   - title: Examples
     url: /docs/examples/
+  - title: Contributing
+    url: /docs/contributing/
+  - title: Language Reference
+    url: /docs/language-reference/
   - title: Multi-file Projects
     url: /docs/multi-file-projects/
   - title: CLI Reference
@@ -73,5 +75,3 @@ nav:
     url: /docs/python-api/
   - title: VS Code Extension
     url: /docs/vscode-extension/
-  - title: Contributing
-    url: /docs/contributing/
