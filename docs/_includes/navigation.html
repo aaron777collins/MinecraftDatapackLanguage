@@ -17,37 +17,13 @@
         </li>
       {%- endfor -%}
 
-      {%- if doc_items and doc_items.size > 0 -%}
-        {%- assign is_doc_page = false -%}
-        {%- for item in doc_items -%}
-          {%- if page.url == item.url or page.url contains item.url -%}
-            {%- assign is_doc_page = true -%}
-            {%- break -%}
-          {%- endif -%}
-        {%- endfor -%}
-        
-        <!-- Desktop: Dropdown -->
-        <li class="nav-item nav-dropdown desktop-only" aria-haspopup="true" aria-expanded="false">
-          <button class="nav-link nav-dropdown-toggle" aria-haspopup="true" aria-expanded="false" aria-controls="nav-docs-menu">
-            Documentation
-            <svg class="caret" width="12" height="12" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 011.08 1.04l-4.25 4.25a.75.75 0 01-1.06 0L5.21 8.27a.75.75 0 01.02-1.06z"/></svg>
-          </button>
-          <ul id="nav-docs-menu" class="nav-dropdown-menu" role="menu" aria-label="Documentation">
-            {%- for item in doc_items -%}
-              <li class="nav-dropdown-item" role="none">
-                <a role="menuitem" href="{{ item.url | relative_url }}" class="nav-dropdown-link{% if page.url == item.url or page.url contains item.url %} active{% endif %}">{{ item.title }}</a>
-              </li>
-            {%- endfor -%}
-          </ul>
-        </li>
-        
-        <!-- Mobile: Individual links -->
-        {%- for item in doc_items -%}
-          <li class="nav-item mobile-only">
-            <a href="{{ item.url | relative_url }}" class="nav-link{% if page.url == item.url or page.url contains item.url %} active{% endif %}">{{ item.title }}</a>
-          </li>
-        {%- endfor -%}
-      {%- endif -%}
+      <!-- Documentation and Examples as main links -->
+      <li class="nav-item">
+        <a href="/docs/" class="nav-link{% if page.url contains '/docs/' %} active{% endif %}">Documentation</a>
+      </li>
+      <li class="nav-item">
+        <a href="/examples/" class="nav-link{% if page.url contains '/examples/' %} active{% endif %}">Examples</a>
+      </li>
     </ul>
     <div class="nav-actions">
       <a href="https://github.com/{{ site.github_username }}/{{ site.github_repo }}" class="nav-icon-link" aria-label="GitHub Repository" target="_blank" rel="noopener noreferrer">
@@ -165,82 +141,6 @@
   color: #ffffff;
 }
 
-/* Dropdown - Hover + Click Hybrid */
-.nav-dropdown {
-  position: relative;
-}
-
-.nav-dropdown .nav-dropdown-toggle {
-  display: inline-flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 0.35rem;
-  background: transparent;
-  border: none;
-  color: rgba(255,255,255,0.85);
-  padding: 0.5rem 0.85rem;
-  border-radius: 999px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: background-color 0.2s, color 0.2s;
-  text-align: left;
-}
-
-.nav-dropdown .nav-dropdown-toggle:hover {
-  background: rgba(255, 255, 255, 0.12);
-  color: #ffffff;
-}
-
-.nav-dropdown.active .nav-dropdown-toggle,
-.nav-dropdown.open .nav-dropdown-toggle {
-  background: rgba(255, 255, 255, 0.18);
-  color: #ffffff;
-}
-
-.nav-dropdown-menu {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  min-width: 240px;
-  background: #0f172a;
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 12px;
-  padding: 0.5rem;
-  margin-top: 0.5rem;
-  display: none;
-  box-shadow: 0 10px 30px rgba(2,6,23,0.45);
-  z-index: 1001;
-}
-
-/* Show only when clicked */
-.nav-dropdown.open .nav-dropdown-menu {
-  display: block;
-}
-
-.nav-dropdown-item { 
-  list-style: none; 
-}
-
-.nav-dropdown-link {
-  display: block;
-  padding: 0.5rem 0.75rem;
-  border-radius: 8px;
-  color: rgba(255,255,255,0.9);
-  text-decoration: none;
-  transition: background-color 0.2s;
-}
-
-.nav-dropdown-link:hover { 
-  background: rgba(255,255,255,0.12); 
-  color: #fff; 
-  text-decoration: none; 
-}
-
-.nav-dropdown-link.active { 
-  background: rgba(255,255,255,0.18); 
-  color: #fff; 
-}
-
 .nav-actions {
   display: flex;
   align-items: center;
@@ -336,14 +236,6 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .desktop-only {
-    display: none !important;
-  }
-  
-  .mobile-only {
-    display: block !important;
-  }
-  
   .nav-list {
     display: none;
     position: absolute;
@@ -373,26 +265,14 @@
     font-size: 0.8rem;
   }
 }
-
-@media (min-width: 769px) {
-  .mobile-only {
-    display: none !important;
-  }
-  
-  .desktop-only {
-    display: block !important;
-  }
-}
 </style>
 
 <script>
-// Standard Dropdown Implementation
+// Mobile Navigation Toggle
 document.addEventListener('DOMContentLoaded', function() {
   const toggle = document.querySelector('.nav-toggle');
   const navList = document.querySelector('.nav-list');
-  const dropdownToggles = document.querySelectorAll('.nav-dropdown-toggle');
   
-  // Mobile menu toggle
   if (toggle && navList) {
     toggle.addEventListener('click', function() {
       navList.classList.toggle('show');
@@ -405,41 +285,5 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   }
-
-  // Simple dropdown behavior: hover to open, click to toggle
-  dropdownToggles.forEach(function(btn) {
-    const parent = btn.closest('.nav-dropdown');
-    const menu = parent ? parent.querySelector('.nav-dropdown-menu') : null;
-    if (!parent || !menu) return;
-
-    // Click to toggle
-    btn.addEventListener('click', function(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      
-      // Close other dropdowns
-      document.querySelectorAll('.nav-dropdown').forEach(function(otherDropdown) {
-        if (otherDropdown !== parent) {
-          otherDropdown.classList.remove('open');
-        }
-      });
-      
-      // Toggle current dropdown
-      const isOpen = parent.classList.toggle('open');
-      btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-    });
-  });
-
-  // Close dropdowns when clicking outside
-  document.addEventListener('click', function(event) {
-    const dropdowns = document.querySelectorAll('.nav-dropdown');
-    dropdowns.forEach(function(dropdown) {
-      if (!dropdown.contains(event.target)) {
-        dropdown.classList.remove('open');
-        const btn = dropdown.querySelector('.nav-dropdown-toggle');
-        if (btn) btn.setAttribute('aria-expanded', 'false');
-      }
-    });
-  });
 });
 </script>

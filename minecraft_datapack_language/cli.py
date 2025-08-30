@@ -1179,33 +1179,9 @@ def _ast_to_pack(ast: Dict[str, Any], mdl_files: List[Path]) -> Pack:
         if commands:
             namespace.function(func_name, *commands)
     
-    # Add hooks
-    for hook in ast.get('hooks', []):
-        if isinstance(hook, dict):
-            hook_type = hook.get('hook_type', 'load')
-            function_name = hook.get('function_name', 'unknown')
-        else:
-            hook_type = getattr(hook, 'hook_type', 'load')
-            function_name = getattr(hook, 'function_name', 'unknown')
-        
-        # Skip hooks with function_name "load" as this is reserved for the global load function
-        if function_name == "load":
-            continue
-            
-        # Check if function_name already contains a namespace (has a colon)
-        if ':' in function_name:
-            # Function name already includes namespace, use as-is
-            full_function_id = function_name
-        else:
-            # Function name doesn't include namespace, add it
-            full_function_id = f"{namespace_name}:{function_name}"
-            
-
-            
-        if hook_type == 'load':
-            pack.on_load(full_function_id)
-        elif hook_type == 'tick':
-            pack.on_tick(full_function_id)
+    # Skip hook processing in _ast_to_pack since hooks are handled by _generate_hook_files
+    # This prevents double-namespacing issues where _ast_to_pack adds to Pack's internal lists
+    # and then pack.build() overwrites the correctly generated JSON files
     
     # Add tags
     print(f"DEBUG: AST has {len(ast.get('tags', []))} tags")

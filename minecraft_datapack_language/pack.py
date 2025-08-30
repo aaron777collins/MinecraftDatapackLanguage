@@ -719,6 +719,8 @@ class Pack:
                 write_json(os.path.join(structure_dir, f"{name}.json"), s.data)
 
         # Autowire special function tags
+        print(f"DEBUG: _tick_functions: {self._tick_functions}")
+        print(f"DEBUG: _load_functions: {self._load_functions}")
         if self._tick_functions:
             self.tags.append(Tag("function", "minecraft:tick", values=self._tick_functions))
         if self._load_functions:
