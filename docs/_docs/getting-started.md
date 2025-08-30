@@ -120,6 +120,29 @@ var num score = 0;
 var num level = 1;
 ```
 
+### Variable Scoping
+
+MDL supports different scopes for variables using the `scope<selector>` syntax:
+
+```mdl
+// Global variables (stored on server armor stand)
+var num global_timer = 0;
+var num game_state = 0;
+
+// Player-scoped variables (stored on each player)
+var num player_score scope<@s> = 0;
+var num player_level scope<@s> = 1;
+
+// Team-scoped variables (stored on team members)
+var num team_score scope<@a[team=red]> = 0;
+var num team_bonus scope<@a[team=blue]> = 0;
+
+// World-scoped variables (stored on specific entities)
+var num world_timer scope<@e[type=armor_stand,tag=world_timer,limit=1]> = 0;
+```
+
+**Default Behavior**: If no scope is specified, variables are stored globally on the `mdl_server` armor stand, making them accessible to all functions.
+
 ### Variable Substitution
 
 Use `$variable_name$` to substitute variables in commands:

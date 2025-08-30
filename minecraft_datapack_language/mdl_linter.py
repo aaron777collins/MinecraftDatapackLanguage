@@ -53,6 +53,7 @@ class MDLLinter:
                 # Run all linting rules on this line
                 self._check_while_loop_syntax(line, line_num)
                 self._check_variable_declaration(line, line_num)
+                self._check_scope_syntax(line, line_num)
                 self._check_hook_syntax(line, line_num)
                 self._check_pack_declaration(line, line_num)
                 self._check_namespace_declaration(line, line_num)
@@ -107,13 +108,14 @@ class MDLLinter:
     
     def _check_variable_declaration(self, line: str, line_num: int):
         """Check variable declaration syntax"""
-        # Match variable declaration pattern
-        var_pattern = r'var\s+num\s+(\w+)\s*=\s*([^;]+);'
+        # Match variable declaration pattern (with optional scope)
+        var_pattern = r'var\s+num\s+(\w+)(?:\s+scope<([^>]+)>)?\s*=\s*([^;]+);'
         match = re.search(var_pattern, line)
         
         if match:
             var_name = match.group(1)
-            value = match.group(2).strip()
+            scope = match.group(2)
+            value = match.group(3).strip()
             
             # Check variable name
             if not re.match(r'^[a-zA-Z_][a-zA-Z0-9_]*$', var_name):
@@ -134,6 +136,37 @@ class MDLLinter:
                     category='variable',
                     message=f"Non-numeric value in variable declaration: '{value}'",
                     suggestion="Consider using a numeric value for initialization",
+                    code=line
+                ))
+    
+    def _check_scope_syntax(self, line: str, line_num: int):
+        """Check scope syntax in variable declarations"""
+        # Match scope pattern
+        scope_pattern = r'scope<([^>]+)>'
+        match = re.search(scope_pattern, line)
+        
+        if match:
+            selector = match.group(1).strip()
+            
+            # Check for potentially problematic selectors
+            if selector in ['@a', '@e', '@r']:
+                self.issues.append(MDLLintIssue(
+                    line_number=line_num,
+                    severity='warning',
+                    category='scope',
+                    message=f"Broad selector '{selector}' may affect multiple entities",
+                    suggestion="Consider using a more specific selector to avoid unintended side effects",
+                    code=line
+                ))
+            
+            # Check for valid selector syntax
+            if not re.match(r'^@[spear](\[.*\])?$', selector):
+                self.issues.append(MDLLintIssue(
+                    line_number=line_num,
+                    severity='warning',
+                    category='scope',
+                    message=f"Selector '{selector}' may not be valid",
+                    suggestion="Use valid Minecraft selectors like @s, @p, @a, @e, @r with optional arguments",
                     code=line
                 ))
     

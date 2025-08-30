@@ -101,6 +101,90 @@ mdl build --mdl hello.mdl -o dist
 # Run /reload in-game
 ```
 
+## Variable Scoping Example
+
+A comprehensive example demonstrating different variable scopes in MDL.
+
+```mdl
+// scope_example.mdl
+pack "Scope Demo" "Demonstrates variable scoping" 82;
+
+namespace "scope";
+
+// Global variables (stored on mdl_server armor stand)
+var num global_counter = 0;
+var num global_timer = 0;
+
+// Player-scoped variables (stored on each player)
+var num player_score scope<@s> = 0;
+var num player_level scope<@s> = 1;
+
+// Team-scoped variables (stored on team members)
+var num team_score scope<@a[team=red]> = 0;
+var num team_bonus scope<@a[team=blue]> = 0;
+
+// World-scoped variables (stored on specific entities)
+var num world_timer scope<@e[type=armor_stand,tag=world_timer,limit=1]> = 0;
+
+function "enable_timer" {
+    global_timer = 1;
+    player_score = player_score + 10;
+    team_score = team_score + 5;
+    world_timer = world_timer + 1;
+    
+    say Timer enabled!;
+    say Your score: $player_score$;
+    say Team score: $team_score$;
+    say World timer: $world_timer$;
+}
+
+function "disable_timer" {
+    global_timer = 0;
+    say Timer disabled!;
+}
+
+function "show_stats" {
+    say === STATS ===;
+    say Global counter: $global_counter$;
+    say Global timer: $global_timer$;
+    say Your score: $player_score$;
+    say Your level: $player_level$;
+    say Team score: $team_score$;
+    say Team bonus: $team_bonus$;
+    say World timer: $world_timer$;
+}
+
+function "load" {
+    global_counter = 0;
+    global_timer = 0;
+    say Scope demo loaded!;
+}
+
+function "tick" {
+    if "$global_timer$ == 1" {
+        global_counter = global_counter + 1;
+        player_level = player_level + 1;
+        team_bonus = team_bonus + 2;
+        
+        if "$global_counter$ >= 100" {
+            global_timer = 0;
+            say Timer stopped at 100!;
+        }
+    }
+}
+
+on_load "scope:load";
+on_tick "scope:tick";
+```
+
+**Key Features Demonstrated:**
+- **Global Variables**: `global_counter` and `global_timer` stored on server armor stand
+- **Player-Scoped Variables**: `player_score` and `player_level` stored on each player (`@s`)
+- **Team-Scoped Variables**: `team_score` and `team_bonus` stored on team members
+- **World-Scoped Variables**: `world_timer` stored on specific armor stand
+- **Variable Access**: Each variable is accessed from its appropriate scope
+- **Cross-Scope Operations**: Functions can modify variables from different scopes
+
 ## Player Counter System
 
 A practical system that counts players and displays statistics.
