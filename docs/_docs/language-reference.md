@@ -107,19 +107,22 @@ var num variable_name scope<selector> = initial_value;
 - Variable names should be descriptive
 - Initial values are optional (defaults to 0)
 - **Scope specification** (optional): Use `scope<selector>` to specify where the variable is stored
-- **Default scope**: If no scope is specified, variables are stored globally on the `mdl_server` armor stand
+- **Default scope**: If no scope is specified, variables are stored on the executing entity (`@s`)
 - **Statement termination**: Variable declarations must end with semicolons `;`
 
 **Scope Examples:**
 
 ```mdl
-// Global variables (stored on mdl_server armor stand)
-var num global_counter = 0;
-var num global_timer = 0;
+// Player-specific variables (default behavior)
+var num player_score = 0;
+var num player_level = 1;
 
-// Player-scoped variables (stored on each player)
-var num player_score scope<@s> = 0;
-var num player_level scope<@s> = 1;
+// Global variables (stored on mdl_server armor stand)
+var num global_counter scope<global> = 0;
+var num global_timer scope<global> = 0;
+
+// Player-scoped variables (explicit)
+var num player_health scope<@s> = 20;
 
 // Team-scoped variables (stored on team members)
 var num team_score scope<@a[team=red]> = 0;
@@ -128,6 +131,11 @@ var num team_bonus scope<@a[team=blue]> = 0;
 // World-scoped variables (stored on specific entities)
 var num world_timer scope<@e[type=armor_stand,tag=world_timer,limit=1]> = 0;
 ```
+
+**Why this design?**
+- **`@s` as default**: Makes code more reusable - functions can be called by any entity
+- **`global` keyword**: Clear and explicit for server-wide variables
+- **Flexible execution**: Use `execute as @a run function mypack:myfunction` to run functions for all players
 
 **Basic Examples:**
 

@@ -111,13 +111,16 @@ pack "Scope Demo" "Demonstrates variable scoping" 82;
 
 namespace "scope";
 
-// Global variables (stored on mdl_server armor stand)
-var num global_counter = 0;
-var num global_timer = 0;
+// Player-specific variables (default behavior)
+var num player_score = 0;
+var num player_level = 1;
 
-// Player-scoped variables (stored on each player)
-var num player_score scope<@s> = 0;
-var num player_level scope<@s> = 1;
+// Global variables (stored on mdl_server armor stand)
+var num global_counter scope<global> = 0;
+var num global_timer scope<global> = 0;
+
+// Player-scoped variables (explicit)
+var num player_health scope<@s> = 20;
 
 // Team-scoped variables (stored on team members)
 var num team_score scope<@a[team=red]> = 0;
@@ -127,10 +130,10 @@ var num team_bonus scope<@a[team=blue]> = 0;
 var num world_timer scope<@e[type=armor_stand,tag=world_timer,limit=1]> = 0;
 
 function "enable_timer" {
-    global_timer = 1;
-    player_score = player_score + 10;
-    team_score = team_score + 5;
-    world_timer = world_timer + 1;
+    global_timer = 1;  // Uses global scope
+    player_score = player_score + 10;  // Uses @s (default)
+    team_score = team_score + 5;  // Uses @a[team=red]
+    world_timer = world_timer + 1;  // Uses custom armor stand
     
     say Timer enabled!;
     say Your score: $player_score$;
@@ -139,7 +142,7 @@ function "enable_timer" {
 }
 
 function "disable_timer" {
-    global_timer = 0;
+    global_timer = 0;  // Uses global scope
     say Timer disabled!;
 }
 
@@ -155,19 +158,19 @@ function "show_stats" {
 }
 
 function "load" {
-    global_counter = 0;
-    global_timer = 0;
+    global_counter = 0;  // Uses global scope
+    global_timer = 0;  // Uses global scope
     say Scope demo loaded!;
 }
 
 function "tick" {
     if "$global_timer$ == 1" {
-        global_counter = global_counter + 1;
-        player_level = player_level + 1;
-        team_bonus = team_bonus + 2;
+        global_counter = global_counter + 1;  // Uses global scope
+        player_level = player_level + 1;  // Uses @s (default)
+        team_bonus = team_bonus + 2;  // Uses @a[team=blue]
         
         if "$global_counter$ >= 100" {
-            global_timer = 0;
+            global_timer = 0;  // Uses global scope
             say Timer stopped at 100!;
         }
     }
@@ -178,12 +181,18 @@ on_tick "scope:tick";
 ```
 
 **Key Features Demonstrated:**
-- **Global Variables**: `global_counter` and `global_timer` stored on server armor stand
-- **Player-Scoped Variables**: `player_score` and `player_level` stored on each player (`@s`)
+- **Default Variables**: `player_score` and `player_level` default to `@s` (executing entity)
+- **Global Variables**: `global_counter` and `global_timer` use `scope<global>` for server-wide storage
+- **Player-Scoped Variables**: `player_health` explicitly uses `scope<@s>`
 - **Team-Scoped Variables**: `team_score` and `team_bonus` stored on team members
 - **World-Scoped Variables**: `world_timer` stored on specific armor stand
 - **Variable Access**: Each variable is accessed from its appropriate scope
 - **Cross-Scope Operations**: Functions can modify variables from different scopes
+
+**Key Benefits:**
+- **`@s` as default**: Functions are reusable and can be called by any entity
+- **`global` keyword**: Clear and explicit for server-wide variables
+- **Flexible execution**: Use `execute as @a run function scope:enable_timer` to run for all players
 
 ## Player Counter System
 

@@ -148,6 +148,11 @@ class MDLLinter:
         if match:
             selector = match.group(1).strip()
             
+            # Check for special keywords
+            if selector == 'global':
+                # Global is a special keyword - no validation needed
+                return
+            
             # Check for potentially problematic selectors
             if selector in ['@a', '@e', '@r']:
                 self.issues.append(MDLLintIssue(
@@ -166,7 +171,7 @@ class MDLLinter:
                     severity='warning',
                     category='scope',
                     message=f"Selector '{selector}' may not be valid",
-                    suggestion="Use valid Minecraft selectors like @s, @p, @a, @e, @r with optional arguments",
+                    suggestion="Use valid Minecraft selectors like @s, @p, @a, @e, @r with optional arguments, or 'global' for global variables",
                     code=line
                 ))
     

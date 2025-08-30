@@ -125,13 +125,16 @@ var num level = 1;
 MDL supports different scopes for variables using the `scope<selector>` syntax:
 
 ```mdl
-// Global variables (stored on server armor stand)
-var num global_timer = 0;
-var num game_state = 0;
+// Player-specific variables (default behavior)
+var num player_score = 0;
+var num player_level = 1;
 
-// Player-scoped variables (stored on each player)
-var num player_score scope<@s> = 0;
-var num player_level scope<@s> = 1;
+// Global variables (stored on server armor stand)
+var num global_timer scope<global> = 0;
+var num game_state scope<global> = 0;
+
+// Player-scoped variables (explicit)
+var num player_health scope<@s> = 20;
 
 // Team-scoped variables (stored on team members)
 var num team_score scope<@a[team=red]> = 0;
@@ -141,7 +144,12 @@ var num team_bonus scope<@a[team=blue]> = 0;
 var num world_timer scope<@e[type=armor_stand,tag=world_timer,limit=1]> = 0;
 ```
 
-**Default Behavior**: If no scope is specified, variables are stored globally on the `mdl_server` armor stand, making them accessible to all functions.
+**Default Behavior**: If no scope is specified, variables are stored on the executing entity (`@s`), making functions reusable and code more flexible.
+
+**Why this design?**
+- **`@s` as default**: Functions can be called by any entity
+- **`global` keyword**: Clear and explicit for server-wide variables
+- **Flexible execution**: Use `execute as @a run function mypack:myfunction` to run for all players
 
 ### Variable Substitution
 

@@ -1,16 +1,16 @@
-// test_scope_feature.mdl - Demonstrating Variable Scoping with new <> syntax
+// test_scope_feature.mdl - Demonstrating Variable Scoping with new global keyword and @s default
 
 pack "Test Scope Pack" "Testing variable scoping features" 15;
 
 namespace "test_scope";
 
-// Global variables (stored on mdl_server armor stand)
-var num global_counter = 0;
-var num global_timer = 0;
+// Global variables (stored on mdl_server armor stand) - use 'global' keyword
+var num global_counter scope<global> = 0;
+var num global_timer scope<global> = 0;
 
-// Player-scoped variables (stored on each player)
-var num player_score scope<@s> = 0;
-var num player_level scope<@s> = 1;
+// Player-scoped variables (stored on each player) - @s is now the default!
+var num player_score = 0;  // No scope needed - defaults to @s
+var num player_level scope<@s> = 1;  // Explicit @s scope
 
 // Team-scoped variables (stored on team members)
 var num team_score scope<@a[team=red]> = 0;
@@ -24,27 +24,27 @@ var num playerKills scope<@a> = 0;
 var num world_timer scope<@e[type=armor_stand,tag=world_timer,limit=1]> = 0;
 
 function "enabletimer" {
-    global_timer = 1;
-    player_score = player_score + 10;
-    team_score = team_score + 5;
-    world_timer = world_timer + 1;
+    global_timer = 1;  // Uses global scope
+    player_score = player_score + 10;  // Uses @s (default)
+    team_score = team_score + 5;  // Uses @a[team=red]
+    world_timer = world_timer + 1;  // Uses custom armor stand
 }
 
 function "disabletimer" {
-    global_timer = 0;
+    global_timer = 0;  // Uses global scope
 }
 
 function "load" {
-    global_counter = 0;
-    global_timer = 0;
+    global_counter = 0;  // Uses global scope
+    global_timer = 0;  // Uses global scope
 }
 
 function "tick" {
     if "score global_timer matches 1" {
-        global_counter = global_counter + 1;
-        player_score = player_score + 1;
-        team_score = team_score + 1;
-        world_timer = world_timer + 1;
+        global_counter = global_counter + 1;  // Uses global scope
+        player_score = player_score + 1;  // Uses @s (default)
+        team_score = team_score + 1;  // Uses @a[team=red]
+        world_timer = world_timer + 1;  // Uses custom armor stand
     }
 }
 
@@ -60,11 +60,11 @@ function "checkPlayerCounts" {
     raw!$
     
     // Method 3: Count how many players have the variable set
-    $!raw execute store result score temp_count mdl_server if entity @a[scores={allPlayerCounter=1..}]
+    $!raw execute store result score temp_count global if entity @a[scores={allPlayerCounter=1..}]
     raw!$
     
     // Method 4: Message all players about the count
-    $!raw execute if score temp_count mdl_server matches 1.. run tellraw @a {"text":"Some players have counters!","color":"blue"}
+    $!raw execute if score temp_count global matches 1.. run tellraw @a {"text":"Some players have counters!","color":"blue"}
     raw!$
 }
 
@@ -80,9 +80,9 @@ function "awardKills" {
     raw!$
     
     // Method 3: Alternative - use raw commands to read the variable
-    $!raw execute store result score temp_kills mdl_server run scoreboard players get @s playerKills
+    $!raw execute store result score temp_kills global run scoreboard players get @s playerKills
     raw!$
-    $!raw execute if score temp_kills mdl_server matches 10 run tellraw @s {"text":"You have 10 kills!","color":"gold"}
+    $!raw execute if score temp_kills global matches 10 run tellraw @s {"text":"You have 10 kills!","color":"gold"}
     raw!$
     
     // Broadcast to all players about this player's achievement

@@ -342,6 +342,13 @@ def _validate_selector(selector: str, variable_name: str) -> None:
         print(f"  Consider using @s for single player or a more specific selector.")
 
 
+def _resolve_selector(selector: str) -> str:
+    """Resolve selector to actual Minecraft selector, handling special keywords."""
+    if selector == "global":
+        return "@e[type=armor_stand,tag=mdl_server,limit=1]"
+    return selector
+
+
 def _generate_scoreboard_objectives(ast: Dict[str, Any], output_dir: Path) -> List[str]:
     """Generate scoreboard objectives for all variables."""
     objectives = set()
@@ -402,8 +409,12 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
         
         if class_name == 'VariableDeclaration':
             # Handle variable declaration
-            # Use scope if specified, otherwise use default selector
-            var_selector = getattr(statement, 'scope', None) or selector
+            # Use scope if specified, otherwise default to @s (not global anymore)
+            var_selector = getattr(statement, 'scope', None)
+            if var_selector:
+                var_selector = _resolve_selector(var_selector)
+            else:
+                var_selector = "@s"  # Default to @s instead of global
             
             if statement.value:
                 # Check if it's a simple 0 value (which will be handled in load function)
@@ -423,12 +434,12 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
         elif class_name == 'VariableAssignment':
             # Handle variable assignment
             # For variable assignments, we need to determine the scope from the variable declaration
-            var_selector = selector  # Default to current selector
+            var_selector = "@s"  # Default to @s instead of current selector
             if variable_scopes and statement.name in variable_scopes:
-                var_selector = variable_scopes[statement.name]
+                var_selector = _resolve_selector(variable_scopes[statement.name])
                 print(f"DEBUG: Variable {statement.name} found in scopes: {var_selector}")
             else:
-                print(f"DEBUG: Variable {statement.name} not found in scopes, using default: {selector}")
+                print(f"DEBUG: Variable {statement.name} not found in scopes, using default: @s")
                 print(f"DEBUG: Available scopes: {variable_scopes}")
             
             # Check if it's a simple assignment to 0 (which can be optimized out)
@@ -689,7 +700,7 @@ def _generate_function_file(ast: Dict[str, Any], output_dir: Path, namespace: st
                 commands.append("execute unless entity @e[type=armor_stand,tag=mdl_server,limit=1] run summon armor_stand ~ 320 ~ {Tags:[\"mdl_server\"],Invisible:1b,Marker:1b,NoGravity:1b,Invulnerable:1b}")
                 selector = "@e[type=armor_stand,tag=mdl_server,limit=1]"
             else:
-                # Regular functions use @s (the executing entity)
+                # Regular functions use @s (the executing entity) - this is now the default
                 selector = "@s"
             
             # Debug output - always print
@@ -979,17 +990,21 @@ def _generate_global_load_function(ast: Dict[str, Any], output_dir: Path, namesp
                 
                 # Initialize variable on the appropriate entity
                 if var_scope:
+                    # Resolve the scope (handle 'global' keyword)
+                    resolved_scope = _resolve_selector(var_scope)
                     # For scoped variables, we need to ensure the entity exists
-                    if var_scope.startswith('@e[') and 'tag=mdl_server' not in var_scope:
+                    if resolved_scope.startswith('@e[') and 'tag=mdl_server' not in resolved_scope:
                         # This is a custom entity, we need to ensure it exists
                         # For now, we'll just initialize it (the entity should be created elsewhere)
-                        variable_initializations.append(f"scoreboard players set {var_scope} {var_name} 0")
+                        variable_initializations.append(f"scoreboard players set {resolved_scope} {var_name} 0")
                     else:
                         # Standard selector, just initialize
-                        variable_initializations.append(f"scoreboard players set {var_scope} {var_name} 0")
+                        variable_initializations.append(f"scoreboard players set {resolved_scope} {var_name} 0")
                 else:
-                    # Default to server armor stand for global variables
-                    variable_initializations.append(f"scoreboard players set @e[type=armor_stand,tag=mdl_server,limit=1] {var_name} 0")
+                    # Default to @s for variables without explicit scope
+                    # Note: We can't initialize @s variables in load function since @s doesn't exist yet
+                    # These will be initialized when the function is first called
+                    pass
         
         # Add server armor stand creation
         if variable_initializations:

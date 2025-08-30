@@ -2,10 +2,10 @@
 {
   "scopeName": "source.mdl",
   "patterns": [
-    {
-      "name": "keyword.control.mdl",
-      "match": "\\b(pack|namespace|function|on_tick|on_load|tag|add|if|else if|else|while|for|in|var|let|const|num|str|list|try|catch|throw|switch|case|default|break|continue|return|import|from|as|recipe|loot_table|advancement|predicate|item_modifier|structure|scope)\\b"
-    },
+                {
+              "name": "keyword.control.mdl",
+              "match": "\\b(pack|namespace|function|on_tick|on_load|tag|add|if|else if|else|while|for|in|var|let|const|num|str|list|try|catch|throw|switch|case|default|break|continue|return|import|from|as|recipe|loot_table|advancement|predicate|item_modifier|structure|scope|global)\\b"
+            },
     {
       "name": "entity.name.section.mdl",
       "match": "^(\\s*)(pack|namespace|function|tag|recipe|loot_table|advancement|predicate|item_modifier|structure)\\b"
