@@ -70,8 +70,8 @@ def _process_variable_substitutions(command: str, selector: str = "@s") -> str:
                             elif 'score' in part and 'color' in data:
                                 part['color'] = data['color']
                         
-                        # Create the new JSON
-                        new_json = json.dumps(parts if len(parts) > 1 else parts[0])
+                        # Create the new JSON - always use array format for tellraw
+                        new_json = json.dumps(parts)
                         return f"{prefix}{new_json}{suffix}"
                         
                 except json.JSONDecodeError:
