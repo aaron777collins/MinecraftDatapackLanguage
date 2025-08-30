@@ -690,11 +690,14 @@ def _generate_hook_files(ast: Dict[str, Any], output_dir: Path, namespace: str) 
     load_functions = []
     tick_functions = []
     
+    print(f"DEBUG: Processing hooks in _generate_hook_files: {ast.get('hooks', [])}")
     for hook in ast.get('hooks', []):
         function_name = hook['function_name']
+        print(f"DEBUG: Processing hook in _generate_hook_files: {hook}")
         
         # Skip hooks for function_name "load" as this is reserved for the global load function
         if function_name == "load":
+            print(f"DEBUG: Skipping load function in _generate_hook_files")
             continue
             
         # Check if function_name already contains a namespace (has a colon)
@@ -705,12 +708,17 @@ def _generate_hook_files(ast: Dict[str, Any], output_dir: Path, namespace: str) 
             # Function name doesn't include namespace, add it
             full_function_name = f"{namespace}:{function_name}"
         
-
+        print(f"DEBUG: Full function name in _generate_hook_files: {full_function_name}")
         
         if hook['hook_type'] == "load":
             load_functions.append(full_function_name)
+            print(f"DEBUG: Added to load_functions in _generate_hook_files: {full_function_name}")
         elif hook['hook_type'] == "tick":
             tick_functions.append(full_function_name)
+            print(f"DEBUG: Added to tick_functions in _generate_hook_files: {full_function_name}")
+    
+    print(f"DEBUG: Final load_functions in _generate_hook_files: {load_functions}")
+    print(f"DEBUG: Final tick_functions in _generate_hook_files: {tick_functions}")
     
     # Generate tick.json
     if tick_functions:
