@@ -468,6 +468,10 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
             # Handle raw text - insert directly without any processing
             commands.append(statement.text)
         
+        elif class_name == 'FunctionCall':
+            # Handle function calls
+            commands.append(f"function {statement.function_name}")
+        
         elif class_name == 'Command':
             # Handle regular command
             command = statement.command
