@@ -162,8 +162,10 @@ def _merge_mdl_files(files: List[Path], verbose: bool = False) -> Optional[Dict[
             for entry in root_pack[key]:
                 if isinstance(entry, dict):
                     entry['_source_dir'] = first_file_dir
+                    entry['_source_namespace'] = first_file_namespace
                 else:
                     setattr(entry, '_source_dir', first_file_dir)
+                    setattr(entry, '_source_namespace', first_file_namespace)
     
     # Ensure root_pack has required keys
     if 'functions' not in root_pack:
@@ -226,14 +228,17 @@ def _merge_mdl_files(files: List[Path], verbose: bool = False) -> Optional[Dict[
                 for entry in ast[key]:
                     if isinstance(entry, dict):
                         entry['_source_dir'] = file_dir
+                        entry['_source_namespace'] = file_namespace
                     else:
                         setattr(entry, '_source_dir', file_dir)
+                        setattr(entry, '_source_namespace', file_namespace)
                 if key not in root_pack:
                     root_pack[key] = []
                 root_pack[key].extend(ast[key])
     
     if verbose:
-        print(f"Successfully merged {len(files)} file(s) into datapack: {root_pack.get('pack', {}).get('name', 'unknown')}")
+        pack_name = root_pack.get('pack', {}).get('name', 'unknown') if root_pack and root_pack.get('pack') else 'unknown'
+        print(f"Successfully merged {len(files)} file(s) into datapack: {pack_name}")
     return root_pack
 
 
@@ -1103,10 +1108,15 @@ def _ast_to_pack(ast: Dict[str, Any], mdl_files: List[Path]) -> Pack:
             name = recipe.get('name', 'unknown')
             data = recipe.get('data', {})
             source_dir = recipe.get('_source_dir')
+            recipe_namespace = recipe.get('_source_namespace', namespace_name)
         else:
             name = getattr(recipe, 'name', 'unknown')
             data = getattr(recipe, 'data', {})
             source_dir = getattr(recipe, '_source_dir', None)
+            recipe_namespace = getattr(recipe, '_source_namespace', namespace_name)
+        
+        # Get the correct namespace for this recipe
+        recipe_ns = pack.namespace(recipe_namespace)
         
         # Load JSON data from file if specified
         if isinstance(data, dict) and 'json_file' in data:
@@ -1121,23 +1131,28 @@ def _ast_to_pack(ast: Dict[str, Any], mdl_files: List[Path]) -> Pack:
                 with open(json_file_path, 'r', encoding='utf-8') as f:
                     import json
                     json_data = json.load(f)
-                    namespace.recipe(name, json_data)
+                    recipe_ns.recipe(name, json_data)
             except (FileNotFoundError, json.JSONDecodeError) as e:
                 print(f"Warning: Could not load recipe JSON file '{json_file_path}': {e}")
                 # Use empty data as fallback
-                namespace.recipe(name, {})
+                recipe_ns.recipe(name, {})
         else:
-            namespace.recipe(name, data)
+            recipe_ns.recipe(name, data)
     
     for loot_table in ast.get('loot_tables', []):
         if isinstance(loot_table, dict):
             name = loot_table.get('name', 'unknown')
             data = loot_table.get('data', {})
             source_dir = loot_table.get('_source_dir')
+            loot_table_namespace = loot_table.get('_source_namespace', namespace_name)
         else:
             name = getattr(loot_table, 'name', 'unknown')
             data = getattr(loot_table, 'data', {})
             source_dir = getattr(loot_table, '_source_dir', None)
+            loot_table_namespace = getattr(loot_table, '_source_namespace', namespace_name)
+        
+        # Get the correct namespace for this loot table
+        loot_table_ns = pack.namespace(loot_table_namespace)
         
         # Load JSON data from file if specified
         if isinstance(data, dict) and 'json_file' in data:
@@ -1152,23 +1167,28 @@ def _ast_to_pack(ast: Dict[str, Any], mdl_files: List[Path]) -> Pack:
                 with open(json_file_path, 'r', encoding='utf-8') as f:
                     import json
                     json_data = json.load(f)
-                    namespace.loot_table(name, json_data)
+                    loot_table_ns.loot_table(name, json_data)
             except (FileNotFoundError, json.JSONDecodeError) as e:
                 print(f"Warning: Could not load loot table JSON file '{json_file_path}': {e}")
                 # Use empty data as fallback
-                namespace.loot_table(name, {})
+                loot_table_ns.loot_table(name, {})
         else:
-            namespace.loot_table(name, data)
+            loot_table_ns.loot_table(name, data)
     
     for advancement in ast.get('advancements', []):
         if isinstance(advancement, dict):
             name = advancement.get('name', 'unknown')
             data = advancement.get('data', {})
             source_dir = advancement.get('_source_dir')
+            advancement_namespace = advancement.get('_source_namespace', namespace_name)
         else:
             name = getattr(advancement, 'name', 'unknown')
             data = getattr(advancement, 'data', {})
             source_dir = getattr(advancement, '_source_dir', None)
+            advancement_namespace = getattr(advancement, '_source_namespace', namespace_name)
+        
+        # Get the correct namespace for this advancement
+        advancement_ns = pack.namespace(advancement_namespace)
         
         # Load JSON data from file if specified
         if isinstance(data, dict) and 'json_file' in data:
@@ -1183,23 +1203,28 @@ def _ast_to_pack(ast: Dict[str, Any], mdl_files: List[Path]) -> Pack:
                 with open(json_file_path, 'r', encoding='utf-8') as f:
                     import json
                     json_data = json.load(f)
-                    namespace.advancement(name, json_data)
+                    advancement_ns.advancement(name, json_data)
             except (FileNotFoundError, json.JSONDecodeError) as e:
                 print(f"Warning: Could not load advancement JSON file '{json_file_path}': {e}")
                 # Use empty data as fallback
-                namespace.advancement(name, {})
+                advancement_ns.advancement(name, {})
         else:
-            namespace.advancement(name, data)
+            advancement_ns.advancement(name, data)
     
     for predicate in ast.get('predicates', []):
         if isinstance(predicate, dict):
             name = predicate.get('name', 'unknown')
             data = predicate.get('data', {})
             source_dir = predicate.get('_source_dir')
+            predicate_namespace = predicate.get('_source_namespace', namespace_name)
         else:
             name = getattr(predicate, 'name', 'unknown')
             data = getattr(predicate, 'data', {})
             source_dir = getattr(predicate, '_source_dir', None)
+            predicate_namespace = getattr(predicate, '_source_namespace', namespace_name)
+        
+        # Get the correct namespace for this predicate
+        predicate_ns = pack.namespace(predicate_namespace)
         
         # Load JSON data from file if specified
         if isinstance(data, dict) and 'json_file' in data:
@@ -1214,23 +1239,28 @@ def _ast_to_pack(ast: Dict[str, Any], mdl_files: List[Path]) -> Pack:
                 with open(json_file_path, 'r', encoding='utf-8') as f:
                     import json
                     json_data = json.load(f)
-                    namespace.predicate(name, json_data)
+                    predicate_ns.predicate(name, json_data)
             except (FileNotFoundError, json.JSONDecodeError) as e:
                 print(f"Warning: Could not load predicate JSON file '{json_file_path}': {e}")
                 # Use empty data as fallback
-                namespace.predicate(name, {})
+                predicate_ns.predicate(name, {})
         else:
-            namespace.predicate(name, data)
+            predicate_ns.predicate(name, data)
     
     for item_modifier in ast.get('item_modifiers', []):
         if isinstance(item_modifier, dict):
             name = item_modifier.get('name', 'unknown')
             data = item_modifier.get('data', {})
             source_dir = item_modifier.get('_source_dir')
+            item_modifier_namespace = item_modifier.get('_source_namespace', namespace_name)
         else:
             name = getattr(item_modifier, 'name', 'unknown')
             data = getattr(item_modifier, 'data', {})
             source_dir = getattr(item_modifier, '_source_dir', None)
+            item_modifier_namespace = getattr(item_modifier, '_source_namespace', namespace_name)
+        
+        # Get the correct namespace for this item modifier
+        item_modifier_ns = pack.namespace(item_modifier_namespace)
         
         # Load JSON data from file if specified
         if isinstance(data, dict) and 'json_file' in data:
@@ -1245,23 +1275,28 @@ def _ast_to_pack(ast: Dict[str, Any], mdl_files: List[Path]) -> Pack:
                 with open(json_file_path, 'r', encoding='utf-8') as f:
                     import json
                     json_data = json.load(f)
-                    namespace.item_modifier(name, json_data)
+                    item_modifier_ns.item_modifier(name, json_data)
             except (FileNotFoundError, json.JSONDecodeError) as e:
                 print(f"Warning: Could not load item modifier JSON file '{json_file_path}': {e}")
                 # Use empty data as fallback
-                namespace.item_modifier(name, {})
+                item_modifier_ns.item_modifier(name, {})
         else:
-            namespace.item_modifier(name, data)
+            item_modifier_ns.item_modifier(name, data)
     
     for structure in ast.get('structures', []):
         if isinstance(structure, dict):
             name = structure.get('name', 'unknown')
             data = structure.get('data', {})
             source_dir = structure.get('_source_dir')
+            structure_namespace = structure.get('_source_namespace', namespace_name)
         else:
             name = getattr(structure, 'name', 'unknown')
             data = getattr(structure, 'data', {})
             source_dir = getattr(structure, '_source_dir', None)
+            structure_namespace = getattr(structure, '_source_namespace', namespace_name)
+        
+        # Get the correct namespace for this structure
+        structure_ns = pack.namespace(structure_namespace)
         
         # Load JSON data from file if specified
         if isinstance(data, dict) and 'json_file' in data:
@@ -1276,13 +1311,13 @@ def _ast_to_pack(ast: Dict[str, Any], mdl_files: List[Path]) -> Pack:
                 with open(json_file_path, 'r', encoding='utf-8') as f:
                     import json
                     json_data = json.load(f)
-                    namespace.structure(name, json_data)
+                    structure_ns.structure(name, json_data)
             except (FileNotFoundError, json.JSONDecodeError) as e:
                 print(f"Warning: Could not load structure JSON file '{json_file_path}': {e}")
                 # Use empty data as fallback
-                namespace.structure(name, {})
+                structure_ns.structure(name, {})
         else:
-            namespace.structure(name, data)
+            structure_ns.structure(name, data)
     
     # Add load functions from AST to Pack for proper tag generation
     if ast.get('_load_functions'):
