@@ -103,6 +103,11 @@ else
   echo "[sync] Asset synchronization complete."
 fi
 
-echo "[sync] Temporary files kept at ${WORKDIR} (safe to remove)."
+if [ "${MDL_KEEP_TMP:-}" = "1" ]; then
+  echo "[sync] Temporary files kept at ${WORKDIR} (MDL_KEEP_TMP=1)."
+else
+  echo "[sync] Cleaning up ${WORKDIR}..."
+  rm -rf "${WORKDIR}"
+fi
 echo "[sync] Done."
 

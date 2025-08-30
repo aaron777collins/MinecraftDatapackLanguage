@@ -1,6 +1,6 @@
 
 # Quick helpers for MDL
-.PHONY: venv install build sdist wheel pipx-install pipx-uninstall zipapp test clean dev-setup dev-build dev-sync dev-test local-mdl mdlbeta
+.PHONY: venv install build sdist wheel pipx-install pipx-uninstall zipapp test clean clean-tmp dev-setup dev-build dev-sync dev-test local-mdl mdlbeta
 
 PYTHON ?= python3
 
@@ -31,6 +31,9 @@ test:
 
 clean:
 	rm -rf .venv build dist *.egg-info tmp_mdl_test mdl.pyz
+
+clean-tmp:
+	rm -rf .tmp
 
 dev-setup:
 	bash scripts/dev_setup.sh

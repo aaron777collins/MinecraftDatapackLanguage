@@ -10,6 +10,7 @@ dist/
 pip-wheel-metadata/
 dist_nesting_test/
 tmp_*/
+/.tmp/
 *.pyz
 
 # VS Code
