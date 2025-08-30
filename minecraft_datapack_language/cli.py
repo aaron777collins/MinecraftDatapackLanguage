@@ -422,15 +422,15 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
             condition = _convert_condition_to_minecraft_syntax(condition_str, selector)
             
             # Generate unique labels for this if statement
-            if_label = f"{namespace}_{function_name}_if_{statement_index}"
-            end_label = f"{namespace}_{function_name}_if_end_{statement_index}"
+            if_label = f"{function_name}_if_{statement_index}"
+            end_label = f"{function_name}_if_end_{statement_index}"
             
             # Add condition check - if true, run the if body
             commands.append(f"execute if {condition} run function {namespace}:{if_label}")
             
             # Process else if branches
             for i, elif_branch in enumerate(statement.elif_branches):
-                elif_label = f"{namespace}_{function_name}_elif_{statement_index}_{i}"
+                elif_label = f"{function_name}_elif_{statement_index}_{i}"
                 # Get the condition string from the elif condition object
                 if hasattr(elif_branch.condition, 'condition_string'):
                     elif_condition_str = elif_branch.condition.condition_string
@@ -442,7 +442,7 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
             
             # Process else body
             if statement.else_body:
-                else_label = f"{namespace}_{function_name}_else_{statement_index}"
+                else_label = f"{function_name}_else_{statement_index}"
                 commands.append(f"execute unless {condition} run function {namespace}:{else_label}")
             
             # Add end label
@@ -661,11 +661,9 @@ def _generate_function_file(ast: Dict[str, Any], output_dir: Path, namespace: st
     
     # Generate all conditional function files in their respective namespaces
     for func_name, func_body in conditional_functions:
-        # Extract namespace from function name (format: namespace_functionname_...)
-        if '_' in func_name:
-            func_namespace = func_name.split('_')[0]
-        else:
-            func_namespace = namespace  # fallback to root namespace
+        # The function name format is now: functionname_if_statementindex
+        # We need to use the current namespace for all conditional functions
+        func_namespace = namespace
         
         func_dir = output_dir / "data" / func_namespace / dir_map.function
         func_dir.mkdir(parents=True, exist_ok=True)
@@ -976,7 +974,7 @@ def _collect_conditional_functions(if_statement, namespace: str, function_name: 
     functions = []
     
     # Generate if body function
-    if_label = f"{namespace}_{function_name}_if_{statement_index}"
+    if_label = f"{function_name}_if_{statement_index}"
     if_commands = []
     for j, stmt in enumerate(if_statement.body):
         if_commands.extend(_process_statement(stmt, namespace, function_name, j, is_tag_function, selector))
@@ -984,7 +982,7 @@ def _collect_conditional_functions(if_statement, namespace: str, function_name: 
     
     # Generate elif body functions
     for i, elif_branch in enumerate(if_statement.elif_branches):
-        elif_label = f"{namespace}_{function_name}_elif_{statement_index}_{i}"
+        elif_label = f"{function_name}_elif_{statement_index}_{i}"
         elif_commands = []
         for j, stmt in enumerate(elif_branch.body):
             elif_commands.extend(_process_statement(stmt, namespace, function_name, j, is_tag_function, selector))
@@ -992,14 +990,14 @@ def _collect_conditional_functions(if_statement, namespace: str, function_name: 
     
     # Generate else body function
     if if_statement.else_body:
-        else_label = f"{namespace}_{function_name}_else_{statement_index}"
+        else_label = f"{function_name}_else_{statement_index}"
         else_commands = []
         for j, stmt in enumerate(if_statement.else_body):
             else_commands.extend(_process_statement(stmt, namespace, function_name, j, is_tag_function, selector))
         functions.append((else_label, else_commands))
     
     # Generate end function (empty)
-    end_label = f"{namespace}_{function_name}_if_end_{statement_index}"
+    end_label = f"{function_name}_if_end_{statement_index}"
     functions.append((end_label, []))
     
     return functions
