@@ -976,25 +976,46 @@ def _collect_conditional_functions(if_statement, namespace: str, function_name: 
     # Generate if body function
     if_label = f"{function_name}_if_{statement_index}"
     if_commands = []
+    nested_conditionals = []  # Track nested conditional functions
+    
     for j, stmt in enumerate(if_statement.body):
         if_commands.extend(_process_statement(stmt, namespace, function_name, j, is_tag_function, selector))
+        # Check for nested if statements and collect their conditional functions
+        if hasattr(stmt, '__class__') and stmt.__class__.__name__ == 'IfStatement':
+            nested_conditionals.extend(_collect_conditional_functions(stmt, namespace, function_name, j, is_tag_function, selector))
+    
     functions.append((if_label, if_commands))
+    functions.extend(nested_conditionals)  # Add nested conditional functions
     
     # Generate elif body functions
     for i, elif_branch in enumerate(if_statement.elif_branches):
         elif_label = f"{function_name}_elif_{statement_index}_{i}"
         elif_commands = []
+        elif_nested_conditionals = []
+        
         for j, stmt in enumerate(elif_branch.body):
             elif_commands.extend(_process_statement(stmt, namespace, function_name, j, is_tag_function, selector))
+            # Check for nested if statements in elif branches
+            if hasattr(stmt, '__class__') and stmt.__class__.__name__ == 'IfStatement':
+                elif_nested_conditionals.extend(_collect_conditional_functions(stmt, namespace, function_name, j, is_tag_function, selector))
+        
         functions.append((elif_label, elif_commands))
+        functions.extend(elif_nested_conditionals)
     
     # Generate else body function
     if if_statement.else_body:
         else_label = f"{function_name}_else_{statement_index}"
         else_commands = []
+        else_nested_conditionals = []
+        
         for j, stmt in enumerate(if_statement.else_body):
             else_commands.extend(_process_statement(stmt, namespace, function_name, j, is_tag_function, selector))
+            # Check for nested if statements in else branches
+            if hasattr(stmt, '__class__') and stmt.__class__.__name__ == 'IfStatement':
+                else_nested_conditionals.extend(_collect_conditional_functions(stmt, namespace, function_name, j, is_tag_function, selector))
+        
         functions.append((else_label, else_commands))
+        functions.extend(else_nested_conditionals)
     
     # Generate end function (empty)
     end_label = f"{function_name}_if_end_{statement_index}"
