@@ -147,13 +147,13 @@ Search and browse all available documentation for the Minecraft Datapack Languag
   border: 1px solid #e1e4e8;
   border-radius: 8px;
   padding: 1.5rem;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
   transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .doc-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.2);
 }
 
 .doc-card.hidden {

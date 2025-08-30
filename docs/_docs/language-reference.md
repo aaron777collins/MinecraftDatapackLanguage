@@ -484,6 +484,59 @@ When compiled, the function becomes a single line:
 tellraw @a {"text":"This text is really, really long so we split it","color":"gold"}
 ```
 
+## Raw Text Blocks
+
+Raw text blocks allow you to insert literal text directly into functions without MDL parsing. This is useful for including commands that contain MDL keywords or complex JSON that would otherwise conflict with the parser.
+
+### Syntax
+
+```mdl
+$!raw
+    // Any text here is inserted directly without parsing
+    say "This contains the word function without breaking the parser";
+    tellraw @a {"text":"Complex JSON with keywords"};
+raw!$
+```
+
+### Use Cases
+
+**Including MDL Keywords in Commands:**
+```mdl
+function "example" {
+    $!raw
+    say "To enable the timer, run /function test1:enabletimer";
+    say "To disable the timer, run /function test1:disabletimer";
+    raw!$
+}
+```
+
+**Complex JSON Commands:**
+```mdl
+function "ui" {
+    $!raw
+    tellraw @a {"text":"=== MENU ===","color":"gold","bold":true,"clickEvent":{"action":"run_command","value":"/function ui:main_menu"}};
+    raw!$
+}
+```
+
+**Variable Substitution in Raw Text:**
+```mdl
+function "status" {
+    $!raw
+    tellraw @a {"text":"Counter: $counter$"};
+    tellraw @a {"text":"Status: $status$"};
+    raw!$
+}
+```
+
+### Rules
+
+- **Content is inserted literally**: No MDL parsing occurs inside raw text blocks
+- **Variable substitution works**: `$variable$` syntax is still processed
+- **Must be properly closed**: Each `$!raw` must have a corresponding `raw!$`
+- **Can span multiple lines**: Raw text blocks can contain newlines and complex formatting
+- **Use sparingly**: Only use raw text when regular MDL syntax would conflict
+
 ## Multi-File Projects
 
 MDL supports building datapacks from multiple files with proper namespace separation:

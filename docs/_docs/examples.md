@@ -10,6 +10,68 @@ This page contains complete, working examples that demonstrate MDL's powerful fe
 
 > **📚 Need help with MDL syntax?** Check out the [Language Reference](/docs/language-reference/) for complete syntax documentation.
 
+## Raw Text Example
+
+A practical example showing how to use raw text blocks to include commands with MDL keywords or complex JSON.
+
+```mdl
+// raw_text_example.mdl
+pack "Raw Text Demo" "Demonstrates raw text functionality" 82;
+
+namespace "demo";
+
+var num counter = 0;
+var num timer_enabled = 0;
+
+function "main" {
+    say Hello from MDL!;
+    counter = counter + 1;
+    
+    // Raw text block with MDL keywords in commands
+    $!raw
+    say "To enable the timer, run /function demo:enable_timer";
+    say "To disable the timer, run /function demo:disable_timer";
+    raw!$
+    
+    // Raw text with complex JSON and variable substitution
+    $!raw
+    tellraw @a {"text":"Counter: $counter$","color":"yellow"};
+    tellraw @a {"text":"Timer: $timer_enabled$","color":"aqua"};
+    raw!$
+    
+    // Raw text with complex clickable JSON
+    $!raw
+    tellraw @a {"text":"=== MENU ===","color":"gold","bold":true,"clickEvent":{"action":"run_command","value":"/function demo:show_menu"}};
+    raw!$
+}
+
+function "enable_timer" {
+    timer_enabled = 1;
+    say Timer enabled!;
+}
+
+function "disable_timer" {
+    timer_enabled = 0;
+    say Timer disabled!;
+}
+
+function "show_menu" {
+    $!raw
+    tellraw @s {"text":"=== OPTIONS ===","color":"gold","bold":true};
+    tellraw @s {"text":"[Enable Timer]","color":"green","clickEvent":{"action":"run_command","value":"/function demo:enable_timer"}};
+    tellraw @s {"text":"[Disable Timer]","color":"red","clickEvent":{"action":"run_command","value":"/function demo:disable_timer"}};
+    raw!$
+}
+
+on_load "demo:main";
+```
+
+**Key Features Demonstrated:**
+- **MDL Keywords in Commands**: Using "function" in say commands without parser conflicts
+- **Complex JSON**: Multi-line JSON with click events and formatting
+- **Variable Substitution**: `$counter$` and `$timer_enabled$` work inside raw text
+- **Interactive Elements**: Clickable text with command execution
+
 ## Hello World
 
 A simple datapack that displays a welcome message and counts how many times it's been called.

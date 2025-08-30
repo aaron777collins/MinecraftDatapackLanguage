@@ -10,10 +10,11 @@ The MDL VS Code extension provides syntax highlighting, linting, and build comma
 
 ## Features
 
-- **Syntax Highlighting**: Color-coded MDL syntax
+- **Syntax Highlighting**: Color-coded MDL syntax including raw text blocks
 - **Linting**: Real-time error checking and validation
 - **Build Commands**: Quick datapack compilation
 - **Workspace Validation**: Check entire projects at once
+- **Raw Text Support**: Special highlighting and snippets for `$!raw` blocks
 
 ## Installation
 
@@ -113,6 +114,51 @@ The extension highlights the following MDL elements:
 - **Tags**: `tag function "minecraft:tick":`
 - **Comments**: `# This is a comment`
 - **Commands**: All lines within function blocks
+- **Raw text blocks**: `$!raw` and `raw!$` with special highlighting
+
+### Raw Text Support
+
+The extension provides special support for raw text blocks:
+
+#### Syntax Highlighting
+
+Raw text blocks are highlighted with distinct colors:
+- `$!raw` and `raw!$` keywords are highlighted as special tokens
+- Content inside raw text blocks is highlighted differently from regular MDL code
+- This makes it easy to distinguish raw text from parsed MDL syntax
+
+#### Snippets
+
+Quick snippets for raw text blocks:
+
+1. **Type `raw` and press Tab** - Inserts a complete raw text block:
+   ```mdl
+   $!raw
+       Insert raw text here - this will be inserted directly into the function without parsing
+   raw!$
+   ```
+
+2. **Type `rawfunction` and press Tab** - Inserts an example showing how to use "function" in commands:
+   ```mdl
+   $!raw
+       say "This contains the word function without breaking the parser";
+       say "You can put any text here, including function, if, while, etc.";
+   raw!$
+   ```
+
+#### IntelliSense
+
+The extension provides completion for raw text syntax:
+- `$!raw` completion with snippet that inserts the full block
+- `raw!$` completion for ending blocks
+- Helpful documentation explaining what raw text does
+
+#### Linting
+
+Raw text blocks are validated for:
+- Proper opening and closing delimiters
+- Basic syntax checking
+- Integration with the MDL linter
 
 ### Linting
 

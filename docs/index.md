@@ -253,14 +253,14 @@ MDL is open source software licensed under the MIT License. See the [LICENSE](ht
   border: 1px solid #e1e4e8;
   border-radius: 8px;
   background: white;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
   transition: all 0.2s;
   position: relative;
 }
 
 .nav-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.2);
 }
 
 .nav-card h3 {

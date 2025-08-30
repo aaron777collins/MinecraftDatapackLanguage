@@ -221,7 +221,13 @@ MDL is open source software licensed under the MIT License. See the [LICENSE](ht
   padding: 1.5rem;
   border-radius: 8px;
   border: 1px solid #e1e4e8;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.download-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.2);
 }
 
 .download-card h3 {
@@ -259,7 +265,7 @@ MDL is open source software licensed under the MIT License. See the [LICENSE](ht
   background: #0256b3;
   text-decoration: none;
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.2);
 }
 
 .btn-secondary {
@@ -313,7 +319,13 @@ MDL is open source software licensed under the MIT License. See the [LICENSE](ht
   padding: 1.5rem;
   border-radius: 8px;
   border: 1px solid #e1e4e8;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.release-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.2);
 }
 
 .release-item h3 {
