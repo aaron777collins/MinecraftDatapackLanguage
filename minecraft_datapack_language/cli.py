@@ -676,6 +676,7 @@ def _generate_function_file(ast: Dict[str, Any], output_dir: Path, namespace: st
                     conditional_functions.extend(_collect_conditional_functions(statement, func_namespace, function_name, i, is_tag_function, selector))
             
             # Write the function file
+            print(f"DEBUG: Final commands list for {func_namespace}:{function_name}: {commands}")
             with open(function_file, 'w', encoding='utf-8') as f:
                 f.write('\n'.join(commands))
     
