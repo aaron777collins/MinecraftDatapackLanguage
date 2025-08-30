@@ -159,6 +159,11 @@ function "namespace:helper";
 - **Build Scripts**: `scripts/dev_build.sh` and `scripts/dev_build.ps1`
 - **Test Scripts**: `scripts/test_dev.sh` and `scripts/test_dev.ps1`
 
+### Project Scaffolding (mdl new)
+- Generates main `.mdl` file and `README.md`
+- Now also generates `LANGUAGE_REFERENCE.md` in the project root
+- README includes a link to the website docs: https://aaron777collins.github.io/MinecraftDatapackLanguage/docs/
+
 JSON registry handling:
 - Recipe, loot_table, advancement, predicate, item_modifier, structure declarations now resolve `"json_file"` paths relative to the MDL file where they are declared (multi-file safe).
 - Missing or invalid JSON emits a warning and compiles with an empty object.

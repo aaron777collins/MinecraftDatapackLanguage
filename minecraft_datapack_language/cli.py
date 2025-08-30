@@ -1467,10 +1467,15 @@ on_tick "{project_name}:main";
     with open(mdl_file, 'w', encoding='utf-8') as f:
         f.write(mdl_content)
     
-    # Create README
+    # Create README (ensure it links to the website)
     readme_content = f'''# {project_name}
 
 A simplified MDL (Minecraft Datapack Language) project demonstrating core features.
+
+## Documentation
+
+- Full docs: https://aaron777collins.github.io/MinecraftDatapackLanguage/docs/
+- Language quick reference: see `LANGUAGE_REFERENCE.md` in this folder
 
 ## Pack Format Information
 
@@ -1531,9 +1536,58 @@ pack "my_pack" "My datapack" 15;
     with open(readme_file, 'w', encoding='utf-8') as f:
         f.write(readme_content)
     
+    # Create a language quick reference in the project folder
+    lang_ref_content = '''# MDL Language Quick Reference
+
+For full documentation, visit: https://aaron777collins.github.io/MinecraftDatapackLanguage/docs/
+
+## Pack and Namespace
+```mdl
+pack "my_pack" "Description" 82;
+namespace "example";
+```
+
+## Variables and Substitution
+```mdl
+var num counter = 0;
+counter = $counter$ + 1;
+say "Counter: $counter$";
+```
+
+## Functions
+```mdl
+function "main" {
+    say "Hello";
+}
+```
+
+## Control Flow
+```mdl
+if "$counter$ > 5" {
+    say "High";
+} else {
+    say "Low";
+}
+
+while "$counter$ < 10" {
+    counter = $counter$ + 1;
+}
+```
+
+## Hooks
+```mdl
+on_load "example:init";
+on_tick "example:main";
+```
+'''
+    lang_ref_file = project_dir / "LANGUAGE_REFERENCE.md"
+    with open(lang_ref_file, 'w', encoding='utf-8') as f:
+        f.write(lang_ref_content)
+    
     print(f"Created new MDL project: {project_name}")
     print(f"  - Main file: {mdl_file}")
     print(f"  - README: {readme_file}")
+    print(f"  - Language Reference: {lang_ref_file}")
     print(f"  - Build with: mdl build --mdl . --output dist")
 
 
