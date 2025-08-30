@@ -12,10 +12,14 @@ function "hello" {
     say Hello, Minecraft!;
     tellraw @a {"text":"Welcome to my datapack!","color":"green"};
     counter = counter + 1;
-    say Counter: $counter$;
-    say Timerenabled: $timerenabled$;
-    say to enable the timer, run /function test1:enabletimer
-    say to disable the timer, run /function test1:disabletimer
+    $!raw
+    tellraw @a {"text":"Counter: $counter$"};
+    tellraw @a {"text":"Timerenabled: $timerenabled$"};
+    raw!$
+    $!raw
+    say "To enable the timer, run /function test1:enabletimer";
+    say "To disable the timer, run /function test1:disabletimer";
+    raw!$
 }
 
 function "enabletimer" {

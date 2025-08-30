@@ -4,7 +4,7 @@ module Jekyll
     priority :normal
 
     def generate(site)
-      # Read version from the project's version file
+      # Read version from the project's version file for development builds
       version_file = File.join(site.source, '..', 'minecraft_datapack_language', '_version.py')
       
       if File.exist?(version_file)
@@ -16,14 +16,14 @@ module Jekyll
         end
       end
       
-      # Set fallback values if GitHub metadata is not available
+      # Set GitHub metadata defaults - these will be overridden by jekyll-github-metadata if available
       unless site.config['github']
         site.config['github'] = {}
       end
       
       unless site.config['github']['latest_release']
         site.config['github']['latest_release'] = {
-          'tag_name' => "v#{site.config['current_version'] || '8.0.4'}",
+          'tag_name' => site.config['current_version'] ? "v#{site.config['current_version']}" : 'Latest',
           'published_at' => Time.now.strftime('%Y-%m-%d'),
           'html_url' => "https://github.com/aaron777collins/MinecraftDatapackLanguage/releases/latest"
         }

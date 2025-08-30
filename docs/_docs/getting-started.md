@@ -66,7 +66,7 @@ python -m pip install -e .
 
 - **pipx**: `pipx upgrade minecraft-datapack-language`
 - **pip**: `pip install -U minecraft-datapack-language`
-- **Pin a version**: `pipx install "minecraft-datapack-language==12.0.10"`
+- **Pin a version**: `pipx install "minecraft-datapack-language==<version>"` (replace `<version>` with desired version)
 
 ## Your First Datapack
 
