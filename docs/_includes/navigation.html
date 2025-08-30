@@ -17,13 +17,11 @@
         </li>
       {%- endfor -%}
 
-      <!-- Documentation and Examples as main links -->
+      <!-- Docs Hub -->
       <li class="nav-item">
-        <a href="/docs/documentation/" class="nav-link{% if page.url contains '/docs/documentation/' %} active{% endif %}">Documentation</a>
+        <a href="/docs/docs-hub/" class="nav-link{% if page.url contains '/docs/docs-hub/' %} active{% endif %}">Docs</a>
       </li>
-      <li class="nav-item">
-        <a href="/docs/examples/" class="nav-link{% if page.url contains '/docs/examples/' %} active{% endif %}">Examples</a>
-      </li>
+
     </ul>
     <div class="nav-actions">
       <a href="https://github.com/{{ site.github_username }}/{{ site.github_repo }}" class="nav-icon-link" aria-label="GitHub Repository" target="_blank" rel="noopener noreferrer">
@@ -52,9 +50,9 @@
         Home
       </a>
     </li>
-    {% if page.url contains "/docs/" and page.url != "/docs/documentation/" %}
+    {% if page.url contains "/docs/" and page.url != "/docs/docs-hub/" %}
       <li class="breadcrumb-item">
-        <a href="{{ "/docs/documentation/" | relative_url }}" class="breadcrumb-link">Documentation</a>
+        <a href="{{ "/docs/docs-hub/" | relative_url }}" class="breadcrumb-link">Docs</a>
       </li>
     {% endif %}
     <li class="breadcrumb-item active" aria-current="page">
