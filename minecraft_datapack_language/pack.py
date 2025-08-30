@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from typing import List, Dict, Optional, Union
 import os, json
 from .dir_map import get_dir_map, DirMap
-from .utils import ensure_dir, write_json, write_text, ns_path
+from .utils import ensure_dir, write_json, write_text
 
 @dataclass
 class Function:
@@ -316,7 +316,7 @@ class Pack:
         self.tags.append(t)
         return t
 
-    def _process_list_access_in_condition(self, condition: str, ns_name: str, func_name: str, cmd_index: int) -> str:
+    def _process_list_access_in_condition(self, condition: str, ns_name: str, func_name: str) -> str:
         """Process list access expressions in conditions and convert them to valid Minecraft syntax."""
         import re
         
@@ -403,7 +403,7 @@ class Pack:
                 condition = if_match.group(1)
                 
                 # Process list access expressions in conditions
-                condition = self._process_list_access_in_condition(condition, ns_name, func_name, len(processed_commands))
+                condition = self._process_list_access_in_condition(condition, ns_name, func_name)
                 
                 # Convert comparison operators to matches syntax
                 condition = self._convert_comparison_operators(condition)
