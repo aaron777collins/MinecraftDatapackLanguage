@@ -838,6 +838,33 @@ def _generate_global_load_function(ast: Dict[str, Any], output_dir: Path, namesp
         load_file = functions_dir / "load.mcfunction"
         with open(load_file, 'w', encoding='utf-8') as f:
             f.write('\n'.join(variable_initializations))
+        
+        # Add function calls for load hooks in this namespace
+        load_hook_calls = []
+        print(f"DEBUG: Processing load hooks for namespace '{ns}'")
+        for hook in ast.get('hooks', []):
+            if hook['hook_type'] == 'load':
+                function_name = hook['function_name']
+                print(f"DEBUG: Found load hook: {function_name}")
+                # Check if this function belongs to this namespace
+                if ':' in function_name:
+                    hook_namespace, hook_func_name = function_name.split(':', 1)
+                    print(f"DEBUG: Hook namespace: {hook_namespace}, current namespace: {ns}")
+                    if hook_namespace == ns:
+                        load_hook_calls.append(f"function {function_name}")
+                        print(f"DEBUG: Added function call: function {function_name}")
+                else:
+                    # If no namespace specified, assume it's for this namespace
+                    load_hook_calls.append(f"function {ns}:{function_name}")
+                    print(f"DEBUG: Added function call: function {ns}:{function_name}")
+        
+        # Add the function calls to the load file
+        if load_hook_calls:
+            print(f"DEBUG: Adding {len(load_hook_calls)} function calls to load file")
+            with open(load_file, 'a', encoding='utf-8') as f:
+                f.write('\n' + '\n'.join(load_hook_calls))
+        else:
+            print(f"DEBUG: No load hook calls to add for namespace '{ns}'")
 
 
 def _generate_tag_files(ast: Dict[str, Any], output_dir: Path, namespace: str) -> None:
