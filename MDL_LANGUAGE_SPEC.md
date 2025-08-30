@@ -394,4 +394,8 @@ tellraw @s [{"text":"Counter: "},{"score":{"name":"@s","objective":"counter"}}]
 - Enhanced debugging tools
 - Performance optimizations
 
+## Versioning
+
+The documentation website auto-sources the latest version from GitHub Releases during the Jekyll build via `jekyll-github-metadata`. When release metadata is unavailable, the site falls back to `docs/_data/version.yml`, which is updated automatically by a scheduled and release-triggered workflow.
+
 This specification defines the **SIMPLIFIED** core features of MDL, focusing on **CONTROL STRUCTURES** and **SIMPLE VARIABLES** that actually work in Minecraft.
