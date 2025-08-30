@@ -855,20 +855,15 @@ def _generate_global_load_function(ast: Dict[str, Any], output_dir: Path, namesp
                     hook_namespace, hook_func_name = function_name.split(':', 1)
                     print(f"DEBUG: Hook namespace: {hook_namespace}, current namespace: {ns}")
                     if hook_namespace == ns:
-                        load_hook_calls.append(f"function {function_name}")
-                        print(f"DEBUG: Added function call: function {function_name}")
+                        # Don't add function calls to load.mcfunction - they're handled by load.json tag
+                        print(f"DEBUG: Function {function_name} will be called via load.json tag")
                 else:
                     # If no namespace specified, assume it's for this namespace
-                    load_hook_calls.append(f"function {ns}:{function_name}")
-                    print(f"DEBUG: Added function call: function {ns}:{function_name}")
+                    # Don't add function calls to load.mcfunction - they're handled by load.json tag
+                    print(f"DEBUG: Function {ns}:{function_name} will be called via load.json tag")
         
-        # Add the function calls to the load file
-        if load_hook_calls:
-            print(f"DEBUG: Adding {len(load_hook_calls)} function calls to load file")
-            with open(load_file, 'a', encoding='utf-8') as f:
-                f.write('\n' + '\n'.join(load_hook_calls))
-        else:
-            print(f"DEBUG: No load hook calls to add for namespace '{ns}'")
+        # Don't add function calls to load.mcfunction - they're handled by load.json tag
+        print(f"DEBUG: Load function calls are handled by load.json tag, not load.mcfunction")
 
 
 def _generate_tag_files(ast: Dict[str, Any], output_dir: Path, namespace: str) -> None:
