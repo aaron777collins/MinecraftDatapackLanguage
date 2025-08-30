@@ -23,6 +23,12 @@ vscode-extension/node_modules/
 vscode-extension/out/
 .vscode-extension-pack/
 
+# Jekyll (docs)
+docs/_site/
+docs/.jekyll-cache/
+docs/.sass-cache/
+docs/vendor/
+
 # OS
 .DS_Store
 Thumbs.db
