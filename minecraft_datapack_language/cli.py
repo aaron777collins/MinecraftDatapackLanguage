@@ -846,6 +846,10 @@ def _generate_global_load_function(ast: Dict[str, Any], output_dir: Path, namesp
             if hook['hook_type'] == 'load':
                 function_name = hook['function_name']
                 print(f"DEBUG: Found load hook: {function_name}")
+                # Skip the "load" function itself to prevent recursion
+                if function_name == "load":
+                    print(f"DEBUG: Skipping load function to prevent recursion")
+                    continue
                 # Check if this function belongs to this namespace
                 if ':' in function_name:
                     hook_namespace, hook_func_name = function_name.split(':', 1)
