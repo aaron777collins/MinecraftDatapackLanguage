@@ -13,6 +13,35 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+<script>
+  // Configure Prism autoloader to load from the CDN components directory
+  window.Prism = window.Prism || {};
+  Prism.plugins = Prism.plugins || {};
+  Prism.plugins.autoloader = Prism.plugins.autoloader || {};
+  Prism.plugins.autoloader.languages_path = 'https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/';
+
+  // Aliases:
+  // - MDL (custom language) -> treat as JavaScript for highlighting
+  // - mcfunction is not officially supported; fall back to none (plain text) to avoid failed loads
+  Prism.languages.mdl = Prism.languages.javascript;
+  Prism.languages.mcfunction = Prism.languages.none;
+
+  // Preload a few common languages used in the docs to reduce autoloader fetches
+  (function preload(langFiles) {
+    var head = document.head || document.getElementsByTagName('head')[0];
+    langFiles.forEach(function(file) {
+      var s = document.createElement('script');
+      s.defer = true;
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/' + file;
+      head.appendChild(s);
+    });
+  })([
+    'prism-clike.min.js',
+    'prism-javascript.min.js',
+    'prism-bash.min.js',
+    'prism-python.min.js'
+  ]);
+</script>
 
 <!-- Custom styles -->
 <style>
