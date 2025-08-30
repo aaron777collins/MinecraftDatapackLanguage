@@ -1647,8 +1647,8 @@ def build_mdl(input_path: str, output_path: str, verbose: bool = False, pack_for
     print("DEBUG: _ast_to_pack completed")
     print("DEBUG: About to call pack.build()")
     
-    # Build using Pack class to generate all registry types
-    pack.build(str(output_dir))
+    # Build using Pack class to generate all registry types (but skip function generation since CLI handles it)
+    # pack.build(str(output_dir))  # Commented out to prevent overwriting CLI-generated functions
     
     # Create zip file (allow optional wrapper name for zip without changing output folder layout)
     zip_target = output_dir.parent / f"{output_dir.name}.zip"
