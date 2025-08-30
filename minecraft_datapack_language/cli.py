@@ -1269,9 +1269,27 @@ def _ast_to_pack(ast: Dict[str, Any], mdl_files: List[Path]) -> Pack:
         if commands:
             namespace.function(func_name, *commands)
     
-    # Skip hook processing in _ast_to_pack since hooks are handled by _generate_hook_files
-    # This prevents double-namespacing issues where _ast_to_pack adds to Pack's internal lists
-    # and then pack.build() overwrites the correctly generated JSON files
+    # Process hooks for Pack class tag generation
+    # This ensures the Pack class creates the correct minecraft:tick and minecraft:load tags
+    for hook in ast.get('hooks', []):
+        function_name = hook['function_name']
+        
+        # Skip hooks for function_name "load" as this is reserved for the global load function
+        if function_name == "load":
+            continue
+            
+        # Check if function_name already contains a namespace (has a colon)
+        if ':' in function_name:
+            # Function name already includes namespace, use as-is
+            full_function_name = function_name
+        else:
+            # Function name doesn't include namespace, add it
+            full_function_name = f"{namespace_name}:{function_name}"
+        
+        if hook['hook_type'] == "load":
+            pack._load_functions.append(full_function_name)
+        elif hook['hook_type'] == "tick":
+            pack._tick_functions.append(full_function_name)
     
     # Add tags
     print(f"DEBUG: AST has {len(ast.get('tags', []))} tags")
