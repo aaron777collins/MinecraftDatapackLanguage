@@ -34,6 +34,11 @@ class Command(ASTNode):
     command: str
 
 @dataclass
+class RawText(ASTNode):
+    """Raw text that will be inserted directly without parsing."""
+    text: str
+
+@dataclass
 class IfStatement(ASTNode):
     condition: str
     body: List[ASTNode]
@@ -424,6 +429,8 @@ class MDLParser:
             return self._parse_while_loop()
         elif self._peek().type == TokenType.FUNCTION:
             return self._parse_function_call()
+        elif self._peek().type == TokenType.RAW_START:
+            return self._parse_raw_text()
         elif self._peek().type == TokenType.IDENTIFIER:
             # Check for for loops (which are no longer supported)
             if self._peek().value == "for":
@@ -576,6 +583,20 @@ class MDLParser:
         self._match(TokenType.SEMICOLON)
         
         return FunctionCall(name, [])
+    
+    def _parse_raw_text(self) -> RawText:
+        """Parse raw text block."""
+        # Consume RAW_START
+        self._match(TokenType.RAW_START)
+        
+        # Get the raw text content
+        raw_token = self._match(TokenType.RAW)
+        raw_text = raw_token.value
+        
+        # Consume RAW_END
+        self._match(TokenType.RAW_END)
+        
+        return RawText(raw_text)
     
     def _parse_command(self) -> Command:
         """Parse a command."""

@@ -1,4 +1,4 @@
-"""
+le ti"""
 MDL CLI - Simplified Minecraft Datapack Language Compiler
 Handles basic control structures and number variables only
 """
@@ -408,6 +408,10 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
                 raise ValueError(f"Unknown while loop method: {method}")
         
 
+        
+        elif class_name == 'RawText':
+            # Handle raw text - insert directly without any processing
+            commands.append(statement.text)
         
         elif class_name == 'Command':
             # Handle regular command

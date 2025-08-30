@@ -31,6 +31,9 @@ class TokenType:
     ON_LOAD = "ON_LOAD"
     TAG = "TAG"
     ADD = "ADD"
+    RAW = "RAW"
+    RAW_START = "RAW_START"
+    RAW_END = "RAW_END"
     
     # Registry types
     RECIPE = "RECIPE"
@@ -137,6 +140,11 @@ class MDLLexer:
             self._scan_comment(source)
             return
         
+        # Handle raw text blocks
+        if char == '$' and self.current + 4 < len(source) and source[self.current:self.current + 5] == '$!raw':
+            self._scan_raw_text(source)
+            return
+        
         # Handle identifiers and keywords
         if char.isalpha() or char == '_' or char == '@':
             self._scan_identifier(source)
@@ -206,6 +214,7 @@ class MDLLexer:
             'on_load': TokenType.ON_LOAD,
             'tag': TokenType.TAG,
             'add': TokenType.ADD,
+            'raw': TokenType.RAW,
             
             # Registry types
             'recipe': TokenType.RECIPE,
@@ -277,6 +286,54 @@ class MDLLexer:
         
         text = source[self.start:self.current]
         self.tokens.append(Token(TokenType.STRING, text, self.line, self.start - self.column + 1))
+    
+    def _scan_raw_text(self, source: str):
+        """Scan raw text block ($!raw ... raw!$)."""
+        # Consume $!raw
+        self.current += 5  # $!raw
+        self.column += 5
+        
+        # Add RAW_START token
+        self.tokens.append(Token(TokenType.RAW_START, "$!raw", self.line, self.start - self.column + 1))
+        
+        # Scan until we find raw!$
+        raw_text = ""
+        while self.current < len(source):
+            # Check for raw!$ ending
+            if (self.current + 4 < len(source) and 
+                source[self.current:self.current + 5] == 'raw!$'):
+                self.current += 5  # consume raw!$
+                self.column += 5
+                break
+            
+            char = source[self.current]
+            if char == '\n':
+                self.line += 1
+                self.column = 1
+            elif char == '\r':
+                # Handle Windows line endings
+                if self.current + 1 < len(source) and source[self.current + 1] == '\n':
+                    self.current += 1  # Skip the \r
+                    self.line += 1
+                    self.column = 1
+                else:
+                    # Just a \r without \n, treat as newline
+                    self.line += 1
+                    self.column = 1
+            else:
+                self.column += 1
+            
+            raw_text += char
+            self.current += 1
+        else:
+            # Reached end of source without finding raw!$
+            raise RuntimeError(f"Unterminated raw text block starting at line {self.line}")
+        
+        # Add the raw text content
+        self.tokens.append(Token(TokenType.RAW, raw_text, self.line, self.start - self.column + 1))
+        
+        # Add RAW_END token
+        self.tokens.append(Token(TokenType.RAW_END, "raw!$", self.line, self.start - self.column + 1))
     
     def _scan_variable_substitution(self, source: str):
         """Scan a variable substitution ($variable$)."""
