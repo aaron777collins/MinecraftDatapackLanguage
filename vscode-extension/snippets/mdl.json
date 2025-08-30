@@ -2,14 +2,14 @@
   "Pack Declaration (Format 82+)": {
     "prefix": "pack82",
     "body": [
-      "pack \"${1:Pack Name}\" description \"${2:Description}\" pack_format 82;"
+      "pack \"${1:Pack Name}\" \"${2:Description}\" 82;"
     ],
     "description": "Pack declaration with format 82+ metadata"
   },
   "Pack Declaration (Legacy)": {
     "prefix": "pack48",
     "body": [
-      "pack \"${1:Pack Name}\" description \"${2:Description}\" pack_format 48;"
+      "pack \"${1:Pack Name}\" \"${2:Description}\" 48;"
     ],
     "description": "Pack declaration with legacy format 48"
   },
@@ -308,7 +308,7 @@
   "Complete Example": {
     "prefix": "example",
     "body": [
-      "pack \"${1:Example Pack}\" description \"${2:Example description}\" pack_format 82;",
+      "pack \"${1:Example Pack}\" \"${2:Example description}\" 82;",
       "",
       "namespace \"${3:example}\";",
       "",
