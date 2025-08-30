@@ -434,7 +434,7 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
                         command = command.replace('say "', f'tellraw @a [{{"text":"')
                         command = command.replace('"', '"}]')
                         commands.append(command)
-                        continue
+                        return commands
                 
                 # Check if there are variable substitutions
                 if '$' in text_content:
