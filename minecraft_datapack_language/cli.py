@@ -442,6 +442,7 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
                 print(f"DEBUG CLI: Checking for variables in: '{text_content}'")
                 print(f"DEBUG CLI: '$' in text_content: {'$' in text_content}")
                 if '$' in text_content:
+                    print(f"DEBUG CLI: Entering variable substitution logic")
                     # Build JSON array with text and scoreboard components
                     var_matches = list(re.finditer(var_pattern, text_content))
                     json_parts = []
