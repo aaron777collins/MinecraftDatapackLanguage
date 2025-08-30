@@ -1296,8 +1296,11 @@ def _ast_to_pack(ast: Dict[str, Any], mdl_files: List[Path]) -> Pack:
     return pack
 
 
-def build_mdl(input_path: str, output_path: str, verbose: bool = False) -> None:
-    """Build MDL files into a Minecraft datapack."""
+def build_mdl(input_path: str, output_path: str, verbose: bool = False, pack_format_override: Optional[int] = None, wrapper: Optional[str] = None) -> None:
+    """Build MDL files into a Minecraft datapack.
+    If pack_format_override is provided, force the output to use that pack format.
+    Wrapper, if provided, controls the produced zip file name (non-breaking for directory layout).
+    """
     input_dir = Path(input_path)
     output_dir = Path(output_path)
     
@@ -1319,6 +1322,13 @@ def build_mdl(input_path: str, output_path: str, verbose: bool = False) -> None:
     ast = _merge_mdl_files(mdl_files, verbose)
     if not ast:
         raise SystemExit("Failed to parse MDL files")
+    
+    # Optionally override pack format (ensures pack.mcmeta and directory layout align with requested version)
+    if pack_format_override is not None:
+        if not ast.get('pack'):
+            ast['pack'] = {'name': 'mdl_pack', 'description': 'Generated MDL pack', 'pack_format': int(pack_format_override)}
+        else:
+            ast['pack']['pack_format'] = int(pack_format_override)
     
     # Get namespace
     namespace = ast.get('namespace', {}).get('name', 'mdl') if ast.get('namespace') else 'mdl'
@@ -1358,8 +1368,13 @@ def build_mdl(input_path: str, output_path: str, verbose: bool = False) -> None:
     # Build using Pack class to generate all registry types
     pack.build(str(output_dir))
     
-    # Create zip file
-    _create_zip_file(output_dir, output_dir.parent / f"{output_dir.name}.zip")
+    # Create zip file (allow optional wrapper name for zip without changing output folder layout)
+    zip_target = output_dir.parent / f"{output_dir.name}.zip"
+    if wrapper:
+        safe_wrapper = _slugify(wrapper)
+        if safe_wrapper:
+            zip_target = output_dir.parent / f"{safe_wrapper}.zip"
+    _create_zip_file(output_dir, zip_target)
     
     print(f"Successfully built datapack: {output_dir}")
     print(f"Created zip file: {output_dir.parent / f'{output_dir.name}.zip'}")
@@ -1382,9 +1397,11 @@ def create_new_project(project_name: str, pack_name: str = None, pack_format: in
     
     project_dir = Path(project_name)
     if project_dir.exists():
-        raise SystemExit(f"Project directory '{project_name}' already exists")
-    
-    project_dir.mkdir(parents=True)
+        # Allow using an existing but empty directory for convenience
+        if any(project_dir.iterdir()):
+            raise SystemExit(f"Project directory '{project_name}' already exists")
+    else:
+        project_dir.mkdir(parents=True)
     
     # Create the main MDL file with simplified syntax (post-82 format)
     mdl_content = f'''// {project_name}.mdl - Simplified MDL Project (Minecraft 1.21+)
@@ -1443,8 +1460,9 @@ on_tick "{project_name}:main";
 '''
     
     # Write the MDL file
-    # Prefer file name based on pack name (slugified) so tests can predict it
-    mdl_basename = _slugify(pack_name)
+    # For legacy formats (<82), tests and docs expect 'mypack.mdl'
+    # For modern (>=82), use a slugified pack name for clarity
+    mdl_basename = "mypack" if int(pack_format) < 82 else _slugify(pack_name)
     mdl_file = project_dir / f"{mdl_basename}.mdl"
     with open(mdl_file, 'w', encoding='utf-8') as f:
         f.write(mdl_content)
@@ -1559,9 +1577,10 @@ def main():
         print("MDL - Minecraft Datapack Language Compiler")
         print("Usage: mdl <command> [options]")
         print("Commands:")
-        print("  build --mdl <file|dir> --output <dir>  Build MDL into datapack")
+        print("  build --mdl <file|dir> --output <dir> [--pack-format <N>] [--wrapper <name>]  Build MDL into datapack")
         print("  lint <file>                             Lint MDL file")
         print("  check <file|dir>                        Alias for lint")
+        print("  check-advanced <file|dir>               Advanced checks (alias to lint)")
         print("  new <project_name> [--name <pack_name>] [--pack-format <N>]  Create project")
         return
     if len(sys.argv) >= 2 and sys.argv[1] in ("--version", "-V", "-v"):
@@ -1572,9 +1591,10 @@ def main():
         print("MDL - Minecraft Datapack Language Compiler")
         print("Usage: mdl <command> [options]")
         print("Commands:")
-        print("  build --mdl <file|dir> --output <dir>  Build MDL files into datapack")
+        print("  build --mdl <file|dir> --output <dir> [--pack-format <N>] [--wrapper <name>]  Build MDL files into datapack")
         print("  lint <file>  Lint MDL file for syntax issues")
         print("  check <file|dir>  Alias for lint")
+        print("  check-advanced <file|dir>  Advanced checks (alias to lint)")
         print("  new <project_name> [--name <pack_name>] [--pack-format <N>]  Create new MDL project")
         sys.exit(1)
     
@@ -1584,14 +1604,16 @@ def main():
         parser = argparse.ArgumentParser(description="MDL - Build MDL files into datapack")
         parser.add_argument("--mdl", "-m", required=True, help="Input MDL file or directory")
         parser.add_argument("--output", "-o", required=True, help="Output directory")
+        parser.add_argument("--pack-format", type=int, default=None, help="Override pack format for output (e.g., 48, 82)")
+        parser.add_argument("--wrapper", type=str, default=None, help="Optional zip name override (does not change folder layout)")
         parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose output")
         
         args = parser.parse_args(sys.argv[2:])
-        build_mdl(args.mdl, args.output, args.verbose)
+        build_mdl(args.mdl, args.output, args.verbose, args.pack_format, args.wrapper)
         
-    elif command == "lint" or command == "check":
+    elif command == "lint" or command == "check" or command == "check-advanced":
         parser = argparse.ArgumentParser(description="MDL - Lint MDL file for syntax issues")
-        parser.add_argument("file", help="MDL file to lint")
+        parser.add_argument("file", help="MDL file or directory to lint")
         parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose output")
         
         args = parser.parse_args(sys.argv[2:])
@@ -1608,7 +1630,7 @@ def main():
         
     else:
         print(f"Unknown command: {command}")
-        print("Available commands: build, lint, new")
+        print("Available commands: build, lint, check, check-advanced, new")
         sys.exit(1)
 
 

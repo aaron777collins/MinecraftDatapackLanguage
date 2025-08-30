@@ -11,8 +11,9 @@ Get the latest version of Minecraft Datapack Language (MDL) and the VS Code exte
 ## Latest Release
 
 <div class="download-section">
-  <h2>🎯 Version {% if site.github.latest_release.tag_name %}{{ site.github.latest_release.tag_name | remove: 'v' }}{% else %}{{ site.current_version }}{% endif %}</h2>
-  <p class="release-date">Released: {% if site.github.latest_release.published_at %}{{ site.github.latest_release.published_at | date: "%B %d, %Y" }}{% else %}Latest{% endif %}</p>
+  {% assign latest_release = site.github.releases | first %}
+  <h2>🎯 Version {% if latest_release and latest_release.tag_name %}{{ latest_release.tag_name | remove: 'v' }}{% elsif site.github.latest_release and site.github.latest_release.tag_name %}{{ site.github.latest_release.tag_name | remove: 'v' }}{% else %}{{ site.github.project_version | default: site.data.version.current | default: site.title }}{% endif %}</h2>
+  <p class="release-date">Released: {% if latest_release and latest_release.published_at %}{{ latest_release.published_at | date: "%B %d, %Y" }}{% elsif site.github.latest_release and site.github.latest_release.published_at %}{{ site.github.latest_release.published_at | date: "%B %d, %Y" }}{% else %}Latest{% endif %}</p>
   
   <div class="download-grid">
     <div class="download-card">
@@ -22,7 +23,7 @@ Get the latest version of Minecraft Datapack Language (MDL) and the VS Code exte
         <a href="https://pypi.org/project/minecraft-datapack-language/" class="btn btn-primary" target="_blank">
           📦 View on PyPI
         </a>
-        <a href="{{ site.github.latest_release.html_url }}" class="btn btn-secondary" target="_blank">
+        <a href="{% if latest_release %}{{ latest_release.html_url }}{% else %}https://github.com/{{ site.github_username }}/{{ site.github_repo }}/releases/latest{% endif %}" class="btn btn-secondary" target="_blank">
           📥 Download Source
         </a>
       </div>
@@ -35,17 +36,26 @@ Get the latest version of Minecraft Datapack Language (MDL) and the VS Code exte
       <h3>🔧 VS Code Extension</h3>
       <p>Syntax highlighting, linting, and build commands for VS Code/Cursor</p>
       <div class="download-buttons">
-        {% assign vsix_asset = site.github.latest_release.assets | where: "name", "minecraft-datapack-language-*.vsix" | first %}
-        {% if vsix_asset %}
-        <a href="{{ vsix_asset.browser_download_url }}" class="btn btn-primary">
+        {% assign release = latest_release | default: site.github.latest_release %}
+        {% assign vsix = nil %}
+        {% if release and release.assets %}
+        {% for asset in release.assets %}
+        {% if asset.name contains '.vsix' %}
+        {% assign vsix = asset %}
+        {% break %}
+        {% endif %}
+        {% endfor %}
+        {% endif %}
+        {% if vsix %}
+        <a href="{{ vsix.browser_download_url }}" class="btn btn-primary">
           📥 Download VSIX
         </a>
         {% else %}
-        <a href="https://github.com/aaron777collins/MinecraftDatapackLanguage/releases/latest" class="btn btn-primary" target="_blank">
+        <a href="https://github.com/{{ site.github_username }}/{{ site.github_repo }}/releases/latest" class="btn btn-primary" target="_blank">
           📥 Download VSIX
         </a>
         {% endif %}
-        <a href="{{ site.github.latest_release.html_url }}" class="btn btn-secondary" target="_blank">
+        <a href="{% if latest_release %}{{ latest_release.html_url }}{% else %}https://github.com/{{ site.github_username }}/{{ site.github_repo }}/releases/latest{% endif %}" class="btn btn-secondary" target="_blank">
           📋 View Release
         </a>
       </div>
@@ -124,8 +134,9 @@ code --install-extension minecraft-datapack-language-{% if site.github.latest_re
   <h2>📋 Recent Releases</h2>
   
   <div class="release-list">
-    {% if site.github.releases.size > 0 %}
-      {% for release in site.github.releases limit:5 %}
+    {% assign releases = site.github.releases %}
+    {% if releases and releases.size > 0 %}
+      {% for release in releases limit:5 %}
       <div class="release-item">
         <h3>{{ release.tag_name }}</h3>
         <p class="release-date">{{ release.published_at | date: "%B %d, %Y" }}</p>
