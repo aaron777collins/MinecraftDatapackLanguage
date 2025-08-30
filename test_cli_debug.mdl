@@ -1,9 +1,0 @@
-pack "Test" "Test pack" 82;
-
-namespace "test";
-
-var num counter = 0;
-
-function "test" {
-    say Counter: $counter$;
-}
