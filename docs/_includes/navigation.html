@@ -71,9 +71,7 @@
     <li class="breadcrumb-item">
       <a href="{{ "/" | relative_url }}" class="breadcrumb-link">
         <svg class="breadcrumb-icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-          <path d="M8 0C3.6 0 0 3.6 0 8s3.6 8 8 8 8-3.6 8-8-3.6-8-8-8zm0 14c-3.3 0-6-2.7-6-6s2.7-6 6-6 6 2.7 6 6-2.7 6-6 6z"/>
-          <path d="M7 4h2v6H7z"/>
-          <path d="M4 7h6v2H4z"/>
+          <path d="M8 0L0 6v10h6v-6h4v6h6V6L8 0z"/>
         </svg>
         Home
       </a>
@@ -214,8 +212,7 @@
   z-index: 1001;
 }
 
-/* Show on hover OR when clicked */
-.nav-dropdown:hover .nav-dropdown-menu,
+/* Show only when clicked */
 .nav-dropdown.open .nav-dropdown-menu {
   display: block;
 }
