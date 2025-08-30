@@ -1044,9 +1044,33 @@ def _ast_to_pack(ast: Dict[str, Any], mdl_files: List[Path]) -> Pack:
         for statement in body:
             if hasattr(statement, '__class__'):
                 class_name = statement.__class__.__name__
-                if class_name in ['VariableDeclaration', 'VariableAssignment']:
-                    # Skip variable declarations/assignments - they're handled by the CLI
+                if class_name == 'VariableDeclaration':
+                    # Skip variable declarations - they're handled by the CLI
                     continue
+                elif class_name == 'VariableAssignment':
+                    # Process variable assignments using the expression processor
+                    from minecraft_datapack_language.expression_processor import ExpressionProcessor
+                    expression_processor = ExpressionProcessor()
+                    selector = "@e[type=armor_stand,tag=mdl_server,limit=1]"
+                    
+                    # Check if it's a simple assignment to 0 (which can be optimized out)
+                    if hasattr(statement.value, 'value') and statement.value.value == 0:
+                        # Skip assignment to 0 - it's handled in load function
+                        pass
+                    else:
+                        # Process the expression for non-zero values
+                        result = expression_processor.process_expression(statement.value, statement.name, selector)
+                        temp_commands = []
+                        temp_commands.extend(result.temp_assignments)
+                        if result.final_command:
+                            temp_commands.append(result.final_command)
+                        
+                        # Split any commands that contain newlines
+                        for cmd in temp_commands:
+                            if '\n' in cmd:
+                                commands.extend(cmd.split('\n'))
+                            else:
+                                commands.append(cmd)
                 elif class_name == 'Command':
                     print(f"DEBUG: Processing Command in _ast_to_pack: '{statement.command}'")
                     # Process the command for variable substitutions (especially say commands)

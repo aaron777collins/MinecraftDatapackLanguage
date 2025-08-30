@@ -199,6 +199,57 @@ class TestBasicVariableSubstitution(unittest.TestCase):
             
         finally:
             os.unlink(f_path)
+    
+    def test_variable_assignment_and_substitution(self):
+        """Test variable assignment and substitution in the same function"""
+        code = '''
+        pack "test" "description" 82;
+        namespace "test";
+        var num counter = 0;
+        function "main" {
+            say "Initial counter: $counter$";
+            counter = $counter$ + 1;
+            say "After increment: $counter$";
+            counter = $counter$ + 5;
+            say "After adding 5: $counter$";
+        }
+        '''
+        
+        ast = parse_mdl_js(code)
+        
+        # Create a temporary file for the mdl_files parameter
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.mdl', delete=False) as f:
+            f.write(code)
+            f_path = f.name
+        
+        try:
+            pack = _ast_to_pack(ast, [f_path])
+            
+            # Check that the function was created
+            self.assertIsNotNone(pack)
+            
+            # Check that the namespace was created
+            namespace = pack.namespace('test')
+            self.assertIsNotNone(namespace)
+            
+            # Check that the function was created
+            function = namespace.function('main')
+            self.assertIsNotNone(function)
+            
+            # Check the generated commands
+            commands = function.commands
+            self.assertGreater(len(commands), 0)
+            
+            # Should have tellraw commands for the say statements
+            tellraw_commands = [cmd for cmd in commands if cmd.startswith('tellraw')]
+            self.assertGreater(len(tellraw_commands), 0)
+            
+            # Should have scoreboard commands for the variable assignments
+            scoreboard_commands = [cmd for cmd in commands if cmd.startswith('scoreboard')]
+            self.assertGreater(len(scoreboard_commands), 0)
+            
+        finally:
+            os.unlink(f_path)
 
 
 class TestBasicRegistryTypes(unittest.TestCase):
