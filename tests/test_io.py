@@ -103,8 +103,8 @@ on_load "example:hello";
         # Pack metadata
         "pack.mcmeta": '''{
   "pack": {
-    "pack_format": 82,
-    "description": "A simple example"
+    "description": "A simple example",
+    "pack_format": 82
   }
 }''',
         
