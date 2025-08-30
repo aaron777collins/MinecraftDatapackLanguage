@@ -465,14 +465,12 @@ class MDLParser:
             self._match(TokenType.SCOPE)
             # Expect opening angle bracket
             self._match(TokenType.LANGLE)
-            # Parse the selector (can be a string or identifier)
-            if self._peek().type == TokenType.STRING:
-                scope_token = self._match(TokenType.STRING)
-                scope = scope_token.value.strip('"').strip("'")
-            else:
-                # Handle unquoted selectors like @s, @a, etc.
-                scope_token = self._match(TokenType.IDENTIFIER)
-                scope = scope_token.value
+            # Parse the selector - collect all tokens until we find the closing angle bracket
+            scope_parts = []
+            while not self._is_at_end() and self._peek().type != TokenType.RANGLE:
+                token = self._advance()
+                scope_parts.append(token.value)
+            scope = ''.join(scope_parts)
             # Expect closing angle bracket
             self._match(TokenType.RANGLE)
         
