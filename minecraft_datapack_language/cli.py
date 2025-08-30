@@ -424,11 +424,13 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
                 if text_match:
                     # Quoted text
                     text_content = text_match.group(1)
+                    print(f"DEBUG CLI: Quoted text content: '{text_content}'")
                 else:
                     # Unquoted text - extract everything after "say " until the end (before semicolon)
                     text_match = re.search(r'say (.+?);?$', command)
                     if text_match:
                         text_content = text_match.group(1).rstrip(';')
+                        print(f"DEBUG CLI: Unquoted text content: '{text_content}'")
                     else:
                         # Fallback: if regex doesn't match, still convert to tellraw
                         command = command.replace('say "', f'tellraw @a [{{"text":"')
@@ -437,6 +439,7 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
                         return commands
                 
                 # Check if there are variable substitutions
+                print(f"DEBUG CLI: Checking for variables in: '{text_content}'")
                 if '$' in text_content:
                     # Build JSON array with text and scoreboard components
                     var_matches = list(re.finditer(var_pattern, text_content))
