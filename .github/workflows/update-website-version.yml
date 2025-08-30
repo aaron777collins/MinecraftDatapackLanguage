@@ -54,11 +54,9 @@ jobs:
         run: |
           mkdir -p docs/_data
           UPDATED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-          cat > docs/_data/version.yml <<EOF
-current: "${{ steps.latest.outputs.version }}"
-tag: "${{ steps.latest.outputs.tag }}"
-updated_at: "$UPDATED_AT"
-EOF
+          echo "current: \"${{ steps.latest.outputs.version }}\"" > docs/_data/version.yml
+          echo "tag: \"${{ steps.latest.outputs.tag }}\"" >> docs/_data/version.yml
+          echo "updated_at: \"$UPDATED_AT\"" >> docs/_data/version.yml
 
       - name: Commit changes
         run: |
