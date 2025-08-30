@@ -1048,7 +1048,69 @@ def _ast_to_pack(ast: Dict[str, Any], mdl_files: List[Path]) -> Pack:
                     # Skip variable declarations/assignments - they're handled by the CLI
                     continue
                 elif class_name == 'Command':
-                    commands.append(statement.command)
+                    print(f"DEBUG: Processing Command in _ast_to_pack: '{statement.command}'")
+                    # Process the command for variable substitutions (especially say commands)
+                    command = statement.command
+                    selector = "@e[type=armor_stand,tag=mdl_server,limit=1]"  # Default selector for pack context
+                    
+                    # Always convert say commands to tellraw with proper variable substitution
+                    if command.startswith('say'):
+                        print(f"PROCESSING SAY COMMAND: '{command}'")
+                        import re
+                        var_pattern = r'\$([a-zA-Z_][a-zA-Z0-9_]*)\$'
+                        
+                        # Extract the text content from say command (handle both quoted and unquoted)
+                        text_content = ""  # Initialize to avoid potential NameError
+                        text_match = re.search(r'say "([^"]*)"', command)
+                        if text_match:
+                            # Quoted text
+                            text_content = text_match.group(1)
+                        else:
+                            # Unquoted text - extract everything after "say " until the end (before semicolon)
+                            text_match = re.search(r'say (.+?);?$', command)
+                            if text_match:
+                                text_content = text_match.group(1).rstrip(';')
+                            else:
+                                # Fallback: if regex doesn't match, still convert to tellraw
+                                command = command.replace('say "', f'tellraw @a [{{"text":"')
+                                command = command.replace('"', '"}]')
+                                commands.append(command)
+                                continue  # Skip the rest of the processing for this command
+                        
+                        # Check if there are variable substitutions
+                        if '$' in text_content:
+                            # Build JSON array with text and scoreboard components
+                            var_matches = list(re.finditer(var_pattern, text_content))
+                            json_parts = []
+                            last_end = 0
+                            
+                            for match in var_matches:
+                                # Add text before the variable
+                                if match.start() > last_end:
+                                    text_before = text_content[last_end:match.start()]
+                                    if text_before:
+                                        json_parts.append(f'{{"text":"{text_before}"}}')
+                                
+                                # Add the variable
+                                var_name = match.group(1)
+                                json_parts.append(f'{{"score":{{"name":"{selector}","objective":"{var_name}"}}}}')
+                                last_end = match.end()
+                            
+                            # Add any remaining text
+                            if last_end < len(text_content):
+                                text_after = text_content[last_end:]
+                                if text_after:
+                                    json_parts.append(f'{{"text":"{text_after}"}}')
+                            
+                            command = f'tellraw @a [{",".join(json_parts)}]'
+                        else:
+                            # No variables, simple conversion
+                            command = f'tellraw @a [{{"text":"{text_content}"}}]'
+                    # Handle variable substitutions in other commands
+                    elif '$' in command:
+                        command = _process_variable_substitutions(command, selector)
+                    
+                    commands.append(command)
                 elif class_name == 'FunctionCall':
                     commands.append(f"function {statement.function_name}")
                 elif class_name == 'IfStatement':
