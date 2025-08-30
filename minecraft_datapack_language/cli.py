@@ -1,4 +1,4 @@
-le ti"""
+"""
 MDL CLI - Simplified Minecraft Datapack Language Compiler
 Handles basic control structures and number variables only
 """

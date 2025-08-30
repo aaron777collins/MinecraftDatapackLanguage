@@ -58,6 +58,7 @@ class MDLLinter:
                 self._check_namespace_declaration(line, line_num)
                 self._check_registry_type_declaration(line, line_num)
                 self._check_tag_declaration(line, line_num)
+                self._check_raw_text_syntax(line, line_num)
             
             return self.issues
             
