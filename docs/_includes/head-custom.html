@@ -145,29 +145,16 @@ code[class*="language-"] {
   }
 }
 
-/* Fix main content area shadow */
+/* Remove any weird theme shadows and let the default theme handle it */
 .main-content {
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
-  border-radius: 8px !important;
-  margin-top: 2rem !important;
-  margin-bottom: 2rem !important;
-  padding: 2rem !important;
-  background: white !important;
+  box-shadow: none !important;
 }
 
-/* Ensure proper spacing and remove weird light shadows */
-.page-header {
-  margin-bottom: 0 !important;
+.page-content {
+  box-shadow: none !important;
 }
 
-.page-header + .main-content {
-  margin-top: 0 !important;
-}
-
-/* Fix any theme default shadows */
-.main-content,
-.page-content,
 main {
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+  box-shadow: none !important;
 }
 </style>
