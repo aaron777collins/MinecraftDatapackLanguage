@@ -105,18 +105,12 @@ var num counter = 0;
 
 function "hello" {
     say Hello, Minecraft!;
+    tellraw @a {"text":"Welcome to my datapack!","color":"green"};
     counter = counter + 1;
     say Counter: $counter$;
-    
-    if "$counter$ > 5" {
-        say Counter is high!;
-    } else {
-        say Counter is low;
-    }
 }
 
 on_load "example:hello";
-on_tick "example:hello";
 ```
 
 ### Build and Run
