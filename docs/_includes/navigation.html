@@ -11,7 +11,7 @@
       {% for item in site.nav %}
         {% if item.title != "Home" %}
           <li class="nav-item">
-            <a href="{{ item.url | relative_url }}" class="nav-link">{{ item.title }}</a>
+            <a href="{{ item.url | relative_url }}" class="nav-link{% if page.url == item.url or page.url contains item.url %} active{% endif %}">{{ item.title }}</a>
           </li>
         {% endif %}
       {% endfor %}
@@ -60,11 +60,14 @@
 <style>
 /* Main Navigation Styles */
 .nav-menu {
-  background: #ffffff;
-  border-bottom: 1px solid #e1e4e8;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  color: #ffffff;
   padding: 0;
   margin-bottom: 2rem;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: 0 8px 20px rgba(2, 6, 23, 0.35);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
 }
 
 .nav-container {
@@ -86,15 +89,16 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: #0366d6;
+  color: #ffffff;
   text-decoration: none;
-  font-weight: 600;
+  font-weight: 700;
   font-size: 1.2rem;
+  letter-spacing: 0.2px;
 }
 
 .nav-logo:hover {
   text-decoration: none;
-  color: #0256b3;
+  color: #e2e8f0;
 }
 
 .nav-list {
@@ -111,18 +115,23 @@
 }
 
 .nav-link {
-  color: #24292e;
+  color: rgba(255, 255, 255, 0.85);
   text-decoration: none;
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  transition: all 0.2s;
+  padding: 0.5rem 0.85rem;
+  border-radius: 999px;
+  transition: background-color 0.2s, color 0.2s, transform 0.15s ease;
   font-weight: 500;
 }
 
 .nav-link:hover {
-  background: #f6f8fa;
-  color: #0366d6;
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
   text-decoration: none;
+}
+
+.nav-link.active {
+  background: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
 }
 
 .nav-actions {
@@ -136,29 +145,29 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: #24292e;
+  color: #ffffff;
   text-decoration: none;
   padding: 0.35rem;
-  border-radius: 6px;
+  border-radius: 8px;
 }
 
 .nav-icon-link:hover {
-  background: #f6f8fa;
-  color: #0366d6;
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
 }
 
 .nav-toggle {
   display: none;
   background: none;
   border: none;
-  color: #24292e;
+  color: #ffffff;
   cursor: pointer;
   padding: 0.5rem;
-  border-radius: 4px;
+  border-radius: 8px;
 }
 
 .nav-toggle:hover {
-  background: #f6f8fa;
+  background: rgba(255, 255, 255, 0.12);
 }
 
 /* Breadcrumb Styles */
@@ -226,11 +235,11 @@
     top: 60px;
     left: 0;
     right: 0;
-    background: white;
-    border-top: 1px solid #e1e4e8;
+    background: linear-gradient(135deg, #0b1220 0%, #131c2b 100%);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
     flex-direction: column;
     padding: 1rem;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 10px 20px rgba(2,6,23,0.35);
   }
   
   .nav-list.show {
