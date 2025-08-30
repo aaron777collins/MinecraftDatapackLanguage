@@ -764,11 +764,6 @@ def _smart_join_command_parts(parts: List[str]) -> str:
         prev_part = parts[i - 1]
         curr_part = parts[i]
         
-        # Don't add space before variable substitutions
-        if curr_part.startswith('$') and curr_part.endswith('$'):
-            result += curr_part
-            continue
-        
         # Add space if needed
         if (prev_part and curr_part and 
             not prev_part.endswith('[') and not prev_part.endswith('{') and

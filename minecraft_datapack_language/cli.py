@@ -412,6 +412,7 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
         elif class_name == 'Command':
             # Handle regular command
             command = statement.command
+            print(f"DEBUG CLI: Original command: '{command}'")
             
             # Always convert say commands to tellraw first
             if command.startswith('say'):
