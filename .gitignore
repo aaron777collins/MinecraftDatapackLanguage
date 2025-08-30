@@ -28,6 +28,7 @@ docs/_site/
 docs/.jekyll-cache/
 docs/.sass-cache/
 docs/vendor/
+docs/.bundle/
 
 # OS
 .DS_Store
