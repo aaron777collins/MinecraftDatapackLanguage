@@ -5,12 +5,37 @@ namespace "test1";
 
 // Simple counter variable
 var num counter = 0;
+var num tickcounter = 0;
+var num timerenabled = 0;
 
 function "hello" {
     say Hello, Minecraft!;
     tellraw @a {"text":"Welcome to my datapack!","color":"green"};
     counter = counter + 1;
     say Counter: $counter$;
+    say Timerenabled: $timerenabled$;
+    say to enable the timer, run /function test1:enabletimer
+    say to disable the timer, run /function test1:disabletimer
+}
+
+function "enabletimer" {
+    timerenabled = 1;
+    say Timer enabled;
+}
+
+function "disabletimer" {
+    timerenabled = 0;
+    say Timer disabled;
+}
+
+function "tick" {
+    tickcounter = tickcounter + 1;
+    if "$tickcounter$ > 100" {
+        if "$timerenabled$ == 1" {
+            function "test1:hello";
+        }
+        tickcounter = 0;
+    }
 }
 
 // Hook to run hello function when datapack loads

@@ -3,6 +3,8 @@
 ## Overview
 MDL is a **SIMPLE** language that compiles to Minecraft datapack `.mcfunction` files. This specification focuses on **CONTROL STRUCTURES** and **SIMPLE VARIABLES** - the core problems that need solving.
 
+All manual testing (making temp files, builds, etc.) needs to happen in .tmp
+
 ## Core Language Features (SIMPLIFIED)
 
 ### ✅ **IMPLEMENTED** - Basic Syntax Structure  
