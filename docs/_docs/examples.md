@@ -326,7 +326,7 @@ on_load "registry:main";
 
 **Required JSON files:**
 
-`recipes/custom_sword.json`:
+`recipes/custom_sword.json` (path is resolved relative to the MDL file containing the declaration):
 ```json
 {
   "type": "minecraft:crafting_shaped",

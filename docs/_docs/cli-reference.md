@@ -176,11 +176,8 @@ mdl build --mdl my_pack/ -o dist --verbose
 Performs advanced validation of generated `.mcfunction` files.
 
 ```bash
-mdl check-advanced <path> [options]
+mdl check-advanced <path>
 ```
-
-**Arguments:**
-- `<path>` - Path to `.mdl` file, directory, or space-separated file list
 
 **Examples:**
 ```bash

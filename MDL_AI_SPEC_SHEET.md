@@ -159,6 +159,10 @@ function "namespace:helper";
 - **Build Scripts**: `scripts/dev_build.sh` and `scripts/dev_build.ps1`
 - **Test Scripts**: `scripts/test_dev.sh` and `scripts/test_dev.ps1`
 
+JSON registry handling:
+- Recipe, loot_table, advancement, predicate, item_modifier, structure declarations now resolve `"json_file"` paths relative to the MDL file where they are declared (multi-file safe).
+- Missing or invalid JSON emits a warning and compiles with an empty object.
+
 ## Compilation Architecture (SIMPLIFIED)
 
 ### ✅ **IMPLEMENTED** - Lexer (`mdl_lexer_js.py`)

@@ -130,25 +130,40 @@ def _merge_mdl_files(files: List[Path], verbose: bool = False) -> Optional[Dict[
         source = f.read()
     
     root_pack = parse_mdl_js(source)
+    # Track source directory for proper relative path resolution of JSON files
+    first_file_dir = os.path.dirname(os.path.abspath(files[0]))
     
     # Get the namespace for the first file
     first_file_namespace = root_pack.get('namespace', {}).get('name', 'unknown') if root_pack.get('namespace') else 'unknown'
     
-    # Add namespace information to functions from the first file
+    # Add namespace and source directory information to functions from the first file
     if root_pack.get('functions'):
         for func in root_pack['functions']:
             if isinstance(func, dict):
                 func['_source_namespace'] = first_file_namespace
+                func['_source_dir'] = first_file_dir
             else:
                 setattr(func, '_source_namespace', first_file_namespace)
+                setattr(func, '_source_dir', first_file_dir)
     
-    # Add namespace information to variables from the first file
+    # Add namespace and source directory information to variables from the first file
     if root_pack.get('variables'):
         for var in root_pack['variables']:
             if isinstance(var, dict):
                 var['_source_namespace'] = first_file_namespace
+                var['_source_dir'] = first_file_dir
             else:
                 setattr(var, '_source_namespace', first_file_namespace)
+                setattr(var, '_source_dir', first_file_dir)
+
+    # Add source directory information to registry declarations from the first file
+    for key in ['recipes', 'loot_tables', 'advancements', 'predicates', 'item_modifiers', 'structures']:
+        if root_pack.get(key):
+            for entry in root_pack[key]:
+                if isinstance(entry, dict):
+                    entry['_source_dir'] = first_file_dir
+                else:
+                    setattr(entry, '_source_dir', first_file_dir)
     
     # Ensure root_pack has required keys
     if 'functions' not in root_pack:
@@ -166,19 +181,22 @@ def _merge_mdl_files(files: List[Path], verbose: bool = False) -> Optional[Dict[
             source = f.read()
         
         ast = parse_mdl_js(source)
+        file_dir = os.path.dirname(os.path.abspath(file_path))
         
         # Get the namespace for this file
         file_namespace = ast.get('namespace', {}).get('name', 'unknown') if ast.get('namespace') else 'unknown'
         
-        # Merge functions with namespace information
+        # Merge functions with namespace and source directory information
         if ast.get('functions'):
             for func in ast['functions']:
                 # Add namespace information to the function
                 if isinstance(func, dict):
                     func['_source_namespace'] = file_namespace
+                    func['_source_dir'] = file_dir
                 else:
                     # For AST node objects, we'll handle this differently
                     setattr(func, '_source_namespace', file_namespace)
+                    setattr(func, '_source_dir', file_dir)
             root_pack['functions'].extend(ast['functions'])
         
         # Merge hooks
@@ -189,16 +207,30 @@ def _merge_mdl_files(files: List[Path], verbose: bool = False) -> Optional[Dict[
         if ast.get('tags'):
             root_pack['tags'].extend(ast['tags'])
         
-        # Merge variables with namespace information
+        # Merge variables with namespace and source directory information
         if ast.get('variables'):
             for var in ast['variables']:
                 # Add namespace information to the variable
                 if isinstance(var, dict):
                     var['_source_namespace'] = file_namespace
+                    var['_source_dir'] = file_dir
                 else:
                     # For AST node objects, we'll handle this differently
                     setattr(var, '_source_namespace', file_namespace)
+                    setattr(var, '_source_dir', file_dir)
             root_pack['variables'].extend(ast['variables'])
+
+        # Merge registry declarations and attach source directory for JSON resolution
+        for key in ['recipes', 'loot_tables', 'advancements', 'predicates', 'item_modifiers', 'structures']:
+            if ast.get(key):
+                for entry in ast[key]:
+                    if isinstance(entry, dict):
+                        entry['_source_dir'] = file_dir
+                    else:
+                        setattr(entry, '_source_dir', file_dir)
+                if key not in root_pack:
+                    root_pack[key] = []
+                root_pack[key].extend(ast[key])
     
     if verbose:
         print(f"Successfully merged {len(files)} file(s) into datapack: {root_pack.get('pack', {}).get('name', 'unknown')}")
@@ -1070,9 +1102,11 @@ def _ast_to_pack(ast: Dict[str, Any], mdl_files: List[Path]) -> Pack:
         if isinstance(recipe, dict):
             name = recipe.get('name', 'unknown')
             data = recipe.get('data', {})
+            source_dir = recipe.get('_source_dir')
         else:
             name = getattr(recipe, 'name', 'unknown')
             data = getattr(recipe, 'data', {})
+            source_dir = getattr(recipe, '_source_dir', None)
         
         # Load JSON data from file if specified
         if isinstance(data, dict) and 'json_file' in data:
@@ -1080,9 +1114,8 @@ def _ast_to_pack(ast: Dict[str, Any], mdl_files: List[Path]) -> Pack:
             
             # Make path relative to the MDL file location
             if not os.path.isabs(json_file_path):
-                # Get the directory of the first MDL file
-                mdl_file_dir = os.path.dirname(os.path.abspath(mdl_files[0]))
-                json_file_path = os.path.join(mdl_file_dir, json_file_path)
+                base_dir = source_dir or os.path.dirname(os.path.abspath(mdl_files[0]))
+                json_file_path = os.path.join(base_dir, json_file_path)
             
             try:
                 with open(json_file_path, 'r', encoding='utf-8') as f:
@@ -1100,9 +1133,11 @@ def _ast_to_pack(ast: Dict[str, Any], mdl_files: List[Path]) -> Pack:
         if isinstance(loot_table, dict):
             name = loot_table.get('name', 'unknown')
             data = loot_table.get('data', {})
+            source_dir = loot_table.get('_source_dir')
         else:
             name = getattr(loot_table, 'name', 'unknown')
             data = getattr(loot_table, 'data', {})
+            source_dir = getattr(loot_table, '_source_dir', None)
         
         # Load JSON data from file if specified
         if isinstance(data, dict) and 'json_file' in data:
@@ -1110,9 +1145,8 @@ def _ast_to_pack(ast: Dict[str, Any], mdl_files: List[Path]) -> Pack:
             
             # Make path relative to the MDL file location
             if not os.path.isabs(json_file_path):
-                # Get the directory of the first MDL file
-                mdl_file_dir = os.path.dirname(os.path.abspath(mdl_files[0]))
-                json_file_path = os.path.join(mdl_file_dir, json_file_path)
+                base_dir = source_dir or os.path.dirname(os.path.abspath(mdl_files[0]))
+                json_file_path = os.path.join(base_dir, json_file_path)
             
             try:
                 with open(json_file_path, 'r', encoding='utf-8') as f:
@@ -1130,9 +1164,11 @@ def _ast_to_pack(ast: Dict[str, Any], mdl_files: List[Path]) -> Pack:
         if isinstance(advancement, dict):
             name = advancement.get('name', 'unknown')
             data = advancement.get('data', {})
+            source_dir = advancement.get('_source_dir')
         else:
             name = getattr(advancement, 'name', 'unknown')
             data = getattr(advancement, 'data', {})
+            source_dir = getattr(advancement, '_source_dir', None)
         
         # Load JSON data from file if specified
         if isinstance(data, dict) and 'json_file' in data:
@@ -1140,9 +1176,8 @@ def _ast_to_pack(ast: Dict[str, Any], mdl_files: List[Path]) -> Pack:
             
             # Make path relative to the MDL file location
             if not os.path.isabs(json_file_path):
-                # Get the directory of the first MDL file
-                mdl_file_dir = os.path.dirname(os.path.abspath(mdl_files[0]))
-                json_file_path = os.path.join(mdl_file_dir, json_file_path)
+                base_dir = source_dir or os.path.dirname(os.path.abspath(mdl_files[0]))
+                json_file_path = os.path.join(base_dir, json_file_path)
             
             try:
                 with open(json_file_path, 'r', encoding='utf-8') as f:
@@ -1160,9 +1195,11 @@ def _ast_to_pack(ast: Dict[str, Any], mdl_files: List[Path]) -> Pack:
         if isinstance(predicate, dict):
             name = predicate.get('name', 'unknown')
             data = predicate.get('data', {})
+            source_dir = predicate.get('_source_dir')
         else:
             name = getattr(predicate, 'name', 'unknown')
             data = getattr(predicate, 'data', {})
+            source_dir = getattr(predicate, '_source_dir', None)
         
         # Load JSON data from file if specified
         if isinstance(data, dict) and 'json_file' in data:
@@ -1170,9 +1207,8 @@ def _ast_to_pack(ast: Dict[str, Any], mdl_files: List[Path]) -> Pack:
             
             # Make path relative to the MDL file location
             if not os.path.isabs(json_file_path):
-                # Get the directory of the first MDL file
-                mdl_file_dir = os.path.dirname(os.path.abspath(mdl_files[0]))
-                json_file_path = os.path.join(mdl_file_dir, json_file_path)
+                base_dir = source_dir or os.path.dirname(os.path.abspath(mdl_files[0]))
+                json_file_path = os.path.join(base_dir, json_file_path)
             
             try:
                 with open(json_file_path, 'r', encoding='utf-8') as f:
@@ -1190,9 +1226,11 @@ def _ast_to_pack(ast: Dict[str, Any], mdl_files: List[Path]) -> Pack:
         if isinstance(item_modifier, dict):
             name = item_modifier.get('name', 'unknown')
             data = item_modifier.get('data', {})
+            source_dir = item_modifier.get('_source_dir')
         else:
             name = getattr(item_modifier, 'name', 'unknown')
             data = getattr(item_modifier, 'data', {})
+            source_dir = getattr(item_modifier, '_source_dir', None)
         
         # Load JSON data from file if specified
         if isinstance(data, dict) and 'json_file' in data:
@@ -1200,9 +1238,8 @@ def _ast_to_pack(ast: Dict[str, Any], mdl_files: List[Path]) -> Pack:
             
             # Make path relative to the MDL file location
             if not os.path.isabs(json_file_path):
-                # Get the directory of the first MDL file
-                mdl_file_dir = os.path.dirname(os.path.abspath(mdl_files[0]))
-                json_file_path = os.path.join(mdl_file_dir, json_file_path)
+                base_dir = source_dir or os.path.dirname(os.path.abspath(mdl_files[0]))
+                json_file_path = os.path.join(base_dir, json_file_path)
             
             try:
                 with open(json_file_path, 'r', encoding='utf-8') as f:
@@ -1220,9 +1257,11 @@ def _ast_to_pack(ast: Dict[str, Any], mdl_files: List[Path]) -> Pack:
         if isinstance(structure, dict):
             name = structure.get('name', 'unknown')
             data = structure.get('data', {})
+            source_dir = structure.get('_source_dir')
         else:
             name = getattr(structure, 'name', 'unknown')
             data = getattr(structure, 'data', {})
+            source_dir = getattr(structure, '_source_dir', None)
         
         # Load JSON data from file if specified
         if isinstance(data, dict) and 'json_file' in data:
@@ -1230,9 +1269,8 @@ def _ast_to_pack(ast: Dict[str, Any], mdl_files: List[Path]) -> Pack:
             
             # Make path relative to the MDL file location
             if not os.path.isabs(json_file_path):
-                # Get the directory of the first MDL file
-                mdl_file_dir = os.path.dirname(os.path.abspath(mdl_files[0]))
-                json_file_path = os.path.join(mdl_file_dir, json_file_path)
+                base_dir = source_dir or os.path.dirname(os.path.abspath(mdl_files[0]))
+                json_file_path = os.path.join(base_dir, json_file_path)
             
             try:
                 with open(json_file_path, 'r', encoding='utf-8') as f:

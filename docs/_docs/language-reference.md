@@ -418,7 +418,7 @@ structure "diamond_sword" "structures/diamond_sword.json";
 
 ### File Path Resolution
 
-- **Relative paths**: File paths are resolved relative to the MDL file location
+- **Relative paths**: File paths are resolved relative to the MDL file where the declaration appears (multi-file safe)
 - **JSON validation**: Files are validated as proper JSON during compilation
 - **Error handling**: Missing or invalid JSON files generate warnings but don't stop compilation
 

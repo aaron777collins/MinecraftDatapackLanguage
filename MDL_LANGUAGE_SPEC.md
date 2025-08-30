@@ -320,6 +320,12 @@ datapack/
             └── garbage_collect.mcfunction
 ```
 
+### Registry JSON Files
+
+- Declarations like `recipe "name" "relative/path.json";` reference external JSON files.
+- In multi-file projects, the JSON path is resolved relative to the MDL file containing the declaration, not the first file.
+- Missing or invalid JSON produces a warning and compilation continues with an empty object for that registry entry.
+
 ## Example Translation
 
 ### MDL Code

@@ -80,9 +80,10 @@ This sets up:
 
 **Development Workflow:**
 1. Make changes to the code
-2. Run `./scripts/dev_build.sh` to rebuild the development version
-3. Test with `mdlbeta build --mdl your_file.mdl -o dist`
-4. Compare with `mdl build --mdl your_file.mdl -o dist_stable`
+2. Rebuild: `./scripts/dev_build.sh` (or install locally with `python3 -m pip install --user -e .`)
+3. Test: `mdlbeta build --mdl your_file.mdl -o dist`
+4. Validate: `mdl check-advanced your_file.mdl`
+5. Compare with stable: `mdl build --mdl your_file.mdl -o dist_stable`
 
 For detailed development information, see [DEVELOPMENT.md](https://github.com/aaron777collins/MinecraftDatapackLanguage/blob/main/DEVELOPMENT.md).
 
