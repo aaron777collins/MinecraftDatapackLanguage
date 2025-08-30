@@ -8,6 +8,8 @@ permalink: /docs/getting-started/
 
 This guide will help you install Minecraft Datapack Language (MDL) and create your first datapack with control structures, variables, expressions, and multi-file projects.
 
+> **📚 Need help with MDL syntax?** Check out the [Language Reference](/docs/language-reference/) for complete syntax documentation.
+
 ## Installation
 
 ### Option A: Using pipx (Recommended)

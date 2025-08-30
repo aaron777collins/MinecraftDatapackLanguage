@@ -8,6 +8,8 @@ permalink: /docs/examples/
 
 This page contains complete, working examples that demonstrate MDL's powerful features for creating Minecraft datapacks.
 
+> **📚 Need help with MDL syntax?** Check out the [Language Reference](/docs/language-reference/) for complete syntax documentation.
+
 ## Hello World
 
 A simple datapack that displays a welcome message and counts how many times it's been called.
