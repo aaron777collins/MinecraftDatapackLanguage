@@ -1,1 +1,0 @@
-say Counter: counter

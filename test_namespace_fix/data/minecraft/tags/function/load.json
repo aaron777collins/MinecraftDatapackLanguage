@@ -1,8 +1,0 @@
-{
-  "replace": false,
-  "values": [
-    "other:main",
-    "test:main",
-    "other:load"
-  ]
-}

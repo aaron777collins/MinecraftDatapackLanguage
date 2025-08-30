@@ -12,6 +12,9 @@ dist_nesting_test/
 tmp_*/
 *.pyz
 
+# Temporary testing directory
+.tmp/
+
 # VS Code
 .vscode/
 .vscode-test/
@@ -31,3 +34,5 @@ minecraft_datapack_language/_version.py
 
 dist/
 dist_nesting_test/
+
+.tmp/
