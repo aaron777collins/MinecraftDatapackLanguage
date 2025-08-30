@@ -1,0 +1,1343 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Python API | Minecraft Datapack Language (MDL) v12</title>
+<meta name="generator" content="Jekyll v4.3.4" />
+<meta property="og:title" content="Python API" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Python API" />
+<meta property="og:description" content="Python API" />
+<link rel="canonical" href="https://aaron777collins.github.io/MinecraftDatapackLanguage/docs/python-api/" />
+<meta property="og:url" content="https://aaron777collins.github.io/MinecraftDatapackLanguage/docs/python-api/" />
+<meta property="og:site_name" content="Minecraft Datapack Language (MDL) v12" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2025-08-30T17:57:21+00:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Python API" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2025-08-30T17:57:21+00:00","datePublished":"2025-08-30T17:57:21+00:00","description":"Python API","headline":"Python API","mainEntityOfPage":{"@type":"WebPage","@id":"https://aaron777collins.github.io/MinecraftDatapackLanguage/docs/python-api/"},"url":"https://aaron777collins.github.io/MinecraftDatapackLanguage/docs/python-api/"}</script>
+<!-- End Jekyll SEO tag -->
+
+    <link rel="stylesheet" href="/MinecraftDatapackLanguage/assets/css/style.css?v=8419a03f2701300fa9adebd5fffaa7b1b49fdc1b">
+    <!-- Custom head content -->
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Favicon -->
+<link rel="icon" type="image/png" sizes="32x32" href="/MinecraftDatapackLanguage/icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/MinecraftDatapackLanguage/icons/favicon-16.png">
+<link rel="icon" type="image/png" sizes="64x64" href="/MinecraftDatapackLanguage/icons/favicon-64.png">
+<link rel="icon" type="image/png" sizes="48x48" href="/MinecraftDatapackLanguage/icons/favicon-48.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/MinecraftDatapackLanguage/icons/icon-128.png">
+<meta name="theme-color" content="#0366d6">
+
+<!-- Syntax highlighting for code blocks -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+<script>
+  // Configure Prism autoloader to load from the CDN components directory
+  window.Prism = window.Prism || {};
+  Prism.plugins = Prism.plugins || {};
+  Prism.plugins.autoloader = Prism.plugins.autoloader || {};
+  Prism.plugins.autoloader.languages_path = 'https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/';
+
+  // Aliases:
+  // - MDL (custom language) -> treat as JavaScript for highlighting
+  // - mcfunction is not officially supported; fall back to none (plain text) to avoid failed loads
+  Prism.languages.mdl = Prism.languages.javascript;
+  Prism.languages.mcfunction = Prism.languages.none;
+
+  // Preload a few common languages used in the docs to reduce autoloader fetches
+  (function preload(langFiles) {
+    var head = document.head || document.getElementsByTagName('head')[0];
+    langFiles.forEach(function(file) {
+      var s = document.createElement('script');
+      s.defer = true;
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/' + file;
+      head.appendChild(s);
+    });
+  })([
+    'prism-clike.min.js',
+    'prism-javascript.min.js',
+    'prism-bash.min.js',
+    'prism-python.min.js'
+  ]);
+</script>
+
+<!-- Custom styles -->
+<style>
+/* Navigation styles */
+.nav-menu {
+  background: #24292e;
+  padding: 1rem 0;
+  margin-bottom: 2rem;
+}
+
+.nav-menu ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.nav-menu li {
+  margin: 0 1rem;
+}
+
+.nav-menu a {
+  color: white;
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.nav-menu a:hover {
+  background: #0366d6;
+}
+
+/* Feature grid styles */
+.features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+  margin: 2rem 0;
+}
+
+.feature {
+  padding: 1.5rem;
+  border: 1px solid #e1e4e8;
+  border-radius: 6px;
+  background: #f6f8fa;
+  text-align: center;
+}
+
+.feature h3 {
+  margin-top: 0;
+  color: #24292e;
+}
+
+.feature p {
+  margin-bottom: 0;
+  color: #586069;
+}
+
+/* Code block improvements */
+pre[class*="language-"] {
+  border-radius: 6px;
+  border: 1px solid #e1e4e8;
+}
+
+code[class*="language-"] {
+  font-size: 0.9rem;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .nav-menu ul {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .nav-menu li {
+    margin: 0.5rem 0;
+  }
+  
+  .features {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .feature {
+    background: #2d3748;
+    border-color: #4a5568;
+  }
+  
+  .feature h3 {
+    color: #e2e8f0;
+  }
+  
+  .feature p {
+    color: #a0aec0;
+  }
+}
+</style>
+
+  </head>
+  <body>
+    <a id="skip-to-content" href="#content">Skip to the content.</a>
+
+
+    <!-- Include Enhanced Navigation -->
+    <!-- Main Navigation -->
+<nav class="nav-menu" role="navigation" aria-label="Main Navigation">
+  <div class="nav-container">
+    <div class="nav-brand">
+      <a href="/MinecraftDatapackLanguage/" class="nav-logo">
+        <img src="/MinecraftDatapackLanguage/icons/icon-64.png" alt="MDL" width="24" height="24">
+        <span>MDL</span>
+      </a>
+    </div>
+    <ul class="nav-list"><li class="nav-item">
+            <a href="/MinecraftDatapackLanguage/downloads/" class="nav-link">Downloads</a>
+          </li><li class="nav-item nav-dropdown active" aria-haspopup="true" aria-expanded="false">
+          <button class="nav-link nav-dropdown-toggle" aria-haspopup="true" aria-expanded="false" aria-controls="nav-docs-menu">
+            Docs
+            <svg class="caret" width="12" height="12" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 011.08 1.04l-4.25 4.25a.75.75 0 01-1.06 0L5.21 8.27a.75.75 0 01.02-1.06z"/></svg>
+          </button>
+          <ul id="nav-docs-menu" class="nav-dropdown-menu" role="menu" aria-label="Docs"><li class="nav-dropdown-item" role="none">
+                <a role="menuitem" href="/MinecraftDatapackLanguage/docs/getting-started/" class="nav-dropdown-link">Getting Started</a>
+              </li><li class="nav-dropdown-item" role="none">
+                <a role="menuitem" href="/MinecraftDatapackLanguage/docs/language-reference/" class="nav-dropdown-link">Language Reference</a>
+              </li><li class="nav-dropdown-item" role="none">
+                <a role="menuitem" href="/MinecraftDatapackLanguage/docs/examples/" class="nav-dropdown-link">Examples</a>
+              </li><li class="nav-dropdown-item" role="none">
+                <a role="menuitem" href="/MinecraftDatapackLanguage/docs/multi-file-projects/" class="nav-dropdown-link">Multi-file Projects</a>
+              </li><li class="nav-dropdown-item" role="none">
+                <a role="menuitem" href="/MinecraftDatapackLanguage/docs/cli-reference/" class="nav-dropdown-link">CLI Reference</a>
+              </li><li class="nav-dropdown-item" role="none">
+                <a role="menuitem" href="/MinecraftDatapackLanguage/docs/python-api/" class="nav-dropdown-link active">Python API</a>
+              </li><li class="nav-dropdown-item" role="none">
+                <a role="menuitem" href="/MinecraftDatapackLanguage/docs/vscode-extension/" class="nav-dropdown-link">VS Code Extension</a>
+              </li><li class="nav-dropdown-item" role="none">
+                <a role="menuitem" href="/MinecraftDatapackLanguage/docs/contributing/" class="nav-dropdown-link">Contributing</a>
+              </li></ul>
+        </li></ul>
+    <div class="nav-actions">
+      <a href="https://github.com/aaron777collins/MinecraftDatapackLanguage" class="nav-icon-link" aria-label="GitHub Repository" target="_blank" rel="noopener noreferrer">
+        <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+          <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path>
+        </svg>
+      </a>
+    </div>
+    <button class="nav-toggle" aria-label="Toggle navigation menu">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+        <path d="M2 4h16v2H2V4zm0 5h16v2H2V9zm0 5h16v2H2v-2z"/>
+      </svg>
+    </button>
+  </div>
+</nav>
+
+<!-- Breadcrumb Navigation -->
+
+<nav class="breadcrumb-nav" aria-label="Breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item">
+      <a href="/MinecraftDatapackLanguage/" class="breadcrumb-link">
+        <svg class="breadcrumb-icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M8 0C3.6 0 0 3.6 0 8s3.6 8 8 8 8-3.6 8-8-3.6-8-8-8zm0 14c-3.3 0-6-2.7-6-6s2.7-6 6-6 6 2.7 6 6-2.7 6-6 6z"/>
+          <path d="M7 4h2v6H7z"/>
+          <path d="M4 7h6v2H4z"/>
+        </svg>
+        Home
+      </a>
+    </li>
+    
+      <li class="breadcrumb-item">
+        <a href="/MinecraftDatapackLanguage/docs/" class="breadcrumb-link">Documentation</a>
+      </li>
+    
+    <li class="breadcrumb-item active" aria-current="page">
+      Python API
+    </li>
+  </ol>
+</nav>
+
+
+<style>
+/* Main Navigation Styles */
+.nav-menu {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  color: #ffffff;
+  padding: 0;
+  margin-bottom: 2rem;
+  box-shadow: 0 8px 20px rgba(2, 6, 23, 0.35);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.nav-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 60px;
+}
+
+.nav-brand {
+  display: flex;
+  align-items: center;
+}
+
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 1.2rem;
+  letter-spacing: 0.2px;
+}
+
+.nav-logo:hover {
+  text-decoration: none;
+  color: #e2e8f0;
+}
+
+.nav-list {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: 1rem;
+  align-items: center;
+}
+
+.nav-item {
+  margin: 0;
+}
+
+.nav-link {
+  color: rgba(255, 255, 255, 0.85);
+  text-decoration: none;
+  padding: 0.5rem 0.85rem;
+  border-radius: 999px;
+  transition: background-color 0.2s, color 0.2s, transform 0.15s ease;
+  font-weight: 500;
+}
+
+.nav-link:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.nav-link.active {
+  background: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+}
+
+/* Dropdown */
+.nav-dropdown {
+  position: relative;
+}
+
+.nav-dropdown .nav-dropdown-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: transparent;
+  border: none;
+  color: rgba(255,255,255,0.85);
+  padding: 0.5rem 0.85rem;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.nav-dropdown .nav-dropdown-toggle:hover,
+.nav-dropdown.active .nav-dropdown-toggle {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+
+.nav-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 240px;
+  background: #0f172a;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  padding: 0.5rem;
+  margin-top: 0.5rem;
+  display: none;
+  box-shadow: 0 10px 30px rgba(2,6,23,0.45);
+  z-index: 1001;
+}
+
+.nav-dropdown:hover .nav-dropdown-menu {
+  display: block;
+}
+
+.nav-dropdown-item { list-style: none; }
+
+.nav-dropdown-link {
+  display: block;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  color: rgba(255,255,255,0.9);
+  text-decoration: none;
+}
+
+.nav-dropdown-link:hover { background: rgba(255,255,255,0.12); color: #fff; text-decoration: none; }
+.nav-dropdown-link.active { background: rgba(255,255,255,0.18); color: #fff; }
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: 1rem;
+}
+
+.nav-icon-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  text-decoration: none;
+  padding: 0.35rem;
+  border-radius: 8px;
+}
+
+.nav-icon-link:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+
+.nav-toggle {
+  display: none;
+  background: none;
+  border: none;
+  color: #ffffff;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 8px;
+}
+
+.nav-toggle:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* Breadcrumb Styles */
+.breadcrumb-nav {
+  margin: 1rem 0 2rem 0;
+  padding: 0 1rem;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.breadcrumb {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.breadcrumb-item {
+  display: flex;
+  align-items: center;
+}
+
+.breadcrumb-item:not(:last-child)::after {
+  content: "›";
+  margin-left: 0.5rem;
+  color: #586069;
+}
+
+.breadcrumb-link {
+  color: #0366d6;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.breadcrumb-link:hover {
+  background: #e1f5fe;
+  text-decoration: none;
+}
+
+.breadcrumb-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.breadcrumb-item.active {
+  color: #586069;
+  font-weight: 500;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .nav-list {
+    display: none;
+    position: absolute;
+    top: 60px;
+    left: 0;
+    right: 0;
+    background: linear-gradient(135deg, #0b1220 0%, #131c2b 100%);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    flex-direction: column;
+    padding: 1rem;
+    box-shadow: 0 10px 20px rgba(2,6,23,0.35);
+  }
+  /* Mobile: show dropdown items inline */
+  .nav-dropdown { width: 100%; }
+  .nav-dropdown-menu { position: static; display: none; margin: 0.25rem 0 0 0; box-shadow: none; border: none; background: transparent; padding: 0; }
+  .nav-dropdown.open .nav-dropdown-menu { display: block; }
+  .nav-dropdown-link { padding-left: 1rem; }
+  
+  .nav-list.show {
+    display: flex;
+  }
+  
+  .nav-toggle {
+    display: block;
+  }
+  .nav-actions {
+    margin-left: 0.5rem;
+  }
+  
+  .breadcrumb {
+    font-size: 0.8rem;
+  }
+}
+</style>
+
+<script>
+// Mobile Navigation Toggle
+document.addEventListener('DOMContentLoaded', function() {
+  const toggle = document.querySelector('.nav-toggle');
+  const navList = document.querySelector('.nav-list');
+  const dropdownToggles = document.querySelectorAll('.nav-dropdown-toggle');
+  
+  if (toggle && navList) {
+    toggle.addEventListener('click', function() {
+      navList.classList.toggle('show');
+    });
+    
+    // Close menu when clicking outside
+    document.addEventListener('click', function(event) {
+      if (!toggle.contains(event.target) && !navList.contains(event.target)) {
+        navList.classList.remove('show');
+      }
+    });
+  }
+
+  // Dropdown interactions
+  dropdownToggles.forEach(function(btn) {
+    const parent = btn.closest('.nav-dropdown');
+    const menu = parent ? parent.querySelector('.nav-dropdown-menu') : null;
+    if (!parent || !menu) return;
+
+    // Desktop: open on hover handled via CSS. Ensure ARIA reflects state
+    parent.addEventListener('mouseenter', function(){
+      if (window.matchMedia('(min-width: 769px)').matches) {
+        parent.classList.add('active');
+        btn.setAttribute('aria-expanded', 'true');
+      }
+    });
+    parent.addEventListener('mouseleave', function(){
+      if (window.matchMedia('(min-width: 769px)').matches) {
+        parent.classList.remove('active');
+        btn.setAttribute('aria-expanded', 'false');
+      }
+    });
+
+    // Mobile: toggle on click
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
+      const isOpen = parent.classList.toggle('open');
+      btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    });
+  });
+});
+</script>
+
+
+    <main id="content" class="main-content" role="main">
+      <div class="page-content">
+  <div class="wrapper">
+    <article class="post">
+      <header class="post-header">
+        <h1 class="post-title">Python API</h1>
+        
+      </header>
+
+      <div class="post-content">
+        <h1 id="python-api">Python API</h1>
+
+<p>The MDL Python API provides a clean, programmatic way to create Minecraft datapacks. It’s fully compatible with the new JavaScript-style MDL language and supports all advanced features including variables, control flow, and complex nesting.</p>
+
+<h2 id="quick-start">Quick Start</h2>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="n">minecraft_datapack_language</span> <span class="kn">import</span> <span class="n">Pack</span>
+
+<span class="c1"># Create a datapack
+</span><span class="n">p</span> <span class="o">=</span> <span class="nc">Pack</span><span class="p">(</span><span class="sh">"</span><span class="s">My Pack</span><span class="sh">"</span><span class="p">,</span> <span class="sh">"</span><span class="s">A cool datapack</span><span class="sh">"</span><span class="p">,</span> <span class="mi">82</span><span class="p">)</span>
+
+<span class="c1"># Add a namespace
+</span><span class="n">ns</span> <span class="o">=</span> <span class="n">p</span><span class="p">.</span><span class="nf">namespace</span><span class="p">(</span><span class="sh">"</span><span class="s">example</span><span class="sh">"</span><span class="p">)</span>
+
+<span class="c1"># Add functions
+</span><span class="n">ns</span><span class="p">.</span><span class="nf">function</span><span class="p">(</span><span class="sh">"</span><span class="s">hello</span><span class="sh">"</span><span class="p">,</span> <span class="sh">"</span><span class="s">say Hello World!</span><span class="sh">"</span><span class="p">)</span>
+<span class="n">ns</span><span class="p">.</span><span class="nf">function</span><span class="p">(</span><span class="sh">"</span><span class="s">welcome</span><span class="sh">"</span><span class="p">,</span> <span class="sh">"</span><span class="s">tellraw @a {</span><span class="se">\"</span><span class="s">text</span><span class="se">\"</span><span class="s">:</span><span class="se">\"</span><span class="s">Welcome!</span><span class="se">\"</span><span class="s">,</span><span class="se">\"</span><span class="s">color</span><span class="se">\"</span><span class="s">:</span><span class="se">\"</span><span class="s">green</span><span class="se">\"</span><span class="s">}</span><span class="sh">"</span><span class="p">)</span>
+
+<span class="c1"># Hook into Minecraft lifecycle
+</span><span class="n">p</span><span class="p">.</span><span class="nf">on_load</span><span class="p">(</span><span class="sh">"</span><span class="s">example:hello</span><span class="sh">"</span><span class="p">)</span>
+<span class="n">p</span><span class="p">.</span><span class="nf">on_tick</span><span class="p">(</span><span class="sh">"</span><span class="s">example:welcome</span><span class="sh">"</span><span class="p">)</span>
+
+<span class="c1"># Build the datapack
+</span><span class="n">p</span><span class="p">.</span><span class="nf">build</span><span class="p">(</span><span class="sh">"</span><span class="s">dist</span><span class="sh">"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<h2 id="core-classes">Core Classes</h2>
+
+<h3 id="pack">Pack</h3>
+
+<p>The main class for creating datapacks.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="n">minecraft_datapack_language</span> <span class="kn">import</span> <span class="n">Pack</span>
+
+<span class="c1"># Create a pack
+</span><span class="n">p</span> <span class="o">=</span> <span class="nc">Pack</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="sh">"</span><span class="s">My Pack</span><span class="sh">"</span><span class="p">,</span>           <span class="c1"># Pack name
+</span>    <span class="n">description</span><span class="o">=</span><span class="sh">"</span><span class="s">Description</span><span class="sh">"</span><span class="p">,</span> <span class="c1"># Optional description
+</span>    <span class="n">pack_format</span><span class="o">=</span><span class="mi">82</span>            <span class="c1"># Minecraft pack format (default: 82)
+</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p><strong>Methods:</strong></p>
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">namespace(name)</code> - Create a namespace</li>
+  <li><code class="language-plaintext highlighter-rouge">on_load(function_id)</code> - Hook function to world load</li>
+  <li><code class="language-plaintext highlighter-rouge">on_tick(function_id)</code> - Hook function to tick</li>
+  <li><code class="language-plaintext highlighter-rouge">tag(registry, name, values=[], replace=False)</code> - Create tags</li>
+  <li><code class="language-plaintext highlighter-rouge">build(output_dir)</code> - Build the datapack</li>
+</ul>
+
+<h3 id="namespace">Namespace</h3>
+
+<p>Represents a namespace for organizing functions.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ns</span> <span class="o">=</span> <span class="n">p</span><span class="p">.</span><span class="nf">namespace</span><span class="p">(</span><span class="sh">"</span><span class="s">example</span><span class="sh">"</span><span class="p">)</span>
+
+<span class="c1"># Add functions to the namespace
+</span><span class="n">ns</span><span class="p">.</span><span class="nf">function</span><span class="p">(</span><span class="sh">"</span><span class="s">function_name</span><span class="sh">"</span><span class="p">,</span> <span class="sh">"</span><span class="s">command1</span><span class="sh">"</span><span class="p">,</span> <span class="sh">"</span><span class="s">command2</span><span class="sh">"</span><span class="p">,</span> <span class="p">...)</span>
+</code></pre></div></div>
+
+<p><strong>Methods:</strong></p>
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">function(name, *commands)</code> - Add a function with commands</li>
+</ul>
+
+<h2 id="basic-examples">Basic Examples</h2>
+
+<h3 id="hello-world">Hello World</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="n">minecraft_datapack_language</span> <span class="kn">import</span> <span class="n">Pack</span>
+
+<span class="k">def</span> <span class="nf">create_hello_world</span><span class="p">():</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="nc">Pack</span><span class="p">(</span><span class="sh">"</span><span class="s">Hello World</span><span class="sh">"</span><span class="p">,</span> <span class="sh">"</span><span class="s">A simple hello world datapack</span><span class="sh">"</span><span class="p">,</span> <span class="mi">82</span><span class="p">)</span>
+    
+    <span class="n">ns</span> <span class="o">=</span> <span class="n">p</span><span class="p">.</span><span class="nf">namespace</span><span class="p">(</span><span class="sh">"</span><span class="s">example</span><span class="sh">"</span><span class="p">)</span>
+    <span class="n">ns</span><span class="p">.</span><span class="nf">function</span><span class="p">(</span><span class="sh">"</span><span class="s">hello</span><span class="sh">"</span><span class="p">,</span> 
+        <span class="sh">"</span><span class="s">say Hello, Minecraft!</span><span class="sh">"</span><span class="p">,</span>
+        <span class="sh">"</span><span class="s">tellraw @a {</span><span class="se">\"</span><span class="s">text</span><span class="se">\"</span><span class="s">:</span><span class="se">\"</span><span class="s">Welcome to my datapack!</span><span class="se">\"</span><span class="s">,</span><span class="se">\"</span><span class="s">color</span><span class="se">\"</span><span class="s">:</span><span class="se">\"</span><span class="s">green</span><span class="se">\"</span><span class="s">}</span><span class="sh">"</span>
+    <span class="p">)</span>
+    
+    <span class="c1"># Hook into world load
+</span>    <span class="n">p</span><span class="p">.</span><span class="nf">on_load</span><span class="p">(</span><span class="sh">"</span><span class="s">example:hello</span><span class="sh">"</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">p</span>
+
+<span class="c1"># Create and build
+</span><span class="n">pack</span> <span class="o">=</span> <span class="nf">create_hello_world</span><span class="p">()</span>
+<span class="n">pack</span><span class="p">.</span><span class="nf">build</span><span class="p">(</span><span class="sh">"</span><span class="s">dist</span><span class="sh">"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<h3 id="particle-effects">Particle Effects</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="n">minecraft_datapack_language</span> <span class="kn">import</span> <span class="n">Pack</span>
+
+<span class="k">def</span> <span class="nf">create_particle_pack</span><span class="p">():</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="nc">Pack</span><span class="p">(</span><span class="sh">"</span><span class="s">Particle Effects</span><span class="sh">"</span><span class="p">,</span> <span class="sh">"</span><span class="s">Creates particle effects around players</span><span class="sh">"</span><span class="p">,</span> <span class="mi">82</span><span class="p">)</span>
+    
+    <span class="n">ns</span> <span class="o">=</span> <span class="n">p</span><span class="p">.</span><span class="nf">namespace</span><span class="p">(</span><span class="sh">"</span><span class="s">particles</span><span class="sh">"</span><span class="p">)</span>
+    
+    <span class="n">ns</span><span class="p">.</span><span class="nf">function</span><span class="p">(</span><span class="sh">"</span><span class="s">tick</span><span class="sh">"</span><span class="p">,</span>
+        <span class="sh">"</span><span class="s">execute as @a run particle minecraft:end_rod ~ ~ ~ 0.1 0.1 0.1 0.01 1</span><span class="sh">"</span><span class="p">,</span>
+        <span class="sh">"</span><span class="s">execute as @a run particle minecraft:firework ~ ~ ~ 0.2 0.2 0.2 0.02 2</span><span class="sh">"</span>
+    <span class="p">)</span>
+    
+    <span class="n">ns</span><span class="p">.</span><span class="nf">function</span><span class="p">(</span><span class="sh">"</span><span class="s">init</span><span class="sh">"</span><span class="p">,</span> <span class="sh">"</span><span class="s">say Particle effects enabled!</span><span class="sh">"</span><span class="p">)</span>
+    
+    <span class="c1"># Hook into lifecycle
+</span>    <span class="n">p</span><span class="p">.</span><span class="nf">on_load</span><span class="p">(</span><span class="sh">"</span><span class="s">particles:init</span><span class="sh">"</span><span class="p">)</span>
+    <span class="n">p</span><span class="p">.</span><span class="nf">on_tick</span><span class="p">(</span><span class="sh">"</span><span class="s">particles:tick</span><span class="sh">"</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">p</span>
+</code></pre></div></div>
+
+<h2 id="advanced-features">Advanced Features</h2>
+
+<h3 id="variables-and-control-flow">Variables and Control Flow</h3>
+
+<p>The Python API supports all the advanced features of the JavaScript-style MDL language:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="n">minecraft_datapack_language</span> <span class="kn">import</span> <span class="n">Pack</span>
+
+<span class="k">def</span> <span class="nf">create_advanced_pack</span><span class="p">():</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="nc">Pack</span><span class="p">(</span><span class="sh">"</span><span class="s">Advanced Features</span><span class="sh">"</span><span class="p">,</span> <span class="sh">"</span><span class="s">Demonstrates advanced features</span><span class="sh">"</span><span class="p">,</span> <span class="mi">82</span><span class="p">)</span>
+    
+    <span class="n">ns</span> <span class="o">=</span> <span class="n">p</span><span class="p">.</span><span class="nf">namespace</span><span class="p">(</span><span class="sh">"</span><span class="s">advanced</span><span class="sh">"</span><span class="p">)</span>
+    
+    <span class="c1"># Functions with variables and control flow
+</span>    <span class="n">ns</span><span class="p">.</span><span class="nf">function</span><span class="p">(</span><span class="sh">"</span><span class="s">variable_demo</span><span class="sh">"</span><span class="p">,</span>
+        <span class="sh">"</span><span class="s">scoreboard players set @s counter 10</span><span class="sh">"</span><span class="p">,</span>
+        <span class="sh">"</span><span class="s">scoreboard players add @s counter 5</span><span class="sh">"</span><span class="p">,</span>
+        <span class="sh">"</span><span class="s">execute if score @s counter matches 15 run say Counter is 15!</span><span class="sh">"</span><span class="p">,</span>
+        <span class="sh">"</span><span class="s">execute if score @s counter matches 15 run scoreboard players remove @s counter 5</span><span class="sh">"</span>
+    <span class="p">)</span>
+    
+    <span class="n">ns</span><span class="p">.</span><span class="nf">function</span><span class="p">(</span><span class="sh">"</span><span class="s">control_flow_demo</span><span class="sh">"</span><span class="p">,</span>
+        <span class="sh">"</span><span class="s">execute if entity @s[type=minecraft:player] run say Player detected</span><span class="sh">"</span><span class="p">,</span>
+        <span class="sh">"</span><span class="s">execute if entity @s[type=minecraft:player] run effect give @s minecraft:glowing 5 1</span><span class="sh">"</span><span class="p">,</span>
+        <span class="sh">"</span><span class="s">execute unless entity @s[type=minecraft:player] run say No player found</span><span class="sh">"</span>
+    <span class="p">)</span>
+    
+    <span class="n">ns</span><span class="p">.</span><span class="nf">function</span><span class="p">(</span><span class="sh">"</span><span class="s">loop_demo</span><span class="sh">"</span><span class="p">,</span>
+        <span class="sh">"</span><span class="s">scoreboard players set @s countdown 5</span><span class="sh">"</span><span class="p">,</span>
+        <span class="sh">"</span><span class="s">execute if score @s countdown matches 1.. run function advanced:loop_body</span><span class="sh">"</span><span class="p">,</span>
+        <span class="sh">"</span><span class="s">execute if score @s countdown matches 1.. run function advanced:loop_control</span><span class="sh">"</span>
+    <span class="p">)</span>
+    
+    <span class="c1"># Loop body function
+</span>    <span class="n">ns</span><span class="p">.</span><span class="nf">function</span><span class="p">(</span><span class="sh">"</span><span class="s">loop_body</span><span class="sh">"</span><span class="p">,</span>
+        <span class="sh">"</span><span class="s">say Countdown: @s countdown</span><span class="sh">"</span><span class="p">,</span>
+        <span class="sh">"</span><span class="s">scoreboard players remove @s countdown 1</span><span class="sh">"</span>
+    <span class="p">)</span>
+    
+    <span class="c1"># Loop control function
+</span>    <span class="n">ns</span><span class="p">.</span><span class="nf">function</span><span class="p">(</span><span class="sh">"</span><span class="s">loop_control</span><span class="sh">"</span><span class="p">,</span>
+        <span class="sh">"</span><span class="s">execute if score @s countdown matches 1.. run function advanced:loop_body</span><span class="sh">"</span><span class="p">,</span>
+        <span class="sh">"</span><span class="s">execute if score @s countdown matches 1.. run function advanced:loop_control</span><span class="sh">"</span>
+    <span class="p">)</span>
+    
+    <span class="n">p</span><span class="p">.</span><span class="nf">on_tick</span><span class="p">(</span><span class="sh">"</span><span class="s">advanced:variable_demo</span><span class="sh">"</span><span class="p">)</span>
+    <span class="n">p</span><span class="p">.</span><span class="nf">on_tick</span><span class="p">(</span><span class="sh">"</span><span class="s">advanced:control_flow_demo</span><span class="sh">"</span><span class="p">)</span>
+    <span class="n">p</span><span class="p">.</span><span class="nf">on_tick</span><span class="p">(</span><span class="sh">"</span><span class="s">advanced:loop_demo</span><span class="sh">"</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">p</span>
+</code></pre></div></div>
+
+<h3 id="function-calls-and-cross-namespace-references">Function Calls and Cross-Namespace References</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="n">minecraft_datapack_language</span> <span class="kn">import</span> <span class="n">Pack</span>
+
+<span class="k">def</span> <span class="nf">create_function_pack</span><span class="p">():</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="nc">Pack</span><span class="p">(</span><span class="sh">"</span><span class="s">Function Calls</span><span class="sh">"</span><span class="p">,</span> <span class="sh">"</span><span class="s">Demonstrates function calls</span><span class="sh">"</span><span class="p">,</span> <span class="mi">82</span><span class="p">)</span>
+    
+    <span class="c1"># Core namespace
+</span>    <span class="n">core</span> <span class="o">=</span> <span class="n">p</span><span class="p">.</span><span class="nf">namespace</span><span class="p">(</span><span class="sh">"</span><span class="s">core</span><span class="sh">"</span><span class="p">)</span>
+    <span class="n">core</span><span class="p">.</span><span class="nf">function</span><span class="p">(</span><span class="sh">"</span><span class="s">init</span><span class="sh">"</span><span class="p">,</span> <span class="sh">"</span><span class="s">say Initializing...</span><span class="sh">"</span><span class="p">)</span>
+    <span class="n">core</span><span class="p">.</span><span class="nf">function</span><span class="p">(</span><span class="sh">"</span><span class="s">tick</span><span class="sh">"</span><span class="p">,</span> <span class="sh">"</span><span class="s">say Tick...</span><span class="sh">"</span><span class="p">)</span>
+    
+    <span class="c1"># Utility namespace
+</span>    <span class="n">util</span> <span class="o">=</span> <span class="n">p</span><span class="p">.</span><span class="nf">namespace</span><span class="p">(</span><span class="sh">"</span><span class="s">util</span><span class="sh">"</span><span class="p">)</span>
+    <span class="n">util</span><span class="p">.</span><span class="nf">function</span><span class="p">(</span><span class="sh">"</span><span class="s">helper</span><span class="sh">"</span><span class="p">,</span> <span class="sh">"</span><span class="s">say Helper function</span><span class="sh">"</span><span class="p">)</span>
+    <span class="n">util</span><span class="p">.</span><span class="nf">function</span><span class="p">(</span><span class="sh">"</span><span class="s">helper2</span><span class="sh">"</span><span class="p">,</span> <span class="sh">"</span><span class="s">say Another helper</span><span class="sh">"</span><span class="p">)</span>
+    
+    <span class="c1"># Main namespace with cross-namespace calls
+</span>    <span class="n">main</span> <span class="o">=</span> <span class="n">p</span><span class="p">.</span><span class="nf">namespace</span><span class="p">(</span><span class="sh">"</span><span class="s">main</span><span class="sh">"</span><span class="p">)</span>
+    <span class="n">main</span><span class="p">.</span><span class="nf">function</span><span class="p">(</span><span class="sh">"</span><span class="s">start</span><span class="sh">"</span><span class="p">,</span>
+        <span class="sh">"</span><span class="s">say Starting...</span><span class="sh">"</span><span class="p">,</span>
+        <span class="sh">"</span><span class="s">function core:init</span><span class="sh">"</span><span class="p">,</span>
+        <span class="sh">"</span><span class="s">function util:helper</span><span class="sh">"</span>
+    <span class="p">)</span>
+    
+    <span class="n">main</span><span class="p">.</span><span class="nf">function</span><span class="p">(</span><span class="sh">"</span><span class="s">update</span><span class="sh">"</span><span class="p">,</span>
+        <span class="sh">"</span><span class="s">function core:tick</span><span class="sh">"</span><span class="p">,</span>
+        <span class="sh">"</span><span class="s">function util:helper2</span><span class="sh">"</span>
+    <span class="p">)</span>
+    
+    <span class="c1"># Lifecycle hooks
+</span>    <span class="n">p</span><span class="p">.</span><span class="nf">on_load</span><span class="p">(</span><span class="sh">"</span><span class="s">main:start</span><span class="sh">"</span><span class="p">)</span>
+    <span class="n">p</span><span class="p">.</span><span class="nf">on_tick</span><span class="p">(</span><span class="sh">"</span><span class="s">main:update</span><span class="sh">"</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">p</span>
+</code></pre></div></div>
+
+<h3 id="tags-and-data">Tags and Data</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="n">minecraft_datapack_language</span> <span class="kn">import</span> <span class="n">Pack</span>
+
+<span class="k">def</span> <span class="nf">create_tag_pack</span><span class="p">():</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="nc">Pack</span><span class="p">(</span><span class="sh">"</span><span class="s">Tags and Data</span><span class="sh">"</span><span class="p">,</span> <span class="sh">"</span><span class="s">Demonstrates tags and data</span><span class="sh">"</span><span class="p">,</span> <span class="mi">82</span><span class="p">)</span>
+    
+    <span class="n">ns</span> <span class="o">=</span> <span class="n">p</span><span class="p">.</span><span class="nf">namespace</span><span class="p">(</span><span class="sh">"</span><span class="s">example</span><span class="sh">"</span><span class="p">)</span>
+    <span class="n">ns</span><span class="p">.</span><span class="nf">function</span><span class="p">(</span><span class="sh">"</span><span class="s">init</span><span class="sh">"</span><span class="p">,</span> <span class="sh">"</span><span class="s">say Tags initialized!</span><span class="sh">"</span><span class="p">)</span>
+    
+    <span class="c1"># Function tags
+</span>    <span class="n">p</span><span class="p">.</span><span class="nf">tag</span><span class="p">(</span><span class="sh">"</span><span class="s">function</span><span class="sh">"</span><span class="p">,</span> <span class="sh">"</span><span class="s">minecraft:load</span><span class="sh">"</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="p">[</span><span class="sh">"</span><span class="s">example:init</span><span class="sh">"</span><span class="p">])</span>
+    <span class="n">p</span><span class="p">.</span><span class="nf">tag</span><span class="p">(</span><span class="sh">"</span><span class="s">function</span><span class="sh">"</span><span class="p">,</span> <span class="sh">"</span><span class="s">minecraft:tick</span><span class="sh">"</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="p">[</span><span class="sh">"</span><span class="s">example:tick</span><span class="sh">"</span><span class="p">])</span>
+    
+    <span class="c1"># Item tags
+</span>    <span class="n">p</span><span class="p">.</span><span class="nf">tag</span><span class="p">(</span><span class="sh">"</span><span class="s">item</span><span class="sh">"</span><span class="p">,</span> <span class="sh">"</span><span class="s">example:swords</span><span class="sh">"</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="p">[</span>
+        <span class="sh">"</span><span class="s">minecraft:diamond_sword</span><span class="sh">"</span><span class="p">,</span>
+        <span class="sh">"</span><span class="s">minecraft:netherite_sword</span><span class="sh">"</span>
+    <span class="p">])</span>
+    
+    <span class="c1"># Block tags
+</span>    <span class="n">p</span><span class="p">.</span><span class="nf">tag</span><span class="p">(</span><span class="sh">"</span><span class="s">block</span><span class="sh">"</span><span class="p">,</span> <span class="sh">"</span><span class="s">example:glassy</span><span class="sh">"</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="p">[</span>
+        <span class="sh">"</span><span class="s">minecraft:glass</span><span class="sh">"</span><span class="p">,</span>
+        <span class="sh">"</span><span class="s">minecraft:tinted_glass</span><span class="sh">"</span>
+    <span class="p">])</span>
+    
+    <span class="k">return</span> <span class="n">p</span>
+</code></pre></div></div>
+
+<h2 id="multi-namespace-projects">Multi-Namespace Projects</h2>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="n">minecraft_datapack_language</span> <span class="kn">import</span> <span class="n">Pack</span>
+
+<span class="k">def</span> <span class="nf">create_complex_pack</span><span class="p">():</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="nc">Pack</span><span class="p">(</span><span class="sh">"</span><span class="s">Complex Pack</span><span class="sh">"</span><span class="p">,</span> <span class="sh">"</span><span class="s">Multi-namespace project</span><span class="sh">"</span><span class="p">,</span> <span class="mi">82</span><span class="p">)</span>
+    
+    <span class="c1"># Core systems
+</span>    <span class="n">core</span> <span class="o">=</span> <span class="n">p</span><span class="p">.</span><span class="nf">namespace</span><span class="p">(</span><span class="sh">"</span><span class="s">core</span><span class="sh">"</span><span class="p">)</span>
+    <span class="n">core</span><span class="p">.</span><span class="nf">function</span><span class="p">(</span><span class="sh">"</span><span class="s">init</span><span class="sh">"</span><span class="p">,</span> <span class="sh">"</span><span class="s">say Core systems initialized</span><span class="sh">"</span><span class="p">)</span>
+    <span class="n">core</span><span class="p">.</span><span class="nf">function</span><span class="p">(</span><span class="sh">"</span><span class="s">tick</span><span class="sh">"</span><span class="p">,</span> <span class="sh">"</span><span class="s">say Core tick</span><span class="sh">"</span><span class="p">)</span>
+    
+    <span class="c1"># Combat system
+</span>    <span class="n">combat</span> <span class="o">=</span> <span class="n">p</span><span class="p">.</span><span class="nf">namespace</span><span class="p">(</span><span class="sh">"</span><span class="s">combat</span><span class="sh">"</span><span class="p">)</span>
+    <span class="n">combat</span><span class="p">.</span><span class="nf">function</span><span class="p">(</span><span class="sh">"</span><span class="s">weapon_effects</span><span class="sh">"</span><span class="p">,</span>
+        <span class="sh">"</span><span class="s">execute as @a[nbt={SelectedItem:{id:</span><span class="se">\"</span><span class="s">minecraft:diamond_sword</span><span class="se">\"</span><span class="s">}}] run effect give @s minecraft:strength 1 0 true</span><span class="sh">"</span>
+    <span class="p">)</span>
+    <span class="n">combat</span><span class="p">.</span><span class="nf">function</span><span class="p">(</span><span class="sh">"</span><span class="s">update_combat</span><span class="sh">"</span><span class="p">,</span>
+        <span class="sh">"</span><span class="s">function core:tick</span><span class="sh">"</span><span class="p">,</span>
+        <span class="sh">"</span><span class="s">function combat:weapon_effects</span><span class="sh">"</span>
+    <span class="p">)</span>
+    
+    <span class="c1"># UI system
+</span>    <span class="n">ui</span> <span class="o">=</span> <span class="n">p</span><span class="p">.</span><span class="nf">namespace</span><span class="p">(</span><span class="sh">"</span><span class="s">ui</span><span class="sh">"</span><span class="p">)</span>
+    <span class="n">ui</span><span class="p">.</span><span class="nf">function</span><span class="p">(</span><span class="sh">"</span><span class="s">hud</span><span class="sh">"</span><span class="p">,</span> <span class="sh">"</span><span class="s">title @a actionbar {</span><span class="se">\"</span><span class="s">text</span><span class="se">\"</span><span class="s">:</span><span class="se">\"</span><span class="s">Pack Active</span><span class="se">\"</span><span class="s">,</span><span class="se">\"</span><span class="s">color</span><span class="se">\"</span><span class="s">:</span><span class="se">\"</span><span class="s">gold</span><span class="se">\"</span><span class="s">}</span><span class="sh">"</span><span class="p">)</span>
+    <span class="n">ui</span><span class="p">.</span><span class="nf">function</span><span class="p">(</span><span class="sh">"</span><span class="s">update_ui</span><span class="sh">"</span><span class="p">,</span>
+        <span class="sh">"</span><span class="s">function ui:hud</span><span class="sh">"</span><span class="p">,</span>
+        <span class="sh">"</span><span class="s">function combat:update_combat</span><span class="sh">"</span>
+    <span class="p">)</span>
+    
+    <span class="c1"># Lifecycle hooks
+</span>    <span class="n">p</span><span class="p">.</span><span class="nf">on_load</span><span class="p">(</span><span class="sh">"</span><span class="s">core:init</span><span class="sh">"</span><span class="p">)</span>
+    <span class="n">p</span><span class="p">.</span><span class="nf">on_tick</span><span class="p">(</span><span class="sh">"</span><span class="s">ui:update_ui</span><span class="sh">"</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">p</span>
+</code></pre></div></div>
+
+<h2 id="error-handling-and-validation">Error Handling and Validation</h2>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="n">minecraft_datapack_language</span> <span class="kn">import</span> <span class="n">Pack</span>
+
+<span class="k">def</span> <span class="nf">create_safe_pack</span><span class="p">():</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="nc">Pack</span><span class="p">(</span><span class="sh">"</span><span class="s">Safe Pack</span><span class="sh">"</span><span class="p">,</span> <span class="sh">"</span><span class="s">Demonstrates error handling</span><span class="sh">"</span><span class="p">,</span> <span class="mi">82</span><span class="p">)</span>
+    
+    <span class="n">ns</span> <span class="o">=</span> <span class="n">p</span><span class="p">.</span><span class="nf">namespace</span><span class="p">(</span><span class="sh">"</span><span class="s">safe</span><span class="sh">"</span><span class="p">)</span>
+    
+    <span class="c1"># Safe function calls
+</span>    <span class="n">ns</span><span class="p">.</span><span class="nf">function</span><span class="p">(</span><span class="sh">"</span><span class="s">safe_teleport</span><span class="sh">"</span><span class="p">,</span>
+        <span class="sh">"</span><span class="s">execute as @a if entity @s run tp @s ~ ~ ~</span><span class="sh">"</span><span class="p">,</span>
+        <span class="sh">"</span><span class="s">execute unless entity @a run tellraw @a {</span><span class="se">\"</span><span class="s">text</span><span class="se">\"</span><span class="s">:</span><span class="se">\"</span><span class="s">No players to teleport</span><span class="se">\"</span><span class="s">,</span><span class="se">\"</span><span class="s">color</span><span class="se">\"</span><span class="s">:</span><span class="se">\"</span><span class="s">red</span><span class="se">\"</span><span class="s">}</span><span class="sh">"</span>
+    <span class="p">)</span>
+    
+    <span class="c1"># Conditional effects
+</span>    <span class="n">ns</span><span class="p">.</span><span class="nf">function</span><span class="p">(</span><span class="sh">"</span><span class="s">conditional_effects</span><span class="sh">"</span><span class="p">,</span>
+        <span class="sh">"</span><span class="s">execute as @a[nbt={SelectedItem:{id:</span><span class="se">\"</span><span class="s">minecraft:diamond</span><span class="se">\"</span><span class="s">}}] run effect give @s minecraft:strength 1 0 true</span><span class="sh">"</span><span class="p">,</span>
+        <span class="sh">"</span><span class="s">execute as @a unless entity @s[nbt={SelectedItem:{id:</span><span class="se">\"</span><span class="s">minecraft:diamond</span><span class="se">\"</span><span class="s">}}] run effect clear @s minecraft:strength</span><span class="sh">"</span>
+    <span class="p">)</span>
+    
+    <span class="n">p</span><span class="p">.</span><span class="nf">on_tick</span><span class="p">(</span><span class="sh">"</span><span class="s">safe:safe_teleport</span><span class="sh">"</span><span class="p">)</span>
+    <span class="n">p</span><span class="p">.</span><span class="nf">on_tick</span><span class="p">(</span><span class="sh">"</span><span class="s">safe:conditional_effects</span><span class="sh">"</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">p</span>
+</code></pre></div></div>
+
+<h2 id="building-and-output">Building and Output</h2>
+
+<h3 id="basic-build">Basic Build</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="n">minecraft_datapack_language</span> <span class="kn">import</span> <span class="n">Pack</span>
+
+<span class="n">p</span> <span class="o">=</span> <span class="nc">Pack</span><span class="p">(</span><span class="sh">"</span><span class="s">My Pack</span><span class="sh">"</span><span class="p">,</span> <span class="sh">"</span><span class="s">Description</span><span class="sh">"</span><span class="p">,</span> <span class="mi">82</span><span class="p">)</span>
+<span class="n">ns</span> <span class="o">=</span> <span class="n">p</span><span class="p">.</span><span class="nf">namespace</span><span class="p">(</span><span class="sh">"</span><span class="s">example</span><span class="sh">"</span><span class="p">)</span>
+<span class="n">ns</span><span class="p">.</span><span class="nf">function</span><span class="p">(</span><span class="sh">"</span><span class="s">hello</span><span class="sh">"</span><span class="p">,</span> <span class="sh">"</span><span class="s">say Hello World</span><span class="sh">"</span><span class="p">)</span>
+
+<span class="c1"># Build to directory
+</span><span class="n">p</span><span class="p">.</span><span class="nf">build</span><span class="p">(</span><span class="sh">"</span><span class="s">dist</span><span class="sh">"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<h3 id="custom-output">Custom Output</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Build with custom options
+</span><span class="n">p</span><span class="p">.</span><span class="nf">build</span><span class="p">(</span><span class="sh">"</span><span class="s">output_dir</span><span class="sh">"</span><span class="p">,</span> <span class="n">wrapper</span><span class="o">=</span><span class="sh">"</span><span class="s">my_pack</span><span class="sh">"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<h2 id="integration-with-mdl-files">Integration with MDL Files</h2>
+
+<p>You can use the Python API alongside MDL files:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="n">minecraft_datapack_language</span> <span class="kn">import</span> <span class="n">Pack</span>
+<span class="kn">from</span> <span class="n">minecraft_datapack_language.mdl_parser_js</span> <span class="kn">import</span> <span class="n">parse_mdl_js</span>
+
+<span class="k">def</span> <span class="nf">create_hybrid_pack</span><span class="p">():</span>
+    <span class="c1"># Parse MDL file
+</span>    <span class="k">with</span> <span class="nf">open</span><span class="p">(</span><span class="sh">"</span><span class="s">my_functions.mdl</span><span class="sh">"</span><span class="p">,</span> <span class="sh">"</span><span class="s">r</span><span class="sh">"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">mdl_content</span> <span class="o">=</span> <span class="n">f</span><span class="p">.</span><span class="nf">read</span><span class="p">()</span>
+    
+    <span class="n">ast</span> <span class="o">=</span> <span class="nf">parse_mdl_js</span><span class="p">(</span><span class="n">mdl_content</span><span class="p">)</span>
+    
+    <span class="c1"># Create pack via Python API
+</span>    <span class="n">p</span> <span class="o">=</span> <span class="nc">Pack</span><span class="p">(</span><span class="sh">"</span><span class="s">Hybrid Pack</span><span class="sh">"</span><span class="p">,</span> <span class="sh">"</span><span class="s">Combines MDL and Python</span><span class="sh">"</span><span class="p">,</span> <span class="mi">82</span><span class="p">)</span>
+    
+    <span class="c1"># Add functions from MDL
+</span>    <span class="k">for</span> <span class="n">func</span> <span class="ow">in</span> <span class="n">ast</span><span class="p">[</span><span class="sh">'</span><span class="s">functions</span><span class="sh">'</span><span class="p">]:</span>
+        <span class="n">ns</span> <span class="o">=</span> <span class="n">p</span><span class="p">.</span><span class="nf">namespace</span><span class="p">(</span><span class="n">func</span><span class="p">.</span><span class="n">namespace</span><span class="p">)</span>
+        <span class="n">ns</span><span class="p">.</span><span class="nf">function</span><span class="p">(</span><span class="n">func</span><span class="p">.</span><span class="n">name</span><span class="p">,</span> <span class="o">*</span><span class="n">func</span><span class="p">.</span><span class="n">commands</span><span class="p">)</span>
+    
+    <span class="c1"># Add additional functions via Python API
+</span>    <span class="n">ns</span> <span class="o">=</span> <span class="n">p</span><span class="p">.</span><span class="nf">namespace</span><span class="p">(</span><span class="sh">"</span><span class="s">python</span><span class="sh">"</span><span class="p">)</span>
+    <span class="n">ns</span><span class="p">.</span><span class="nf">function</span><span class="p">(</span><span class="sh">"</span><span class="s">python_func</span><span class="sh">"</span><span class="p">,</span> <span class="sh">"</span><span class="s">say Created via Python API!</span><span class="sh">"</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">p</span>
+</code></pre></div></div>
+
+<h2 id="best-practices">Best Practices</h2>
+
+<h3 id="1-organize-by-namespace">1. Organize by Namespace</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">create_organized_pack</span><span class="p">():</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="nc">Pack</span><span class="p">(</span><span class="sh">"</span><span class="s">Organized Pack</span><span class="sh">"</span><span class="p">,</span> <span class="sh">"</span><span class="s">Well-organized datapack</span><span class="sh">"</span><span class="p">,</span> <span class="mi">82</span><span class="p">)</span>
+    
+    <span class="c1"># Core systems
+</span>    <span class="n">core</span> <span class="o">=</span> <span class="n">p</span><span class="p">.</span><span class="nf">namespace</span><span class="p">(</span><span class="sh">"</span><span class="s">core</span><span class="sh">"</span><span class="p">)</span>
+    <span class="n">core</span><span class="p">.</span><span class="nf">function</span><span class="p">(</span><span class="sh">"</span><span class="s">init</span><span class="sh">"</span><span class="p">,</span> <span class="sh">"</span><span class="s">say Initializing...</span><span class="sh">"</span><span class="p">)</span>
+    <span class="n">core</span><span class="p">.</span><span class="nf">function</span><span class="p">(</span><span class="sh">"</span><span class="s">tick</span><span class="sh">"</span><span class="p">,</span> <span class="sh">"</span><span class="s">say Tick...</span><span class="sh">"</span><span class="p">)</span>
+    
+    <span class="c1"># Feature modules
+</span>    <span class="n">combat</span> <span class="o">=</span> <span class="n">p</span><span class="p">.</span><span class="nf">namespace</span><span class="p">(</span><span class="sh">"</span><span class="s">combat</span><span class="sh">"</span><span class="p">)</span>
+    <span class="n">ui</span> <span class="o">=</span> <span class="n">p</span><span class="p">.</span><span class="nf">namespace</span><span class="p">(</span><span class="sh">"</span><span class="s">ui</span><span class="sh">"</span><span class="p">)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">p</span><span class="p">.</span><span class="nf">namespace</span><span class="p">(</span><span class="sh">"</span><span class="s">data</span><span class="sh">"</span><span class="p">)</span>
+    
+    <span class="c1"># Each namespace handles its own functionality
+</span>    <span class="k">return</span> <span class="n">p</span>
+</code></pre></div></div>
+
+<h3 id="2-use-function-composition">2. Use Function Composition</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">create_composable_pack</span><span class="p">():</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="nc">Pack</span><span class="p">(</span><span class="sh">"</span><span class="s">Composable Pack</span><span class="sh">"</span><span class="p">,</span> <span class="sh">"</span><span class="s">Uses function composition</span><span class="sh">"</span><span class="p">,</span> <span class="mi">82</span><span class="p">)</span>
+    
+    <span class="n">ns</span> <span class="o">=</span> <span class="n">p</span><span class="p">.</span><span class="nf">namespace</span><span class="p">(</span><span class="sh">"</span><span class="s">example</span><span class="sh">"</span><span class="p">)</span>
+    
+    <span class="c1"># Small, focused functions
+</span>    <span class="n">ns</span><span class="p">.</span><span class="nf">function</span><span class="p">(</span><span class="sh">"</span><span class="s">check_player</span><span class="sh">"</span><span class="p">,</span> <span class="sh">"</span><span class="s">execute if entity @s[type=minecraft:player]</span><span class="sh">"</span><span class="p">)</span>
+    <span class="n">ns</span><span class="p">.</span><span class="nf">function</span><span class="p">(</span><span class="sh">"</span><span class="s">give_effect</span><span class="sh">"</span><span class="p">,</span> <span class="sh">"</span><span class="s">effect give @s minecraft:speed 10 1</span><span class="sh">"</span><span class="p">)</span>
+    <span class="n">ns</span><span class="p">.</span><span class="nf">function</span><span class="p">(</span><span class="sh">"</span><span class="s">send_message</span><span class="sh">"</span><span class="p">,</span> <span class="sh">"</span><span class="s">tellraw @s {</span><span class="se">\"</span><span class="s">text</span><span class="se">\"</span><span class="s">:</span><span class="se">\"</span><span class="s">Effect applied!</span><span class="se">\"</span><span class="s">,</span><span class="se">\"</span><span class="s">color</span><span class="se">\"</span><span class="s">:</span><span class="se">\"</span><span class="s">green</span><span class="se">\"</span><span class="s">}</span><span class="sh">"</span><span class="p">)</span>
+    
+    <span class="c1"># Compose functions
+</span>    <span class="n">ns</span><span class="p">.</span><span class="nf">function</span><span class="p">(</span><span class="sh">"</span><span class="s">player_effects</span><span class="sh">"</span><span class="p">,</span>
+        <span class="sh">"</span><span class="s">function example:check_player run function example:give_effect</span><span class="sh">"</span><span class="p">,</span>
+        <span class="sh">"</span><span class="s">function example:check_player run function example:send_message</span><span class="sh">"</span>
+    <span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">p</span>
+</code></pre></div></div>
+
+<h3 id="3-error-handling">3. Error Handling</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">create_robust_pack</span><span class="p">():</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="nc">Pack</span><span class="p">(</span><span class="sh">"</span><span class="s">Robust Pack</span><span class="sh">"</span><span class="p">,</span> <span class="sh">"</span><span class="s">Handles errors gracefully</span><span class="sh">"</span><span class="p">,</span> <span class="mi">82</span><span class="p">)</span>
+    
+    <span class="n">ns</span> <span class="o">=</span> <span class="n">p</span><span class="p">.</span><span class="nf">namespace</span><span class="p">(</span><span class="sh">"</span><span class="s">robust</span><span class="sh">"</span><span class="p">)</span>
+    
+    <span class="c1"># Always check conditions before operations
+</span>    <span class="n">ns</span><span class="p">.</span><span class="nf">function</span><span class="p">(</span><span class="sh">"</span><span class="s">safe_operation</span><span class="sh">"</span><span class="p">,</span>
+        <span class="sh">"</span><span class="s">execute if entity @a run say Players found</span><span class="sh">"</span><span class="p">,</span>
+        <span class="sh">"</span><span class="s">execute unless entity @a run say No players found</span><span class="sh">"</span><span class="p">,</span>
+        <span class="sh">"</span><span class="s">execute if entity @a run effect give @a minecraft:speed 5 1</span><span class="sh">"</span>
+    <span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">p</span>
+</code></pre></div></div>
+
+<h2 id="complete-example">Complete Example</h2>
+
+<p>Here’s a complete example that demonstrates all features:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="n">minecraft_datapack_language</span> <span class="kn">import</span> <span class="n">Pack</span>
+
+<span class="k">def</span> <span class="nf">create_complete_pack</span><span class="p">():</span>
+    <span class="sh">"""</span><span class="s">Create a complete datapack demonstrating all features.</span><span class="sh">"""</span>
+    
+    <span class="c1"># Create the pack
+</span>    <span class="n">p</span> <span class="o">=</span> <span class="nc">Pack</span><span class="p">(</span><span class="sh">"</span><span class="s">Complete Example</span><span class="sh">"</span><span class="p">,</span> <span class="sh">"</span><span class="s">Demonstrates all MDL features</span><span class="sh">"</span><span class="p">,</span> <span class="mi">82</span><span class="p">)</span>
+    
+    <span class="c1"># Core namespace
+</span>    <span class="n">core</span> <span class="o">=</span> <span class="n">p</span><span class="p">.</span><span class="nf">namespace</span><span class="p">(</span><span class="sh">"</span><span class="s">core</span><span class="sh">"</span><span class="p">)</span>
+    <span class="n">core</span><span class="p">.</span><span class="nf">function</span><span class="p">(</span><span class="sh">"</span><span class="s">init</span><span class="sh">"</span><span class="p">,</span>
+        <span class="sh">"</span><span class="s">say [core:init] Initializing Complete Example...</span><span class="sh">"</span><span class="p">,</span>
+        <span class="sh">"</span><span class="s">tellraw @a {</span><span class="se">\"</span><span class="s">text</span><span class="se">\"</span><span class="s">:</span><span class="se">\"</span><span class="s">Complete Example loaded!</span><span class="se">\"</span><span class="s">,</span><span class="se">\"</span><span class="s">color</span><span class="se">\"</span><span class="s">:</span><span class="se">\"</span><span class="s">green</span><span class="se">\"</span><span class="s">}</span><span class="sh">"</span><span class="p">,</span>
+        <span class="sh">"</span><span class="s">scoreboard objectives add example_counter dummy </span><span class="se">\"</span><span class="s">Example Counter</span><span class="se">\"</span><span class="sh">"</span>
+    <span class="p">)</span>
+    
+    <span class="n">core</span><span class="p">.</span><span class="nf">function</span><span class="p">(</span><span class="sh">"</span><span class="s">tick</span><span class="sh">"</span><span class="p">,</span>
+        <span class="sh">"</span><span class="s">say [core:tick] Core systems running...</span><span class="sh">"</span><span class="p">,</span>
+        <span class="sh">"</span><span class="s">execute as @a run particle minecraft:end_rod ~ ~ ~ 0.1 0.1 0.1 0.01 1</span><span class="sh">"</span>
+    <span class="p">)</span>
+    
+    <span class="c1"># Combat namespace
+</span>    <span class="n">combat</span> <span class="o">=</span> <span class="n">p</span><span class="p">.</span><span class="nf">namespace</span><span class="p">(</span><span class="sh">"</span><span class="s">combat</span><span class="sh">"</span><span class="p">)</span>
+    <span class="n">combat</span><span class="p">.</span><span class="nf">function</span><span class="p">(</span><span class="sh">"</span><span class="s">weapon_effects</span><span class="sh">"</span><span class="p">,</span>
+        <span class="sh">"</span><span class="s">execute as @a[nbt={SelectedItem:{id:</span><span class="se">\"</span><span class="s">minecraft:diamond_sword</span><span class="se">\"</span><span class="s">}}] run effect give @s minecraft:strength 1 0 true</span><span class="sh">"</span><span class="p">,</span>
+        <span class="sh">"</span><span class="s">execute as @a[nbt={SelectedItem:{id:</span><span class="se">\"</span><span class="s">minecraft:golden_sword</span><span class="se">\"</span><span class="s">}}] run effect give @s minecraft:speed 1 0 true</span><span class="sh">"</span>
+    <span class="p">)</span>
+    
+    <span class="n">combat</span><span class="p">.</span><span class="nf">function</span><span class="p">(</span><span class="sh">"</span><span class="s">update_combat</span><span class="sh">"</span><span class="p">,</span>
+        <span class="sh">"</span><span class="s">function core:tick</span><span class="sh">"</span><span class="p">,</span>
+        <span class="sh">"</span><span class="s">function combat:weapon_effects</span><span class="sh">"</span>
+    <span class="p">)</span>
+    
+    <span class="c1"># UI namespace
+</span>    <span class="n">ui</span> <span class="o">=</span> <span class="n">p</span><span class="p">.</span><span class="nf">namespace</span><span class="p">(</span><span class="sh">"</span><span class="s">ui</span><span class="sh">"</span><span class="p">)</span>
+    <span class="n">ui</span><span class="p">.</span><span class="nf">function</span><span class="p">(</span><span class="sh">"</span><span class="s">hud</span><span class="sh">"</span><span class="p">,</span>
+        <span class="sh">"</span><span class="s">title @a actionbar {</span><span class="se">\"</span><span class="s">text</span><span class="se">\"</span><span class="s">:</span><span class="se">\"</span><span class="s">Complete Example Active</span><span class="se">\"</span><span class="s">,</span><span class="se">\"</span><span class="s">color</span><span class="se">\"</span><span class="s">:</span><span class="se">\"</span><span class="s">gold</span><span class="se">\"</span><span class="s">}</span><span class="sh">"</span>
+    <span class="p">)</span>
+    
+    <span class="n">ui</span><span class="p">.</span><span class="nf">function</span><span class="p">(</span><span class="sh">"</span><span class="s">update_ui</span><span class="sh">"</span><span class="p">,</span>
+        <span class="sh">"</span><span class="s">function ui:hud</span><span class="sh">"</span><span class="p">,</span>
+        <span class="sh">"</span><span class="s">function combat:update_combat</span><span class="sh">"</span>
+    <span class="p">)</span>
+    
+    <span class="c1"># Data namespace
+</span>    <span class="n">data</span> <span class="o">=</span> <span class="n">p</span><span class="p">.</span><span class="nf">namespace</span><span class="p">(</span><span class="sh">"</span><span class="s">data</span><span class="sh">"</span><span class="p">)</span>
+    <span class="n">data</span><span class="p">.</span><span class="nf">function</span><span class="p">(</span><span class="sh">"</span><span class="s">setup_data</span><span class="sh">"</span><span class="p">,</span>
+        <span class="sh">"</span><span class="s">say Setting up data...</span><span class="sh">"</span>
+    <span class="p">)</span>
+    
+    <span class="c1"># Lifecycle hooks
+</span>    <span class="n">p</span><span class="p">.</span><span class="nf">on_load</span><span class="p">(</span><span class="sh">"</span><span class="s">core:init</span><span class="sh">"</span><span class="p">)</span>
+    <span class="n">p</span><span class="p">.</span><span class="nf">on_tick</span><span class="p">(</span><span class="sh">"</span><span class="s">ui:update_ui</span><span class="sh">"</span><span class="p">)</span>
+    
+    <span class="c1"># Function tags
+</span>    <span class="n">p</span><span class="p">.</span><span class="nf">tag</span><span class="p">(</span><span class="sh">"</span><span class="s">function</span><span class="sh">"</span><span class="p">,</span> <span class="sh">"</span><span class="s">minecraft:load</span><span class="sh">"</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="p">[</span><span class="sh">"</span><span class="s">core:init</span><span class="sh">"</span><span class="p">])</span>
+    <span class="n">p</span><span class="p">.</span><span class="nf">tag</span><span class="p">(</span><span class="sh">"</span><span class="s">function</span><span class="sh">"</span><span class="p">,</span> <span class="sh">"</span><span class="s">minecraft:tick</span><span class="sh">"</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="p">[</span><span class="sh">"</span><span class="s">ui:update_ui</span><span class="sh">"</span><span class="p">])</span>
+    
+    <span class="c1"># Data tags
+</span>    <span class="n">p</span><span class="p">.</span><span class="nf">tag</span><span class="p">(</span><span class="sh">"</span><span class="s">item</span><span class="sh">"</span><span class="p">,</span> <span class="sh">"</span><span class="s">example:swords</span><span class="sh">"</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="p">[</span>
+        <span class="sh">"</span><span class="s">minecraft:diamond_sword</span><span class="sh">"</span><span class="p">,</span>
+        <span class="sh">"</span><span class="s">minecraft:netherite_sword</span><span class="sh">"</span>
+    <span class="p">])</span>
+    
+    <span class="n">p</span><span class="p">.</span><span class="nf">tag</span><span class="p">(</span><span class="sh">"</span><span class="s">block</span><span class="sh">"</span><span class="p">,</span> <span class="sh">"</span><span class="s">example:glassy</span><span class="sh">"</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="p">[</span>
+        <span class="sh">"</span><span class="s">minecraft:glass</span><span class="sh">"</span><span class="p">,</span>
+        <span class="sh">"</span><span class="s">minecraft:tinted_glass</span><span class="sh">"</span>
+    <span class="p">])</span>
+    
+    <span class="k">return</span> <span class="n">p</span>
+
+<span class="c1"># Create and build the pack
+</span><span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="sh">"</span><span class="s">__main__</span><span class="sh">"</span><span class="p">:</span>
+    <span class="n">pack</span> <span class="o">=</span> <span class="nf">create_complete_pack</span><span class="p">()</span>
+    <span class="n">pack</span><span class="p">.</span><span class="nf">build</span><span class="p">(</span><span class="sh">"</span><span class="s">dist</span><span class="sh">"</span><span class="p">)</span>
+    <span class="nf">print</span><span class="p">(</span><span class="sh">"</span><span class="s">Complete example pack built successfully!</span><span class="sh">"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>The Python API provides a powerful, flexible way to create Minecraft datapacks with full support for the JavaScript-style MDL language features.</p>
+
+      </div>
+      
+      <!-- Page Navigation Footer -->
+      <footer class="post-footer">
+        <div class="post-navigation">
+          <a href="/MinecraftDatapackLanguage/" class="btn btn-primary">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="margin-right: 0.5rem;">
+              <path d="M8 0C3.6 0 0 3.6 0 8s3.6 8 8 8 8-3.6 8-8-3.6-8-8-8zm0 14c-3.3 0-6-2.7-6-6s2.7-6 6-6 6 2.7 6 6-2.7 6-6 6z"/>
+              <path d="M7 4h2v6H7z"/>
+              <path d="M4 7h6v2H4z"/>
+            </svg>
+            Back to Home
+          </a>
+        </div>
+      </footer>
+    </article>
+  </div>
+</div>
+
+<!-- Back to Top Button -->
+<button id="back-to-top" class="back-to-top" aria-label="Back to top">
+  <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+    <path d="M10 0L3 7h4v13h6V7h4L10 0z"/>
+  </svg>
+</button>
+
+<style>
+.page-content {
+  padding: 2rem 0;
+}
+
+.wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.post {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  padding: 2rem;
+}
+
+.post-header {
+  margin-bottom: 2rem;
+  border-bottom: 2px solid #e1e4e8;
+  padding-bottom: 1rem;
+}
+
+.post-title {
+  color: #24292e;
+  font-size: 2rem;
+  margin: 0;
+}
+
+.post-description {
+  color: #586069;
+  font-size: 1.1rem;
+  margin: 0.5rem 0 0 0;
+}
+
+.post-content {
+  line-height: 1.6;
+  color: #24292e;
+}
+
+.post-content h1,
+.post-content h2,
+.post-content h3,
+.post-content h4,
+.post-content h5,
+.post-content h6 {
+  color: #24292e;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+.post-content h1 {
+  font-size: 1.8rem;
+  border-bottom: 2px solid #e1e4e8;
+  padding-bottom: 0.5rem;
+}
+
+.post-content h2 {
+  font-size: 1.5rem;
+  border-bottom: 1px solid #e1e4e8;
+  padding-bottom: 0.3rem;
+}
+
+.post-content h3 {
+  font-size: 1.3rem;
+}
+
+.post-content code {
+  background: #f6f8fa;
+  padding: 0.2rem 0.4rem;
+  border-radius: 3px;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+}
+
+.post-content pre {
+  background: #f6f8fa;
+  padding: 1rem;
+  border-radius: 6px;
+  overflow-x: auto;
+  border: 1px solid #e1e4e8;
+}
+
+.post-content pre code {
+  background: none;
+  padding: 0;
+}
+
+.post-content blockquote {
+  border-left: 4px solid #0366d6;
+  padding-left: 1rem;
+  margin: 1rem 0;
+  color: #586069;
+}
+
+.post-content table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1rem 0;
+}
+
+.post-content th,
+.post-content td {
+  border: 1px solid #e1e4e8;
+  padding: 0.5rem;
+  text-align: left;
+}
+
+.post-content th {
+  background: #f6f8fa;
+  font-weight: 600;
+}
+
+.post-content ul,
+.post-content ol {
+  padding-left: 2rem;
+}
+
+.post-content li {
+  margin: 0.5rem 0;
+}
+
+/* Post Footer Navigation */
+.post-footer {
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid #e1e4e8;
+}
+
+.post-navigation {
+  display: flex;
+  justify-content: center;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 500;
+  text-decoration: none;
+  border-radius: 6px;
+  transition: all 0.2s;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background: #0366d6;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #0256b3;
+  text-decoration: none;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* Back to Top Button */
+.back-to-top {
+  position: fixed;
+  bottom: 2rem;
+  left: 2rem;
+  background: #0366d6;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  transition: all 0.2s;
+  opacity: 0;
+  visibility: hidden;
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.back-to-top.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.back-to-top:hover {
+  background: #0256b3;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+}
+
+@media (max-width: 768px) {
+  .wrapper {
+    padding: 0 0.5rem;
+  }
+  
+  .post {
+    padding: 1rem;
+  }
+  
+  .post-title {
+    font-size: 1.5rem;
+  }
+  
+  .back-to-top {
+    bottom: 1rem;
+    left: 1rem;
+    width: 40px;
+    height: 40px;
+  }
+}
+</style>
+
+<script>
+// Back to Top Button
+document.addEventListener('DOMContentLoaded', function() {
+  const backToTop = document.getElementById('back-to-top');
+  
+  if (backToTop) {
+    // Show/hide button based on scroll position
+    window.addEventListener('scroll', function() {
+      if (window.pageYOffset > 300) {
+        backToTop.classList.add('show');
+      } else {
+        backToTop.classList.remove('show');
+      }
+    });
+    
+    // Smooth scroll to top when clicked
+    backToTop.addEventListener('click', function() {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    });
+  }
+});
+</script>
+
+
+      <footer class="site-footer">
+        
+          <span class="site-footer-owner"><a href="https://github.com/aaron777collins/MinecraftDatapackLanguage">MinecraftDatapackLanguage</a> is maintained by <a href="https://github.com/aaron777collins">aaron777collins</a>.</span>
+        
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a>.</span>
+      </footer>
+    </main>
+  </body>
+</html>

@@ -9,14 +9,13 @@
     </div>
     <ul class="nav-list">
       {%- assign doc_items = site.nav | where_exp: "i", "i.url contains '/docs/'" -%}
-      {%- assign non_doc_items = site.nav | where_exp: "i", "i.url contains '/docs/' | not" -%}
 
-      {%- for item in non_doc_items -%}
-        {%- if item.title != "Home" -%}
+      {%- for item in site.nav -%}
+        {%- unless item.url contains '/docs/' or item.title == "Home" -%}
           <li class="nav-item">
             <a href="{{ item.url | relative_url }}" class="nav-link{% if page.url == item.url or page.url contains item.url %} active{% endif %}">{{ item.title }}</a>
           </li>
-        {%- endif -%}
+        {%- endunless -%}
       {%- endfor -%}
 
       {%- if doc_items and doc_items.size > 0 -%}

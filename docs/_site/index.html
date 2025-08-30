@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Minecraft Datapack Language (MDL) | Minecraft Datapack Language (MDL) v12</title>
+<meta name="generator" content="Jekyll v4.3.4" />
+<meta property="og:title" content="Minecraft Datapack Language (MDL)" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="A powerful compiler that lets you write Minecraft datapacks in a modern JavaScript-style language (.mdl) or via a clean Python API" />
+<meta property="og:description" content="A powerful compiler that lets you write Minecraft datapacks in a modern JavaScript-style language (.mdl) or via a clean Python API" />
+<link rel="canonical" href="https://aaron777collins.github.io/MinecraftDatapackLanguage/" />
+<meta property="og:url" content="https://aaron777collins.github.io/MinecraftDatapackLanguage/" />
+<meta property="og:site_name" content="Minecraft Datapack Language (MDL) v12" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Minecraft Datapack Language (MDL)" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebSite","description":"A powerful compiler that lets you write Minecraft datapacks in a modern JavaScript-style language (.mdl) or via a clean Python API","headline":"Minecraft Datapack Language (MDL)","name":"Minecraft Datapack Language (MDL) v12","url":"https://aaron777collins.github.io/MinecraftDatapackLanguage/"}</script>
+<!-- End Jekyll SEO tag -->
+
+    <link rel="stylesheet" href="/MinecraftDatapackLanguage/assets/css/style.css?v=8419a03f2701300fa9adebd5fffaa7b1b49fdc1b">
+    <!-- Custom head content -->
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Favicon -->
+<link rel="icon" type="image/png" sizes="32x32" href="/MinecraftDatapackLanguage/icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/MinecraftDatapackLanguage/icons/favicon-16.png">
+<link rel="icon" type="image/png" sizes="64x64" href="/MinecraftDatapackLanguage/icons/favicon-64.png">
+<link rel="icon" type="image/png" sizes="48x48" href="/MinecraftDatapackLanguage/icons/favicon-48.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/MinecraftDatapackLanguage/icons/icon-128.png">
+<meta name="theme-color" content="#0366d6">
+
+<!-- Syntax highlighting for code blocks -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+<script>
+  // Configure Prism autoloader to load from the CDN components directory
+  window.Prism = window.Prism || {};
+  Prism.plugins = Prism.plugins || {};
+  Prism.plugins.autoloader = Prism.plugins.autoloader || {};
+  Prism.plugins.autoloader.languages_path = 'https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/';
+
+  // Aliases:
+  // - MDL (custom language) -> treat as JavaScript for highlighting
+  // - mcfunction is not officially supported; fall back to none (plain text) to avoid failed loads
+  Prism.languages.mdl = Prism.languages.javascript;
+  Prism.languages.mcfunction = Prism.languages.none;
+
+  // Preload a few common languages used in the docs to reduce autoloader fetches
+  (function preload(langFiles) {
+    var head = document.head || document.getElementsByTagName('head')[0];
+    langFiles.forEach(function(file) {
+      var s = document.createElement('script');
+      s.defer = true;
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/' + file;
+      head.appendChild(s);
+    });
+  })([
+    'prism-clike.min.js',
+    'prism-javascript.min.js',
+    'prism-bash.min.js',
+    'prism-python.min.js'
+  ]);
+</script>
+
+<!-- Custom styles -->
+<style>
+/* Navigation styles */
+.nav-menu {
+  background: #24292e;
+  padding: 1rem 0;
+  margin-bottom: 2rem;
+}
+
+.nav-menu ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.nav-menu li {
+  margin: 0 1rem;
+}
+
+.nav-menu a {
+  color: white;
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.nav-menu a:hover {
+  background: #0366d6;
+}
+
+/* Feature grid styles */
+.features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+  margin: 2rem 0;
+}
+
+.feature {
+  padding: 1.5rem;
+  border: 1px solid #e1e4e8;
+  border-radius: 6px;
+  background: #f6f8fa;
+  text-align: center;
+}
+
+.feature h3 {
+  margin-top: 0;
+  color: #24292e;
+}
+
+.feature p {
+  margin-bottom: 0;
+  color: #586069;
+}
+
+/* Code block improvements */
+pre[class*="language-"] {
+  border-radius: 6px;
+  border: 1px solid #e1e4e8;
+}
+
+code[class*="language-"] {
+  font-size: 0.9rem;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .nav-menu ul {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .nav-menu li {
+    margin: 0.5rem 0;
+  }
+  
+  .features {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .feature {
+    background: #2d3748;
+    border-color: #4a5568;
+  }
+  
+  .feature h3 {
+    color: #e2e8f0;
+  }
+  
+  .feature p {
+    color: #a0aec0;
+  }
+}
+</style>
+
+  </head>
+  <body>
+    <a id="skip-to-content" href="#content">Skip to the content.</a>
+
+
+    <!-- Include Enhanced Navigation -->
+    <!-- Main Navigation -->
+<nav class="nav-menu" role="navigation" aria-label="Main Navigation">
+  <div class="nav-container">
+    <div class="nav-brand">
+      <a href="/MinecraftDatapackLanguage/" class="nav-logo">
+        <img src="/MinecraftDatapackLanguage/icons/icon-64.png" alt="MDL" width="24" height="24">
+        <span>MDL</span>
+      </a>
+    </div>
+    <ul class="nav-list"><li class="nav-item">
+            <a href="/MinecraftDatapackLanguage/downloads/" class="nav-link">Downloads</a>
+          </li><li class="nav-item nav-dropdown" aria-haspopup="true" aria-expanded="false">
+          <button class="nav-link nav-dropdown-toggle" aria-haspopup="true" aria-expanded="false" aria-controls="nav-docs-menu">
+            Docs
+            <svg class="caret" width="12" height="12" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 011.08 1.04l-4.25 4.25a.75.75 0 01-1.06 0L5.21 8.27a.75.75 0 01.02-1.06z"/></svg>
+          </button>
+          <ul id="nav-docs-menu" class="nav-dropdown-menu" role="menu" aria-label="Docs"><li class="nav-dropdown-item" role="none">
+                <a role="menuitem" href="/MinecraftDatapackLanguage/docs/getting-started/" class="nav-dropdown-link">Getting Started</a>
+              </li><li class="nav-dropdown-item" role="none">
+                <a role="menuitem" href="/MinecraftDatapackLanguage/docs/language-reference/" class="nav-dropdown-link">Language Reference</a>
+              </li><li class="nav-dropdown-item" role="none">
+                <a role="menuitem" href="/MinecraftDatapackLanguage/docs/examples/" class="nav-dropdown-link">Examples</a>
+              </li><li class="nav-dropdown-item" role="none">
+                <a role="menuitem" href="/MinecraftDatapackLanguage/docs/multi-file-projects/" class="nav-dropdown-link">Multi-file Projects</a>
+              </li><li class="nav-dropdown-item" role="none">
+                <a role="menuitem" href="/MinecraftDatapackLanguage/docs/cli-reference/" class="nav-dropdown-link">CLI Reference</a>
+              </li><li class="nav-dropdown-item" role="none">
+                <a role="menuitem" href="/MinecraftDatapackLanguage/docs/python-api/" class="nav-dropdown-link">Python API</a>
+              </li><li class="nav-dropdown-item" role="none">
+                <a role="menuitem" href="/MinecraftDatapackLanguage/docs/vscode-extension/" class="nav-dropdown-link">VS Code Extension</a>
+              </li><li class="nav-dropdown-item" role="none">
+                <a role="menuitem" href="/MinecraftDatapackLanguage/docs/contributing/" class="nav-dropdown-link">Contributing</a>
+              </li></ul>
+        </li></ul>
+    <div class="nav-actions">
+      <a href="https://github.com/aaron777collins/MinecraftDatapackLanguage" class="nav-icon-link" aria-label="GitHub Repository" target="_blank" rel="noopener noreferrer">
+        <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+          <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path>
+        </svg>
+      </a>
+    </div>
+    <button class="nav-toggle" aria-label="Toggle navigation menu">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+        <path d="M2 4h16v2H2V4zm0 5h16v2H2V9zm0 5h16v2H2v-2z"/>
+      </svg>
+    </button>
+  </div>
+</nav>
+
+<!-- Breadcrumb Navigation -->
+
+
+<style>
+/* Main Navigation Styles */
+.nav-menu {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  color: #ffffff;
+  padding: 0;
+  margin-bottom: 2rem;
+  box-shadow: 0 8px 20px rgba(2, 6, 23, 0.35);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.nav-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 60px;
+}
+
+.nav-brand {
+  display: flex;
+  align-items: center;
+}
+
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 1.2rem;
+  letter-spacing: 0.2px;
+}
+
+.nav-logo:hover {
+  text-decoration: none;
+  color: #e2e8f0;
+}
+
+.nav-list {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: 1rem;
+  align-items: center;
+}
+
+.nav-item {
+  margin: 0;
+}
+
+.nav-link {
+  color: rgba(255, 255, 255, 0.85);
+  text-decoration: none;
+  padding: 0.5rem 0.85rem;
+  border-radius: 999px;
+  transition: background-color 0.2s, color 0.2s, transform 0.15s ease;
+  font-weight: 500;
+}
+
+.nav-link:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.nav-link.active {
+  background: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+}
+
+/* Dropdown */
+.nav-dropdown {
+  position: relative;
+}
+
+.nav-dropdown .nav-dropdown-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: transparent;
+  border: none;
+  color: rgba(255,255,255,0.85);
+  padding: 0.5rem 0.85rem;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.nav-dropdown .nav-dropdown-toggle:hover,
+.nav-dropdown.active .nav-dropdown-toggle {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+
+.nav-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 240px;
+  background: #0f172a;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  padding: 0.5rem;
+  margin-top: 0.5rem;
+  display: none;
+  box-shadow: 0 10px 30px rgba(2,6,23,0.45);
+  z-index: 1001;
+}
+
+.nav-dropdown:hover .nav-dropdown-menu {
+  display: block;
+}
+
+.nav-dropdown-item { list-style: none; }
+
+.nav-dropdown-link {
+  display: block;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  color: rgba(255,255,255,0.9);
+  text-decoration: none;
+}
+
+.nav-dropdown-link:hover { background: rgba(255,255,255,0.12); color: #fff; text-decoration: none; }
+.nav-dropdown-link.active { background: rgba(255,255,255,0.18); color: #fff; }
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: 1rem;
+}
+
+.nav-icon-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  text-decoration: none;
+  padding: 0.35rem;
+  border-radius: 8px;
+}
+
+.nav-icon-link:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+
+.nav-toggle {
+  display: none;
+  background: none;
+  border: none;
+  color: #ffffff;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 8px;
+}
+
+.nav-toggle:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* Breadcrumb Styles */
+.breadcrumb-nav {
+  margin: 1rem 0 2rem 0;
+  padding: 0 1rem;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.breadcrumb {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.breadcrumb-item {
+  display: flex;
+  align-items: center;
+}
+
+.breadcrumb-item:not(:last-child)::after {
+  content: "›";
+  margin-left: 0.5rem;
+  color: #586069;
+}
+
+.breadcrumb-link {
+  color: #0366d6;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.breadcrumb-link:hover {
+  background: #e1f5fe;
+  text-decoration: none;
+}
+
+.breadcrumb-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.breadcrumb-item.active {
+  color: #586069;
+  font-weight: 500;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .nav-list {
+    display: none;
+    position: absolute;
+    top: 60px;
+    left: 0;
+    right: 0;
+    background: linear-gradient(135deg, #0b1220 0%, #131c2b 100%);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    flex-direction: column;
+    padding: 1rem;
+    box-shadow: 0 10px 20px rgba(2,6,23,0.35);
+  }
+  /* Mobile: show dropdown items inline */
+  .nav-dropdown { width: 100%; }
+  .nav-dropdown-menu { position: static; display: none; margin: 0.25rem 0 0 0; box-shadow: none; border: none; background: transparent; padding: 0; }
+  .nav-dropdown.open .nav-dropdown-menu { display: block; }
+  .nav-dropdown-link { padding-left: 1rem; }
+  
+  .nav-list.show {
+    display: flex;
+  }
+  
+  .nav-toggle {
+    display: block;
+  }
+  .nav-actions {
+    margin-left: 0.5rem;
+  }
+  
+  .breadcrumb {
+    font-size: 0.8rem;
+  }
+}
+</style>
+
+<script>
+// Mobile Navigation Toggle
+document.addEventListener('DOMContentLoaded', function() {
+  const toggle = document.querySelector('.nav-toggle');
+  const navList = document.querySelector('.nav-list');
+  const dropdownToggles = document.querySelectorAll('.nav-dropdown-toggle');
+  
+  if (toggle && navList) {
+    toggle.addEventListener('click', function() {
+      navList.classList.toggle('show');
+    });
+    
+    // Close menu when clicking outside
+    document.addEventListener('click', function(event) {
+      if (!toggle.contains(event.target) && !navList.contains(event.target)) {
+        navList.classList.remove('show');
+      }
+    });
+  }
+
+  // Dropdown interactions
+  dropdownToggles.forEach(function(btn) {
+    const parent = btn.closest('.nav-dropdown');
+    const menu = parent ? parent.querySelector('.nav-dropdown-menu') : null;
+    if (!parent || !menu) return;
+
+    // Desktop: open on hover handled via CSS. Ensure ARIA reflects state
+    parent.addEventListener('mouseenter', function(){
+      if (window.matchMedia('(min-width: 769px)').matches) {
+        parent.classList.add('active');
+        btn.setAttribute('aria-expanded', 'true');
+      }
+    });
+    parent.addEventListener('mouseleave', function(){
+      if (window.matchMedia('(min-width: 769px)').matches) {
+        parent.classList.remove('active');
+        btn.setAttribute('aria-expanded', 'false');
+      }
+    });
+
+    // Mobile: toggle on click
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
+      const isOpen = parent.classList.toggle('open');
+      btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    });
+  });
+});
+</script>
+
+
+    <main id="content" class="main-content" role="main">
+      <h1 id="-minecraft-datapack-language-mdl"><img src="/MinecraftDatapackLanguage/icons/icon-128.png" width="48" height="48" alt="MDL Icon" style="vertical-align: middle; margin-right: 12px;" /> Minecraft Datapack Language (MDL)</h1>
+
+<p>A <strong>modern JavaScript-style compiler</strong> that lets you write Minecraft datapacks with <strong>real control structures, variables, and expressions</strong> that actually work.</p>
+
+<h2 id="quick-navigation">Quick Navigation</h2>
+
+<div class="quick-nav">
+  <div class="nav-card">
+    <h3>📥 Downloads</h3>
+    <p>Get the latest version and VS Code extension</p>
+    <a href="/MinecraftDatapackLanguage/downloads/" class="nav-link">Download Now →</a>
+  </div>
+  <div class="nav-card">
+    <h3>🚀 Getting Started</h3>
+    <p>Install and create your first datapack</p>
+    <a href="/MinecraftDatapackLanguage/docs/getting-started/" class="nav-link">Get Started →</a>
+  </div>
+  <div class="nav-card">
+    <h3>📖 Language Reference</h3>
+    <p>Complete MDL syntax guide</p>
+    <a href="/MinecraftDatapackLanguage/docs/language-reference/" class="nav-link">Learn MDL →</a>
+  </div>
+  <div class="nav-card">
+    <h3>📚 Examples</h3>
+    <p>Working examples of all features</p>
+    <a href="/MinecraftDatapackLanguage/docs/examples/" class="nav-link">View Examples →</a>
+  </div>
+  <div class="nav-card">
+    <h3>💻 CLI Reference</h3>
+    <p>Command-line tool usage</p>
+    <a href="/MinecraftDatapackLanguage/docs/cli-reference/" class="nav-link">CLI Guide →</a>
+  </div>
+  <div class="nav-card">
+    <h3>🔧 VS Code Extension</h3>
+    <p>IDE integration and features</p>
+    <a href="/MinecraftDatapackLanguage/docs/vscode-extension/" class="nav-link">VS Code →</a>
+  </div>
+  <div class="nav-card">
+    <h3>📁 Multi-file Projects</h3>
+    <p>Organize large projects</p>
+    <a href="/MinecraftDatapackLanguage/docs/multi-file-projects/" class="nav-link">Learn More →</a>
+  </div>
+  <div class="nav-card">
+    <h3>🐍 Python API</h3>
+    <p>Programmatic datapack creation</p>
+    <a href="/MinecraftDatapackLanguage/docs/python-api/" class="nav-link">Python API →</a>
+  </div>
+</div>
+
+<div class="features">
+  <div class="feature">
+    <h3>🎯 JavaScript-Style Syntax</h3>
+    <p>Write datapacks with modern curly braces, semicolons, and familiar syntax</p>
+  </div>
+  <div class="feature">
+    <h3>🔄 Real Control Structures</h3>
+    <p>Full if/else if/else statements and while loops that actually work</p>
+  </div>
+  <div class="feature">
+    <h3>🔢 Variables &amp; Expressions</h3>
+    <p>Number variables with arithmetic operations and variable substitution</p>
+  </div>
+  <div class="feature">
+    <h3>⚡ Modern Minecraft</h3>
+    <p>Pack format 82 by default with latest Minecraft features</p>
+  </div>
+  <div class="feature">
+    <h3>🔧 VS Code Support</h3>
+    <p>Syntax highlighting, linting, and quick compile with our VS Code extension</p>
+  </div>
+  <div class="feature">
+    <h3>📁 Multi-file Support</h3>
+    <p>Organize large projects across multiple files with automatic merging</p>
+  </div>
+</div>
+
+<h2 id="quick-start">Quick Start</h2>
+
+<h3 id="install">Install</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Using pipx (recommended)</span>
+python3 <span class="nt">-m</span> pip <span class="nb">install</span> <span class="nt">--user</span> pipx
+python3 <span class="nt">-m</span> pipx ensurepath
+pipx <span class="nb">install </span>minecraft-datapack-language
+
+<span class="c"># Or using pip</span>
+pip <span class="nb">install </span>minecraft-datapack-language
+</code></pre></div></div>
+
+<h3 id="create-your-first-datapack">Create Your First Datapack</h3>
+
+<pre><code class="language-mdl">// hello.mdl
+pack "My First Pack" "A simple example" 82;
+
+namespace "example";
+
+var num counter = 0;
+
+function "hello" {
+    say Hello, Minecraft!;
+    counter = counter + 1;
+    say Counter: $counter$;
+    
+    if "$counter$ &gt; 5" {
+        say Counter is high!;
+    } else {
+        say Counter is low;
+    }
+}
+
+on_load "example:hello";
+on_tick "example:hello";
+</code></pre>
+
+<h3 id="build-and-run">Build and Run</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Build the datapack</span>
+mdl build <span class="nt">--mdl</span> hello.mdl <span class="nt">-o</span> dist
+
+<span class="c"># Copy to Minecraft world</span>
+<span class="c"># Copy dist/my_first_pack/ to your world's datapacks folder</span>
+<span class="c"># Run /reload in-game</span>
+</code></pre></div></div>
+
+<h2 id="why-mdl">Why MDL?</h2>
+
+<h3 id="traditional-datapacks-vs-mdl">Traditional Datapacks vs MDL</h3>
+
+<p><strong>Traditional Minecraft Functions:</strong></p>
+<pre><code class="language-mcfunction"># Hard to read and maintain
+scoreboard players add @s counter 1
+execute if score @s counter matches 5.. run say High counter!
+execute unless score @s counter matches 5.. run say Low counter!
+</code></pre>
+
+<p><strong>MDL:</strong></p>
+<pre><code class="language-mdl">// Clean, readable, and maintainable
+counter = counter + 1;
+if "$counter$ &gt; 5" {
+    say High counter!;
+} else {
+    say Low counter!;
+}
+</code></pre>
+
+<h3 id="key-benefits">Key Benefits</h3>
+
+<ul>
+  <li><strong>🎯 Familiar Syntax</strong>: JavaScript-style with curly braces and semicolons</li>
+  <li><strong>🔄 Real Control Flow</strong>: If/else statements and loops that actually work</li>
+  <li><strong>🔢 Variables</strong>: Number variables with expressions and arithmetic</li>
+  <li><strong>📁 Organization</strong>: Multi-file projects with proper namespace separation</li>
+  <li><strong>⚡ Performance</strong>: Efficient compilation to optimized Minecraft commands</li>
+  <li><strong>🔧 Tooling</strong>: VS Code extension with syntax highlighting and linting</li>
+  <li><strong>📚 Documentation</strong>: Comprehensive guides and working examples</li>
+</ul>
+
+<h2 id="features">Features</h2>
+
+<h3 id="control-structures">Control Structures</h3>
+
+<p>Write real if/else statements and while loops:</p>
+
+<pre><code class="language-mdl">if "$health$ &lt; 10" {
+    say Health is low!;
+    effect give @s minecraft:regeneration 10 1;
+} else if "$health$ &lt; 20" {
+    say Health is moderate;
+} else {
+    say Health is good!;
+}
+
+while "$counter$ &lt; 10" {
+    say Counter: $counter$;
+    counter = counter + 1;
+}
+</code></pre>
+
+<h3 id="variables-and-expressions">Variables and Expressions</h3>
+
+<p>Use number variables with arithmetic operations:</p>
+
+<pre><code class="language-mdl">var num player_health = 20;
+var num damage = 5;
+var num final_damage = damage * 2;
+
+player_health = player_health - final_damage;
+say Health: $player_health$;
+</code></pre>
+
+<h3 id="multi-file-projects">Multi-file Projects</h3>
+
+<p>Organize large projects across multiple files:</p>
+
+<pre><code class="language-mdl">// main.mdl
+pack "My Game" description "A complete game" pack_format 82;
+namespace "game";
+// Main game logic
+
+// ui.mdl (no pack declaration needed)
+namespace "ui";
+// User interface code
+
+// combat.mdl (no pack declaration needed)
+namespace "combat";
+// Combat system code
+</code></pre>
+
+<h3 id="registry-support">Registry Support</h3>
+
+<p>Reference external JSON files for all Minecraft registry types:</p>
+
+<pre><code class="language-mdl">recipe "custom_sword" "recipes/sword.json";
+loot_table "treasure" "loot_tables/treasure.json";
+advancement "first_sword" "advancements/sword.json";
+</code></pre>
+
+<h2 id="getting-started">Getting Started</h2>
+
+<ol>
+  <li><strong>Install MDL</strong>: <code class="language-plaintext highlighter-rouge">pipx install minecraft-datapack-language</code></li>
+  <li><strong>Create your first datapack</strong>: Follow the <a href="/MinecraftDatapackLanguage/docs/getting-started/">Getting Started Guide</a></li>
+  <li><strong>Learn the language</strong>: Check the <a href="/MinecraftDatapackLanguage/docs/language-reference/">Language Reference</a></li>
+  <li><strong>See examples</strong>: Explore <a href="/MinecraftDatapackLanguage/docs/examples/">Working Examples</a></li>
+  <li><strong>Build projects</strong>: Use <a href="/MinecraftDatapackLanguage/docs/multi-file-projects/">Multi-file Projects</a></li>
+</ol>
+
+<h2 id="community">Community</h2>
+
+<ul>
+  <li><strong>GitHub</strong>: <a href="https://github.com/aaron777collins/MinecraftDatapackLanguage">Source Code</a></li>
+  <li><strong>Issues</strong>: <a href="https://github.com/aaron777collins/MinecraftDatapackLanguage/issues">Report Bugs</a></li>
+  <li><strong>Discussions</strong>: <a href="https://github.com/aaron777collins/MinecraftDatapackLanguage/discussions">Ask Questions</a></li>
+  <li><strong>Contributing</strong>: <a href="/MinecraftDatapackLanguage/docs/contributing/">Help Improve MDL</a></li>
+</ul>
+
+<h2 id="license">License</h2>
+
+<p>MDL is open source software licensed under the MIT License. See the <a href="https://github.com/aaron777collins/MinecraftDatapackLanguage/blob/main/LICENSE">LICENSE</a> file for details.</p>
+
+<style>
+.quick-nav {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
+
+.nav-card {
+  padding: 1.5rem;
+  border: 1px solid #e1e4e8;
+  border-radius: 8px;
+  background: white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: all 0.2s;
+  position: relative;
+}
+
+.nav-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.nav-card h3 {
+  margin-top: 0;
+  color: #24292e;
+  font-size: 1.2rem;
+}
+
+.nav-card p {
+  margin: 0.5rem 0 1rem 0;
+  color: #586069;
+}
+
+.nav-link {
+  display: inline-flex;
+  align-items: center;
+  color: #0366d6;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.nav-link:hover {
+  color: #0256b3;
+  text-decoration: none;
+}
+
+.features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+  margin: 2rem 0;
+}
+
+.feature {
+  padding: 1.5rem;
+  border: 1px solid #e1e4e8;
+  border-radius: 6px;
+  background: #f6f8fa;
+  position: relative;
+}
+
+.feature h3 {
+  margin-top: 0;
+  color: #24292e;
+}
+
+.feature p {
+  margin-bottom: 0;
+  color: #586069;
+}
+
+@media (max-width: 768px) {
+  .quick-nav {
+    grid-template-columns: 1fr;
+  }
+  
+  .nav-card {
+    padding: 1rem;
+  }
+  
+
+}
+</style>
+
+
+
+      <footer class="site-footer">
+        
+          <span class="site-footer-owner"><a href="https://github.com/aaron777collins/MinecraftDatapackLanguage">MinecraftDatapackLanguage</a> is maintained by <a href="https://github.com/aaron777collins">aaron777collins</a>.</span>
+        
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a>.</span>
+      </footer>
+    </main>
+  </body>
+</html>

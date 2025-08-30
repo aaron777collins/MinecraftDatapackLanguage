@@ -1,0 +1,1256 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>VS Code Extension | Minecraft Datapack Language (MDL) v12</title>
+<meta name="generator" content="Jekyll v4.3.4" />
+<meta property="og:title" content="VS Code Extension" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="VS Code Extension" />
+<meta property="og:description" content="VS Code Extension" />
+<link rel="canonical" href="https://aaron777collins.github.io/MinecraftDatapackLanguage/docs/vscode-extension/" />
+<meta property="og:url" content="https://aaron777collins.github.io/MinecraftDatapackLanguage/docs/vscode-extension/" />
+<meta property="og:site_name" content="Minecraft Datapack Language (MDL) v12" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2025-08-30T17:57:21+00:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="VS Code Extension" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2025-08-30T17:57:21+00:00","datePublished":"2025-08-30T17:57:21+00:00","description":"VS Code Extension","headline":"VS Code Extension","mainEntityOfPage":{"@type":"WebPage","@id":"https://aaron777collins.github.io/MinecraftDatapackLanguage/docs/vscode-extension/"},"url":"https://aaron777collins.github.io/MinecraftDatapackLanguage/docs/vscode-extension/"}</script>
+<!-- End Jekyll SEO tag -->
+
+    <link rel="stylesheet" href="/MinecraftDatapackLanguage/assets/css/style.css?v=8419a03f2701300fa9adebd5fffaa7b1b49fdc1b">
+    <!-- Custom head content -->
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Favicon -->
+<link rel="icon" type="image/png" sizes="32x32" href="/MinecraftDatapackLanguage/icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/MinecraftDatapackLanguage/icons/favicon-16.png">
+<link rel="icon" type="image/png" sizes="64x64" href="/MinecraftDatapackLanguage/icons/favicon-64.png">
+<link rel="icon" type="image/png" sizes="48x48" href="/MinecraftDatapackLanguage/icons/favicon-48.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/MinecraftDatapackLanguage/icons/icon-128.png">
+<meta name="theme-color" content="#0366d6">
+
+<!-- Syntax highlighting for code blocks -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+<script>
+  // Configure Prism autoloader to load from the CDN components directory
+  window.Prism = window.Prism || {};
+  Prism.plugins = Prism.plugins || {};
+  Prism.plugins.autoloader = Prism.plugins.autoloader || {};
+  Prism.plugins.autoloader.languages_path = 'https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/';
+
+  // Aliases:
+  // - MDL (custom language) -> treat as JavaScript for highlighting
+  // - mcfunction is not officially supported; fall back to none (plain text) to avoid failed loads
+  Prism.languages.mdl = Prism.languages.javascript;
+  Prism.languages.mcfunction = Prism.languages.none;
+
+  // Preload a few common languages used in the docs to reduce autoloader fetches
+  (function preload(langFiles) {
+    var head = document.head || document.getElementsByTagName('head')[0];
+    langFiles.forEach(function(file) {
+      var s = document.createElement('script');
+      s.defer = true;
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/' + file;
+      head.appendChild(s);
+    });
+  })([
+    'prism-clike.min.js',
+    'prism-javascript.min.js',
+    'prism-bash.min.js',
+    'prism-python.min.js'
+  ]);
+</script>
+
+<!-- Custom styles -->
+<style>
+/* Navigation styles */
+.nav-menu {
+  background: #24292e;
+  padding: 1rem 0;
+  margin-bottom: 2rem;
+}
+
+.nav-menu ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.nav-menu li {
+  margin: 0 1rem;
+}
+
+.nav-menu a {
+  color: white;
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.nav-menu a:hover {
+  background: #0366d6;
+}
+
+/* Feature grid styles */
+.features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+  margin: 2rem 0;
+}
+
+.feature {
+  padding: 1.5rem;
+  border: 1px solid #e1e4e8;
+  border-radius: 6px;
+  background: #f6f8fa;
+  text-align: center;
+}
+
+.feature h3 {
+  margin-top: 0;
+  color: #24292e;
+}
+
+.feature p {
+  margin-bottom: 0;
+  color: #586069;
+}
+
+/* Code block improvements */
+pre[class*="language-"] {
+  border-radius: 6px;
+  border: 1px solid #e1e4e8;
+}
+
+code[class*="language-"] {
+  font-size: 0.9rem;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .nav-menu ul {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .nav-menu li {
+    margin: 0.5rem 0;
+  }
+  
+  .features {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .feature {
+    background: #2d3748;
+    border-color: #4a5568;
+  }
+  
+  .feature h3 {
+    color: #e2e8f0;
+  }
+  
+  .feature p {
+    color: #a0aec0;
+  }
+}
+</style>
+
+  </head>
+  <body>
+    <a id="skip-to-content" href="#content">Skip to the content.</a>
+
+
+    <!-- Include Enhanced Navigation -->
+    <!-- Main Navigation -->
+<nav class="nav-menu" role="navigation" aria-label="Main Navigation">
+  <div class="nav-container">
+    <div class="nav-brand">
+      <a href="/MinecraftDatapackLanguage/" class="nav-logo">
+        <img src="/MinecraftDatapackLanguage/icons/icon-64.png" alt="MDL" width="24" height="24">
+        <span>MDL</span>
+      </a>
+    </div>
+    <ul class="nav-list"><li class="nav-item">
+            <a href="/MinecraftDatapackLanguage/downloads/" class="nav-link">Downloads</a>
+          </li><li class="nav-item nav-dropdown active" aria-haspopup="true" aria-expanded="false">
+          <button class="nav-link nav-dropdown-toggle" aria-haspopup="true" aria-expanded="false" aria-controls="nav-docs-menu">
+            Docs
+            <svg class="caret" width="12" height="12" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 011.08 1.04l-4.25 4.25a.75.75 0 01-1.06 0L5.21 8.27a.75.75 0 01.02-1.06z"/></svg>
+          </button>
+          <ul id="nav-docs-menu" class="nav-dropdown-menu" role="menu" aria-label="Docs"><li class="nav-dropdown-item" role="none">
+                <a role="menuitem" href="/MinecraftDatapackLanguage/docs/getting-started/" class="nav-dropdown-link">Getting Started</a>
+              </li><li class="nav-dropdown-item" role="none">
+                <a role="menuitem" href="/MinecraftDatapackLanguage/docs/language-reference/" class="nav-dropdown-link">Language Reference</a>
+              </li><li class="nav-dropdown-item" role="none">
+                <a role="menuitem" href="/MinecraftDatapackLanguage/docs/examples/" class="nav-dropdown-link">Examples</a>
+              </li><li class="nav-dropdown-item" role="none">
+                <a role="menuitem" href="/MinecraftDatapackLanguage/docs/multi-file-projects/" class="nav-dropdown-link">Multi-file Projects</a>
+              </li><li class="nav-dropdown-item" role="none">
+                <a role="menuitem" href="/MinecraftDatapackLanguage/docs/cli-reference/" class="nav-dropdown-link">CLI Reference</a>
+              </li><li class="nav-dropdown-item" role="none">
+                <a role="menuitem" href="/MinecraftDatapackLanguage/docs/python-api/" class="nav-dropdown-link">Python API</a>
+              </li><li class="nav-dropdown-item" role="none">
+                <a role="menuitem" href="/MinecraftDatapackLanguage/docs/vscode-extension/" class="nav-dropdown-link active">VS Code Extension</a>
+              </li><li class="nav-dropdown-item" role="none">
+                <a role="menuitem" href="/MinecraftDatapackLanguage/docs/contributing/" class="nav-dropdown-link">Contributing</a>
+              </li></ul>
+        </li></ul>
+    <div class="nav-actions">
+      <a href="https://github.com/aaron777collins/MinecraftDatapackLanguage" class="nav-icon-link" aria-label="GitHub Repository" target="_blank" rel="noopener noreferrer">
+        <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+          <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path>
+        </svg>
+      </a>
+    </div>
+    <button class="nav-toggle" aria-label="Toggle navigation menu">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+        <path d="M2 4h16v2H2V4zm0 5h16v2H2V9zm0 5h16v2H2v-2z"/>
+      </svg>
+    </button>
+  </div>
+</nav>
+
+<!-- Breadcrumb Navigation -->
+
+<nav class="breadcrumb-nav" aria-label="Breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item">
+      <a href="/MinecraftDatapackLanguage/" class="breadcrumb-link">
+        <svg class="breadcrumb-icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M8 0C3.6 0 0 3.6 0 8s3.6 8 8 8 8-3.6 8-8-3.6-8-8-8zm0 14c-3.3 0-6-2.7-6-6s2.7-6 6-6 6 2.7 6 6-2.7 6-6 6z"/>
+          <path d="M7 4h2v6H7z"/>
+          <path d="M4 7h6v2H4z"/>
+        </svg>
+        Home
+      </a>
+    </li>
+    
+      <li class="breadcrumb-item">
+        <a href="/MinecraftDatapackLanguage/docs/" class="breadcrumb-link">Documentation</a>
+      </li>
+    
+    <li class="breadcrumb-item active" aria-current="page">
+      VS Code Extension
+    </li>
+  </ol>
+</nav>
+
+
+<style>
+/* Main Navigation Styles */
+.nav-menu {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  color: #ffffff;
+  padding: 0;
+  margin-bottom: 2rem;
+  box-shadow: 0 8px 20px rgba(2, 6, 23, 0.35);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.nav-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 60px;
+}
+
+.nav-brand {
+  display: flex;
+  align-items: center;
+}
+
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 1.2rem;
+  letter-spacing: 0.2px;
+}
+
+.nav-logo:hover {
+  text-decoration: none;
+  color: #e2e8f0;
+}
+
+.nav-list {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: 1rem;
+  align-items: center;
+}
+
+.nav-item {
+  margin: 0;
+}
+
+.nav-link {
+  color: rgba(255, 255, 255, 0.85);
+  text-decoration: none;
+  padding: 0.5rem 0.85rem;
+  border-radius: 999px;
+  transition: background-color 0.2s, color 0.2s, transform 0.15s ease;
+  font-weight: 500;
+}
+
+.nav-link:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.nav-link.active {
+  background: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+}
+
+/* Dropdown */
+.nav-dropdown {
+  position: relative;
+}
+
+.nav-dropdown .nav-dropdown-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: transparent;
+  border: none;
+  color: rgba(255,255,255,0.85);
+  padding: 0.5rem 0.85rem;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.nav-dropdown .nav-dropdown-toggle:hover,
+.nav-dropdown.active .nav-dropdown-toggle {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+
+.nav-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 240px;
+  background: #0f172a;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  padding: 0.5rem;
+  margin-top: 0.5rem;
+  display: none;
+  box-shadow: 0 10px 30px rgba(2,6,23,0.45);
+  z-index: 1001;
+}
+
+.nav-dropdown:hover .nav-dropdown-menu {
+  display: block;
+}
+
+.nav-dropdown-item { list-style: none; }
+
+.nav-dropdown-link {
+  display: block;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  color: rgba(255,255,255,0.9);
+  text-decoration: none;
+}
+
+.nav-dropdown-link:hover { background: rgba(255,255,255,0.12); color: #fff; text-decoration: none; }
+.nav-dropdown-link.active { background: rgba(255,255,255,0.18); color: #fff; }
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: 1rem;
+}
+
+.nav-icon-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  text-decoration: none;
+  padding: 0.35rem;
+  border-radius: 8px;
+}
+
+.nav-icon-link:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+
+.nav-toggle {
+  display: none;
+  background: none;
+  border: none;
+  color: #ffffff;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 8px;
+}
+
+.nav-toggle:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* Breadcrumb Styles */
+.breadcrumb-nav {
+  margin: 1rem 0 2rem 0;
+  padding: 0 1rem;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.breadcrumb {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.breadcrumb-item {
+  display: flex;
+  align-items: center;
+}
+
+.breadcrumb-item:not(:last-child)::after {
+  content: "›";
+  margin-left: 0.5rem;
+  color: #586069;
+}
+
+.breadcrumb-link {
+  color: #0366d6;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.breadcrumb-link:hover {
+  background: #e1f5fe;
+  text-decoration: none;
+}
+
+.breadcrumb-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.breadcrumb-item.active {
+  color: #586069;
+  font-weight: 500;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .nav-list {
+    display: none;
+    position: absolute;
+    top: 60px;
+    left: 0;
+    right: 0;
+    background: linear-gradient(135deg, #0b1220 0%, #131c2b 100%);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    flex-direction: column;
+    padding: 1rem;
+    box-shadow: 0 10px 20px rgba(2,6,23,0.35);
+  }
+  /* Mobile: show dropdown items inline */
+  .nav-dropdown { width: 100%; }
+  .nav-dropdown-menu { position: static; display: none; margin: 0.25rem 0 0 0; box-shadow: none; border: none; background: transparent; padding: 0; }
+  .nav-dropdown.open .nav-dropdown-menu { display: block; }
+  .nav-dropdown-link { padding-left: 1rem; }
+  
+  .nav-list.show {
+    display: flex;
+  }
+  
+  .nav-toggle {
+    display: block;
+  }
+  .nav-actions {
+    margin-left: 0.5rem;
+  }
+  
+  .breadcrumb {
+    font-size: 0.8rem;
+  }
+}
+</style>
+
+<script>
+// Mobile Navigation Toggle
+document.addEventListener('DOMContentLoaded', function() {
+  const toggle = document.querySelector('.nav-toggle');
+  const navList = document.querySelector('.nav-list');
+  const dropdownToggles = document.querySelectorAll('.nav-dropdown-toggle');
+  
+  if (toggle && navList) {
+    toggle.addEventListener('click', function() {
+      navList.classList.toggle('show');
+    });
+    
+    // Close menu when clicking outside
+    document.addEventListener('click', function(event) {
+      if (!toggle.contains(event.target) && !navList.contains(event.target)) {
+        navList.classList.remove('show');
+      }
+    });
+  }
+
+  // Dropdown interactions
+  dropdownToggles.forEach(function(btn) {
+    const parent = btn.closest('.nav-dropdown');
+    const menu = parent ? parent.querySelector('.nav-dropdown-menu') : null;
+    if (!parent || !menu) return;
+
+    // Desktop: open on hover handled via CSS. Ensure ARIA reflects state
+    parent.addEventListener('mouseenter', function(){
+      if (window.matchMedia('(min-width: 769px)').matches) {
+        parent.classList.add('active');
+        btn.setAttribute('aria-expanded', 'true');
+      }
+    });
+    parent.addEventListener('mouseleave', function(){
+      if (window.matchMedia('(min-width: 769px)').matches) {
+        parent.classList.remove('active');
+        btn.setAttribute('aria-expanded', 'false');
+      }
+    });
+
+    // Mobile: toggle on click
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
+      const isOpen = parent.classList.toggle('open');
+      btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    });
+  });
+});
+</script>
+
+
+    <main id="content" class="main-content" role="main">
+      <div class="page-content">
+  <div class="wrapper">
+    <article class="post">
+      <header class="post-header">
+        <h1 class="post-title">VS Code Extension</h1>
+        
+      </header>
+
+      <div class="post-content">
+        <h1 id="vs-code-extension">VS Code Extension</h1>
+
+<p>The MDL VS Code extension provides syntax highlighting, linting, and build commands for <code class="language-plaintext highlighter-rouge">.mdl</code> files in VS Code, Cursor, and other VS Code-based editors.</p>
+
+<h2 id="features">Features</h2>
+
+<ul>
+  <li><strong>Syntax Highlighting</strong>: Color-coded MDL syntax</li>
+  <li><strong>Linting</strong>: Real-time error checking and validation</li>
+  <li><strong>Build Commands</strong>: Quick datapack compilation</li>
+  <li><strong>Workspace Validation</strong>: Check entire projects at once</li>
+</ul>
+
+<h2 id="installation">Installation</h2>
+
+<h3 id="option-1-download-from-github-releases-easiest">Option 1: Download from GitHub Releases (Easiest)</h3>
+
+<p>The VS Code extension is automatically built and available for download with each release:</p>
+
+<ol>
+  <li><strong>Go to <a href="https://github.com/aaron777collins/MinecraftDatapackLanguage/releases">GitHub Releases</a></strong></li>
+  <li><strong>Download the latest <code class="language-plaintext highlighter-rouge">.vsix</code> file</strong> from the release assets</li>
+  <li><strong>Install in your editor</strong>:
+    <ul>
+      <li>Open VS Code/Cursor</li>
+      <li>Go to Extensions (Ctrl+Shift+X)</li>
+      <li>Click the “…” menu in the Extensions panel</li>
+      <li>Select “Install from VSIX…”</li>
+      <li>Choose the downloaded <code class="language-plaintext highlighter-rouge">.vsix</code> file</li>
+      <li>Click “Install”</li>
+    </ul>
+  </li>
+</ol>
+
+<h3 id="option-2-build-from-source">Option 2: Build from Source</h3>
+
+<p>If you want to build the extension yourself:</p>
+
+<h4 id="for-vs-codecursor">For VS Code/Cursor:</h4>
+
+<ol>
+  <li><strong>Download the extension</strong>:
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Clone the repository</span>
+git clone https://github.com/aaron777collins/MinecraftDatapackLanguage.git
+<span class="nb">cd </span>MinecraftDatapackLanguage/vscode-extension
+   
+<span class="c"># Build the extension</span>
+npm <span class="nb">install
+</span>npm run compile
+npm <span class="nb">install</span> <span class="nt">-g</span> @vscode/vsce
+vsce package
+</code></pre></div>    </div>
+  </li>
+  <li><strong>Install in your editor</strong>:
+    <ul>
+      <li>Open VS Code/Cursor</li>
+      <li>Go to Extensions (Ctrl+Shift+X)</li>
+      <li>Click the “…” menu in the Extensions panel</li>
+      <li>Select “Install from VSIX…”</li>
+      <li>Navigate to <code class="language-plaintext highlighter-rouge">minecraft-datapack-language-0.1.0.vsix</code></li>
+      <li>Click “Install”</li>
+    </ul>
+  </li>
+</ol>
+
+<h4 id="alternative-command-line-installation">Alternative: Command Line Installation</h4>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Install directly from command line</span>
+code <span class="nt">--install-extension</span> minecraft-datapack-language-0.1.0.vsix
+</code></pre></div></div>
+
+<h3 id="option-3-development-installation">Option 3: Development Installation</h3>
+
+<p>For development and testing:</p>
+
+<ol>
+  <li><strong>Clone and setup</strong>:
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git clone https://github.com/aaron777collins/MinecraftDatapackLanguage.git
+<span class="nb">cd </span>MinecraftDatapackLanguage/vscode-extension
+npm <span class="nb">install
+</span>npm run compile
+</code></pre></div>    </div>
+  </li>
+  <li><strong>Launch Extension Development Host</strong>:
+    <ul>
+      <li>Press <code class="language-plaintext highlighter-rouge">F5</code> in VS Code to launch the extension in a new window</li>
+      <li>Or use <code class="language-plaintext highlighter-rouge">npm run watch</code> for continuous compilation</li>
+    </ul>
+  </li>
+</ol>
+
+<h2 id="quick-start">Quick Start</h2>
+
+<p>Once installed, the extension will automatically activate when you open <code class="language-plaintext highlighter-rouge">.mdl</code> files:</p>
+
+<ol>
+  <li><strong>Open any <code class="language-plaintext highlighter-rouge">.mdl</code> file</strong> - syntax highlighting will activate immediately</li>
+  <li><strong>Try the commands</strong> - Press <code class="language-plaintext highlighter-rouge">Ctrl+Shift+P</code> and type “MDL” to see available commands</li>
+  <li><strong>Build a datapack</strong> - Use “MDL: Build current file” to compile your MDL files</li>
+</ol>
+
+<h2 id="usage">Usage</h2>
+
+<h3 id="opening-mdl-files">Opening MDL Files</h3>
+
+<ol>
+  <li>Open any <code class="language-plaintext highlighter-rouge">.mdl</code> file in VS Code/Cursor</li>
+  <li>The extension will automatically activate and provide syntax highlighting</li>
+  <li>You’ll see color-coded syntax for:
+    <ul>
+      <li>Pack declarations</li>
+      <li>Namespaces</li>
+      <li>Functions</li>
+      <li>Comments</li>
+      <li>Commands</li>
+    </ul>
+  </li>
+</ol>
+
+<h3 id="syntax-highlighting">Syntax Highlighting</h3>
+
+<p>The extension highlights the following MDL elements:</p>
+
+<ul>
+  <li><strong>Pack declarations</strong>: <code class="language-plaintext highlighter-rouge">pack "Name" description "Desc" pack_format 48</code></li>
+  <li><strong>Namespaces</strong>: <code class="language-plaintext highlighter-rouge">namespace "example"</code></li>
+  <li><strong>Functions</strong>: <code class="language-plaintext highlighter-rouge">function "name":</code></li>
+  <li><strong>Lifecycle hooks</strong>: <code class="language-plaintext highlighter-rouge">on_load</code>, <code class="language-plaintext highlighter-rouge">on_tick</code></li>
+  <li><strong>Tags</strong>: <code class="language-plaintext highlighter-rouge">tag function "minecraft:tick":</code></li>
+  <li><strong>Comments</strong>: <code class="language-plaintext highlighter-rouge"># This is a comment</code></li>
+  <li><strong>Commands</strong>: All lines within function blocks</li>
+</ul>
+
+<h3 id="linting">Linting</h3>
+
+<p>The extension provides real-time validation:</p>
+
+<ol>
+  <li><strong>Syntax errors</strong>: Invalid MDL syntax is highlighted</li>
+  <li><strong>Indentation errors</strong>: Incorrect indentation is flagged</li>
+  <li><strong>Missing declarations</strong>: Missing pack declarations are detected</li>
+  <li><strong>Duplicate names</strong>: Duplicate function names are identified</li>
+</ol>
+
+<p><strong>Error indicators:</strong></p>
+<ul>
+  <li>Red squiggly lines under syntax errors</li>
+  <li>Yellow warnings for potential issues</li>
+  <li>Hover over errors for detailed explanations</li>
+</ul>
+
+<h3 id="build-commands">Build Commands</h3>
+
+<p>The extension adds several commands to VS Code:</p>
+
+<h4 id="mdl-build-current-file">MDL: Build current file</h4>
+
+<p>Builds the currently open MDL file:</p>
+
+<ol>
+  <li>Open an <code class="language-plaintext highlighter-rouge">.mdl</code> file</li>
+  <li>Press <code class="language-plaintext highlighter-rouge">Ctrl+Shift+P</code> (or <code class="language-plaintext highlighter-rouge">Cmd+Shift+P</code> on macOS)</li>
+  <li>Type “MDL: Build current file”</li>
+  <li>Select the command</li>
+  <li>Choose an output directory</li>
+  <li>Optionally specify a wrapper name</li>
+</ol>
+
+<h4 id="mdl-check-workspace">MDL: Check Workspace</h4>
+
+<p>Validates all MDL files in the current workspace:</p>
+
+<ol>
+  <li>Press <code class="language-plaintext highlighter-rouge">Ctrl+Shift+P</code> (or <code class="language-plaintext highlighter-rouge">Cmd+Shift+P</code> on macOS)</li>
+  <li>Type “MDL: Check Workspace”</li>
+  <li>Select the command</li>
+  <li>View results in the Problems panel</li>
+</ol>
+
+<h3 id="keyboard-shortcuts">Keyboard Shortcuts</h3>
+
+<p>You can add custom keyboard shortcuts for the MDL commands:</p>
+
+<ol>
+  <li>Open VS Code settings (<code class="language-plaintext highlighter-rouge">Ctrl+,</code>)</li>
+  <li>Go to “Keyboard Shortcuts”</li>
+  <li>Search for “MDL”</li>
+  <li>Add shortcuts for:
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">mdl.build</code> - Build current file</li>
+      <li><code class="language-plaintext highlighter-rouge">mdl.checkWorkspace</code> - Check workspace</li>
+    </ul>
+  </li>
+</ol>
+
+<p><strong>Example shortcuts:</strong></p>
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ctrl+shift+b"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"mdl.build"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"when"</span><span class="p">:</span><span class="w"> </span><span class="s2">"resourceExtname == .mdl"</span><span class="w">
+</span><span class="p">}</span><span class="err">,</span><span class="w">
+</span><span class="p">{</span><span class="w">
+  </span><span class="nl">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ctrl+shift+c"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"mdl.checkWorkspace"</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<h2 id="configuration">Configuration</h2>
+
+<h3 id="extension-settings">Extension Settings</h3>
+
+<p>The extension can be configured through VS Code settings:</p>
+
+<ol>
+  <li>Open VS Code settings (<code class="language-plaintext highlighter-rouge">Ctrl+,</code>)</li>
+  <li>Search for “MDL”</li>
+  <li>Configure the following options:</li>
+</ol>
+
+<p><strong><code class="language-plaintext highlighter-rouge">mdl.enableLinting</code></strong> (default: <code class="language-plaintext highlighter-rouge">true</code>)</p>
+<ul>
+  <li>Enable or disable real-time linting</li>
+</ul>
+
+<p><strong><code class="language-plaintext highlighter-rouge">mdl.lintingMode</code></strong> (default: <code class="language-plaintext highlighter-rouge">"onSave"</code>)</p>
+<ul>
+  <li>When to run linting: <code class="language-plaintext highlighter-rouge">"onSave"</code>, <code class="language-plaintext highlighter-rouge">"onType"</code>, or <code class="language-plaintext highlighter-rouge">"manual"</code></li>
+</ul>
+
+<p><strong><code class="language-plaintext highlighter-rouge">mdl.buildOutputDirectory</code></strong> (default: <code class="language-plaintext highlighter-rouge">"dist"</code>)</p>
+<ul>
+  <li>Default output directory for builds</li>
+</ul>
+
+<h3 id="workspace-settings">Workspace Settings</h3>
+
+<p>You can configure MDL settings per workspace by creating a <code class="language-plaintext highlighter-rouge">.vscode/settings.json</code> file:</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"mdl.enableLinting"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"mdl.lintingMode"</span><span class="p">:</span><span class="w"> </span><span class="s2">"onSave"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"mdl.buildOutputDirectory"</span><span class="p">:</span><span class="w"> </span><span class="s2">"build"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"files.associations"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"*.mdl"</span><span class="p">:</span><span class="w"> </span><span class="s2">"mdl"</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<h2 id="troubleshooting">Troubleshooting</h2>
+
+<h3 id="extension-not-working">Extension Not Working</h3>
+
+<ol>
+  <li><strong>Check if MDL is installed</strong>: The extension requires MDL to be installed on your system</li>
+  <li><strong>Verify file association</strong>: Make sure <code class="language-plaintext highlighter-rouge">.mdl</code> files are associated with the MDL language</li>
+  <li><strong>Check output panel</strong>: Look for error messages in the Output panel (View → Output → MDL)</li>
+</ol>
+
+<h3 id="build-commands-not-available">Build Commands Not Available</h3>
+
+<ol>
+  <li><strong>Ensure MDL is in PATH</strong>: The extension needs to find the <code class="language-plaintext highlighter-rouge">mdl</code> command</li>
+  <li><strong>Restart VS Code</strong>: Sometimes a restart is needed after installation</li>
+  <li><strong>Check command palette</strong>: Commands should appear when typing “MDL”</li>
+</ol>
+
+<h3 id="linting-issues">Linting Issues</h3>
+
+<ol>
+  <li><strong>Check MDL installation</strong>: Run <code class="language-plaintext highlighter-rouge">mdl --version</code> in terminal to verify installation</li>
+  <li><strong>Verify file syntax</strong>: Use <code class="language-plaintext highlighter-rouge">mdl check filename.mdl</code> to test manually</li>
+  <li><strong>Check extension logs</strong>: Look for errors in the Developer Tools (Help → Toggle Developer Tools)</li>
+</ol>
+
+<h2 id="development">Development</h2>
+
+<h3 id="project-structure">Project Structure</h3>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>vscode-extension/
+├── src/
+│   └── extension.ts          # Main extension code
+├── syntaxes/
+│   └── mdl.tmLanguage.json   # Syntax highlighting rules
+├── language-configuration.json  # Language configuration
+├── package.json              # Extension manifest
+└── tsconfig.json            # TypeScript configuration
+</code></pre></div></div>
+
+<h3 id="key-files">Key Files</h3>
+
+<p><strong><code class="language-plaintext highlighter-rouge">src/extension.ts</code></strong>: Main extension logic</p>
+<ul>
+  <li>Command registration</li>
+  <li>Linting integration</li>
+  <li>Build command handling</li>
+</ul>
+
+<p><strong><code class="language-plaintext highlighter-rouge">syntaxes/mdl.tmLanguage.json</code></strong>: Syntax highlighting rules</p>
+<ul>
+  <li>Token definitions</li>
+  <li>Pattern matching</li>
+  <li>Color themes</li>
+</ul>
+
+<p><strong><code class="language-plaintext highlighter-rouge">language-configuration.json</code></strong>: Language behavior</p>
+<ul>
+  <li>Comment patterns</li>
+  <li>Bracket matching</li>
+  <li>Auto-indentation</li>
+</ul>
+
+<h3 id="adding-features">Adding Features</h3>
+
+<p>To add new features to the extension:</p>
+
+<ol>
+  <li><strong>Modify <code class="language-plaintext highlighter-rouge">extension.ts</code></strong>: Add new commands or functionality</li>
+  <li><strong>Update <code class="language-plaintext highlighter-rouge">package.json</code></strong>: Register new commands</li>
+  <li><strong>Test locally</strong>: Use <code class="language-plaintext highlighter-rouge">F5</code> to test changes</li>
+  <li><strong>Build</strong>: Run <code class="language-plaintext highlighter-rouge">npm run compile</code> to build</li>
+</ol>
+
+<h3 id="testing">Testing</h3>
+
+<ol>
+  <li><strong>Unit tests</strong>: Add tests in a <code class="language-plaintext highlighter-rouge">test/</code> directory</li>
+  <li><strong>Integration tests</strong>: Test with real MDL files</li>
+  <li><strong>Manual testing</strong>: Test all features in the Extension Development Host</li>
+</ol>
+
+<h2 id="contributing">Contributing</h2>
+
+<h3 id="development-setup">Development Setup</h3>
+
+<ol>
+  <li>Fork the repository</li>
+  <li>Clone your fork</li>
+  <li>Navigate to <code class="language-plaintext highlighter-rouge">vscode-extension/</code></li>
+  <li>Run <code class="language-plaintext highlighter-rouge">npm install</code></li>
+  <li>Make your changes</li>
+  <li>Test with <code class="language-plaintext highlighter-rouge">F5</code></li>
+  <li>Submit a pull request</li>
+</ol>
+
+<h3 id="code-style">Code Style</h3>
+
+<ul>
+  <li>Use TypeScript for all new code</li>
+  <li>Follow VS Code extension conventions</li>
+  <li>Add comments for complex logic</li>
+  <li>Include error handling</li>
+</ul>
+
+<h3 id="testing-checklist">Testing Checklist</h3>
+
+<p>Before submitting changes, test:</p>
+
+<ul class="task-list">
+  <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" />Syntax highlighting works correctly</li>
+  <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" />Linting catches errors</li>
+  <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" />Build commands work</li>
+  <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" />Workspace validation functions</li>
+  <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" />Error messages are clear</li>
+  <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" />Performance is acceptable</li>
+</ul>
+
+<h2 id="future-features">Future Features</h2>
+
+<p>Planned enhancements for the VS Code extension:</p>
+
+<ul>
+  <li><strong>IntelliSense</strong>: Auto-completion for MDL syntax</li>
+  <li><strong>Snippets</strong>: Code templates for common patterns</li>
+  <li><strong>Debugging</strong>: Step-through debugging for MDL files</li>
+  <li><strong>Multi-file support</strong>: Better handling of multi-file projects</li>
+  <li><strong>Custom themes</strong>: Additional color themes for MDL</li>
+  <li><strong>Formatting</strong>: Auto-formatting of MDL files</li>
+  <li><strong>Refactoring</strong>: Rename functions across files</li>
+  <li><strong>Search</strong>: Search and replace across MDL files</li>
+</ul>
+
+<h2 id="support">Support</h2>
+
+<p>If you encounter issues with the VS Code extension:</p>
+
+<ol>
+  <li><strong>Check the documentation</strong>: This page and the main README</li>
+  <li><strong>Search issues</strong>: Look for similar problems on GitHub</li>
+  <li><strong>Create an issue</strong>: Provide detailed information about the problem</li>
+  <li><strong>Include logs</strong>: Share relevant error messages and logs</li>
+</ol>
+
+<h2 id="related-documentation">Related Documentation</h2>
+
+<ul>
+  <li><strong><a href="/MinecraftDatapackLanguage/docs/getting-started/">Getting Started</a></strong> - Installation and first steps</li>
+  <li><strong><a href="/MinecraftDatapackLanguage/docs/language-reference/">Language Reference</a></strong> - Complete MDL syntax</li>
+  <li><strong><a href="/MinecraftDatapackLanguage/docs/cli-reference/">CLI Reference</a></strong> - Command-line tools</li>
+  <li><strong><a href="/MinecraftDatapackLanguage/docs/examples/">Examples</a></strong> - Working examples</li>
+</ul>
+
+      </div>
+      
+      <!-- Page Navigation Footer -->
+      <footer class="post-footer">
+        <div class="post-navigation">
+          <a href="/MinecraftDatapackLanguage/" class="btn btn-primary">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="margin-right: 0.5rem;">
+              <path d="M8 0C3.6 0 0 3.6 0 8s3.6 8 8 8 8-3.6 8-8-3.6-8-8-8zm0 14c-3.3 0-6-2.7-6-6s2.7-6 6-6 6 2.7 6 6-2.7 6-6 6z"/>
+              <path d="M7 4h2v6H7z"/>
+              <path d="M4 7h6v2H4z"/>
+            </svg>
+            Back to Home
+          </a>
+        </div>
+      </footer>
+    </article>
+  </div>
+</div>
+
+<!-- Back to Top Button -->
+<button id="back-to-top" class="back-to-top" aria-label="Back to top">
+  <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+    <path d="M10 0L3 7h4v13h6V7h4L10 0z"/>
+  </svg>
+</button>
+
+<style>
+.page-content {
+  padding: 2rem 0;
+}
+
+.wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.post {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  padding: 2rem;
+}
+
+.post-header {
+  margin-bottom: 2rem;
+  border-bottom: 2px solid #e1e4e8;
+  padding-bottom: 1rem;
+}
+
+.post-title {
+  color: #24292e;
+  font-size: 2rem;
+  margin: 0;
+}
+
+.post-description {
+  color: #586069;
+  font-size: 1.1rem;
+  margin: 0.5rem 0 0 0;
+}
+
+.post-content {
+  line-height: 1.6;
+  color: #24292e;
+}
+
+.post-content h1,
+.post-content h2,
+.post-content h3,
+.post-content h4,
+.post-content h5,
+.post-content h6 {
+  color: #24292e;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+.post-content h1 {
+  font-size: 1.8rem;
+  border-bottom: 2px solid #e1e4e8;
+  padding-bottom: 0.5rem;
+}
+
+.post-content h2 {
+  font-size: 1.5rem;
+  border-bottom: 1px solid #e1e4e8;
+  padding-bottom: 0.3rem;
+}
+
+.post-content h3 {
+  font-size: 1.3rem;
+}
+
+.post-content code {
+  background: #f6f8fa;
+  padding: 0.2rem 0.4rem;
+  border-radius: 3px;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+}
+
+.post-content pre {
+  background: #f6f8fa;
+  padding: 1rem;
+  border-radius: 6px;
+  overflow-x: auto;
+  border: 1px solid #e1e4e8;
+}
+
+.post-content pre code {
+  background: none;
+  padding: 0;
+}
+
+.post-content blockquote {
+  border-left: 4px solid #0366d6;
+  padding-left: 1rem;
+  margin: 1rem 0;
+  color: #586069;
+}
+
+.post-content table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1rem 0;
+}
+
+.post-content th,
+.post-content td {
+  border: 1px solid #e1e4e8;
+  padding: 0.5rem;
+  text-align: left;
+}
+
+.post-content th {
+  background: #f6f8fa;
+  font-weight: 600;
+}
+
+.post-content ul,
+.post-content ol {
+  padding-left: 2rem;
+}
+
+.post-content li {
+  margin: 0.5rem 0;
+}
+
+/* Post Footer Navigation */
+.post-footer {
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid #e1e4e8;
+}
+
+.post-navigation {
+  display: flex;
+  justify-content: center;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 500;
+  text-decoration: none;
+  border-radius: 6px;
+  transition: all 0.2s;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background: #0366d6;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #0256b3;
+  text-decoration: none;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* Back to Top Button */
+.back-to-top {
+  position: fixed;
+  bottom: 2rem;
+  left: 2rem;
+  background: #0366d6;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  transition: all 0.2s;
+  opacity: 0;
+  visibility: hidden;
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.back-to-top.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.back-to-top:hover {
+  background: #0256b3;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+}
+
+@media (max-width: 768px) {
+  .wrapper {
+    padding: 0 0.5rem;
+  }
+  
+  .post {
+    padding: 1rem;
+  }
+  
+  .post-title {
+    font-size: 1.5rem;
+  }
+  
+  .back-to-top {
+    bottom: 1rem;
+    left: 1rem;
+    width: 40px;
+    height: 40px;
+  }
+}
+</style>
+
+<script>
+// Back to Top Button
+document.addEventListener('DOMContentLoaded', function() {
+  const backToTop = document.getElementById('back-to-top');
+  
+  if (backToTop) {
+    // Show/hide button based on scroll position
+    window.addEventListener('scroll', function() {
+      if (window.pageYOffset > 300) {
+        backToTop.classList.add('show');
+      } else {
+        backToTop.classList.remove('show');
+      }
+    });
+    
+    // Smooth scroll to top when clicked
+    backToTop.addEventListener('click', function() {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    });
+  }
+});
+</script>
+
+
+      <footer class="site-footer">
+        
+          <span class="site-footer-owner"><a href="https://github.com/aaron777collins/MinecraftDatapackLanguage">MinecraftDatapackLanguage</a> is maintained by <a href="https://github.com/aaron777collins">aaron777collins</a>.</span>
+        
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a>.</span>
+      </footer>
+    </main>
+  </body>
+</html>

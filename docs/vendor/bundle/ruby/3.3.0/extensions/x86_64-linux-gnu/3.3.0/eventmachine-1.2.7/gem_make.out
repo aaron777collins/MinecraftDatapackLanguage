@@ -1,0 +1,19 @@
+current directory: /workspace/docs/vendor/bundle/ruby/3.3.0/gems/eventmachine-1.2.7/ext/fastfilereader
+/usr/bin/ruby3.3 -I/usr/lib/ruby/vendor_ruby extconf.rb
+creating Makefile
+
+current directory: /workspace/docs/vendor/bundle/ruby/3.3.0/gems/eventmachine-1.2.7/ext/fastfilereader
+make DESTDIR\= sitearchdir\=./.gem.20250830-2312-8dg1f sitelibdir\=./.gem.20250830-2312-8dg1f clean
+
+current directory: /workspace/docs/vendor/bundle/ruby/3.3.0/gems/eventmachine-1.2.7/ext/fastfilereader
+make DESTDIR\= sitearchdir\=./.gem.20250830-2312-8dg1f sitelibdir\=./.gem.20250830-2312-8dg1f
+compiling mapper.cpp
+compiling rubymain.cpp
+linking shared-object fastfilereaderext.so
+
+current directory: /workspace/docs/vendor/bundle/ruby/3.3.0/gems/eventmachine-1.2.7/ext/fastfilereader
+make DESTDIR\= sitearchdir\=./.gem.20250830-2312-8dg1f sitelibdir\=./.gem.20250830-2312-8dg1f install
+/usr/bin/install -c -m 0755 fastfilereaderext.so ./.gem.20250830-2312-8dg1f
+
+current directory: /workspace/docs/vendor/bundle/ruby/3.3.0/gems/eventmachine-1.2.7/ext/fastfilereader
+make DESTDIR\= sitearchdir\=./.gem.20250830-2312-8dg1f sitelibdir\=./.gem.20250830-2312-8dg1f clean
