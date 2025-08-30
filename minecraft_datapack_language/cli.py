@@ -95,8 +95,29 @@ def _convert_condition_to_minecraft_syntax(condition: str, selector: str = "@s")
 
 
 def _find_mdl_files(directory: Path) -> List[Path]:
-    """Find all .mdl files in the directory."""
-    return list(directory.glob("*.mdl"))
+    """Find all .mdl files in the directory, excluding test files."""
+    all_files = list(directory.glob("*.mdl"))
+    
+    # Exclude test files that contain intentional errors for linter testing
+    excluded_patterns = [
+        "*_errors.mdl",
+        "*_error.mdl", 
+        "test_linter*.mdl",
+        "test_old_format.mdl",
+        "test_very_old_format.mdl"
+    ]
+    
+    filtered_files = []
+    for file_path in all_files:
+        should_exclude = False
+        for pattern in excluded_patterns:
+            if file_path.match(pattern):
+                should_exclude = True
+                break
+        if not should_exclude:
+            filtered_files.append(file_path)
+    
+    return filtered_files
 
 
 def _merge_mdl_files(files: List[Path], verbose: bool = False) -> Optional[Dict[str, Any]]:
