@@ -716,7 +716,7 @@ def _generate_hook_files(ast: Dict[str, Any], output_dir: Path, namespace: str) 
     if tick_functions:
         tick_file = tags_dir / "tick.json"
         with open(tick_file, 'w', encoding='utf-8') as f:
-            f.write('{"values": [' + ', '.join(f'"{func}"' for func in tick_functions) + ']}')
+            f.write('{"replace": false, "values": [' + ', '.join(f'"{func}"' for func in tick_functions) + ']}')
     
     # Check if we need to generate a global load function for variable initialization
     # Look for variables in both top-level variables and within functions

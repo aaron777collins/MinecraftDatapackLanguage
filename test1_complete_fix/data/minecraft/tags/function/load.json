@@ -1,0 +1,7 @@
+{
+  "replace": false,
+  "values": [
+    "test1:hello",
+    "test1:load"
+  ]
+}
