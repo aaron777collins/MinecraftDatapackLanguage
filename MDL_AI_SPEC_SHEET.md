@@ -245,3 +245,6 @@ This simplified approach focuses on **MAKING CONTROL STRUCTURES WORK** rather th
 - Downloads page now auto-sources the latest release using `jekyll-github-metadata` with fallbacks to `docs/_data/version.yml`.
 - Added scheduled and release-triggered workflow `update-website-version.yml` to update `docs/_data/version.yml` with the latest GitHub release tag and version.
 - Docs deploy workflow passes `JEKYLL_GITHUB_TOKEN` to enable GitHub release metadata during Jekyll builds.
+-
+- Removed legacy theme header in `docs/_layouts/default.html` to avoid duplicate navigation with the enhanced nav include.
+- Added a GitHub icon link to `docs/_includes/navigation.html` targeting `https://github.com/{{ site.github_username }}/{{ site.github_repo }}`.
