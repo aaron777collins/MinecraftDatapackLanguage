@@ -445,6 +445,7 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
                     print(f"DEBUG CLI: Entering variable substitution logic")
                     # Build JSON array with text and scoreboard components
                     var_matches = list(re.finditer(var_pattern, text_content))
+                    print(f"DEBUG CLI: Found {len(var_matches)} variable matches")
                     json_parts = []
                     last_end = 0
                     
@@ -467,6 +468,7 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
                             json_parts.append(f'{{"text":"{text_after}"}}')
                     
                     command = f'tellraw @a [{",".join(json_parts)}]'
+                    print(f"DEBUG CLI: Final command: '{command}'")
                 else:
                     # No variables, simple conversion
                     command = f'tellraw @a [{{"text":"{text_content}"}}]'
