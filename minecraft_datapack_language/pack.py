@@ -724,10 +724,17 @@ class Pack:
         if self._load_functions:
             self.tags.append(Tag("function", "minecraft:load", values=self._load_functions))
 
+        # Debug: Print all tags before processing
+        print(f"DEBUG: Pack has {len(self.tags)} tags before processing:")
+        for i, tag in enumerate(self.tags):
+            print(f"DEBUG: Tag {i}: registry={tag.registry}, name={tag.name}, values={tag.values}")
+
         # Tags
+        print("DEBUG: About to process tags in Pack.build()")
         for t in self.tags:
+            print(f"DEBUG: Processing tag: registry={t.registry}, name={t.name}")
             if ":" not in t.name:
-                raise ValueError(f"Tag name must be namespaced (e.g., 'minecraft:tick'), got {t.name}")
+                raise ValueError(f"Tag name must be namespaced (e.g., 'minecraft:tick'), got {t.name}. Tag registry: {t.registry}, values: {t.values}")
             ns, path = t.name.split(":", 1)
 
             if t.registry == "function":

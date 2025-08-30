@@ -621,6 +621,12 @@ def _generate_hook_files(ast: Dict[str, Any], output_dir: Path, namespace: str) 
         load_file = tags_dir / "load.json"
         with open(load_file, 'w', encoding='utf-8') as f:
             f.write('{"values": [' + ', '.join(f'"{func}"' for func in load_functions) + ']}')
+        
+        # Also add the load function to the Pack's _load_functions for proper tag generation
+        # This ensures the Pack class creates the minecraft:load tag correctly
+        if not hasattr(ast, '_load_functions'):
+            ast['_load_functions'] = []
+        ast['_load_functions'].extend(load_functions)
     
     # Generate load functions for each namespace if we have variables
     if has_variables:
@@ -1005,6 +1011,10 @@ def _ast_to_pack(ast: Dict[str, Any], mdl_files: List[Path]) -> Pack:
             hook_type = getattr(hook, 'hook_type', 'load')
             function_name = getattr(hook, 'function_name', 'unknown')
         
+        # Skip hooks with function_name "load" as this is reserved for the global load function
+        if function_name == "load":
+            continue
+            
         full_function_id = f"{namespace_name}:{function_name}"
         if hook_type == 'load':
             pack.on_load(full_function_id)
@@ -1012,6 +1022,7 @@ def _ast_to_pack(ast: Dict[str, Any], mdl_files: List[Path]) -> Pack:
             pack.on_tick(full_function_id)
     
     # Add tags
+    print(f"DEBUG: AST has {len(ast.get('tags', []))} tags")
     for tag in ast.get('tags', []):
         if isinstance(tag, dict):
             registry = tag.get('registry', 'function')
@@ -1024,6 +1035,7 @@ def _ast_to_pack(ast: Dict[str, Any], mdl_files: List[Path]) -> Pack:
             values = getattr(tag, 'values', [])
             replace = getattr(tag, 'replace', False)
         
+        print(f"DEBUG: Processing tag - registry: {registry}, name: {name}, values: {values}")
         pack.tag(registry, name, values, replace)
     
     # Add recipes, loot tables, etc. if they exist in the AST
@@ -1213,6 +1225,15 @@ def _ast_to_pack(ast: Dict[str, Any], mdl_files: List[Path]) -> Pack:
         else:
             namespace.structure(name, data)
     
+    # Add load functions from AST to Pack for proper tag generation
+    if ast.get('_load_functions'):
+        pack._load_functions = ast['_load_functions']
+    
+    # Debug: Print all tags in the pack before returning
+    print(f"DEBUG: Pack has {len(pack.tags)} tags:")
+    for i, tag in enumerate(pack.tags):
+        print(f"DEBUG: Tag {i}: registry={tag.registry}, name={tag.name}, values={tag.values}")
+    
     return pack
 
 
@@ -1273,6 +1294,7 @@ def build_mdl(input_path: str, output_path: str, verbose: bool = False) -> None:
     # This ensures all registry types are supported
     pack = _ast_to_pack(ast, mdl_files)
     print("DEBUG: _ast_to_pack completed")
+    print("DEBUG: About to call pack.build()")
     
     # Build using Pack class to generate all registry types
     pack.build(str(output_dir))
