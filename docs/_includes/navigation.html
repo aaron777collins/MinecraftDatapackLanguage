@@ -18,7 +18,16 @@
       {%- endfor -%}
 
       {%- if doc_items and doc_items.size > 0 -%}
-        <li class="nav-item nav-dropdown{% if page.url contains '/docs/' %} active{% endif %}" aria-haspopup="true" aria-expanded="false">
+        {%- assign is_doc_page = false -%}
+        {%- for item in doc_items -%}
+          {%- if page.url == item.url or page.url contains item.url -%}
+            {%- assign is_doc_page = true -%}
+            {%- break -%}
+          {%- endif -%}
+        {%- endfor -%}
+        
+        <!-- Desktop: Dropdown -->
+        <li class="nav-item nav-dropdown desktop-only{% if is_doc_page %} active{% endif %}" aria-haspopup="true" aria-expanded="false">
           <button class="nav-link nav-dropdown-toggle" aria-haspopup="true" aria-expanded="false" aria-controls="nav-docs-menu">
             Documentation
             <svg class="caret" width="12" height="12" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 011.08 1.04l-4.25 4.25a.75.75 0 01-1.06 0L5.21 8.27a.75.75 0 01.02-1.06z"/></svg>
@@ -31,6 +40,13 @@
             {%- endfor -%}
           </ul>
         </li>
+        
+        <!-- Mobile: Individual links -->
+        {%- for item in doc_items -%}
+          <li class="nav-item mobile-only">
+            <a href="{{ item.url | relative_url }}" class="nav-link{% if page.url == item.url or page.url contains item.url %} active{% endif %}">{{ item.title }}</a>
+          </li>
+        {%- endfor -%}
       {%- endif -%}
     </ul>
     <div class="nav-actions">
@@ -302,6 +318,14 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
+  .desktop-only {
+    display: none !important;
+  }
+  
+  .mobile-only {
+    display: block !important;
+  }
+  
   .nav-list {
     display: none;
     position: absolute;
@@ -314,11 +338,6 @@
     padding: 1rem;
     box-shadow: 0 10px 20px rgba(2,6,23,0.35);
   }
-  /* Mobile: show dropdown items inline */
-  .nav-dropdown { width: 100%; }
-  .nav-dropdown-menu { position: static; display: none; margin: 0.25rem 0 0 0; box-shadow: none; border: none; background: transparent; padding: 0; }
-  .nav-dropdown.open .nav-dropdown-menu { display: block; }
-  .nav-dropdown-link { padding-left: 1rem; }
   
   .nav-list.show {
     display: flex;
@@ -327,12 +346,23 @@
   .nav-toggle {
     display: block;
   }
+  
   .nav-actions {
     margin-left: 0.5rem;
   }
   
   .breadcrumb {
     font-size: 0.8rem;
+  }
+}
+
+@media (min-width: 769px) {
+  .mobile-only {
+    display: none !important;
+  }
+  
+  .desktop-only {
+    display: block !important;
   }
 }
 </style>

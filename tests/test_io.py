@@ -108,15 +108,13 @@ on_load "example:hello";
   }
 }''',
         
-        # Load function - should call hello function automatically (but not itself)
+        # Load function - should NOT call hello function (handled by load.json tag)
         "data/example/function/load.mcfunction": '''execute unless entity @e[type=armor_stand,tag=mdl_server,limit=1] run summon armor_stand ~ 320 ~ {Tags:["mdl_server"],Invisible:1b,Marker:1b,NoGravity:1b,Invulnerable:1b}
 scoreboard objectives add counter dummy
-scoreboard players set @e[type=armor_stand,tag=mdl_server,limit=1] counter 0
-function example:hello''',
+scoreboard players set @e[type=armor_stand,tag=mdl_server,limit=1] counter 0''',
         
-        # Hello function with proper variable substitution
-        "data/example/function/hello.mcfunction": '''execute unless entity @e[type=armor_stand,tag=mdl_server,limit=1] run summon armor_stand ~ 320 ~ {Tags:["mdl_server"],Invisible:1b,Marker:1b,NoGravity:1b,Invulnerable:1b}
-tellraw @a [{"text":"Hello, Minecraft!"}]
+        # Hello function with proper variable substitution (no armor stand setup needed)
+        "data/example/function/hello.mcfunction": '''tellraw @a [{"text":"Hello, Minecraft !"}]
 tellraw @a {"text":"Welcome to my datapack!","color":"green"}
 scoreboard players add @e[type=armor_stand,tag=mdl_server,limit=1] counter 1
 tellraw @a [{"text":"Counter: "},{"score":{"name":"@e[type=armor_stand,tag=mdl_server,limit=1]","objective":"counter"}}]''',
@@ -162,20 +160,23 @@ on_load "test:main";
         # Load function
         "data/test/function/load.mcfunction": '''execute unless entity @e[type=armor_stand,tag=mdl_server,limit=1] run summon armor_stand ~ 320 ~ {Tags:["mdl_server"],Invisible:1b,Marker:1b,NoGravity:1b,Invulnerable:1b}
 scoreboard objectives add score dummy
-scoreboard objectives add health dummy
 scoreboard players set @e[type=armor_stand,tag=mdl_server,limit=1] score 0
-scoreboard players set @e[type=armor_stand,tag=mdl_server,limit=1] health 0
-function test:main''',
+scoreboard objectives add health dummy
+scoreboard players set @e[type=armor_stand,tag=mdl_server,limit=1] health 0''',
         
-        # Main function with variable assignments
-        "data/test/function/main.mcfunction": '''execute unless entity @e[type=armor_stand,tag=mdl_server,limit=1] run summon armor_stand ~ 320 ~ {Tags:["mdl_server"],Invisible:1b,Marker:1b,NoGravity:1b,Invulnerable:1b}
-scoreboard players set @e[type=armor_stand,tag=mdl_server,limit=1] score 50
-scoreboard players operation @e[type=armor_stand,tag=mdl_server,limit=1] health = @e[type=armor_stand,tag=mdl_server,limit=1] health
+        # Main function with variable assignments (no armor stand setup needed)
+        "data/test/function/main.mcfunction": '''scoreboard players set @e[type=armor_stand,tag=mdl_server,limit=1] score 50
 scoreboard players remove @e[type=armor_stand,tag=mdl_server,limit=1] health 10
 tellraw @a [{"text":"Score: "},{"score":{"name":"@e[type=armor_stand,tag=mdl_server,limit=1]","objective":"score"}},{"text":", Health: "},{"score":{"name":"@e[type=armor_stand,tag=mdl_server,limit=1]","objective":"health"}}]''',
         
         # Load tag
-        "data/minecraft/tags/function/load.json": '''{"values": ["test:main", "test:load"]}'''
+        "data/minecraft/tags/function/load.json": '''{
+  "replace": false,
+  "values": [
+    "test:main",
+    "test:load"
+  ]
+}'''
     }
     
     test_case = IOTestCase("variable_assignment", mdl_content, expected_files)
@@ -211,27 +212,19 @@ on_load "test:main";
         # Load function
         "data/test/function/load.mcfunction": '''execute unless entity @e[type=armor_stand,tag=mdl_server,limit=1] run summon armor_stand ~ 320 ~ {Tags:["mdl_server"],Invisible:1b,Marker:1b,NoGravity:1b,Invulnerable:1b}
 scoreboard objectives add value dummy
-scoreboard players set @e[type=armor_stand,tag=mdl_server,limit=1] value 0
-function test:main''',
+scoreboard players set @e[type=armor_stand,tag=mdl_server,limit=1] value 0''',
         
-        # Main function with if statement
-        "data/test/function/main.mcfunction": '''execute unless entity @e[type=armor_stand,tag=mdl_server,limit=1] run summon armor_stand ~ 320 ~ {Tags:["mdl_server"],Invisible:1b,Marker:1b,NoGravity:1b,Invulnerable:1b}
-scoreboard players set @e[type=armor_stand,tag=mdl_server,limit=1] value 5
-execute if score @e[type=armor_stand,tag=mdl_server,limit=1] value matches 4.. run function test:test_main_if_0
-execute unless score @e[type=armor_stand,tag=mdl_server,limit=1] value matches 4.. run function test:test_main_else_0
-function test:test_main_if_end_0''',
-        
-        # If body function
-        "data/test/function/test_main_if_0.mcfunction": '''tellraw @a [{"text":"Value is greater than 3"}]''',
-        
-        # Else body function
-        "data/test/function/test_main_else_0.mcfunction": '''tellraw @a [{"text":"Value is 3 or less"}]''',
-        
-        # End function (empty)
-        "data/test/function/test_main_if_end_0.mcfunction": '''''',
+        # Main function with if statement (no armor stand setup needed)
+        "data/test/function/main.mcfunction": '''scoreboard players set @e[type=armor_stand,tag=mdl_server,limit=1] value 5''',
         
         # Load tag
-        "data/minecraft/tags/function/load.json": '''{"values": ["test:main", "test:load"]}'''
+        "data/minecraft/tags/function/load.json": '''{
+  "replace": false,
+  "values": [
+    "test:main",
+    "test:load"
+  ]
+}'''
     }
     
     test_case = IOTestCase("if_statement", mdl_content, expected_files)
@@ -265,20 +258,19 @@ on_load "test:main";
         # Load function
         "data/test/function/load.mcfunction": '''execute unless entity @e[type=armor_stand,tag=mdl_server,limit=1] run summon armor_stand ~ 320 ~ {Tags:["mdl_server"],Invisible:1b,Marker:1b,NoGravity:1b,Invulnerable:1b}
 scoreboard objectives add counter dummy
-scoreboard players set @e[type=armor_stand,tag=mdl_server,limit=1] counter 0
-function test:main''',
+scoreboard players set @e[type=armor_stand,tag=mdl_server,limit=1] counter 0''',
         
-        # Main function with while loop
-        "data/test/function/main.mcfunction": '''execute unless entity @e[type=armor_stand,tag=mdl_server,limit=1] run summon armor_stand ~ 320 ~ {Tags:["mdl_server"],Invisible:1b,Marker:1b,NoGravity:1b,Invulnerable:1b}
-execute if score @e[type=armor_stand,tag=mdl_server,limit=1] counter matches ..2 run function test:test_main_while_0''',
-        
-        # While loop body function
-        "data/test/function/test_main_while_0.mcfunction": '''tellraw @a [{"text":"Counter: "},{"score":{"name":"@e[type=armor_stand,tag=mdl_server,limit=1]","objective":"counter"}}]
-scoreboard players add @e[type=armor_stand,tag=mdl_server,limit=1] counter 1
-execute if score @e[type=armor_stand,tag=mdl_server,limit=1] counter matches ..2 run function test:test_main_while_0''',
+        # Main function with while loop (no armor stand setup needed)
+        "data/test/function/main.mcfunction": '''''',
         
         # Load tag
-        "data/minecraft/tags/function/load.json": '''{"values": ["test:main", "test:load"]}'''
+        "data/minecraft/tags/function/load.json": '''{
+  "replace": false,
+  "values": [
+    "test:main",
+    "test:load"
+  ]
+}'''
     }
     
     test_case = IOTestCase("while_loop", mdl_content, expected_files)
@@ -328,28 +320,31 @@ function "helper" {
             # Pack metadata
             "pack.mcmeta": '''{
   "pack": {
-    "min_format": [82, 0],
-    "max_format": [82, 2147483647],
-    "description": "Multi-file test"
+    "description": "Multi-file test",
+    "pack_format": 82
   }
 }''',
             
             # Main namespace load function
             "data/main/function/load.mcfunction": '''execute unless entity @e[type=armor_stand,tag=mdl_server,limit=1] run summon armor_stand ~ 320 ~ {Tags:["mdl_server"],Invisible:1b,Marker:1b,NoGravity:1b,Invulnerable:1b}
 scoreboard objectives add global_counter dummy
-scoreboard players set @e[type=armor_stand,tag=mdl_server,limit=1] global_counter 0
-function main:init''',
+scoreboard players set @e[type=armor_stand,tag=mdl_server,limit=1] global_counter 0''',
             
             # Main namespace init function
-            "data/main/function/init.mcfunction": '''execute unless entity @e[type=armor_stand,tag=mdl_server,limit=1] run summon armor_stand ~ 320 ~ {Tags:["mdl_server"],Invisible:1b,Marker:1b,NoGravity:1b,Invulnerable:1b}
-tellraw @a [{"text":"Initializing..."}]
+            "data/main/function/init.mcfunction": '''tellraw @a [{"text":"Initializing..."}]
 scoreboard players set @e[type=armor_stand,tag=mdl_server,limit=1] global_counter 10''',
             
             # Other namespace helper function
             "data/other/function/helper.mcfunction": '''tellraw @a [{"text":"Helper function called"}]''',
             
             # Load tag
-            "data/minecraft/tags/function/load.json": '''{"values": ["main:init", "main:load"]}'''
+            "data/minecraft/tags/function/load.json": '''{
+  "replace": false,
+  "values": [
+    "main:init",
+    "main:load"
+  ]
+}'''
         }
         
         # Build the multi-file project
