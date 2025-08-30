@@ -1,0 +1,65 @@
+name: Update Website Version
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 6 * * *'
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  update-version:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Determine latest version
+        id: latest
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          EVENT_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          if [ -n "${EVENT_TAG:-}" ]; then
+            tag="$EVENT_TAG"
+          else
+            tag=$(curl -sS -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" \
+                  "https://api.github.com/repos/$REPO/releases/latest" | jq -r .tag_name)
+          fi
+          if [ -z "$tag" ] || [ "$tag" = "null" ]; then
+            echo "No tag resolved; defaulting to 'latest'" >&2
+            echo "tag=latest" >> $GITHUB_OUTPUT
+            echo "version=latest" >> $GITHUB_OUTPUT
+          else
+            version="${tag#v}"
+            echo "Resolved tag: $tag, version: $version"
+            echo "tag=$tag" >> $GITHUB_OUTPUT
+            echo "version=$version" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Update docs/_data/version.yml
+        run: |
+          mkdir -p docs/_data
+          cat > docs/_data/version.yml <<EOF
+current: "${{ steps.latest.outputs.version }}"
+tag: "${{ steps.latest.outputs.tag }}"
+updated_at: "${{ github.event.repository.pushed_at || github.run_started_at }}"
+EOF
+
+      - name: Commit changes
+        run: |
+          set -e
+          if git diff --quiet -- docs/_data/version.yml; then
+            echo "No version changes to commit."
+            exit 0
+          fi
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add docs/_data/version.yml
+          git commit -m "chore(docs): update website version to ${{ steps.latest.outputs.version }}"
+          git push

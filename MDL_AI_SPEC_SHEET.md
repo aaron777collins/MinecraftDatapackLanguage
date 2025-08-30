@@ -201,7 +201,7 @@ JSON registry handling:
 
 ## Current Version Status
 
-**Latest Version**: v10.1.71
+**Latest Version**: Sourced dynamically on website via GitHub Releases
 **Status**: Simplified MDL compiler focused on control structures
 **Known Issues**: All major complexity removed!
 **Next Priority**: Ensure control structures work perfectly
@@ -226,3 +226,10 @@ The MDL language implementation is now **SIMPLIFIED** and focused on the core pr
 - Advanced error handling (keep it simple)
 
 This simplified approach focuses on **MAKING CONTROL STRUCTURES WORK** rather than building a complex language that doesn't compile correctly.
+
+## Documentation and Website Automation
+
+- Docs navigation cleaned to remove unused legacy links in `docs/_config.yml`.
+- Downloads page now auto-sources the latest release using `jekyll-github-metadata` with fallbacks to `docs/_data/version.yml`.
+- Added scheduled and release-triggered workflow `update-website-version.yml` to update `docs/_data/version.yml` with the latest GitHub release tag and version.
+- Docs deploy workflow passes `JEKYLL_GITHUB_TOKEN` to enable GitHub release metadata during Jekyll builds.

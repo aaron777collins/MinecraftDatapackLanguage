@@ -75,11 +75,5 @@ nav:
     url: /docs/examples/
   - title: Multi-file Projects
     url: /docs/multi-file-projects/
-  - title: Legacy MDL (v9-)
-    url: /docs/legacy-mdl-language/
-  - title: Legacy Examples
-    url: /docs/legacy-examples/
-  - title: Migration Guide
-    url: /docs/migration-guide/
   - title: Contributing
     url: /docs/contributing/
