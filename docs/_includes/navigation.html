@@ -8,13 +8,32 @@
       </a>
     </div>
     <ul class="nav-list">
-      {% for item in site.nav %}
-        {% if item.title != "Home" %}
+      {%- assign doc_items = site.nav | where_exp: "i", "i.url contains '/docs/'" -%}
+      {%- assign non_doc_items = site.nav | where_exp: "i", "i.url contains '/docs/' | not" -%}
+
+      {%- for item in non_doc_items -%}
+        {%- if item.title != "Home" -%}
           <li class="nav-item">
             <a href="{{ item.url | relative_url }}" class="nav-link{% if page.url == item.url or page.url contains item.url %} active{% endif %}">{{ item.title }}</a>
           </li>
-        {% endif %}
-      {% endfor %}
+        {%- endif -%}
+      {%- endfor -%}
+
+      {%- if doc_items and doc_items.size > 0 -%}
+        <li class="nav-item nav-dropdown{% if page.url contains '/docs/' %} active{% endif %}" aria-haspopup="true" aria-expanded="false">
+          <button class="nav-link nav-dropdown-toggle" aria-haspopup="true" aria-expanded="false" aria-controls="nav-docs-menu">
+            Docs
+            <svg class="caret" width="12" height="12" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 011.08 1.04l-4.25 4.25a.75.75 0 01-1.06 0L5.21 8.27a.75.75 0 01.02-1.06z"/></svg>
+          </button>
+          <ul id="nav-docs-menu" class="nav-dropdown-menu" role="menu" aria-label="Docs">
+            {%- for item in doc_items -%}
+              <li class="nav-dropdown-item" role="none">
+                <a role="menuitem" href="{{ item.url | relative_url }}" class="nav-dropdown-link{% if page.url == item.url or page.url contains item.url %} active{% endif %}">{{ item.title }}</a>
+              </li>
+            {%- endfor -%}
+          </ul>
+        </li>
+      {%- endif -%}
     </ul>
     <div class="nav-actions">
       <a href="https://github.com/{{ site.github_username }}/{{ site.github_repo }}" class="nav-icon-link" aria-label="GitHub Repository" target="_blank" rel="noopener noreferrer">
@@ -134,6 +153,62 @@
   color: #ffffff;
 }
 
+/* Dropdown */
+.nav-dropdown {
+  position: relative;
+}
+
+.nav-dropdown .nav-dropdown-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: transparent;
+  border: none;
+  color: rgba(255,255,255,0.85);
+  padding: 0.5rem 0.85rem;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.nav-dropdown .nav-dropdown-toggle:hover,
+.nav-dropdown.active .nav-dropdown-toggle {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+
+.nav-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 240px;
+  background: #0f172a;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  padding: 0.5rem;
+  margin-top: 0.5rem;
+  display: none;
+  box-shadow: 0 10px 30px rgba(2,6,23,0.45);
+  z-index: 1001;
+}
+
+.nav-dropdown:hover .nav-dropdown-menu {
+  display: block;
+}
+
+.nav-dropdown-item { list-style: none; }
+
+.nav-dropdown-link {
+  display: block;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  color: rgba(255,255,255,0.9);
+  text-decoration: none;
+}
+
+.nav-dropdown-link:hover { background: rgba(255,255,255,0.12); color: #fff; text-decoration: none; }
+.nav-dropdown-link.active { background: rgba(255,255,255,0.18); color: #fff; }
+
 .nav-actions {
   display: flex;
   align-items: center;
@@ -241,6 +316,11 @@
     padding: 1rem;
     box-shadow: 0 10px 20px rgba(2,6,23,0.35);
   }
+  /* Mobile: show dropdown items inline */
+  .nav-dropdown { width: 100%; }
+  .nav-dropdown-menu { position: static; display: none; margin: 0.25rem 0 0 0; box-shadow: none; border: none; background: transparent; padding: 0; }
+  .nav-dropdown.open .nav-dropdown-menu { display: block; }
+  .nav-dropdown-link { padding-left: 1rem; }
   
   .nav-list.show {
     display: flex;
@@ -264,6 +344,7 @@
 document.addEventListener('DOMContentLoaded', function() {
   const toggle = document.querySelector('.nav-toggle');
   const navList = document.querySelector('.nav-list');
+  const dropdownToggles = document.querySelectorAll('.nav-dropdown-toggle');
   
   if (toggle && navList) {
     toggle.addEventListener('click', function() {
@@ -277,5 +358,33 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   }
+
+  // Dropdown interactions
+  dropdownToggles.forEach(function(btn) {
+    const parent = btn.closest('.nav-dropdown');
+    const menu = parent ? parent.querySelector('.nav-dropdown-menu') : null;
+    if (!parent || !menu) return;
+
+    // Desktop: open on hover handled via CSS. Ensure ARIA reflects state
+    parent.addEventListener('mouseenter', function(){
+      if (window.matchMedia('(min-width: 769px)').matches) {
+        parent.classList.add('active');
+        btn.setAttribute('aria-expanded', 'true');
+      }
+    });
+    parent.addEventListener('mouseleave', function(){
+      if (window.matchMedia('(min-width: 769px)').matches) {
+        parent.classList.remove('active');
+        btn.setAttribute('aria-expanded', 'false');
+      }
+    });
+
+    // Mobile: toggle on click
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
+      const isOpen = parent.classList.toggle('open');
+      btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    });
+  });
 });
 </script>
