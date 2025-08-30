@@ -6,7 +6,7 @@ permalink: /docs/getting-started/
 
 # Getting Started
 
-This guide will help you install Minecraft Datapack Language (MDL) and create your first **modern JavaScript-style** datapack with control structures, variables, expressions, and multi-file projects.
+This guide will help you install Minecraft Datapack Language (MDL) and create your first datapack with control structures, variables, expressions, and multi-file projects.
 
 ## Installation
 
@@ -60,9 +60,219 @@ cd MinecraftDatapackLanguage
 python -m pip install -e .
 ```
 
-### Development System Setup
+## Updating MDL
 
-MDL includes a comprehensive development system for contributors:
+- **pipx**: `pipx upgrade minecraft-datapack-language`
+- **pip**: `pip install -U minecraft-datapack-language`
+- **Pin a version**: `pipx install "minecraft-datapack-language==12.0.10"`
+
+## Your First Datapack
+
+Let's create a simple datapack that demonstrates MDL's core features.
+
+### 1. Create the MDL File
+
+Create a file called `hello.mdl` with this content:
+
+```mdl
+// hello.mdl
+pack "My First Pack" description "A simple example" pack_format 82;
+
+namespace "example";
+
+var num counter = 0;
+
+function "hello" {
+    say Hello, Minecraft!;
+    counter = counter + 1;
+    say Counter: $counter$;
+    
+    if "$counter$ > 5" {
+        say Counter is high!;
+    } else {
+        say Counter is low;
+    }
+}
+
+on_load "example:hello";
+on_tick "example:hello";
+```
+
+### 2. Build the Datapack
+
+```bash
+mdl build --mdl hello.mdl -o dist
+```
+
+This creates a `dist/` directory containing your compiled datapack.
+
+### 3. Install in Minecraft
+
+1. Copy the `dist/my_first_pack/` folder to your Minecraft world's `datapacks/` folder
+2. In-game, run `/reload` to load the datapack
+3. You should see the hello message and counter updates!
+
+## Key Concepts
+
+### Variables
+
+MDL supports number variables that are automatically converted to Minecraft scoreboard objectives:
+
+```mdl
+var num player_health = 20;
+var num score = 0;
+var num level = 1;
+```
+
+### Variable Substitution
+
+Use `$variable_name$` to substitute variables in commands:
+
+```mdl
+say Player health: $player_health$;
+tellraw @a {"text":"Score: $score$","color":"gold"};
+```
+
+### Control Structures
+
+MDL supports real if/else statements and while loops:
+
+```mdl
+if "$health$ < 10" {
+    say Health is low!;
+    effect give @s minecraft:regeneration 10 1;
+} else {
+    say Health is good;
+}
+
+while "$counter$ < 5" {
+    say Counter: $counter$;
+    counter = counter + 1;
+}
+```
+
+### Functions
+
+Define functions that can be called by hooks or other functions:
+
+```mdl
+function "my_function" {
+    say This is my function!;
+    // Your commands here
+}
+
+// Call the function
+function "example:my_function";
+```
+
+### Hooks
+
+Automatically run functions when the datapack loads or every tick:
+
+```mdl
+on_load "example:init";    // Runs when datapack loads
+on_tick "example:update";  // Runs every tick
+```
+
+## Multi-file Projects
+
+MDL supports organizing code across multiple files. Only the main file needs a pack declaration:
+
+**`main.mdl`** (with pack declaration):
+```mdl
+pack "My Game" description "A multi-file game" pack_format 82;
+
+namespace "game";
+
+var num player_count = 0;
+
+function "init" {
+    say Game initialized!;
+}
+```
+
+**`ui.mdl`** (no pack declaration needed):
+```mdl
+namespace "ui";
+
+function "show_hud" {
+    tellraw @a {"text":"Players: $player_count$","color":"green"};
+}
+```
+
+Build all files together:
+```bash
+mdl build --mdl . -o dist
+```
+
+## Registry Types
+
+MDL supports all Minecraft registry types by referencing JSON files:
+
+```mdl
+// Recipes
+recipe "custom_sword" "recipes/sword.json";
+
+// Loot tables
+loot_table "treasure" "loot_tables/treasure.json";
+
+// Advancements
+advancement "first_sword" "advancements/sword.json";
+
+// Predicates
+predicate "has_sword" "predicates/sword.json";
+
+// Item modifiers
+item_modifier "sword_nbt" "item_modifiers/sword.json";
+
+// Structures
+structure "custom_house" "structures/house.json";
+```
+
+## Next Steps
+
+- **Language Reference**: Learn the complete MDL syntax
+- **Examples**: See working examples of all features
+- **Multi-file Projects**: Organize large projects
+- **CLI Reference**: Master the command-line tools
+- **Python API**: Create datapacks programmatically
+- **VS Code Extension**: Get syntax highlighting and linting
+
+## Troubleshooting
+
+### Common Issues
+
+**"mdl: command not found"**
+- Make sure pipx is in your PATH
+- Try restarting your terminal
+- Run `pipx ensurepath` and restart
+
+**"No .mdl files found"**
+- Make sure you're in the right directory
+- Check that your file has the `.mdl` extension
+- Use `mdl build --mdl . -o dist` to build all files in current directory
+
+**"Failed to parse MDL files"**
+- Check your syntax (missing semicolons, brackets, etc.)
+- Use `mdl lint your_file.mdl` to check for errors
+- Make sure all brackets and braces are properly closed
+
+**Datapack not working in-game**
+- Make sure you copied the entire folder from `dist/`
+- Run `/reload` in-game
+- Check the game logs for errors
+- Verify the pack format matches your Minecraft version
+
+### Getting Help
+
+- **Documentation**: Check the language reference and examples
+- **GitHub Issues**: Report bugs or request features
+- **Discussions**: Ask questions and share projects
+- **Examples**: Study the working examples in the repository
+
+## Development Setup
+
+For contributors, MDL includes a comprehensive development system:
 
 **Linux/macOS:**
 ```bash
@@ -80,227 +290,8 @@ This sets up:
 
 **Development Workflow:**
 1. Make changes to the code
-2. Rebuild: `./scripts/dev_build.sh` (or install locally with `python3 -m pip install --user -e .`)
+2. Rebuild: `./scripts/dev_build.sh`
 3. Test: `mdlbeta build --mdl your_file.mdl -o dist`
 4. Validate: `mdl check-advanced your_file.mdl`
-5. Compare with stable: `mdl build --mdl your_file.mdl -o dist_stable`
 
 For detailed development information, see [DEVELOPMENT.md](https://github.com/aaron777collins/MinecraftDatapackLanguage/blob/main/DEVELOPMENT.md).
-
-## Updating MDL
-
-- **pipx**: `pipx upgrade minecraft-datapack-language`
-- **pip**: `pip install -U minecraft-datapack-language`
-- **Pin a version**: `pipx install "minecraft-datapack-language==12.0.1"`
-
-## Your First **Modern** Datapack
-
-Let's create a modern datapack that demonstrates **control structures, variables, expressions, and multi-file projects**.
-
-### 1. Create the MDL File
-
-Create a file called `hello.mdl` with the following content:
-
-```mdl
-// hello.mdl - Your first modern MDL datapack
-pack "Hello World" description "A modern example datapack" pack_format 82;
-
-namespace "hello";
-
-// Number variables with expressions
-var num counter = 0;
-var num health = 20;
-var num level = 1;
-
-function "init" {
-    say [hello:init] Initializing Hello World datapack...;
-    tellraw @a {"text":"Hello World datapack loaded!","color":"green"};
-    counter = 0;
-    health = 20;
-    level = 1;
-}
-
-function "tick" {
-    counter = counter + 1;
-    
-    // Full if/else if/else control structure
-    if "$health$ < 10" {
-        say Health is low!;
-        health = health + 5;
-        effect give @a minecraft:regeneration 10 1;
-    } else if "$level$ > 5" {
-        say High level player!;
-        effect give @a minecraft:strength 10 1;
-    } else {
-        say Normal player;
-        effect give @a minecraft:speed 10 0;
-    }
-    
-    // Variable substitution in strings
-    say Counter: $counter$;
-    
-    // While loop with method selection
-    while "$counter$ < 10" {
-        counter = $counter$ + 1;
-        say Counter: $counter$;
-    }
-    
-    // Expressions with arithmetic
-    var num experience = $level$ * 100 + $counter$;
-    say Experience: $experience$;
-}
-
-// Lifecycle hooks
-on_load "hello:init";
-on_tick "hello:tick";
-```
-
-### 2. Build the Datapack
-
-Run the following command to build your datapack:
-
-```bash
-mdl build --mdl hello.mdl -o dist
-```
-
-This will create a `dist/` folder containing your compiled datapack.
-
-### 3. Install in Minecraft
-
-1. Copy the `dist/hello_world/` folder to your Minecraft world's `datapacks/` folder
-2. In Minecraft, run `/reload` to load the datapack
-3. You should see the initialization message and the tick function will start running
-
-### 4. What This Demonstrates
-
-This simple example shows:
-
-- **🎯 JavaScript-style syntax**: Curly braces `{}` and semicolons `;`
-- **📝 Modern comments**: Using `//` for single-line comments
-- **🔢 Variables**: Number variables with `var num` declarations
-- **🔄 Control structures**: Full `if/else if/else` statements
-- **🔄 Loops**: `while` loops with method selection
-- **💲 Variable substitution**: Using `$variable$` syntax in strings and conditions
-- **🧮 Expressions**: Arithmetic operations with variables
-- **🎯 Selector optimization**: Proper `@a` usage for system commands
-- **🎨 Variable optimization**: Automatic load function generation
-- **📦 Multi-file support**: Organize code across multiple files with namespaces
-
-## Multi-File Project Example
-
-Let's create a more complex project using multiple files:
-
-### 1. Create Multiple MDL Files
-
-**`core.mdl`** - Core game logic:
-```mdl
-pack "multi_example" "A multi-file example" 82;
-
-namespace "core";
-
-var num player_count = 0;
-var num game_timer = 0;
-
-function "init" {
-    say [core:init] Initializing multi-file system...;
-    player_count = 0;
-    game_timer = 0;
-}
-
-function "tick" {
-    game_timer = $game_timer$ + 1;
-    say [core:tick] Game timer: $game_timer$;
-}
-
-on_load "core:init";
-on_tick "core:tick";
-```
-
-**`ui.mdl`** - User interface:
-```mdl
-namespace "ui";
-
-var num menu_state = 0;
-
-function "init" {
-    say [ui:init] Initializing UI...;
-    menu_state = 0;
-}
-
-function "show_menu" {
-    if "$menu_state$ == 0" {
-        say "=== Main Menu ===";
-    }
-}
-
-on_load "ui:init";
-on_tick "ui:show_menu";
-```
-
-### 2. Build the Multi-File Project
-
-```bash
-mdl build --mdl . -o dist
-```
-
-This creates a datapack with:
-- **Separate namespaces**: `core` and `ui` functions are in different directories
-- **Merged variables**: All variables are initialized together
-- **Combined hooks**: All load and tick functions are properly organized
-
-### 3. Generated Structure
-
-```
-dist/
-├── data/
-│   ├── minecraft/tags/function/
-│   │   ├── load.json    # Contains core:init, ui:init
-│   │   └── tick.json    # Contains core:tick, ui:show_menu
-│   ├── core/            # core.mdl namespace
-│   │   └── function/
-│   │       ├── init.mcfunction
-│   │       └── tick.mcfunction
-│   └── ui/              # ui.mdl namespace
-│       └── function/
-│           ├── init.mcfunction
-│           └── show_menu.mcfunction
-└── pack.mcmeta
-```
-
-## Next Steps
-
-Now that you have a basic understanding, explore:
-
-- **[Language Reference]({{ site.baseurl }}/docs/language-reference/)** - Complete syntax guide
-- **[Examples]({{ site.baseurl }}/docs/examples/)** - More complex examples
-- **[Multi-file Projects]({{ site.baseurl }}/docs/multi-file-projects/)** - Organizing large datapacks
-- **[VS Code Extension]({{ site.baseurl }}/docs/vscode-extension/)** - IDE integration
-
-## Troubleshooting
-
-### Common Issues
-
-**"mdl command not found"**
-- Make sure you've installed MDL correctly
-- Try restarting your terminal
-- Check that pipx is in your PATH
-
-**"Pack format not supported"**
-- Use `pack_format 82` for modern Minecraft versions
-- Older versions may need lower pack formats
-
-**"Function not found"**
-- Make sure function names are quoted: `function "name"`
-- Check that namespaces are properly declared
-- Verify hook syntax: `on_load "namespace:function"`
-
-**"Variable not found"**
-- Declare variables with `var num name = value;`
-- Use `$variable$` syntax for substitution
-- Variables are automatically optimized in load functions
-
-### Getting Help
-
-- **GitHub Issues**: [Report bugs and request features](https://github.com/aaron777collins/MinecraftDatapackLanguage/issues)
-- **GitHub Discussions**: [Ask questions and share your datapacks](https://github.com/aaron777collins/MinecraftDatapackLanguage/discussions)
-- **Documentation**: Check the [Language Reference]({{ site.baseurl }}/docs/language-reference/) for complete syntax details

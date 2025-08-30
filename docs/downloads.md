@@ -98,7 +98,7 @@ mdl --help
 
 #### Option 3: From Source
 ```bash
-# Clone repository
+# Clone the repository
 git clone https://github.com/aaron777collins/MinecraftDatapackLanguage.git
 cd MinecraftDatapackLanguage
 
@@ -108,102 +108,90 @@ python -m pip install -e .
 
 ### VS Code Extension
 
-#### Quick Install
-1. **Download the VSIX file** from the latest release
-2. **Open VS Code/Cursor**
-3. **Go to Extensions** (Ctrl+Shift+X)
-4. **Click "..." → "Install from VSIX..."**
-5. **Choose the downloaded `.vsix` file**
+1. Download the `.vsix` file from the latest release
+2. In VS Code/Cursor, go to Extensions (Ctrl+Shift+X)
+3. Click the "..." menu and select "Install from VSIX..."
+4. Choose the downloaded file
+5. Restart VS Code/Cursor
 
-#### Command Line Install
-```bash
-# Install directly from command line
-code --install-extension minecraft-datapack-language-{% if site.github.latest_release and site.github.latest_release.tag_name %}{{ site.github.latest_release.tag_name | remove: 'v' }}{% elsif site.github.releases and site.github.releases.first and site.github.releases.first.tag_name %}{{ site.github.releases.first.tag_name | remove: 'v' }}{% else %}{{ site.data.version.current | default: 'latest' }}{% endif %}.vsix
-```
+## Features
 
-#### Features Included
-- ✅ **Syntax highlighting** for `.mdl` files
-- ✅ **Real-time linting** with error detection
-- ✅ **Build commands**: `MDL: Build current file`
-- ✅ **Workspace validation**: `MDL: Check Workspace`
-- ✅ **Command palette integration**
+### Command Line Tool
+- **Build datapacks**: `mdl build --mdl file.mdl -o dist`
+- **Lint code**: `mdl lint file.mdl`
+- **Create projects**: `mdl new project_name`
+- **Multi-file support**: Build entire directories
+- **Pack format support**: Modern and legacy formats
 
-## Recent Releases
-
-<div class="releases-section">
-  <h2>📋 Recent Releases</h2>
-  
-  <div class="release-list">
-    {% assign releases = site.github.releases %}
-    {% if releases and releases.size > 0 %}
-      {% for release in releases limit:5 %}
-      <div class="release-item">
-        <h3>{{ release.tag_name }}</h3>
-        <p class="release-date">{{ release.published_at | date: "%B %d, %Y" }}</p>
-        <p>{{ release.body | strip_html | truncate: 150 }}</p>
-        <div class="release-links">
-          <a href="{{ release.html_url }}" target="_blank">View Release →</a>
-          {% if release.assets.size > 0 %}
-          <span class="asset-count">📦 {{ release.assets.size }} asset{{ release.assets.size | pluralize }}</span>
-          {% endif %}
-        </div>
-      </div>
-      {% endfor %}
-    {% else %}
-      <div class="release-item">
-        <h3>Latest Version</h3>
-        <p class="release-date">Current</p>
-        <p>Check GitHub for the latest releases and updates.</p>
-        <div class="release-links">
-          <a href="https://github.com/aaron777collins/MinecraftDatapackLanguage/releases" target="_blank">View All Releases →</a>
-        </div>
-      </div>
-    {% endif %}
-  </div>
-  
-  <div class="view-all">
-    <a href="https://github.com/aaron777collins/MinecraftDatapackLanguage/releases" class="btn btn-outline" target="_blank">
-      View All Releases
-    </a>
-  </div>
-</div>
+### VS Code Extension
+- **Syntax highlighting**: MDL files with proper colors
+- **Error detection**: Real-time linting and validation
+- **Build commands**: Quick compile with Ctrl+Shift+P
+- **IntelliSense**: Auto-completion and suggestions
+- **Integrated terminal**: Run MDL commands directly
 
 ## System Requirements
 
-### Python Package
-- **Python**: 3.9 or higher
-- **Platform**: Windows, macOS, Linux
-- **Dependencies**: Automatically installed via pip
+- **Python**: 3.8 or higher
+- **Minecraft**: 1.20+ (pack format 82) or 1.19+ (pack format 15)
+- **Operating System**: Windows, macOS, or Linux
+- **VS Code**: 1.60+ (for extension)
 
-### VS Code Extension
-- **VS Code**: 1.90.0 or higher
-- **Cursor**: Compatible (based on VS Code)
-- **Platform**: Windows, macOS, Linux
-- **MDL**: Requires MDL to be installed on system
+## Version History
+
+### Recent Releases
+
+- **v12.0.10** - Namespace mapping fixes, improved multi-file support
+- **v12.0.9** - Bug fixes and performance improvements
+- **v12.0.8** - Enhanced error handling and documentation
+- **v12.0.7** - Control structure improvements
+- **v12.0.6** - Variable system enhancements
+
+### Major Features
+
+- **Modern Syntax**: JavaScript-style with curly braces and semicolons
+- **Control Structures**: Real if/else statements and while loops
+- **Variables**: Number variables with expressions and arithmetic
+- **Multi-file Projects**: Organize code across multiple files
+- **Registry Support**: All Minecraft registry types
+- **VS Code Integration**: Full IDE support with extension
 
 ## Getting Started
 
-After installation, you can:
+After installation, create your first datapack:
 
-1. **Create your first datapack**:
-   ```bash
-   mdl new my_pack --name "My First Pack" --pack-format 48
-   ```
+```bash
+# Create a new project
+mdl new my_first_pack
 
-2. **Build from MDL file**:
-   ```bash
-   mdl build --mdl mypack.mdl -o dist
-   ```
+# Build it
+mdl build --mdl my_first_pack.mdl -o dist
 
-3. **Use VS Code extension**:
-   - Open any `.mdl` file for syntax highlighting
-   - Use `Ctrl+Shift+P` and type "MDL" for commands
+# Install in Minecraft
+# Copy dist/my_first_pack/ to your world's datapacks folder
+# Run /reload in-game
+```
 
 ## Support
 
-- **Documentation**: [Complete guides and examples]({{ site.baseurl }}/docs/)
-- **GitHub Issues**: [Report bugs or request features](https://github.com/aaron777collins/MinecraftDatapackLanguage/issues)
-- **Discussions**: [Ask questions and share projects](https://github.com/aaron777collins/MinecraftDatapackLanguage/discussions)
+- **Documentation**: [Getting Started]({{ site.baseurl }}/docs/getting-started/)
+- **Examples**: [Working Examples]({{ site.baseurl }}/docs/examples/)
+- **Language Reference**: [Complete Syntax]({{ site.baseurl }}/docs/language-reference/)
+- **GitHub Issues**: [Report Bugs](https://github.com/aaron777collins/MinecraftDatapackLanguage/issues)
+- **Discussions**: [Ask Questions](https://github.com/aaron777collins/MinecraftDatapackLanguage/discussions)
+
+## Contributing
+
+Want to help improve MDL? Check out our [Contributing Guide]({{ site.baseurl }}/docs/contributing/) for:
+
+- Development setup
+- Code style guidelines
+- Testing procedures
+- Release process
+
+## License
+
+MDL is open source software licensed under the MIT License. See the [LICENSE](https://github.com/aaron777collins/MinecraftDatapackLanguage/blob/main/LICENSE) file for details.
 
 <style>
 .download-section {

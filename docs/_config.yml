@@ -55,25 +55,23 @@ exclude:
 theme: jekyll-theme-cayman
 show_downloads: false
 
-# Navigation
+# Navigation - Clean, organized structure
 nav:
-  - title: Home
-    url: /
   - title: Downloads
     url: /downloads/
   - title: Getting Started
     url: /docs/getting-started/
   - title: Language Reference
     url: /docs/language-reference/
-  - title: Python API
-    url: /docs/python-api/
-  - title: CLI Reference
-    url: /docs/cli-reference/
-  - title: VS Code Extension
-    url: /docs/vscode-extension/
   - title: Examples
     url: /docs/examples/
   - title: Multi-file Projects
     url: /docs/multi-file-projects/
+  - title: CLI Reference
+    url: /docs/cli-reference/
+  - title: Python API
+    url: /docs/python-api/
+  - title: VS Code Extension
+    url: /docs/vscode-extension/
   - title: Contributing
     url: /docs/contributing/
