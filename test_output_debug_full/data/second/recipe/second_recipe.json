@@ -1,17 +1,17 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "MMM",
-    "M M",
-    "MMM"
+    "SSS",
+    "S S",
+    "SSS"
   ],
   "key": {
-    "M": {
-      "item": "minecraft:iron_ingot"
+    "S": {
+      "item": "minecraft:gold_ingot"
     }
   },
   "result": {
-    "item": "minecraft:iron_block",
+    "item": "minecraft:gold_block",
     "count": 1
   }
 }

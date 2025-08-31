@@ -297,9 +297,11 @@ def _merge_mdl_files(files: List[Path], verbose: bool = False) -> Optional[Dict[
             for entry in root_pack[key]:
                 if isinstance(entry, dict):
                     entry['_source_dir'] = first_file_dir
+                    print(f"DEBUG: _merge_mdl_files: {key} entry '{entry.get('name', 'unknown')}' has _source_namespace: {entry.get('_source_namespace', 'NOT_SET')}")
                     # Don't overwrite _source_namespace - it's already set correctly by the parser
                 else:
                     setattr(entry, '_source_dir', first_file_dir)
+                    print(f"DEBUG: _merge_mdl_files: {key} entry (object) has _source_namespace: {getattr(entry, '_source_namespace', 'NOT_SET')}")
                     # Don't overwrite _source_namespace - it's already set correctly by the parser
     
     # Ensure root_pack has required keys
@@ -1652,6 +1654,7 @@ def _ast_to_pack(ast: Dict[str, Any], mdl_files: List[Path]) -> Pack:
         
         # Get the correct namespace for this recipe
         print(f"DEBUG: Recipe '{name}' namespace: {recipe_namespace} (from _source_namespace: {recipe.get('_source_namespace', 'NOT_SET')})")
+        print(f"DEBUG: Recipe '{name}' full object: {recipe}")
         recipe_ns = pack.namespace(recipe_namespace)
         
         # Load JSON data from file if specified

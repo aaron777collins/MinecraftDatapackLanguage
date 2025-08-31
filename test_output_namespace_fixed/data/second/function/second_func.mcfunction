@@ -1,0 +1,1 @@
+tellraw @a [{"text":"Second namespace function"}]

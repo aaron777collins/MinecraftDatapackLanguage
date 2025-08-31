@@ -42,6 +42,16 @@ jobs:
         python -m pip install -e .
         python -m pip install pytest
         
+    - name: Set unique output directories
+      run: |
+        # Create unique output directories to prevent race conditions
+        export UNIQUE_OUTPUT_DIR="test_examples/dist_${GITHUB_RUN_ID}_${GITHUB_JOB}"
+        export UNIQUE_TEST_OUTPUT_DIR="test_examples/test_output_${GITHUB_RUN_ID}_${GITHUB_JOB}"
+        echo "UNIQUE_OUTPUT_DIR=$UNIQUE_OUTPUT_DIR" >> $GITHUB_ENV
+        echo "UNIQUE_TEST_OUTPUT_DIR=$UNIQUE_TEST_OUTPUT_DIR" >> $GITHUB_ENV
+        echo "Using unique output directory: $UNIQUE_OUTPUT_DIR"
+        echo "Using unique test output directory: $UNIQUE_TEST_OUTPUT_DIR"
+        
     - name: Test working MDL examples
       run: |
         echo "Testing working MDL examples..."
@@ -55,7 +65,7 @@ jobs:
           if [[ -f "$file" ]]; then
             echo "Testing $file"
             mdl check "$file"
-            mdl build --mdl "$file" -o test_examples/dist
+            mdl build --mdl "$file" -o "$UNIQUE_OUTPUT_DIR"
           else
             echo "No MDL files found to test"
             exit 1
@@ -70,6 +80,8 @@ jobs:
     - name: Run comprehensive output validation tests
       run: |
         echo "Running comprehensive output validation tests..."
+        # Set the unique test output directory for the validation script
+        export TEST_OUTPUT_DIR="$UNIQUE_TEST_OUTPUT_DIR"
         python test_examples/test_output_validation.py
         
     - name: Test CLI functionality
@@ -88,7 +100,7 @@ jobs:
         
         # Test check and build
         mdl check cli_test/
-        mdl build --mdl cli_test/ -o test_examples/dist
+        mdl build --mdl cli_test/ -o "$UNIQUE_OUTPUT_DIR"
         
         # Clean up
         rm -rf cli_test/
@@ -139,10 +151,10 @@ jobs:
     - name: Verify generated datapacks
       run: |
         echo "Verifying generated datapacks..."
-        ls -la test_examples/dist/
+        ls -la "$UNIQUE_OUTPUT_DIR"/
         
         # Check that datapacks have the expected structure
-        for dir in test_examples/dist/*/; do
+        for dir in "$UNIQUE_OUTPUT_DIR"/*/; do
           if [[ -d "$dir" ]] && [[ "$(basename "$dir")" != "data" ]]; then
             echo "Checking datapack: $dir"
             ls -la "$dir"
@@ -169,6 +181,6 @@ jobs:
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: test-datapacks
-        path: test_examples/dist/
+        name: test-datapacks-${{ github.run_id }}-${{ github.job }}
+        path: ${{ env.UNIQUE_OUTPUT_DIR }}/
         retention-days: 7

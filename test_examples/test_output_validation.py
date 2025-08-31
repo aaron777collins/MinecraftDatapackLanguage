@@ -15,7 +15,10 @@ from typing import Dict, List, Any
 class MDLOutputTester:
     def __init__(self):
         self.test_dir = Path("test_examples")
-        self.output_dir = Path("test_examples/test_output")
+        # Use unique output directory from environment variable if available (for CI)
+        # This prevents race conditions when multiple jobs run in parallel
+        test_output_dir = os.environ.get('TEST_OUTPUT_DIR', 'test_examples/test_output')
+        self.output_dir = Path(test_output_dir)
         self.output_dir.mkdir(exist_ok=True)
         
     def run_mdl_build(self, mdl_file: Path, output_dir: Path) -> bool:
