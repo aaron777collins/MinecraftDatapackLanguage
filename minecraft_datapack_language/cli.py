@@ -390,6 +390,7 @@ def _merge_mdl_files(files: List[Path], verbose: bool = False) -> Optional[Dict[
     if verbose:
         pack_name = root_pack.get('pack', {}).get('name', 'unknown') if root_pack and root_pack.get('pack') else 'unknown'
         print(f"Successfully merged {len(files)} file(s) into datapack: {pack_name}")
+    
     return root_pack
 
 
@@ -1405,7 +1406,9 @@ def _create_zip_file(source_dir: Path, zip_path: Path) -> None:
 def _generate_pack_mcmeta(ast: Dict[str, Any], output_dir: Path) -> None:
     """Generate pack.mcmeta file with support for both pre-82 and post-82 formats."""
     pack_info = ast.get('pack')
-    if not pack_info:
+    
+    # More robust check for pack_info - handle both None and empty dict cases
+    if not pack_info or not isinstance(pack_info, dict) or not pack_info.get('description'):
         pack_info = {'name': 'mdl_pack', 'description': 'Generated MDL pack', 'pack_format': 82}
     
     pack_format = pack_info['pack_format']
@@ -1439,6 +1442,11 @@ def _generate_pack_mcmeta(ast: Dict[str, Any], output_dir: Path) -> None:
 def _ast_to_pack(ast: Dict[str, Any], mdl_files: List[Path]) -> Pack:
     """Convert AST to Pack object to enable all registry types."""
     pack_info = ast.get('pack', {}) or {}
+    
+    # More robust check for pack_info
+    if not pack_info or not isinstance(pack_info, dict) or not pack_info.get('description'):
+        pack_info = {'name': 'mdl_pack', 'description': 'MDL generated pack', 'pack_format': 82}
+    
     pack_name = pack_info.get('name', 'mdl_pack')
     pack_description = pack_info.get('description', 'MDL generated pack')
     pack_format = pack_info.get('pack_format', 82)
@@ -1919,6 +1927,10 @@ def build_mdl(input_path: str, output_path: str, verbose: bool = False, pack_for
     ast = _merge_mdl_files(mdl_files, verbose)
     if not ast:
         raise SystemExit("Failed to parse MDL files")
+    
+    # Ensure pack info exists - this makes the code more resilient to race conditions
+    if not ast.get('pack'):
+        ast['pack'] = {'name': 'mdl_pack', 'description': 'Generated MDL pack', 'pack_format': 82}
     
     # Optionally override pack format (ensures pack.mcmeta and directory layout align with requested version)
     if pack_format_override is not None:
