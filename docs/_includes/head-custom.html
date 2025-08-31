@@ -50,7 +50,7 @@
       pattern: /\b(pack|namespace|function|on_tick|on_load|tag|add|if|else if|else|while|for|in|var|let|const|num|str|list|try|catch|throw|switch|case|default|break|continue|return|import|from|as|recipe|loot_table|advancement|predicate|item_modifier|structure|scope|global)\b/,
       lookbehind: true
     },
-    'function': {
+    'builtin': {
       pattern: /\b(say|tellraw|effect|particle|execute|scoreboard|data|function|tag|tp|kill|summon|give|clear|enchant|gamemode|weather|time|difficulty|gamerule|title|playsound|stopsound|kick|ban|ban-ip|pardon|pardon-ip|whitelist|op|deop|save-all|save-off|save-on|list|me|msg|team|trigger|advancement|recipe|loot|schedule|return|run)\b/,
       lookbehind: true
     },
@@ -133,13 +133,13 @@ code[class*="language-"] {
   font-size: 0.9rem;
 }
 
-/* MDL Syntax Highlighting */
+/* MDL Syntax Highlighting - Light Mode */
 .language-mdl .token.keyword {
   color: #d73a49;
   font-weight: 600;
 }
 
-.language-mdl .token.function {
+.language-mdl .token.builtin {
   color: #6f42c1;
   font-weight: 500;
 }
@@ -183,7 +183,7 @@ code[class*="language-"] {
     color: #ff7b72;
   }
   
-  .language-mdl .token.function {
+  .language-mdl .token.builtin {
     color: #d2a8ff;
   }
   
