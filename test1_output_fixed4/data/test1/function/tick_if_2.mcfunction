@@ -1,2 +1,0 @@
-tellraw @a [{"text": "Server has been running for ", "color": "yellow"}, {"score": {"name": "global", "objective": "global_timer"}, "color": "yellow"}, {"text": " ticks!", "color": "yellow"}]
-scoreboard players set @s global_timer<global> 0

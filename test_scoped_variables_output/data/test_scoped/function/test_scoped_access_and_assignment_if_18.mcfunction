@@ -1,1 +1,0 @@
-tellraw @a [{"text":"Red team is winning!"}]
