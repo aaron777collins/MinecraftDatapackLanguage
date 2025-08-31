@@ -12,14 +12,13 @@ from typing import Dict, List, Optional, Any
 
 from .mdl_lexer_js import lex_mdl_js
 from .mdl_parser_js import parse_mdl_js
-from .expression_processor import expression_processor
-print(f"DEBUG: Imported expression_processor: {type(expression_processor)}")
+from .expression_processor import ExpressionProcessor
 from .dir_map import get_dir_map
 from .pack import Pack, Namespace, Function, Tag, Recipe, Advancement, LootTable, Predicate, ItemModifier, Structure
 
 # Global variable to store conditional functions
 # NOTE: This is now deprecated and will be removed. Use instance-based storage instead.
-conditional_functions = []
+# conditional_functions = []  # Removed - use BuildContext.conditional_functions instead
 
 
 class BuildContext:
@@ -29,10 +28,12 @@ class BuildContext:
         self.conditional_functions = []
         self.variable_scopes = {}
         self.namespace_functions = {}
+        self.expression_processor = ExpressionProcessor()
 
 
 # Global build context - will be replaced with instance-based approach
-_build_context = BuildContext()
+# NOTE: This is deprecated and should not be used. Use instance-based BuildContext instead.
+# _build_context = BuildContext()  # Removed - create new instances as needed
 
 
 def ensure_dir(path: str) -> None:
@@ -533,7 +534,7 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
                     pass
                 else:
                     # Process the expression for non-zero values
-                    result = expression_processor.process_expression(statement.value, statement.name, var_selector)
+                    result = build_context.expression_processor.process_expression(statement.value, statement.name, var_selector)
                     commands.extend(result.temp_assignments)
                     if result.final_command:
                         commands.append(result.final_command)
@@ -572,8 +573,8 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
                 target_var_name = _extract_base_variable_name(var_name)
                 print(f"DEBUG: Processing VariableAssignment: {var_name} = {statement.value} (target_var_name={target_var_name}, var_selector={var_selector})")
                 print(f"DEBUG: About to call expression_processor.process_expression with target_var_name='{target_var_name}', var_selector='{var_selector}'")
-                print(f"DEBUG: expression_processor type: {type(expression_processor)}")
-                result = expression_processor.process_expression(statement.value, target_var_name, var_selector)
+                print(f"DEBUG: expression_processor type: {type(build_context.expression_processor)}")
+                result = build_context.expression_processor.process_expression(statement.value, target_var_name, var_selector)
                 temp_commands = []
                 temp_commands.extend(result.temp_assignments)
                 if result.final_command:
@@ -1135,7 +1136,7 @@ def _generate_global_load_function(ast: Dict[str, Any], output_dir: Path, namesp
     
     # Use default build context if none provided
     if build_context is None:
-        build_context = _build_context
+        build_context = BuildContext()
     
     # Generate load function for each namespace that has variables or functions
     for ns in set(list(build_context.namespace_functions.keys()) + list(namespace_variables.keys())):
@@ -1355,7 +1356,7 @@ def _process_while_loop_recursion(while_statement, namespace: str, function_name
     # Add the loop body commands to the conditional functions list
     # (This will be handled by the _generate_function_file method)
     if build_context is None:
-        build_context = _build_context
+        build_context = BuildContext()
     print(f"DEBUG: Adding while loop conditional function: {loop_label} with {len(loop_commands)} commands")
     build_context.conditional_functions.append((loop_label, loop_commands))
     
@@ -1382,7 +1383,7 @@ def _process_while_loop_schedule(while_statement, namespace: str, function_name:
     
     # Add the loop body commands to the conditional functions list
     if build_context is None:
-        build_context = _build_context
+        build_context = BuildContext()
     build_context.conditional_functions.append((loop_label, loop_commands))
     
     # Add condition check and schedule
@@ -1478,17 +1479,18 @@ def _ast_to_pack(ast: Dict[str, Any], mdl_files: List[Path]) -> Pack:
                     # Skip variable declarations - they're handled by the CLI
                     continue
                 elif class_name == 'VariableAssignment':
-                    # Process variable assignments using the expression processor
-                    # Use the global instance instead of creating a new one
+                    # Process variable assignments for Pack object testing
+                    # Use a local ExpressionProcessor instance to avoid global state
+                    local_expression_processor = ExpressionProcessor()
                     selector = "@e[type=armor_stand,tag=mdl_server,limit=1]"
-                    
+
                     # Check if it's a simple assignment to 0 (which can be optimized out)
                     if hasattr(statement.value, 'value') and statement.value.value == 0:
                         # Skip assignment to 0 - it's handled in load function
                         pass
                     else:
                         # Process the expression for non-zero values
-                        result = expression_processor.process_expression(statement.value, statement.name, selector)
+                        result = local_expression_processor.process_expression(statement.value, statement.name, selector)
                         temp_commands = []
                         temp_commands.extend(result.temp_assignments)
                         if result.final_command:
