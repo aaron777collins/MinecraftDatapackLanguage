@@ -24,7 +24,7 @@ namespace "namespace_name";
 ```mdl
 // Declare variables with scope
 var num counter scope<global> = 0;
-var num playerScore scope<@s> = 0;
+var num playerScore = 0;  // Defaults to player-specific scope
 var num teamScore scope<@a[team=red]> = 0;
 
 // Assignment
@@ -90,8 +90,8 @@ on_tick "namespace:function_name";    // Runs every tick
 ## Scope System
 
 ### Variable Scopes
-- `scope<@s>` - Player-specific (default)
-- `scope<global>` - Server-wide
+- **No scope specified** - Player-specific (defaults to `@s` in execution context)
+- `scope<global>` - Server-wide (stored on server armor stand)
 - `scope<@a>` - All players
 - `scope<@a[team=red]>` - Team-specific
 - `scope<@e[type=armor_stand,tag=something,limit=1]>` - Custom entity
@@ -125,7 +125,7 @@ pack "counter" "Counter example" 82;
 namespace "counter";
 
 var num globalCounter scope<global> = 0;
-var num playerCounter scope<@s> = 0;
+var num playerCounter = 0;  // Defaults to player-specific scope
 
 function "increment" {
     globalCounter = globalCounter + 1;
@@ -174,8 +174,8 @@ pack "game" "Complete game example" 82;
 namespace "game";
 
 // Variables
-var num score scope<@s> = 0;
-var num level scope<@s> = 1;
+var num score = 0;  // Defaults to player-specific scope
+var num level = 1;  // Defaults to player-specific scope
 var num globalTimer scope<global> = 0;
 
 // Main game function

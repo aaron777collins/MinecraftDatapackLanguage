@@ -2196,8 +2196,8 @@ var num player_level = 1;
 var num global_counter scope<global> = 0;
 var num global_timer scope<global> = 0;
 
-// Player-scoped variables (explicit)
-var num player_health scope<@s> = 20;
+// Player-scoped variables (default)
+var num player_health = 20;  // Defaults to player-specific scope
 
 // Team-scoped variables
 var num team_score scope<@a[team=red]> = 0;

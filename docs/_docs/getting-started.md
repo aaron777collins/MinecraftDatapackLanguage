@@ -125,7 +125,7 @@ pack "example" "Complete example" 82;
 namespace "example";
 
 // Variables
-var num playerScore scope<@s> = 0;
+var num playerScore = 0;  // Defaults to player-specific scope
 var num globalTimer scope<global> = 0;
 
 // Initialize function

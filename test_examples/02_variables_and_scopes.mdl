@@ -5,7 +5,7 @@ namespace "variables";
 
 // Variables with different scopes
 var num globalCounter scope<global> = 0;
-var num playerCounter scope<@s> = 0;
+var num playerCounter = 0;  // Defaults to player-specific scope
 var num teamCounter scope<@a[team=red]> = 0;
 
 function "main" {

@@ -33,7 +33,7 @@ pack "counter" "Counter example" 82;
 namespace "counter";
 
 var num globalCounter scope<global> = 0;
-var num playerCounter scope<@s> = 0;
+var num playerCounter = 0;  // Defaults to player-specific scope
 
 function "increment" {
     globalCounter = globalCounter + 1;
@@ -97,8 +97,8 @@ pack "game" "Complete game example" 82;
 namespace "game";
 
 // Variables
-var num score scope<@s> = 0;
-var num level scope<@s> = 1;
+var num score = 0;  // Defaults to player-specific scope
+var num level = 1;  // Defaults to player-specific scope
 var num globalTimer scope<global> = 0;
 
 // Main game function

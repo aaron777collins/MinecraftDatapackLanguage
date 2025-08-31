@@ -84,7 +84,7 @@ Each file can have its own namespace to prevent conflicts:
 // combat.mdl
 namespace "combat";
 
-var num damage scope<@s> = 10;
+var num damage = 10;  // Defaults to player-specific scope
 
 function "attack" {
     say Attack damage: $damage$;
@@ -95,7 +95,7 @@ function "attack" {
 // magic.mdl
 namespace "magic";
 
-var num mana scope<@s> = 100;
+var num mana = 100;  // Defaults to player-specific scope
 
 function "cast_spell" {
     if "$mana$ >= 20" {
@@ -112,7 +112,7 @@ Variables from all files are automatically merged:
 ```mdl
 // core.mdl
 var num globalTimer scope<global> = 0;
-var num playerScore scope<@s> = 0;
+var num playerScore = 0;  // Defaults to player-specific scope
 ```
 
 ```mdl
@@ -132,7 +132,7 @@ pack "adventure" "Adventure game" 82;
 namespace "core";
 
 var num gameState scope<global> = 0;
-var num playerLevel scope<@s> = 1;
+var num playerLevel = 1;  // Defaults to player-specific scope
 
 function "init" {
     gameState = 0;
@@ -147,7 +147,7 @@ on_load "core:init";
 ```mdl
 namespace "combat";
 
-var num playerHealth scope<@s> = 20;
+var num playerHealth = 20;  // Defaults to player-specific scope
 
 function "attack" {
     say Attacking! Health: $playerHealth$;
@@ -204,6 +204,7 @@ mdl build --mdl "main.mdl combat.mdl ui.mdl game.mdl" -o dist
 3. **Clear naming**: Use descriptive file and namespace names
 4. **Shared variables**: Declare shared variables in the main file
 5. **Function organization**: Group related functions in the same file
+6. **Proper scoping**: Use `scope<global>` for server-wide variables, no scope for player-specific variables
 
 ## File Structure Example
 

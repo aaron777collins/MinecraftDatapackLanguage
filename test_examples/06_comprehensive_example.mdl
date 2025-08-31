@@ -1,11 +1,10 @@
-// Comprehensive Example - Combining Multiple Features
-pack "comprehensive" "A comprehensive MDL example" 82;
+// Comprehensive Example
+pack "comprehensive" "A comprehensive example showing all MDL features" 82;
 
 namespace "comprehensive";
 
-// Variables with different scopes
-var num playerHealth scope<@s> = 20;
-var num playerScore scope<@s> = 0;
+var num playerHealth = 20;  // Defaults to player-specific scope
+var num playerScore = 0;  // Defaults to player-specific scope
 var num globalTimer scope<global> = 0;
 var num gamePhase scope<global> = 0;
 
