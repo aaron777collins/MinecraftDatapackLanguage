@@ -1365,8 +1365,7 @@ def _ast_to_pack(ast: Dict[str, Any], mdl_files: List[Path]) -> Pack:
                     continue
                 elif class_name == 'VariableAssignment':
                     # Process variable assignments using the expression processor
-                    from minecraft_datapack_language.expression_processor import ExpressionProcessor
-                    expression_processor = ExpressionProcessor()
+                    # Use the global instance instead of creating a new one
                     selector = "@e[type=armor_stand,tag=mdl_server,limit=1]"
                     
                     # Check if it's a simple assignment to 0 (which can be optimized out)

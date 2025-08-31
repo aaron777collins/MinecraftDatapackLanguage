@@ -1,0 +1,2 @@
+tellraw @a [team = red] [{"text": "Red team score: ", "color": "red"}, {"score": {"name": "@a[team=red]", "objective": "red_team_score"}, "color": "red"}]
+tellraw @a [team = blue] [{"text": "Red team score: ", "color": "blue"}, {"score": {"name": "@a[team=red]", "objective": "red_team_score"}, "color": "blue"}]

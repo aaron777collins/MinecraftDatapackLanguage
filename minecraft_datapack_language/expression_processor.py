@@ -105,6 +105,9 @@ class ExpressionProcessor:
             if len(parts) == 2:
                 variable_name = parts[0]
                 scope_selector = parts[1][:-1]  # Remove closing >
+                # Resolve special selectors
+                if scope_selector == "global":
+                    scope_selector = "@e[type=armor_stand,tag=mdl_server,limit=1]"
                 return scope_selector, variable_name  # Return (selector, variable_name) for correct command order
         return "@s", var_str  # Default to @s if no scope specified
     
