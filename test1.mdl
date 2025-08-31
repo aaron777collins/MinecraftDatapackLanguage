@@ -1,47 +1,94 @@
-// test1.mdl - Hello World Example
+// test1.mdl - Hello World Example with New MDL Features
 pack "test1" "A simple hello world datapack" 82;
 
 namespace "test1";
 
-// Simple counter variable
-var num counter = 0;
-var num tickcounter = 0;
-var num timerenabled = 0;
+// Server-wide variables (global scope)
+var num global_timer scope<global> = 0;
+var num global_hello_count scope<global> = 0;
+
+// Player-specific variables (stored on all players)
+var num player_hello_count scope<@a> = 0;
+var num player_timer_enabled scope<@a> = 0;
+var num player_tick_counter scope<@a> = 0;
 
 function "hello" {
     say Hello, Minecraft!;
     tellraw @a {"text":"Welcome to my datapack!","color":"green"};
-    counter = counter + 1;
     
-    // Regular MDL syntax for variable substitution
-    tellraw @a {"text":"Counter: $counter$","color":"blue"};
-    tellraw @a {"text":"Timerenabled: $timerenabled$","color":"blue"};
+    // Update both global and player counters
+    global_hello_count = global_hello_count + 1;
+    player_hello_count = player_hello_count + 1;
+    
+    // Display counters
+    tellraw @a {"text":"Global Hello Count: $global_hello_count$","color":"gold"};
+    tellraw @a {"text":"Your Hello Count: $player_hello_count$","color":"blue"};
+    tellraw @a {"text":"Your Timer Enabled: $player_timer_enabled$","color":"green"};
     
     // Raw text only for commands that contain MDL keywords
     $!raw
-    say "To enable the timer, run /function test1:enabletimer"
-    say "To disable the timer, run /function test1:disabletimer"
+    say "To enable your timer, run /function test1:enabletimer"
+    say "To disable your timer, run /function test1:disabletimer"
+    say "To see all players' stats, run /function test1:showstats"
     raw!$
 }
 
 function "enabletimer" {
-    timerenabled = 1;
-    say Timer enabled;
+    $!raw
+    scoreboard players set @s player_timer_enabled 1
+    raw!$
+    say Your timer is now enabled!;
+    tellraw @s {"text":"Timer enabled for you!","color":"green"};
 }
 
 function "disabletimer" {
-    timerenabled = 0;
-    say Timer disabled;
+    $!raw
+    scoreboard players set @s player_timer_enabled 0
+    raw!$
+    say Your timer is now disabled!;
+    tellraw @s {"text":"Timer disabled for you!","color":"red"};
 }
 
 function "tick" {
-    tickcounter = tickcounter + 1;
-    if "$tickcounter$ > 100" {
-        if "$timerenabled$ == 1" {
+    global_timer = global_timer + 1;
+    
+    // execute as each player to increment their individual tick counters
+    execute as @a run function test1:increase_tick_per_player;
+    
+    // Global timer event every 200 ticks
+    if "$global_timer$ > 200" {
+        tellraw @a {"text":"Server has been running for $global_timer$ ticks!","color":"yellow"};
+        global_timer = 0;
+    }
+}
+
+function "increase_tick_per_player" {
+    $!raw
+    scoreboard players add @s player_tick_counter 1
+    raw!$
+    
+    if "$player_tick_counter$ > 100" {
+        if "$player_timer_enabled$ == 1" {
             function "test1:hello";
         }
-        tickcounter = 0;
+        $!raw
+        scoreboard players set @s player_tick_counter 0
+        raw!$
     }
+}
+
+function "showstats" {
+    tellraw @a {"text":"=== Player Statistics ===","color":"gold","bold":true};
+    tellraw @a {"text":"Global Hello Count: $global_hello_count$","color":"gold"};
+    tellraw @a {"text":"Your Hello Count: $player_hello_count$","color":"blue"};
+    tellraw @a {"text":"Your Timer Status: $player_timer_enabled$","color":"green"};
+}
+
+function "resetstats" {
+    global_hello_count = 0;
+    player_hello_count = 0;
+    say Statistics reset!;
+    tellraw @s {"text":"Your statistics have been reset!","color":"yellow"};
 }
 
 // Hook to run hello function when datapack loads

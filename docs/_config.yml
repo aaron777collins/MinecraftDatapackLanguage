@@ -63,8 +63,6 @@ nav:
     url: /docs/getting-started/
   - title: Examples
     url: /docs/examples/
-  - title: Contributing
-    url: /docs/contributing/
   - title: Language Reference
     url: /docs/language-reference/
   - title: Multi-file Projects
