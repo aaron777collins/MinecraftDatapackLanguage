@@ -20,7 +20,7 @@ echo "🔧 Release..."
 
 # Wait
 echo "🔧 Wait..."
-sleep 5
+sleep 10
 
 # Upgrade
 echo "🔧 Upgrade..."
