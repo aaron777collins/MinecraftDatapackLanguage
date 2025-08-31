@@ -1,0 +1,69 @@
+// Comprehensive Example - Combining Multiple Features
+pack "comprehensive" "A comprehensive MDL example" 82;
+
+namespace "comprehensive";
+
+// Variables with different scopes
+var num playerHealth scope<@s> = 20;
+var num playerScore scope<@s> = 0;
+var num globalTimer scope<global> = 0;
+var num gamePhase scope<global> = 0;
+
+function "main" {
+    say Welcome to the comprehensive example!;
+    
+    // Initialize game state
+    playerHealth = 20;
+    playerScore = 0;
+    globalTimer = 0;
+    gamePhase = 1;
+    
+    say Game initialized!;
+    function "comprehensive:start_game<@a>";
+}
+
+function "start_game" {
+    say Game started! Phase: $gamePhase$;
+    
+    // Health check
+    if "$playerHealth$ < 10" {
+        say Warning: Low health!;
+        playerHealth = playerHealth + 5;
+        say Health restored to: $playerHealth$;
+    }
+    
+    // Score system
+    playerScore = playerScore + 10;
+    say Score increased to: $playerScore$;
+    
+    // Timer loop
+    while "$globalTimer$ < 5" {
+        globalTimer = globalTimer + 1;
+        say Timer: $globalTimer$;
+    }
+    
+    // Phase progression
+    if "$gamePhase$ == 1" {
+        gamePhase = 2;
+        say Phase 2 starting!;
+        function "comprehensive:phase_2<@a>";
+    }
+}
+
+function "phase_2" {
+    say Phase 2: Advanced features!;
+    
+    // Raw commands for special effects
+    $!raw
+    effect give @a minecraft:glowing 5 1 true
+    particle minecraft:firework ~ ~ ~ 0.5 0.5 0.5 0.1 100
+    raw!$
+    
+    say Special effects applied!;
+    
+    // Final score display
+    tellraw @a {"text":"Final Score: ","color":"gold"};
+    tellraw @a {"score":{"name":"@s","objective":"playerScore"},"color":"yellow"};
+}
+
+on_load "comprehensive:main";

@@ -1,0 +1,32 @@
+// While Loops Example
+pack "while_loops" "Example showing while loops" 82;
+
+namespace "while_loops";
+
+var num counter scope<global> = 0;
+var num maxCount scope<global> = 5;
+
+function "main" {
+    say Starting while loop demo...;
+    counter = 0;
+    
+    while "$counter$ < $maxCount$" {
+        counter = counter + 1;
+        say Loop iteration: $counter$;
+    }
+    
+    say Loop finished!;
+}
+
+function "countdown" {
+    var num countdown scope<global> = 10;
+    
+    while "$countdown$ > 0" {
+        say Countdown: $countdown$;
+        countdown = countdown - 1;
+    }
+    
+    say Blast off!;
+}
+
+on_load "while_loops:main";
