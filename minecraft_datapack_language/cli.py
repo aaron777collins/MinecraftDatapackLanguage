@@ -625,8 +625,11 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
 
         
         elif class_name == 'RawText':
-            # Handle raw text - insert directly without any processing
-            commands.append(statement.text)
+            # Handle raw text - strip indentation and split into lines for proper .mcfunction output
+            raw_lines = statement.text.strip().split('\n')
+            for line in raw_lines:
+                if line.strip():  # Only add non-empty lines
+                    commands.append(line.strip())
         
         elif class_name == 'FunctionCall':
             # Handle function calls
