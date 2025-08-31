@@ -2,8 +2,6 @@
 
 # MDL Development Cycle Script
 
-set -e
-
 echo "🔧 UPDATE MDL - Git Upload, Release, Wait, Upgrade"
 
 # Git Upload
