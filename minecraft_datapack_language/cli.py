@@ -26,12 +26,16 @@ def _process_variable_substitutions(command: str, selector: str = "@s") -> str:
     import json
     
     # Check if this is a tellraw command with JSON
-    if command.strip().startswith('tellraw') and '{"text":' in command:
+    if command.strip().startswith('tellraw'):
         # Special handling for tellraw commands with variable substitutions
         try:
             # Find the JSON part of the tellraw command
-            json_start = command.find('{')
-            json_end = command.rfind('}') + 1
+            json_start = command.find('[')
+            if json_start == -1:
+                json_start = command.find('{')
+            json_end = command.rfind(']') + 1
+            if json_end == 0:
+                json_end = command.rfind('}') + 1
             
             if json_start != -1 and json_end != -1:
                 prefix = command[:json_start]
@@ -41,7 +45,23 @@ def _process_variable_substitutions(command: str, selector: str = "@s") -> str:
                 # Parse the JSON to handle variable substitutions properly
                 try:
                     data = json.loads(json_part)
-                    if 'text' in data and '$' in data['text']:
+                    
+                    # Handle both single object and array formats
+                    if isinstance(data, list):
+                        # JSON array format - process each element
+                        for item in data:
+                            if isinstance(item, dict) and 'score' in item and 'name' in item['score']:
+                                # Resolve scope selector in score components
+                                name = item['score']['name']
+                                if name == "global":
+                                    item['score']['name'] = _resolve_selector("global")
+                        
+                        # Return the processed JSON
+                        new_json = json.dumps(data)
+                        return f"{prefix}{new_json}{suffix}"
+                    
+                    elif isinstance(data, dict) and 'text' in data and '$' in data['text']:
+                        # Single object format with variable substitutions
                         # Split the text into parts before and after variables
                         text = data['text']
                         parts = []
@@ -825,7 +845,9 @@ def _generate_function_file(ast: Dict[str, Any], output_dir: Path, namespace: st
                 f.write('\n'.join(commands))
     
     # Generate all conditional function files in their respective namespaces
+    print(f"DEBUG: Processing {len(conditional_functions)} conditional functions")
     for func_name, func_body in conditional_functions:
+        print(f"DEBUG: Processing conditional function: {func_name} with {len(func_body)} commands")
         # The function name format is now: functionname_if_statementindex
         # We need to use the current namespace for all conditional functions
         func_namespace = namespace
@@ -833,8 +855,21 @@ def _generate_function_file(ast: Dict[str, Any], output_dir: Path, namespace: st
         func_dir = output_dir / "data" / func_namespace / dir_map.function
         func_dir.mkdir(parents=True, exist_ok=True)
         func_file = func_dir / f"{func_name}.mcfunction"
+        
+        # Process variable substitutions in conditional function commands
+        processed_commands = []
+        for command in func_body:
+            if '$' in command or 'tellraw' in command:
+                print(f"DEBUG: Processing conditional function command: {command}")
+                processed_command = _process_variable_substitutions(command, "@s")
+                print(f"DEBUG: Processed conditional function command: {processed_command}")
+                processed_commands.append(processed_command)
+            else:
+                processed_commands.append(command)
+        
+        print(f"DEBUG: Writing conditional function {func_name} with {len(processed_commands)} processed commands")
         with open(func_file, 'w', encoding='utf-8') as f:
-            f.write('\n'.join(func_body))
+            f.write('\n'.join(processed_commands))
 
 
 def _generate_hook_files(ast: Dict[str, Any], output_dir: Path, namespace: str) -> None:
@@ -1243,6 +1278,7 @@ def _collect_conditional_functions(if_statement, namespace: str, function_name: 
 
 def _process_while_loop_recursion(while_statement, namespace: str, function_name: str, statement_index: int, is_tag_function: bool = False, selector: str = "@s", variable_scopes: Dict[str, str] = None) -> List[str]:
     """Process while loop using recursion method (creates multiple function files)"""
+    print(f"DEBUG: Processing while loop recursion for {namespace}:{function_name}")
     commands = []
     
     condition = _convert_condition_to_minecraft_syntax(while_statement.condition.condition_string, selector)
@@ -1259,6 +1295,7 @@ def _process_while_loop_recursion(while_statement, namespace: str, function_name
     # Add the loop body commands to the conditional functions list
     # (This will be handled by the _generate_function_file method)
     global conditional_functions
+    print(f"DEBUG: Adding while loop conditional function: {loop_label} with {len(loop_commands)} commands")
     conditional_functions.append((loop_label, loop_commands))
     
     # Add condition check and function call
