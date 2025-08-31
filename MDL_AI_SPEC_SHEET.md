@@ -250,3 +250,4 @@ This simplified approach focuses on **MAKING CONTROL STRUCTURES WORK** rather th
 -
 - Removed legacy theme header in `docs/_layouts/default.html` to avoid duplicate navigation with the enhanced nav include.
 - Added a GitHub icon link to `docs/_includes/navigation.html` targeting `https://github.com/{{ site.github_username }}/{{ site.github_repo }}`.
+— 2025-08-31 Mobile header fix: Removed duplicate viewport/meta and conflicting nav styles from `docs/_includes/head-custom.html`. Capped mobile menu height with scroll, disabled sticky on small screens, and auto-close on link tap in `docs/_includes/navigation.html` to prevent the header occupying excessive space on mobile.
