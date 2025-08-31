@@ -178,42 +178,40 @@ code[class*="language-"] {
 }
 
 /* Dark mode support for MDL syntax */
-@media (prefers-color-scheme: dark) {
-  .language-mdl .token.keyword {
-    color: #ff7b72;
-  }
-  
-  .language-mdl .token.builtin {
-    color: #d2a8ff;
-  }
-  
-  .language-mdl .token.selector {
-    color: #ffa657;
-  }
-  
-  .language-mdl .token.string {
-    color: #a5d6ff;
-  }
-  
-  .language-mdl .token.comment {
-    color: #8b949e;
-  }
-  
-  .language-mdl .token.number {
-    color: #79c0ff;
-  }
-  
-  .language-mdl .token.boolean {
-    color: #79c0ff;
-  }
-  
-  .language-mdl .token.operator {
-    color: #ff7b72;
-  }
-  
-  .language-mdl .token.punctuation {
-    color: #c9d1d9;
-  }
+[data-theme="dark"] .language-mdl .token.keyword {
+  color: #ff7b72;
+}
+
+[data-theme="dark"] .language-mdl .token.builtin {
+  color: #d2a8ff;
+}
+
+[data-theme="dark"] .language-mdl .token.selector {
+  color: #ffa657;
+}
+
+[data-theme="dark"] .language-mdl .token.string {
+  color: #a5d6ff;
+}
+
+[data-theme="dark"] .language-mdl .token.comment {
+  color: #8b949e;
+}
+
+[data-theme="dark"] .language-mdl .token.number {
+  color: #79c0ff;
+}
+
+[data-theme="dark"] .language-mdl .token.boolean {
+  color: #79c0ff;
+}
+
+[data-theme="dark"] .language-mdl .token.operator {
+  color: #ff7b72;
+}
+
+[data-theme="dark"] .language-mdl .token.punctuation {
+  color: #c9d1d9;
 }
 
 /* Responsive design */
@@ -224,19 +222,17 @@ code[class*="language-"] {
 }
 
 /* Dark mode support */
-@media (prefers-color-scheme: dark) {
-  .feature {
-    background: #2d3748;
-    border-color: #4a5568;
-  }
-  
-  .feature h3 {
-    color: #e2e8f0;
-  }
-  
-  .feature p {
-    color: #a0aec0;
-  }
+[data-theme="dark"] .feature {
+  background: #2d3748;
+  border-color: #4a5568;
+}
+
+[data-theme="dark"] .feature h3 {
+  color: #e2e8f0;
+}
+
+[data-theme="dark"] .feature p {
+  color: #a0aec0;
 }
 
 /* Remove any weird theme shadows and let the default theme handle it */
