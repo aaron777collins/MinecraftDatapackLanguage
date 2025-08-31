@@ -280,6 +280,13 @@ def _merge_mdl_files(files: List[Path], verbose: bool = False) -> Optional[Dict[
         source = f.read()
     
     root_pack = parse_mdl_js(source)
+    
+    # Debug: Check pack information from first file
+    print(f"DEBUG: First file pack info: {root_pack.get('pack')}")
+    if root_pack.get('pack'):
+        print(f"DEBUG: Pack name: {root_pack['pack'].get('name')}")
+        print(f"DEBUG: Pack description: {root_pack['pack'].get('description')}")
+        print(f"DEBUG: Pack format: {root_pack['pack'].get('pack_format')}")
     # Track source directory for proper relative path resolution of JSON files
     first_file_dir = os.path.dirname(os.path.abspath(files[0]))
     
@@ -1408,8 +1415,12 @@ def _generate_pack_mcmeta(ast: Dict[str, Any], output_dir: Path) -> None:
     """Generate pack.mcmeta file with support for both pre-82 and post-82 formats."""
     pack_info = ast.get('pack')
     
+    # Debug: Check what pack_info we received
+    print(f"DEBUG: _generate_pack_mcmeta received pack_info: {pack_info}")
+    
     # More robust check for pack_info - handle both None and empty dict cases
     if not pack_info or not isinstance(pack_info, dict) or not pack_info.get('description'):
+        print(f"DEBUG: Using fallback pack_info because: pack_info={pack_info}, is_dict={isinstance(pack_info, dict)}, has_description={pack_info.get('description') if isinstance(pack_info, dict) else 'N/A'}")
         pack_info = {'name': 'mdl_pack', 'description': 'Generated MDL pack', 'pack_format': 82}
     
     pack_format = pack_info['pack_format']
@@ -1930,8 +1941,14 @@ def build_mdl(input_path: str, output_path: str, verbose: bool = False, pack_for
     if not ast:
         raise SystemExit("Failed to parse MDL files")
     
+    # Debug: Check pack information after merging
+    print(f"DEBUG: build_mdl: ast.get('pack') = {ast.get('pack')}")
+    print(f"DEBUG: build_mdl: 'pack' in ast = {'pack' in ast}")
+    
     # Ensure pack info exists - this makes the code more resilient to race conditions
-    if not ast.get('pack'):
+    # Only add fallback if pack is completely missing, not if it's None or empty
+    if 'pack' not in ast:
+        print(f"DEBUG: build_mdl: Adding fallback pack info")
         ast['pack'] = {'name': 'mdl_pack', 'description': 'Generated MDL pack', 'pack_format': 82}
     
     # Optionally override pack format (ensures pack.mcmeta and directory layout align with requested version)
