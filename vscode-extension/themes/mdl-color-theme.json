@@ -1,0 +1,175 @@
+{
+  "name": "MDL Color Theme",
+  "type": "dark",
+  "colors": {
+    "editor.background": "#0d1117",
+    "editor.foreground": "#c9d1d9",
+    "editor.lineHighlightBackground": "#161b22",
+    "editor.selectionBackground": "#264f78",
+    "editor.inactiveSelectionBackground": "#21262d",
+    "editor.findMatchBackground": "#ffd33d44",
+    "editor.findMatchHighlightBackground": "#ffd33d22",
+    "editorCursor.foreground": "#58a6ff",
+    "editorWhitespace.foreground": "#484f58",
+    "editorIndentGuide.background": "#21262d",
+    "editorIndentGuide.activeBackground": "#484f58",
+    "editorLineNumber.foreground": "#8b949e",
+    "editorLineNumber.activeForeground": "#c9d1d9",
+    "sideBar.background": "#161b22",
+    "sideBar.foreground": "#c9d1d9",
+    "sideBarTitle.foreground": "#e6edf3",
+    "activityBar.background": "#0d1117",
+    "activityBar.foreground": "#c9d1d9",
+    "activityBar.activeBorder": "#f78166",
+    "statusBar.background": "#0d1117",
+    "statusBar.foreground": "#c9d1d9",
+    "titleBar.activeBackground": "#0d1117",
+    "titleBar.activeForeground": "#c9d1d9",
+    "tab.activeBackground": "#161b22",
+    "tab.activeForeground": "#e6edf3",
+    "tab.inactiveBackground": "#0d1117",
+    "tab.inactiveForeground": "#8b949e",
+    "terminal.background": "#0d1117",
+    "terminal.foreground": "#c9d1d9"
+  },
+  "tokenColors": [
+    {
+      "name": "Comments",
+      "scope": [
+        "comment",
+        "comment.line",
+        "comment.block",
+        "comment.line.mdl",
+        "comment.block.mdl"
+      ],
+      "settings": {
+        "foreground": "#8b949e",
+        "fontStyle": "italic"
+      }
+    },
+    {
+      "name": "Strings",
+      "scope": [
+        "string",
+        "string.quoted",
+        "string.quoted.double",
+        "string.quoted.double.mdl",
+        "string.raw.mdl",
+        "string.raw.content.mdl"
+      ],
+      "settings": {
+        "foreground": "#a5d6ff"
+      }
+    },
+    {
+      "name": "Raw String Keywords",
+      "scope": [
+        "keyword.raw.mdl",
+        "keyword.raw.end.mdl"
+      ],
+      "settings": {
+        "foreground": "#ff7b72",
+        "fontStyle": "bold"
+      }
+    },
+    {
+      "name": "Keywords",
+      "scope": [
+        "keyword",
+        "keyword.control",
+        "keyword.control.mdl",
+        "keyword.operator",
+        "keyword.operator.mdl",
+        "keyword.operator.assignment",
+        "keyword.operator.assignment.mdl"
+      ],
+      "settings": {
+        "foreground": "#ff7b72",
+        "fontStyle": "bold"
+      }
+    },
+    {
+      "name": "Built-in Functions",
+      "scope": [
+        "support.function",
+        "support.function.mdl"
+      ],
+      "settings": {
+        "foreground": "#d2a8ff",
+        "fontStyle": "bold"
+      }
+    },
+    {
+      "name": "Selectors",
+      "scope": [
+        "entity.name.selector",
+        "entity.name.selector.mdl"
+      ],
+      "settings": {
+        "foreground": "#ffa657",
+        "fontStyle": "bold"
+      }
+    },
+    {
+      "name": "Section Names",
+      "scope": [
+        "entity.name.section",
+        "entity.name.section.mdl"
+      ],
+      "settings": {
+        "foreground": "#ff7b72",
+        "fontStyle": "bold"
+      }
+    },
+    {
+      "name": "Numbers",
+      "scope": [
+        "constant.numeric",
+        "constant.numeric.mdl"
+      ],
+      "settings": {
+        "foreground": "#79c0ff",
+        "fontStyle": "bold"
+      }
+    },
+    {
+      "name": "Booleans and Constants",
+      "scope": [
+        "constant.language",
+        "constant.language.mdl"
+      ],
+      "settings": {
+        "foreground": "#79c0ff",
+        "fontStyle": "bold"
+      }
+    },
+    {
+      "name": "Variables",
+      "scope": [
+        "variable",
+        "variable.other",
+        "variable.other.mdl"
+      ],
+      "settings": {
+        "foreground": "#ffa198"
+      }
+    },
+    {
+      "name": "Punctuation",
+      "scope": [
+        "punctuation",
+        "punctuation.terminator",
+        "punctuation.terminator.mdl",
+        "punctuation.section.block",
+        "punctuation.section.block.mdl",
+        "punctuation.section.parens",
+        "punctuation.section.parens.mdl",
+        "punctuation.section.brackets",
+        "punctuation.section.brackets.mdl"
+      ],
+      "settings": {
+        "foreground": "#c9d1d9"
+      }
+    }
+  ]
+}

@@ -49,6 +49,13 @@
         "path": "./syntaxes/mdl.tmLanguage.json"
       }
     ],
+    "themes": [
+      {
+        "label": "MDL Dark Theme",
+        "uiTheme": "vs-dark",
+        "path": "./themes/mdl-color-theme.json"
+      }
+    ],
     "snippets": [
       {
         "language": "mdl",
