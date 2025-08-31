@@ -643,10 +643,10 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
             
             if method == "recursion":
                 # Use current recursion approach (creates multiple function files)
-                commands.extend(_process_while_loop_recursion(statement, namespace, function_name, statement_index, is_tag_function, selector, variable_scopes))
+                commands.extend(_process_while_loop_recursion(statement, namespace, function_name, statement_index, is_tag_function, selector, variable_scopes, build_context))
             elif method == "schedule":
                 # Use schedule-based approach (single function with counter)
-                commands.extend(_process_while_loop_schedule(statement, namespace, function_name, statement_index, is_tag_function, selector, variable_scopes))
+                commands.extend(_process_while_loop_schedule(statement, namespace, function_name, statement_index, is_tag_function, selector, variable_scopes, build_context))
             else:
                 raise ValueError(f"Unknown while loop method: {method}")
         
