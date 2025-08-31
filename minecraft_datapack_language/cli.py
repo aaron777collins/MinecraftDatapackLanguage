@@ -21,6 +21,18 @@ from .pack import Pack, Namespace, Function, Tag, Recipe, Advancement, LootTable
 conditional_functions = []
 
 
+def ensure_dir(path: str) -> None:
+    """Ensure a directory exists, creating it if necessary."""
+    os.makedirs(path, exist_ok=True)
+
+
+def write_json(path: str, data: Any) -> None:
+    """Write JSON data to a file."""
+    import json
+    with open(path, 'w', encoding='utf-8') as f:
+        json.dump(data, f, indent=2)
+
+
 def _process_variable_substitutions(command: str, selector: str = "@s") -> str:
     """Process $variable$ and $variable<selector>$ substitutions in commands."""
     import re
@@ -1924,6 +1936,57 @@ def build_mdl(input_path: str, output_path: str, verbose: bool = False, pack_for
     
     # Build using Pack class to generate all registry types (but skip function generation since CLI handles it)
     # pack.build(str(output_dir))  # Commented out to prevent overwriting CLI-generated functions
+    
+    # Generate registry files (recipes, loot tables, etc.) without overwriting functions
+    print("DEBUG: Generating registry files...")
+    dm = get_dir_map(pack.pack_format)
+    data_root = os.path.join(str(output_dir), "data")
+    
+    # Generate recipes, advancements, etc. for each namespace
+    for ns_name, ns in pack.namespaces.items():
+        ns_root = os.path.join(data_root, ns_name)
+        
+        # Recipes
+        for name, r in ns.recipes.items():
+            recipe_dir = os.path.join(ns_root, dm.recipe)
+            ensure_dir(recipe_dir)
+            write_json(os.path.join(recipe_dir, f"{name}.json"), r.data)
+            print(f"DEBUG: Generated recipe: {ns_name}:{name}")
+        
+        # Loot tables
+        for name, lt in ns.loot_tables.items():
+            loot_table_dir = os.path.join(ns_root, dm.loot_table)
+            ensure_dir(loot_table_dir)
+            write_json(os.path.join(loot_table_dir, f"{name}.json"), lt.data)
+            print(f"DEBUG: Generated loot table: {ns_name}:{name}")
+        
+        # Advancements
+        for name, a in ns.advancements.items():
+            advancement_dir = os.path.join(ns_root, dm.advancement)
+            ensure_dir(advancement_dir)
+            write_json(os.path.join(advancement_dir, f"{name}.json"), a.data)
+            print(f"DEBUG: Generated advancement: {ns_name}:{name}")
+        
+        # Predicates
+        for name, p in ns.predicates.items():
+            predicate_dir = os.path.join(ns_root, dm.predicate)
+            ensure_dir(predicate_dir)
+            write_json(os.path.join(predicate_dir, f"{name}.json"), p.data)
+            print(f"DEBUG: Generated predicate: {ns_name}:{name}")
+        
+        # Item modifiers
+        for name, im in ns.item_modifiers.items():
+            item_modifier_dir = os.path.join(ns_root, dm.item_modifier)
+            ensure_dir(item_modifier_dir)
+            write_json(os.path.join(item_modifier_dir, f"{name}.json"), im.data)
+            print(f"DEBUG: Generated item modifier: {ns_name}:{name}")
+        
+        # Structures
+        for name, s in ns.structures.items():
+            structure_dir = os.path.join(ns_root, dm.structure)
+            ensure_dir(structure_dir)
+            write_json(os.path.join(structure_dir, f"{name}.json"), s.data)
+            print(f"DEBUG: Generated structure: {ns_name}:{name}")
     
     # Create zip file (allow optional wrapper name for zip without changing output folder layout)
     zip_target = output_dir.parent / f"{output_dir.name}.zip"
