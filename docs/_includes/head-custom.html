@@ -21,10 +21,59 @@
   Prism.plugins.autoloader = Prism.plugins.autoloader || {};
   Prism.plugins.autoloader.languages_path = 'https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/';
 
-  // Aliases:
-  // - MDL (custom language) -> treat as JavaScript for highlighting
-  // - mcfunction is not officially supported; fall back to none (plain text) to avoid failed loads
-  Prism.languages.mdl = Prism.languages.javascript;
+  // Custom MDL language definition
+  Prism.languages.mdl = {
+    'comment': [
+      {
+        pattern: /\/\*[\s\S]*?\*\//,
+        greedy: true
+      },
+      {
+        pattern: /\/\/.*/,
+        greedy: true
+      }
+    ],
+    'string': [
+      {
+        pattern: /"([^"\\]|\\.)*"/,
+        greedy: true
+      },
+      {
+        pattern: /\$!raw[\s\S]*?raw!\$/,
+        greedy: true,
+        inside: {
+          'keyword': /\$!raw|raw!\$/
+        }
+      }
+    ],
+    'keyword': {
+      pattern: /\b(pack|namespace|function|on_tick|on_load|tag|add|if|else if|else|while|for|in|var|let|const|num|str|list|try|catch|throw|switch|case|default|break|continue|return|import|from|as|recipe|loot_table|advancement|predicate|item_modifier|structure|scope|global)\b/,
+      lookbehind: true
+    },
+    'function': {
+      pattern: /\b(say|tellraw|effect|particle|execute|scoreboard|data|function|tag|tp|kill|summon|give|clear|enchant|gamemode|weather|time|difficulty|gamerule|title|playsound|stopsound|kick|ban|ban-ip|pardon|pardon-ip|whitelist|op|deop|save-all|save-off|save-on|list|me|msg|team|trigger|advancement|recipe|loot|schedule|return|run)\b/,
+      lookbehind: true
+    },
+    'selector': {
+      pattern: /\b(@p|@r|@a|@e|@s)\b/,
+      lookbehind: true
+    },
+    'boolean': {
+      pattern: /\b(true|false|null|undefined)\b/,
+      lookbehind: true
+    },
+    'number': {
+      pattern: /\b\d+\b/,
+      lookbehind: true
+    },
+    'operator': {
+      pattern: /\b(\+|-|\*|\/|%|=|==|!=|<|>|<=|>=|&&|\|\||!|\+=|-=|\*=|\/=|%=)\b/,
+      lookbehind: true
+    },
+    'punctuation': /[{}();[\]]/
+  };
+
+  // mcfunction is not officially supported; fall back to none (plain text) to avoid failed loads
   Prism.languages.mcfunction = Prism.languages.none;
 
   // Preload a few common languages used in the docs to reduce autoloader fetches
@@ -82,6 +131,89 @@ pre[class*="language-"] {
 
 code[class*="language-"] {
   font-size: 0.9rem;
+}
+
+/* MDL Syntax Highlighting */
+.language-mdl .token.keyword {
+  color: #d73a49;
+  font-weight: 600;
+}
+
+.language-mdl .token.function {
+  color: #6f42c1;
+  font-weight: 500;
+}
+
+.language-mdl .token.selector {
+  color: #e36209;
+  font-weight: 600;
+}
+
+.language-mdl .token.string {
+  color: #032f62;
+}
+
+.language-mdl .token.comment {
+  color: #6a737d;
+  font-style: italic;
+}
+
+.language-mdl .token.number {
+  color: #005cc5;
+  font-weight: 500;
+}
+
+.language-mdl .token.boolean {
+  color: #005cc5;
+  font-weight: 500;
+}
+
+.language-mdl .token.operator {
+  color: #d73a49;
+  font-weight: 500;
+}
+
+.language-mdl .token.punctuation {
+  color: #24292e;
+}
+
+/* Dark mode support for MDL syntax */
+@media (prefers-color-scheme: dark) {
+  .language-mdl .token.keyword {
+    color: #ff7b72;
+  }
+  
+  .language-mdl .token.function {
+    color: #d2a8ff;
+  }
+  
+  .language-mdl .token.selector {
+    color: #ffa657;
+  }
+  
+  .language-mdl .token.string {
+    color: #a5d6ff;
+  }
+  
+  .language-mdl .token.comment {
+    color: #8b949e;
+  }
+  
+  .language-mdl .token.number {
+    color: #79c0ff;
+  }
+  
+  .language-mdl .token.boolean {
+    color: #79c0ff;
+  }
+  
+  .language-mdl .token.operator {
+    color: #ff7b72;
+  }
+  
+  .language-mdl .token.punctuation {
+    color: #c9d1d9;
+  }
 }
 
 /* Responsive design */
