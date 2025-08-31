@@ -251,6 +251,30 @@ class TestBasicVariableSubstitution(unittest.TestCase):
         finally:
             os.unlink(f_path)
 
+    def test_function_call_with_selector(self):
+        """function name<@a>; should compile to execute as @a run function name"""
+        code = '''
+        pack "test" "description" 82;
+        namespace "test";
+        function "main" {
+            function "test:hello<@a>";
+        }
+        '''
+        ast = parse_mdl_js(code)
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.mdl', delete=False) as f:
+            f.write(code)
+            f_path = f.name
+        try:
+            pack = _ast_to_pack(ast, [f_path])
+            self.assertIsNotNone(pack)
+            namespace = pack.namespace('test')
+            function = namespace.function('main')
+            self.assertIsNotNone(function)
+            commands = function.commands
+            self.assertIn('execute as @a run function test:hello', commands)
+        finally:
+            os.unlink(f_path)
+
 
 class TestBasicRegistryTypes(unittest.TestCase):
     """Test basic registry type functionality"""

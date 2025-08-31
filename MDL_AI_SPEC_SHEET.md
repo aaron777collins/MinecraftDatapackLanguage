@@ -98,6 +98,10 @@ function "helper" {
 
 // Function calls
 function "namespace:helper";
+
+// Selector on function calls (executes as selector)
+// Compiles to: execute as @a run function test:hello
+function "test:hello<@a>";
 ```
 
 ## Compilation Strategy (SIMPLIFIED)

@@ -92,6 +92,13 @@ while "$counter$ < 10000" method="schedule" {
 function "namespace:function_name";
 function "helper";
 function "utils:calculator";
+
+// Execute a function as a specific selector using angle-bracket syntax
+// This compiles to: execute as @a run function test:hello
+function "test:hello<@a>";
+// Selector keywords are supported, e.g., <global> becomes
+// @e[type=armor_stand,tag=mdl_server,limit=1]
+function test:maintask<global>;
 ```
 
 ### 7. Built-in Commands

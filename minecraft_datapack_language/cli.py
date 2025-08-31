@@ -632,8 +632,15 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
                     commands.append(line.strip())
         
         elif class_name == 'FunctionCall':
-            # Handle function calls
-            commands.append(f"function {statement.function_name}")
+            # Handle function calls, including optional selector syntax: function name<selector>
+            func_name = getattr(statement, 'function_name', '')
+            if '<' in func_name and func_name.endswith('>'):
+                base_name, selector_part = func_name.split('<', 1)
+                selector_value = selector_part[:-1]  # drop closing '>'
+                resolved_selector = _resolve_selector(selector_value)
+                commands.append(f"execute as {resolved_selector} run function {base_name}")
+            else:
+                commands.append(f"function {func_name}")
         
         elif class_name == 'ExecuteStatement':
             # Handle execute statements
@@ -1538,7 +1545,15 @@ def _ast_to_pack(ast: Dict[str, Any], mdl_files: List[Path]) -> Pack:
                         if line.strip():  # Only add non-empty lines
                             commands.append(line.strip())
                 elif class_name == 'FunctionCall':
-                    commands.append(f"function {statement.function_name}")
+                    # Support selector syntax on function calls: function name<selector>
+                    func_name = getattr(statement, 'function_name', '')
+                    if '<' in func_name and func_name.endswith('>'):
+                        base_name, selector_part = func_name.split('<', 1)
+                        selector_value = selector_part[:-1]
+                        resolved_selector = _resolve_selector(selector_value)
+                        commands.append(f"execute as {resolved_selector} run function {base_name}")
+                    else:
+                        commands.append(f"function {func_name}")
                 elif class_name == 'IfStatement':
                     # Handle if statements - they'll be processed by the CLI
                     continue
