@@ -50,6 +50,7 @@ class ExpressionProcessor:
     
     def process_binary_expression(self, expr, target_var: str, selector: str = "@s") -> ProcessedExpression:
         """Process binary expressions like a + b, a * b, etc."""
+        print(f"DEBUG: process_binary_expression called: target_var='{target_var}', selector='{selector}', operator='{expr.operator}'")
         commands = []
         temp_vars = []
         
@@ -98,6 +99,15 @@ class ExpressionProcessor:
         else:
             return str(expr)
     
+    def _is_same_variable(self, var1: str, var2: str) -> bool:
+        """Check if two variables are the same, handling scoped variables"""
+        # Extract base variable names (without scope)
+        base1 = var1.split('<')[0] if '<' in var1 else var1
+        base2 = var2.split('<')[0] if '<' in var2 else var2
+        result = base1 == base2
+        print(f"DEBUG: _is_same_variable({var1}, {var2}) -> base1={base1}, base2={base2}, result={result}")
+        return result
+    
     def parse_scoped_variable(self, var_str: str) -> tuple[str, str]:
         """Parse a scoped variable string into (scope_selector, variable_name) for use in scoreboard commands"""
         if '<' in var_str and var_str.endswith('>'):
@@ -113,6 +123,7 @@ class ExpressionProcessor:
     
     def generate_binary_operation(self, operator: str, left: str, right: str, target: str, selector: str = "@s") -> str:
         """Generate a binary operation command"""
+        print(f"DEBUG: generate_binary_operation called: operator='{operator}', left='{left}', right='{right}', target='{target}'")
         # Extract base variable name from target if it's scoped
         base_target = target
         if '<' in target and target.endswith('>'):
@@ -143,8 +154,14 @@ class ExpressionProcessor:
         if operator == '+':
             if is_right_literal:
                 # For literal numbers, use direct add
-                if left == target:
-                    # Avoid self-assignment
+                # Check if this is a self-modification case (left variable equals target variable)
+                print(f"DEBUG: + operator with literal: left='{left}', target='{target}'")
+                # More aggressive check for same variable
+                left_base = left.split('<')[0] if '<' in left else left
+                target_base = target.split('<')[0] if '<' in target else target
+                if left_base == target_base or self._is_same_variable(left, target):
+                    # Avoid self-assignment - just add the literal
+                    print(f"DEBUG: Same variable detected for + operator, using direct add")
                     return f"scoreboard players add {selector} {base_target} {right}"
                 elif is_left_literal:
                     # Both are literals, set left then add right
@@ -167,8 +184,14 @@ class ExpressionProcessor:
         elif operator == '-':
             if is_right_literal:
                 # For literal numbers, use direct remove
-                if left == target:
-                    # Avoid self-assignment
+                # Check if this is a self-modification case (left variable equals target variable)
+                print(f"DEBUG: - operator with literal: left='{left}', target='{target}'")
+                # More aggressive check for same variable
+                left_base = left.split('<')[0] if '<' in left else left
+                target_base = target.split('<')[0] if '<' in target else target
+                if left_base == target_base or self._is_same_variable(left, target):
+                    # Avoid self-assignment - just remove the literal
+                    print(f"DEBUG: Same variable detected for - operator, using direct remove")
                     return f"scoreboard players remove {selector} {base_target} {right}"
                 elif is_left_literal:
                     # Both are literals, set left then remove right
@@ -263,6 +286,7 @@ class ExpressionProcessor:
     
     def process_expression(self, expr, target_var: str, selector: str = "@s") -> ProcessedExpression:
         """Main entry point for processing any expression"""
+        print(f"DEBUG: process_expression called: target_var='{target_var}', selector='{selector}', expr_type='{type(expr).__name__}'")
         # Extract base variable name from target if it's scoped
         base_target_var = target_var
         if '<' in target_var and target_var.endswith('>'):

@@ -61,7 +61,7 @@ function "tick" {
     if "$global_timer<global>$ > 200" {
         tellraw @a {"text":"Server has been running for $global_timer<global>$ ticks!","color":"yellow"};
         
-        while "$global_timer<global>$ > 200" {
+        while "$global_timer<global>$ >= 200" {
             global_timer<global> = global_timer<global> - 5;
             tellraw @a {"text":"Reducing global timer by 5 ticks. New value: $global_timer<global>$","color":"yellow"};
         }

@@ -13,6 +13,7 @@ from typing import Dict, List, Optional, Any
 from .mdl_lexer_js import lex_mdl_js
 from .mdl_parser_js import parse_mdl_js
 from .expression_processor import expression_processor
+print(f"DEBUG: Imported expression_processor: {type(expression_processor)}")
 from .dir_map import get_dir_map
 from .pack import Pack, Namespace, Function, Tag, Recipe, Advancement, LootTable, Predicate, ItemModifier, Structure
 
@@ -480,6 +481,7 @@ def _generate_scoreboard_objectives(ast: Dict[str, Any], output_dir: Path) -> Li
 
 def _process_statement(statement: Any, namespace: str, function_name: str, statement_index: int = 0, is_tag_function: bool = False, selector: str = "@s", variable_scopes: Dict[str, str] = None) -> List[str]:
     """Process a single statement into Minecraft commands."""
+    print(f"DEBUG: _process_statement called with statement type: {type(statement).__name__}")
     commands = []
     
     if hasattr(statement, '__class__'):
@@ -538,6 +540,9 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
                 # Process the expression for non-zero values
                 # Use the base variable name (without scope) for the target
                 target_var_name = _extract_base_variable_name(var_name)
+                print(f"DEBUG: Processing VariableAssignment: {var_name} = {statement.value} (target_var_name={target_var_name}, var_selector={var_selector})")
+                print(f"DEBUG: About to call expression_processor.process_expression with target_var_name='{target_var_name}', var_selector='{var_selector}'")
+                print(f"DEBUG: expression_processor type: {type(expression_processor)}")
                 result = expression_processor.process_expression(statement.value, target_var_name, var_selector)
                 temp_commands = []
                 temp_commands.extend(result.temp_assignments)
@@ -603,6 +608,7 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
         
         elif class_name == 'WhileLoop':
             # Handle while loop with method selection
+            print(f"DEBUG: Processing WhileLoop: {statement.condition.condition_string}")
             condition = _convert_condition_to_minecraft_syntax(statement.condition.condition_string, selector)
             method = getattr(statement, 'method', 'recursion')  # Default to recursion
             
@@ -794,6 +800,7 @@ def _generate_function_file(ast: Dict[str, Any], output_dir: Path, namespace: st
         functions_dir.mkdir(parents=True, exist_ok=True)
         
         for function_name, body in functions:
+            print(f"DEBUG: _generate_function_file processing function: {function_name}")
             function_file = functions_dir / f"{function_name}.mcfunction"
             
             commands = []
@@ -831,6 +838,7 @@ def _generate_function_file(ast: Dict[str, Any], output_dir: Path, namespace: st
             for i, statement in enumerate(body):
                 if verbose:
                     print(f"Processing statement: {type(statement)} = {statement}")
+                print(f"DEBUG: About to call _process_statement for statement {i}: {type(statement).__name__}")
                 statement_commands = _process_statement(statement, func_namespace, function_name, i, is_tag_function, selector, variable_scopes)
                 print(f"DEBUG: Statement {i} returned commands: {statement_commands}")
                 commands.extend(statement_commands)
@@ -1287,6 +1295,7 @@ def _process_while_loop_recursion(while_statement, namespace: str, function_name
     loop_label = f"{namespace}_{function_name}_while_{statement_index}"
     loop_commands = []
     for j, stmt in enumerate(while_statement.body):
+        print(f"DEBUG: Processing while loop body statement {j}: {type(stmt).__name__}")
         loop_commands.extend(_process_statement(stmt, namespace, function_name, j, is_tag_function, selector, variable_scopes))
     
     # Add recursive call to continue the loop
@@ -1397,6 +1406,8 @@ def _ast_to_pack(ast: Dict[str, Any], mdl_files: List[Path]) -> Pack:
         else:
             func_name = getattr(func, 'name', 'unknown')
             body = getattr(func, 'body', [])
+        
+        print(f"DEBUG: _ast_to_pack processing function: {func_name}")
         
         # Convert body to commands
         commands = []
