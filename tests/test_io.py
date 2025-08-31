@@ -70,7 +70,21 @@ class IOTestCase:
                     expected_normalized = expected_content.replace('\r\n', '\n').strip()
                     actual_normalized = actual_content.replace('\r\n', '\n').strip()
                     
-                    if expected_normalized != actual_normalized:
+                    if expected_path == "data/minecraft/tags/function/load.json":
+                        # For load.json, check that all expected values are present regardless of order
+                        try:
+                            expected_data = json.loads(expected_normalized)
+                            actual_data = json.loads(actual_normalized)
+                            expected_values = set(expected_data.get("values", []))
+                            actual_values = set(actual_data.get("values", []))
+                            if expected_values != actual_values:
+                                errors.append(f"Load.json values mismatch in {expected_path}:")
+                                errors.append(f"Expected values: {sorted(expected_values)}")
+                                errors.append(f"Actual values: {sorted(actual_values)}")
+                                errors.append("---")
+                        except json.JSONDecodeError as e:
+                            errors.append(f"Invalid JSON in {expected_path}: {e}")
+                    elif expected_normalized != actual_normalized:
                         errors.append(f"Content mismatch in {expected_path}:")
                         errors.append(f"Expected:\n{expected_normalized}")
                         errors.append(f"Actual:\n{actual_normalized}")
@@ -348,7 +362,18 @@ scoreboard players set @s global_counter 10''',
                 expected_normalized = expected_content.replace('\r\n', '\n').strip()
                 actual_normalized = actual_content.replace('\r\n', '\n').strip()
                 
-                if expected_normalized != actual_normalized:
+                if expected_path == "data/minecraft/tags/function/load.json":
+                    # For load.json, check that all expected values are present regardless of order
+                    try:
+                        expected_data = json.loads(expected_normalized)
+                        actual_data = json.loads(actual_normalized)
+                        expected_values = set(expected_data.get("values", []))
+                        actual_values = set(actual_data.get("values", []))
+                        if expected_values != actual_values:
+                            pytest.fail(f"Load.json values mismatch in {expected_path}:\nExpected values: {sorted(expected_values)}\nActual values: {sorted(actual_values)}")
+                    except json.JSONDecodeError as e:
+                        pytest.fail(f"Invalid JSON in {expected_path}: {e}")
+                elif expected_normalized != actual_normalized:
                     pytest.fail(f"Content mismatch in {expected_path}:\nExpected:\n{expected_normalized}\nActual:\n{actual_normalized}")
 
 

@@ -1,0 +1,22 @@
+{
+  "display": {
+    "icon": {
+      "item": "minecraft:enchanted_book"
+    },
+    "title": {
+      "text": "First Spell"
+    },
+    "description": {
+      "text": "Cast your first magical spell"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "cast_spell": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}
