@@ -1,0 +1,25 @@
+// test_error_reporting.mdl - Test file with intentional errors
+pack "Error Test" "Testing error reporting" 82;
+
+namespace "test";
+
+// Missing semicolon - should cause error
+var num counter = 0
+
+// Missing closing brace - should cause error
+function "test" {
+    say Hello World;
+    // Missing closing brace
+
+// Unterminated string - should cause error
+function "broken" {
+    say "This string is not closed properly;
+}
+
+// Invalid syntax - should cause error
+if "counter > 5" {
+    say "Counter is high";
+} else {
+    say "Counter is low";
+    // Missing closing brace
+}

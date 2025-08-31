@@ -1,0 +1,26 @@
+// test3.mdl - Hello World Example
+pack "test3" "A simple hello world datapack" 82;
+
+namespace "test3";
+
+// Simple counter variable
+var num counter scope<global> = 0;
+var num playerCounter scope<@a> = 0;
+
+function "hello" {
+    say Hello, Minecraft!;
+    tellraw @a {"text":"Welcome to my datapack!","color":"green"};
+    say Counter: $counter$;
+}
+
+function "increaseCounter" {
+    counter = counter + 1;
+    function "test3:increasePlayerCounter<@a>";
+}
+
+function "increasePlayerCounter" {
+    playerCounter = playerCounter + 1;
+}
+
+// Hook to run hello function when datapack loads
+on_load "test3:hello";

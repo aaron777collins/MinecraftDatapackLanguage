@@ -4,814 +4,207 @@ title: Language Reference
 permalink: /docs/language-reference/
 ---
 
-# **MODERN** MDL Language Reference
+# MDL Language Reference
 
-This is the complete reference for the **modern JavaScript-style** Minecraft Datapack Language (MDL) syntax.
-
-## Overview
-
-MDL is a **modern JavaScript-style language** designed to make writing Minecraft datapacks easier. It compiles to standard `.mcfunction` files and follows the latest datapack structure. MDL uses JavaScript-style syntax with curly braces and semicolons for explicit block boundaries and **real control structures, variables, expressions, and multi-file projects that actually work**.
+MDL (Minecraft Datapack Language) is a simple language that compiles to Minecraft datapack `.mcfunction` files.
 
 ## Basic Syntax
 
-### Comments
-
-MDL supports modern JavaScript-style comments:
-
+### Pack Declaration
 ```mdl
-// Single-line comments
-/* Multi-line comments */
-
-pack "My Pack";  // Inline comments are also supported
+pack "pack_name" "description" pack_format;
 ```
 
-**Important**: Comments inside function bodies are preserved in the output `.mcfunction` files, but full-line comments are stripped.
-
-### Whitespace
-
-- Empty lines are ignored
-- Indentation is optional (for readability only)
-- **Explicit block boundaries** using curly braces `{` and `}`
-- **Statement termination** using semicolons `;`
-
-## Pack Declaration
-
-**Single file compilation**: Every MDL file must start with a pack declaration when compiled individually.
-
-**Multi-file compilation**: Only the first file should have a pack declaration. All other files are treated as modules.
-
-```mdl
-pack "Pack Name" [description "Description"] [pack_format N];
-```
-
-**Parameters:**
-- `"Pack Name"` (required): The name of your datapack
-- `description "Description"` (optional): A description of your datapack
-- `pack_format N` (optional): Minecraft pack format version (default: 82)
-
-**Important Rules:**
-- **Single file**: Must have a pack declaration
-- **Multi-file projects**: Only the first file should have a pack declaration
-- **Module files**: Should NOT have pack declarations
-- **Statement termination**: All statements must end with semicolons `;`
-
-**Examples:**
-
-```mdl
-pack "My Datapack" pack_format 82;
-pack "My Datapack" description "A cool datapack" pack_format 82;
-pack "My Datapack" description "For newer versions" pack_format 83;
-```
-
-## Namespaces
-
-Namespaces organize your functions and other resources:
-
+### Namespace Declaration
 ```mdl
 namespace "namespace_name";
 ```
 
-**Rules:**
-- Namespace names should be lowercase
-- Use underscores or hyphens for multi-word names
-- The namespace applies to all following blocks until another namespace is declared
-- **Statement termination**: Namespace declarations must end with semicolons `;`
-
-**Example:**
-
+### Variables
 ```mdl
-namespace "combat";
-function "weapon_effects" {
-    // This function will be combat:weapon_effects
-}
+// Declare variables with scope
+var num counter scope<global> = 0;
+var num playerScore scope<@s> = 0;
+var num teamScore scope<@a[team=red]> = 0;
 
-namespace "ui";
-function "hud" {
-    // This function will be ui:hud
-}
-```
-
-## Variables
-
-MDL supports **number variables** with **expressions, arithmetic operations, and multi-file merging**:
-
-### Variable Declarations
-
-Variables in MDL are declared using the `var` keyword and are stored as Minecraft scoreboard objectives. Variables can be scoped to different entities using the `scope<selector>` syntax.
-
-### Basic Syntax
-
-```mdl
-var num variable_name = initial_value;
-var num variable_name scope<selector> = initial_value;
-```
-
-### Default Behavior
-
-- **Default Scope**: Variables without an explicit scope default to `@s` (the executing entity)
-- **Global Variables**: Use the special `global` keyword to store variables on the `mdl_server` armor stand
-
-### Scope Examples
-
-```mdl
-// Player-specific variables (default behavior)
-var num player_score = 0;
-var num player_level = 1;
-
-// Global variables (stored on mdl_server armor stand)
-var num global_counter scope<global> = 0;
-var num global_timer scope<global> = 0;
-
-// Player-scoped variables (explicit)
-var num player_health scope<@s> = 20;
-
-// Team-scoped variables
-var num team_score scope<@a[team=red]> = 0;
-var num team_bonus scope<@a[team=blue]> = 0;
-
-// All-player scoped variables
-var num allPlayerCounter scope<@a> = 0;
-
-// World-scoped variables (stored on a specific armor stand)
-var num world_timer scope<@e[type=armor_stand,tag=world_timer,limit=1]> = 0;
-```
-
-### Scope Rules
-
-1. **Default Scope**: Variables without `scope<>` default to `@s` (the executing entity)
-2. **Global Storage**: Use `scope<global>` for variables that should be stored on the `mdl_server` armor stand
-3. **Custom Selectors**: You can use any valid Minecraft selector like `@a[team=red]`, `@e[type=armor_stand,tag=something,limit=1]`, etc.
-4. **Broad Selectors**: Be careful with broad selectors like `@a`, `@e`, or `@r` as they may affect multiple entities
-
-### Variable Assignment
-
-Variables are assigned using the `=` operator. When using scoped variables, you can specify the scope in the assignment:
-
-```mdl
-// Basic assignment (uses default scope)
-player_score = 10;
-
-// Scoped variable assignment
-player_hello_count<@s> = player_hello_count<@s> + 1;
-global_timer<global> = global_timer<global> + 1;
-team_score<@a[team=red]> = team_score<@a[team=red]> + 5;
-```
-
-### Scoped Variable Access
-
-When accessing scoped variables in expressions, conditions, and tellraw commands, you can specify the scope using the `<selector>` syntax:
-
-```mdl
-function "example" {
-    // In expressions
-    var num total = player_score<@s> + global_bonus<global>;
-    
-    // In conditions
-    if "$player_health<@s>$ < 10" {
-        say Health is low!;
-    }
-    
-    // In tellraw commands
-    tellraw @a {"text":"Your score: $player_score<@s>$","color":"gold"};
-    tellraw @a {"text":"Global timer: $global_timer<global>$","color":"blue"};
-}
-```
-
-**Why this design?**
-- **`@s` as default**: Makes code more reusable - functions can be called by any entity
-- **`global` keyword**: Clear and explicit for server-wide variables
-- **Flexible execution**: Use `execute as @a run function mypack:myfunction` to run functions for all players
-- **Explicit scope access**: Use `<selector>` syntax to access variables with specific scopes
-
-### Scoped Variable Best Practices
-
-1. **Use `@s` for player-specific data**: When variables should be unique per player
-2. **Use `global` for server-wide data**: When variables should be shared across all players
-3. **Use `@a` for all-player operations**: When you need to modify all players' scores simultaneously
-4. **Be explicit with scopes**: Use `<selector>` syntax when the default scope isn't what you want
-5. **Consider performance**: Broad selectors like `@a` can affect many entities at once
-
-**Basic Examples:**
-
-```mdl
-var num counter = 0;
-var num health = 20;
-var num level = 1;
-var num experience = 0;
+// Assignment
+counter = 42;
+playerScore = playerScore + 10;
 ```
 
 ### Variable Substitution
-
-Use `$variable_name$` to read values from scoreboards in strings and conditions. For scoped variables, use `$variable_name<selector>$`:
-
 ```mdl
-function "example" {
-    // Basic variable substitution
-    say Health: $health$;
-    say Level: $level$;
-    say Experience: $experience$;
-    
-    // Scoped variable substitution
-    say Your score: $player_score<@s>$;
-    say Global timer: $global_timer<global>$;
-    say Team score: $team_score<@a[team=red]>$;
-    
-    // In conditions with scoped variables
-    if "$health$ < 10" {
-        say Health is low!;
-    }
-    
-    if "$global_timer<global>$ > 200" {
-        say Global timer is high!;
-    }
-    
-    if "$player_health<@s>$ < 5" {
-        say Your health is critical!;
-    }
+// In strings and commands
+say Counter: $counter$;
+tellraw @a {"text":"Score: $playerScore$","color":"gold"};
+
+// In conditions
+if "$playerScore$ > 100" {
+    say High score!;
 }
 ```
 
-### Expressions
-
-MDL supports arithmetic operations with variables:
-
-```mdl
-function "expressions" {
-    var num a = 10;
-    var num b = 5;
-    
-    // Basic arithmetic
-    var num sum = $a$ + $b$;
-    var num difference = $a$ - $b$;
-    var num product = $a$ * $b$;
-    var num quotient = $a$ / $b$;
-    
-    // Scoped variable arithmetic
-    var num player_total = $player_score<@s>$ + $player_bonus<@s>$;
-    var num global_calculation = $global_timer<global>$ * 2 + $global_bonus<global>$;
-    var num team_average = $team_score<@a[team=red]>$ / 5;
-    
-    // Complex expressions
-    var num total = $health$ + $experience$;
-    var num average = $total$ / 2;
-    var num bonus = $level$ * 10 + $counter$;
-    
-    // Variable assignment with expressions
-    counter = $counter$ + 1;
-    health = $health$ - 5;
-    experience = $level$ * 100 + $counter$;
-}
-```
-
-**Supported Operations:**
-- `+` (addition)
-- `-` (subtraction)
-- `*` (multiplication)
-- `/` (division)
-
-**Order of Operations:**
-- Multiplication and division are performed before addition and subtraction
-- Use parentheses for explicit grouping (when supported)
-
-## Functions
-
-Functions contain Minecraft commands and are the core of your datapack:
-
+### Functions
 ```mdl
 function "function_name" {
-    // Minecraft commands go here
     say Hello World;
     tellraw @a {"text":"Welcome!","color":"green"};
 }
+
+// Call functions
+function "namespace:function_name";
+
+// Call functions with scope
+function "namespace:function_name<@a>";
 ```
 
-**Rules:**
-- Function names should be descriptive
-- Functions must be quoted: `"function_name"`
-- **Explicit block boundaries**: Use curly braces `{` and `}`
-- **Statement termination**: All commands must end with semicolons `;`
-- Functions can call other functions using fully qualified IDs
+### Control Structures
 
-**Example:**
-
+#### If Statements
 ```mdl
-function "inner" {
-    say [example:inner] This is the inner function;
-    tellraw @a {"text":"Running inner","color":"yellow"};
+if "$counter$ > 5" {
+    say Counter is high!;
 }
 
-function "outer" {
-    say [example:outer] This is the outer function;
-    function example:inner;  // Call another function
-    tellraw @a {"text":"Back in outer","color":"aqua"};
-}
-```
-
-## Control Structures
-
-MDL supports **full control structures** with proper logic flow.
-
-### Conditional Blocks (if/else if/else)
-
-```mdl
-function "conditional_example" {
-    var num player_level = 15;
-    var num player_health = 8;
-    
-    if "$player_level$ >= 10" {
-        if "$player_health$ < 10" {
-            say Advanced player with low health!;
-            effect give @s minecraft:regeneration 10 1;
-            player_health = $player_health$ + 10;
-        } else {
-            say Advanced player with good health;
-            effect give @s minecraft:strength 10 1;
-        }
-    } else if "$player_level$ >= 5" {
-        say Intermediate player;
-        effect give @s minecraft:speed 10 0;
-    } else {
-        say Beginner player;
-        effect give @s minecraft:jump_boost 10 0;
-    }
+if "$health$ < 10" {
+    say Health is low!;
+} else {
+    say Health is good;
 }
 ```
 
-**Rules:**
-- Conditions use `$variable$` syntax for variable substitution
-- **Explicit block boundaries**: Use curly braces `{` and `}`
-- **Statement termination**: All commands must end with semicolons `;`
-- You can have multiple `else if` blocks
-- The `else` block is optional
-- **Proper logic**: `else if` blocks only execute if previous conditions were false
-- **Expressions in conditions**: Support for arithmetic operations in conditions
-
-### While Loops
-
+#### While Loops
 ```mdl
-function "while_example" {
-    var num counter = 5;
-    
-    // Default recursion method (immediate execution)
-    while "$counter$ > 0" {
-        say "Counter: $counter$";
-        counter = $counter$ - 1;
-    }
-    
-    // Schedule method (spreads across ticks for performance)
-    counter = 10;
-    while "$counter$ > 0" method="schedule" {
-        say "Schedule counter: $counter$";
-        counter = $counter$ - 1;
-    }
-    
-    // Expression in loop condition
-    var num max_count = 5;
-    counter = 0;
-    while "$counter$ < $max_count$ * 2" {
-        say "Expression counter: $counter$";
-        counter = $counter$ + 1;
-    }
-}
-```
-
-**Rules:**
-- Conditions use `$variable$` syntax for variable substitution
-- **Explicit block boundaries**: Use curly braces `{` and `}`
-- **Statement termination**: All commands must end with semicolons `;`
-- While loops continue until the condition becomes false
-- **Method Selection**: Choose `method="recursion"` (default) or `method="schedule"`
-- **Recursion method**: Executes all iterations immediately (good for small loops)
-- **Schedule method**: Spreads iterations across ticks (better for long loops, prevents lag)
-- **Important**: Ensure your loop body modifies the condition to avoid infinite loops
-- **Expressions in conditions**: Support for arithmetic operations in loop conditions
-
-## Hooks
-
-Hooks automatically run functions at specific times:
-
-```mdl
-on_load "namespace:function_name";
-on_tick "namespace:function_name";
-```
-
-**Rules:**
-- **Namespaced IDs required**: Use `namespace:function_name` format
-- `on_load`: Runs when the world loads
-- `on_tick`: Runs every tick (20 times per second)
-- **Statement termination**: Hook declarations must end with semicolons `;`
-
-**Example:**
-
-```mdl
-on_load "example:init";
-on_tick "example:tick";
-```
-
-## Tags
-
-Tags allow your functions to participate in vanilla Minecraft systems:
-
-```mdl
-tag function "minecraft:tick" {
-    add "namespace:function_name";
-}
-```
-
-**Supported Tag Types:**
-- `function` - Function tags
-- `item` - Item tags
-- `block` - Block tags
-- `entity_type` - Entity type tags
-- `fluid` - Fluid tags
-- `game_event` - Game event tags
-
-**Example:**
-
-```mdl
-tag function "minecraft:load" {
-    add "example:init";
-}
-
-tag function "minecraft:tick" {
-    add "example:tick";
-}
-
-tag item "example:swords" {
-    add "minecraft:diamond_sword";
-    add "minecraft:netherite_sword";
-}
-```
-
-## Registry Types
-
-MDL supports all Minecraft registry types for creating recipes, loot tables, advancements, and more. These are defined using file references that point to JSON files relative to your MDL file:
-
-### Recipe Declarations
-
-```mdl
-recipe "recipe_name" "path/to/recipe.json";
-```
-
-**Example:**
-
-```mdl
-recipe "diamond_sword" "recipes/diamond_sword.json";
-```
-
-### Loot Table Declarations
-
-```mdl
-loot_table "loot_table_name" "path/to/loot_table.json";
-```
-
-**Example:**
-
-```mdl
-loot_table "diamond_sword" "loot_tables/diamond_sword.json";
-```
-
-### Advancement Declarations
-
-```mdl
-advancement "advancement_name" "path/to/advancement.json";
-```
-
-**Example:**
-
-```mdl
-advancement "diamond_sword" "advancements/diamond_sword.json";
-```
-
-### Predicate Declarations
-
-```mdl
-predicate "predicate_name" "path/to/predicate.json";
-```
-
-**Example:**
-
-```mdl
-predicate "diamond_sword" "predicates/diamond_sword.json";
-```
-
-### Item Modifier Declarations
-
-```mdl
-item_modifier "modifier_name" "path/to/item_modifier.json";
-```
-
-**Example:**
-
-```mdl
-item_modifier "diamond_sword" "item_modifiers/diamond_sword.json";
-```
-
-### Structure Declarations
-
-```mdl
-structure "structure_name" "path/to/structure.json";
-```
-
-**Example:**
-
-```mdl
-structure "diamond_sword" "structures/diamond_sword.json";
-```
-
-### File Path Resolution
-
-- **Relative paths**: File paths are resolved relative to the MDL file where the declaration appears (multi-file safe)
-- **JSON validation**: Files are validated as proper JSON during compilation
-- **Error handling**: Missing or invalid JSON files generate warnings but don't stop compilation
-
-### Directory Structure
-
-MDL automatically uses the correct directory structure based on your pack format:
-
-**Pack Format 82+ (Minecraft 1.21+):**
-- `data/<namespace>/recipe/` (singular)
-- `data/<namespace>/loot_table/` (singular)
-- `data/<namespace>/advancement/` (singular)
-- `data/<namespace>/predicate/` (singular)
-- `data/<namespace>/item_modifier/` (singular)
-- `data/<namespace>/structure/` (singular)
-
-**Older Pack Formats:**
-- `data/<namespace>/recipes/` (plural)
-- `data/<namespace>/loot_tables/` (plural)
-- `data/<namespace>/advancements/` (plural)
-- `data/<namespace>/predicates/` (plural)
-- `data/<namespace>/item_modifiers/` (plural)
-- `data/<namespace>/structures/` (plural)
-
-### Complete Registry Example
-
-```mdl
-pack "Registry Example" pack_format 82;
-
-namespace "example";
-
-// Functions
-function "main" {
-    say "Registry example loaded!";
-}
-
-// Registry types with file references
-recipe "diamond_sword" "recipes/diamond_sword.json";
-loot_table "diamond_sword" "loot_tables/diamond_sword.json";
-advancement "diamond_sword" "advancements/diamond_sword.json";
-predicate "diamond_sword" "predicates/diamond_sword.json";
-item_modifier "diamond_sword" "item_modifiers/diamond_sword.json";
-structure "diamond_sword" "structures/diamond_sword.json";
-
-// Hooks
-on_load "example:main";
-```
-
-## Multi-line Commands
-
-Long JSON commands can be split across multiple lines with a trailing backslash `\`:
-
-```mdl
-function "multiline" {
-    tellraw @a \
-        {"text":"This text is really, really long so we split it",\
-         "color":"gold"};
-}
-```
-
-When compiled, the function becomes a single line:
-
-```mcfunction
-tellraw @a {"text":"This text is really, really long so we split it","color":"gold"}
-```
-
-## Raw Text Blocks
-
-Raw text blocks allow you to insert literal text directly into functions without MDL parsing. This is useful for including commands that contain MDL keywords or complex JSON that would otherwise conflict with the parser.
-
-### Syntax
-
-```mdl
-$!raw
-    // Any text here is inserted directly without parsing
-    say "This contains the word function without breaking the parser";
-    tellraw @a {"text":"Complex JSON with keywords"};
-raw!$
-```
-
-### Use Cases
-
-**Including MDL Keywords in Commands:**
-```mdl
-function "example" {
-    $!raw
-    say "To enable the timer, run /function test1:enabletimer";
-    say "To disable the timer, run /function test1:disabletimer";
-    raw!$
-}
-```
-
-**Complex JSON Commands:**
-```mdl
-function "ui" {
-    $!raw
-    tellraw @a {"text":"=== MENU ===","color":"gold","bold":true,"clickEvent":{"action":"run_command","value":"/function ui:main_menu"}};
-    raw!$
-}
-```
-
-**Variable Substitution in Raw Text:**
-```mdl
-function "status" {
-    $!raw
-    tellraw @a {"text":"Counter: $counter$"};
-    tellraw @a {"text":"Status: $status$"};
-    raw!$
-}
-```
-
-### Rules
-
-- **Content is inserted literally**: No MDL parsing occurs inside raw text blocks
-- **Variable substitution works**: `$variable$` syntax is still processed
-- **Must be properly closed**: Each `$!raw` must have a corresponding `raw!$`
-- **Can span multiple lines**: Raw text blocks can contain newlines and complex formatting
-- **Use sparingly**: Only use raw text when regular MDL syntax would conflict
-
-## Multi-File Projects
-
-MDL supports building datapacks from multiple files with proper namespace separation:
-
-### Multi-File Building
-
-```bash
-# Build entire directory
-mdl build --mdl my_project/ -o dist
-
-# Build specific files
-mdl build --mdl "core.mdl ui.mdl combat.mdl" -o dist
-```
-
-### Namespace Separation
-
-Each file can have its own namespace, preventing function name conflicts:
-
-```mdl
-// core.mdl
-namespace "core";
-function "main" { ... }
-
-// ui.mdl
-namespace "ui";
-function "main" { ... }  // Different from core:main!
-```
-
-### Variable Merging
-
-Variables from all files are automatically merged and initialized together:
-
-```mdl
-// core.mdl
-var num player_count = 0;
-
-// ui.mdl
-var num menu_state = 0;
-
-// Both variables are initialized in the same load function
-```
-
-## Optimizations
-
-MDL includes several automatic optimizations:
-
-### Variable Optimization
-
-Variables are automatically initialized in a global load function for better performance:
-
-```mdl
-var num counter = 0;
-var num health = 20;
-```
-
-This generates a `load.mcfunction` file that:
-- Creates all scoreboard objectives
-- Initializes all variables to 0
-- Sets non-zero initial values
-- Creates the server armor stand entity
-
-### Selector Optimization
-
-System commands automatically use proper selectors:
-
-```mdl
-function "example" {
-    say "Hello World";  // Converts to tellraw @a
-    tellraw @a {"text":"Direct command"};  // Preserved as-is
-}
-```
-
-- `say` commands are converted to `tellraw @a`
-- Existing `tellraw @a` commands are preserved
-- `tellraw @s` commands are converted to `tellraw @a` for system commands
-
-### Multi-File Optimization
-
-When building multiple files:
-- Functions are properly namespaced
-- Variables are merged and initialized together
-- Hooks are combined into appropriate tag files
-- No conflicts between same-named functions in different namespaces
-
-## Complete Example
-
-Here's a complete example showing all the features:
-
-```mdl
-// complete_example.mdl
-pack "Complete Example" description "Shows all MDL features" pack_format 82;
-
-namespace "example";
-
-// Variables with expressions and scoped variables
-var num counter = 0;
-var num health = 20;
-var num level = 1;
-var num experience = 0;
-
-// Scoped variables
-var num global_timer scope<global> = 0;
-var num player_hello_count scope<@a> = 0;
-var num player_timer_enabled scope<@a> = 0;
-
-function "init" {
-    say [example:init] Initializing Complete Example...;
-    tellraw @a {"text":"Complete Example loaded!","color":"green"};
-    counter = 0;
-    health = 20;
-    level = 1;
-    experience = 0;
-}
-
-function "tick" {
+while "$counter$ < 10" {
     counter = counter + 1;
-    global_timer<global> = global_timer<global> + 1;
-    
-    // Full control structure
-    if "$health$ < 10" {
-        say Health is low!;
-        health = health + 5;
-        effect give @a minecraft:regeneration 10 1;
-    } else if "$level$ > 5" {
-        say High level player!;
-        effect give @a minecraft:strength 10 1;
-    } else {
-        say Normal player;
-        effect give @a minecraft:speed 10 0;
-    }
-    
-    // Variable substitution
     say Counter: $counter$;
-    say Global timer: $global_timer<global>$;
-    
-    // While loop with scoped variables
-    while "$global_timer<global>$ > 200" {
-        global_timer<global> = global_timer<global> - 1;
-        say Reducing global timer: $global_timer<global>$;
-    }
-    
-    // Expressions with scoped variables
-    experience = $level$ * 100 + $counter$;
-    say Experience: $experience$;
-    
-    // Scoped variable operations
-    player_hello_count<@s> = player_hello_count<@s> + 1;
-    say Your hello count: $player_hello_count<@s>$;
-}
-
-// Hooks
-on_load "example:init";
-on_tick "example:tick";
-
-// Tags
-tag function "minecraft:load" {
-    add "example:init";
-}
-
-tag function "minecraft:tick" {
-    add "example:tick";
 }
 ```
 
-This example demonstrates:
-- **JavaScript-style syntax** with curly braces and semicolons
-- **Variables** with expressions and arithmetic
-- **Scoped variables** with entity-specific storage
-- **Full control structures** with if/else if/else
-- **While loops** with method selection
-- **Variable substitution** in strings and conditions
-- **Scoped variable access** using `<selector>` syntax
-- **Hooks** for automatic execution
-- **Tags** for vanilla integration
-- **Optimizations** for better performance
+### Hooks
+```mdl
+on_load "namespace:function_name";    // Runs when datapack loads
+on_tick "namespace:function_name";    // Runs every tick
+```
+
+## Scope System
+
+### Variable Scopes
+- `scope<@s>` - Player-specific (default)
+- `scope<global>` - Server-wide
+- `scope<@a>` - All players
+- `scope<@a[team=red]>` - Team-specific
+- `scope<@e[type=armor_stand,tag=something,limit=1]>` - Custom entity
+
+### Function Call Scopes
+```mdl
+// Execute as specific selector
+function "namespace:function_name<@a>";           // All players
+function "namespace:function_name<@s>";           // Current player
+function "namespace:function_name<@a[team=red]>"; // Red team players
+```
+
+## Examples
+
+### Basic Hello World
+```mdl
+pack "hello" "A simple hello world datapack" 82;
+namespace "hello";
+
+function "main" {
+    say Hello, Minecraft!;
+    tellraw @a {"text":"Welcome to my datapack!","color":"green"};
+}
+
+on_load "hello:main";
+```
+
+### Counter with Scoped Variables
+```mdl
+pack "counter" "Counter example" 82;
+namespace "counter";
+
+var num globalCounter scope<global> = 0;
+var num playerCounter scope<@s> = 0;
+
+function "increment" {
+    globalCounter = globalCounter + 1;
+    playerCounter = playerCounter + 1;
+    say Global: $globalCounter$, Player: $playerCounter$;
+}
+
+function "show_all" {
+    function "counter:increment<@a>";
+}
+```
+
+### While Loop Example
+```mdl
+pack "loops" "Loop example" 82;
+namespace "loops";
+
+var num counter scope<global> = 0;
+
+function "countdown" {
+    counter = 5;
+    while "$counter$ > 0" {
+        say Countdown: $counter$;
+        counter = counter - 1;
+    }
+    say Blast off!;
+}
+```
+
+### Raw Commands
+```mdl
+pack "raw" "Raw command example" 82;
+namespace "raw";
+
+function "custom" {
+    // Use raw Minecraft commands
+    effect give @s minecraft:speed 10 1;
+    particle minecraft:explosion ~ ~ ~ 1 1 1 0 10;
+    playsound minecraft:entity.player.levelup player @s ~ ~ ~ 1 1;
+}
+```
+
+### Complete Example
+```mdl
+pack "game" "Complete game example" 82;
+namespace "game";
+
+// Variables
+var num score scope<@s> = 0;
+var num level scope<@s> = 1;
+var num globalTimer scope<global> = 0;
+
+// Main game function
+function "start_game" {
+    score = 0;
+    level = 1;
+    say Game started! Level: $level$, Score: $score$;
+}
+
+// Level up function
+function "level_up" {
+    if "$score$ >= 100" {
+        level = level + 1;
+        score = score - 100;
+        say Level up! New level: $level$;
+        tellraw @a {"text":"Player leveled up!","color":"gold"};
+    }
+}
+
+// Timer function
+function "update_timer" {
+    globalTimer = globalTimer + 1;
+    if "$globalTimer$ >= 1200" {  // 60 seconds
+        globalTimer = 0;
+        say Time's up! Final score: $score$;
+    }
+}
+
+// Hooks
+on_load "game:start_game";
+on_tick "game:update_timer";
+```
