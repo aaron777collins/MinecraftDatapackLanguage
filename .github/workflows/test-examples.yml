@@ -40,6 +40,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         python -m pip install -e .
+        python -m pip install pytest
         
     - name: Test working MDL examples
       run: |
@@ -65,6 +66,11 @@ jobs:
       run: |
         echo "Running basic test suite..."
         python -m pytest tests/test_basic.py -v
+        
+    - name: Run comprehensive output validation tests
+      run: |
+        echo "Running comprehensive output validation tests..."
+        python test_examples/test_output_validation.py
         
     - name: Test CLI functionality
       run: |

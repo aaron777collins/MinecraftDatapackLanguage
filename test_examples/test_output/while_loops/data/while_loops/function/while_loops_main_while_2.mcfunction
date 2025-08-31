@@ -1,0 +1,3 @@
+scoreboard players add @e[type=armor_stand,tag=mdl_server,limit=1] counter 1
+tellraw @a [{"text": "Loop iteration: "}, {"score": {"name": "@e[type=armor_stand,tag=mdl_server,limit=1]", "objective": "counter"}}]
+execute if {"score":{"name":"@e[type=armor_stand,tag=mdl_server,limit=1]","objective":"counter"}} < {"score":{"name":"@e[type=armor_stand,tag=mdl_server,limit=1]","objective":"maxCount"}} run function while_loops:while_loops_main_while_2
