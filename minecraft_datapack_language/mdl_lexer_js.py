@@ -247,6 +247,38 @@ class MDLLexer:
                 # This is "else if", we'll handle it in the parser
                 pass
         
+        # Check for scope selector (<selector>) after identifier
+        scope_selector = None
+        if (self.current < len(source) and 
+            source[self.current] == '<'):
+            # Found scope selector, scan it
+            self.current += 1  # consume <
+            self.column += 1
+            
+            scope_start = self.current
+            bracket_count = 1
+            
+            # Scan until we find the matching closing >
+            while (self.current < len(source) and bracket_count > 0):
+                if source[self.current] == '<':
+                    bracket_count += 1
+                elif source[self.current] == '>':
+                    bracket_count -= 1
+                self.current += 1
+                self.column += 1
+            
+            if bracket_count == 0:
+                # Successfully found closing >
+                scope_selector = source[scope_start:self.current-1]  # Exclude the closing >
+            else:
+                # Unterminated scope selector, treat as regular identifier
+                self.current = scope_start - 1  # Backtrack to before <
+                self.column = self.column - (self.current - scope_start + 1)
+        
+        # If we have a scope selector, include it in the token
+        if scope_selector:
+            text = f"{text}<{scope_selector}>"
+        
         self.tokens.append(Token(token_type, text, self.line, self.start - self.column + 1))
     
     def _scan_number(self, source: str):
@@ -340,7 +372,7 @@ class MDLLexer:
         self.tokens.append(Token(TokenType.RAW_END, "raw!$", self.line, self.start - self.column + 1))
     
     def _scan_variable_substitution(self, source: str):
-        """Scan a variable substitution ($variable$)."""
+        """Scan a variable substitution ($variable$ or $variable<selector>$)."""
         self.current += 1  # consume $
         self.column += 1
         
@@ -350,6 +382,34 @@ class MDLLexer:
             self.current += 1
             self.column += 1
         
+        # Check for scope selector (<selector>)
+        scope_selector = None
+        if (self.current < len(source) and 
+            source[self.current] == '<'):
+            # Found scope selector, scan it
+            self.current += 1  # consume <
+            self.column += 1
+            
+            scope_start = self.current
+            bracket_count = 1
+            
+            # Scan until we find the matching closing >
+            while (self.current < len(source) and bracket_count > 0):
+                if source[self.current] == '<':
+                    bracket_count += 1
+                elif source[self.current] == '>':
+                    bracket_count -= 1
+                self.current += 1
+                self.column += 1
+            
+            if bracket_count == 0:
+                # Successfully found closing >
+                scope_selector = source[scope_start:self.current-1]  # Exclude the closing >
+            else:
+                # Unterminated scope selector, treat as regular variable
+                self.current = scope_start - 1  # Backtrack to before <
+                self.column = self.column - (self.current - scope_start + 1)
+        
         # Check for closing $
         if (self.current < len(source) and 
             source[self.current] == '$'):
@@ -358,6 +418,11 @@ class MDLLexer:
             
             text = source[self.start:self.current]
             variable_name = text[1:-1]  # Remove $ symbols
+            
+            # If we have a scope selector, include it in the token
+            if scope_selector:
+                variable_name = f"{variable_name}<{scope_selector}>"
+            
             self.tokens.append(Token(TokenType.VARIABLE_SUB, variable_name, self.line, self.start - self.column + 1))
         else:
             # Not a valid variable substitution, treat as regular $

@@ -21,7 +21,7 @@ conditional_functions = []
 
 
 def _process_variable_substitutions(command: str, selector: str = "@s") -> str:
-    """Process $variable$ substitutions in commands."""
+    """Process $variable$ and $variable<selector>$ substitutions in commands."""
     import re
     import json
     
@@ -47,8 +47,8 @@ def _process_variable_substitutions(command: str, selector: str = "@s") -> str:
                         parts = []
                         current_pos = 0
                         
-                        # Find all variable substitutions
-                        var_pattern = r'\$([a-zA-Z_][a-zA-Z0-9_]*)\$'
+                        # Find all variable substitutions (including scoped ones)
+                        var_pattern = r'\$([a-zA-Z_][a-zA-Z0-9_]*(?:<[^>]+>)?)\$'
                         for match in re.finditer(var_pattern, text):
                             # Add text before the variable
                             if match.start() > current_pos:
@@ -56,7 +56,22 @@ def _process_variable_substitutions(command: str, selector: str = "@s") -> str:
                             
                             # Add the score object for the variable
                             var_name = match.group(1)
-                            parts.append({"score": {"name": selector, "objective": var_name}})
+                            
+                            # Check if this is a scoped variable
+                            if '<' in var_name and var_name.endswith('>'):
+                                # Extract variable name and scope selector
+                                parts_split = var_name.split('<', 1)
+                                if len(parts_split) == 2:
+                                    actual_var_name = parts_split[0]
+                                    scope_selector = parts_split[1][:-1]  # Remove closing >
+                                    parts.append({"score": {"name": scope_selector, "objective": actual_var_name}})
+                                else:
+                                    # Fallback to default selector
+                                    parts.append({"score": {"name": selector, "objective": var_name}})
+                            else:
+                                # Regular variable substitution
+                                parts.append({"score": {"name": selector, "objective": var_name}})
+                            
                             current_pos = match.end()
                         
                         # Add remaining text after the last variable
@@ -80,10 +95,21 @@ def _process_variable_substitutions(command: str, selector: str = "@s") -> str:
             pass  # Fall back to simple replacement
     
     # Simple replacement for non-tellraw commands
-    var_pattern = r'\$([a-zA-Z_][a-zA-Z0-9_]*)\$'
+    var_pattern = r'\$([a-zA-Z_][a-zA-Z0-9_]*(?:<[^>]+>)?)\$'
     
     def replace_var(match):
         var_name = match.group(1)
+        
+        # Check if this is a scoped variable
+        if '<' in var_name and var_name.endswith('>'):
+            # Extract variable name and scope selector
+            parts = var_name.split('<', 1)
+            if len(parts) == 2:
+                actual_var_name = parts[0]
+                scope_selector = parts[1][:-1]  # Remove closing >
+                return f'{{"score":{{"name":"{scope_selector}","objective":"{actual_var_name}"}}}}'
+        
+        # Regular variable substitution
         return f'{{"score":{{"name":"{selector}","objective":"{var_name}"}}}}'
     
     # Replace variable substitutions in the command
@@ -115,8 +141,8 @@ def _convert_condition_to_minecraft_syntax(condition: str, selector: str = "@s")
     # Pattern: "$variable$ == 100" -> "score selector variable matches 100"
     # Pattern: "$variable$ != 0" -> "score selector variable matches ..-1 1.."
     
-    # Match patterns like "$variable$ > 50" or "$variable$ < 10"
-    score_pattern = r'\$([a-zA-Z_][a-zA-Z0-9_]*)\$\s*([><=!]+)\s*(\d+)'
+    # Match patterns like "$variable$ > 50" or "$variable$ < 10" (including scoped variables)
+    score_pattern = r'\$([a-zA-Z_][a-zA-Z0-9_]*(?:<[^>]+>)?)\$\s*([><=!]+)\s*(\d+)'
     
     # Also match patterns like '{"score":{"name":"selector","objective":"variable"}} > 50'
     score_pattern_substituted = r'\{"score":\{"name":"[^"]*","objective":"([a-zA-Z_][a-zA-Z0-9_]*)"\}\}\s*([><=!]+)\s*(\d+)'
@@ -126,21 +152,38 @@ def _convert_condition_to_minecraft_syntax(condition: str, selector: str = "@s")
         operator = match.group(2)
         value = int(match.group(3))
         
+        # Check if this is a scoped variable
+        if '<' in var_name and var_name.endswith('>'):
+            # Extract variable name and scope selector
+            parts = var_name.split('<', 1)
+            if len(parts) == 2:
+                actual_var_name = parts[0]
+                scope_selector = parts[1][:-1]  # Remove closing >
+                target_selector = scope_selector
+            else:
+                # Fallback to default selector
+                actual_var_name = var_name
+                target_selector = selector
+        else:
+            # Regular variable
+            actual_var_name = var_name
+            target_selector = selector
+        
         if operator == '>':
-            return f"score {selector} {var_name} matches {value + 1}.."
+            return f"score {target_selector} {actual_var_name} matches {value + 1}.."
         elif operator == '>=':
-            return f"score {selector} {var_name} matches {value}.."
+            return f"score {target_selector} {actual_var_name} matches {value}.."
         elif operator == '<':
-            return f"score {selector} {var_name} matches ..{value - 1}"
+            return f"score {target_selector} {actual_var_name} matches ..{value - 1}"
         elif operator == '<=':
-            return f"score {selector} {var_name} matches ..{value}"
+            return f"score {target_selector} {actual_var_name} matches ..{value}"
         elif operator == '==':
-            return f"score {selector} {var_name} matches {value}"
+            return f"score {target_selector} {actual_var_name} matches {value}"
         elif operator == '!=':
-            return f"score {selector} {var_name} matches ..{value - 1} {value + 1}.."
+            return f"score {target_selector} {actual_var_name} matches ..{value - 1} {value + 1}.."
         else:
             # Fallback for unknown operators
-            return f"score {selector} {var_name} matches {value}"
+            return f"score {target_selector} {actual_var_name} matches {value}"
     
     # Apply the conversion for both patterns
     condition = re.sub(score_pattern, convert_score_comparison, condition)
@@ -437,15 +480,22 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
         
         elif class_name == 'VariableAssignment':
             # Handle variable assignment
-            # For variable assignments, we need to determine the scope from the variable declaration
-            var_selector = "@s"  # Default to @s instead of current selector
-            if variable_scopes and statement.name in variable_scopes:
-                original_scope = variable_scopes[statement.name]
-                var_selector = _resolve_selector(original_scope)
-                print(f"DEBUG: Variable {statement.name} found in scopes: {original_scope} -> resolved to: {var_selector}")
+            var_name = statement.name
+            var_selector = "@s"  # Default to @s
+            
+            # Check if the assignment has an explicit scope selector
+            if hasattr(statement, 'scope_selector') and statement.scope_selector:
+                var_selector = _resolve_selector(statement.scope_selector)
+                print(f"DEBUG: Variable assignment with explicit scope: {var_name} -> {var_selector}")
             else:
-                print(f"DEBUG: Variable {statement.name} not found in scopes, using default: @s")
-                print(f"DEBUG: Available scopes: {variable_scopes}")
+                # For variable assignments without explicit scope, determine from variable declaration
+                if variable_scopes and var_name in variable_scopes:
+                    original_scope = variable_scopes[var_name]
+                    var_selector = _resolve_selector(original_scope)
+                    print(f"DEBUG: Variable {var_name} found in scopes: {original_scope} -> resolved to: {var_selector}")
+                else:
+                    print(f"DEBUG: Variable {var_name} not found in scopes, using default: @s")
+                    print(f"DEBUG: Available scopes: {variable_scopes}")
             
             # Check if it's a simple assignment to 0 (which can be optimized out)
             if hasattr(statement.value, 'value') and statement.value.value == 0:
@@ -547,7 +597,7 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
             # Always convert say commands to tellraw first
             if command.startswith('say'):
                 import re
-                var_pattern = r'\$([a-zA-Z_][a-zA-Z0-9_]*)\$'
+                var_pattern = r'\$([a-zA-Z_][a-zA-Z0-9_]*(?:<[^>]+>)?)\$'
                 
                 # Extract the text content from say command (handle both quoted and unquoted)
                 text_match = re.search(r'say "([^"]*)"', command)
@@ -580,7 +630,22 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
                         
                         # Add the variable
                         var_name = match.group(1)
-                        json_parts.append(f'{{"score":{{"name":"{selector}","objective":"{var_name}"}}}}')
+                        
+                        # Check if this is a scoped variable
+                        if '<' in var_name and var_name.endswith('>'):
+                            # Extract variable name and scope selector
+                            parts = var_name.split('<', 1)
+                            if len(parts) == 2:
+                                actual_var_name = parts[0]
+                                scope_selector = parts[1][:-1]  # Remove closing >
+                                json_parts.append(f'{{"score":{{"name":"{scope_selector}","objective":"{actual_var_name}"}}}}')
+                            else:
+                                # Fallback to default selector
+                                json_parts.append(f'{{"score":{{"name":"{selector}","objective":"{var_name}"}}}}')
+                        else:
+                            # Regular variable substitution
+                            json_parts.append(f'{{"score":{{"name":"{selector}","objective":"{var_name}"}}}}')
+                        
                         last_end = match.end()
                     
                     # Add any remaining text
@@ -600,7 +665,13 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
             elif '$' in command:
                 # Always use _process_variable_substitutions for proper JSON handling
                 command = _process_variable_substitutions(command, selector)
+            elif command.startswith('execute if') and '$' in command:
+                # Process variable substitutions in execute if commands
+                command = _process_variable_substitutions(command, selector)
             elif command.startswith('tellraw'):
+                # Process variable substitutions in tellraw commands first
+                if '$' in command:
+                    command = _process_variable_substitutions(command, selector)
                 # For tellraw commands, only replace @s with @a, leave @a unchanged
                 command = command.replace('tellraw @s ', 'tellraw @a ')
                 # Clean up spacing
@@ -1311,7 +1382,7 @@ def _ast_to_pack(ast: Dict[str, Any], mdl_files: List[Path]) -> Pack:
                     if command.startswith('say'):
                         print(f"PROCESSING SAY COMMAND: '{command}'")
                         import re
-                        var_pattern = r'\$([a-zA-Z_][a-zA-Z0-9_]*)\$'
+                        var_pattern = r'\$([a-zA-Z_][a-zA-Z0-9_]*(?:<[^>]+>)?)\$'
                         
                         # Extract the text content from say command (handle both quoted and unquoted)
                         text_content = ""  # Initialize to avoid potential NameError
@@ -1347,7 +1418,22 @@ def _ast_to_pack(ast: Dict[str, Any], mdl_files: List[Path]) -> Pack:
                                 
                                 # Add the variable
                                 var_name = match.group(1)
-                                json_parts.append(f'{{"score":{{"name":"{selector}","objective":"{var_name}"}}}}')
+                                
+                                # Check if this is a scoped variable
+                                if '<' in var_name and var_name.endswith('>'):
+                                    # Extract variable name and scope selector
+                                    parts = var_name.split('<', 1)
+                                    if len(parts) == 2:
+                                        actual_var_name = parts[0]
+                                        scope_selector = parts[1][:-1]  # Remove closing >
+                                        json_parts.append(f'{{"score":{{"name":"{scope_selector}","objective":"{actual_var_name}"}}}}')
+                                    else:
+                                        # Fallback to default selector
+                                        json_parts.append(f'{{"score":{{"name":"{selector}","objective":"{var_name}"}}}}')
+                                else:
+                                    # Regular variable substitution
+                                    json_parts.append(f'{{"score":{{"name":"{selector}","objective":"{var_name}"}}}}')
+                                
                                 last_end = match.end()
                             
                             # Add any remaining text
@@ -1360,7 +1446,7 @@ def _ast_to_pack(ast: Dict[str, Any], mdl_files: List[Path]) -> Pack:
                         else:
                             # No variables, simple conversion
                             command = f'tellraw @a [{{"text":"{text_content}"}}]'
-                    # Handle variable substitutions in other commands
+                    # Handle variable substitutions in tellraw and other commands
                     elif '$' in command:
                         command = _process_variable_substitutions(command, selector)
                     

@@ -7,7 +7,7 @@ namespace "test_simple";
 var num counter = 0;
 
 // Player-scoped variable
-var num player_score scope "@s" = 0;
+var num player_score scope<@s> = 0;
 
 function "main" {
     counter = counter + 1;

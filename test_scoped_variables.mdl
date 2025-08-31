@@ -1,0 +1,77 @@
+// test_scoped_variables.mdl - Testing scoped variable access and assignment
+pack "test_scoped" "Testing scoped variable access and assignment" 82;
+
+namespace "test_scoped";
+
+// Global variables
+var num global_counter scope<global> = 0;
+var num global_timer scope<global> = 0;
+
+// Player-specific variables
+var num player_score scope<@s> = 0;
+var num player_level scope<@s> = 1;
+
+// Team variables
+var num red_team_score scope<@a[team=red]> = 0;
+var num blue_team_score scope<@a[team=blue]> = 0;
+
+// All players variable
+var num all_players_counter scope<@a> = 0;
+
+function "test_scoped_access_and_assignment" {
+    // Test accessing global variables with scope
+    say "Global counter: $global_counter<global>$";
+    say "Global timer: $global_timer<global>$";
+    
+    // Test accessing player variables (default scope)
+    say "My score: $player_score$";
+    say "My level: $player_level$";
+    
+    // Test accessing player variables with explicit scope
+    say "My score (explicit): $player_score<@s>$";
+    say "My level (explicit): $player_level<@s>$";
+    
+    // Test accessing team variables with scope
+    say "Red team score: $red_team_score<@a[team=red]>$";
+    say "Blue team score: $blue_team_score<@a[team=blue]>$";
+    
+    // Test accessing all players variable
+    say "All players counter: $all_players_counter<@a>$";
+    
+    // Test scoped variable assignments
+    global_counter<global> = global_counter<global> + 1;
+    global_timer<global> = global_timer<global> + 1;
+    
+    player_score<@s> = player_score<@s> + 5;
+    player_level<@s> = player_level<@s> + 1;
+    
+    red_team_score<@a[team=red]> = red_team_score<@a[team=red]> + 2;
+    blue_team_score<@a[team=blue]> = blue_team_score<@a[team=blue]> + 3;
+    
+    all_players_counter<@a> = all_players_counter<@a> + 1;
+    
+    // Test conditions with scoped variables
+    if "$global_counter<global>$ > 5" {
+        say "Global counter is high!";
+    }
+    
+    if "$player_score<@s>$ >= 10" {
+        say "You have a high score!";
+    }
+    
+    if "$red_team_score<@a[team=red]>$ > $blue_team_score<@a[team=blue]>$" {
+        say "Red team is winning!";
+    }
+}
+
+function "show_all_stats" {
+    tellraw @a {"text":"=== Game Statistics ===","color":"gold","bold":true};
+    tellraw @a {"text":"Global Counter: $global_counter<global>$","color":"yellow"};
+    tellraw @a {"text":"Global Timer: $global_timer<global>$","color":"yellow"};
+    tellraw @a {"text":"Red Team Score: $red_team_score<@a[team=red]>$","color":"red"};
+    tellraw @a {"text":"Blue Team Score: $blue_team_score<@a[team=blue]>$","color":"blue"};
+    tellraw @a {"text":"All Players Counter: $all_players_counter<@a>$","color":"green"};
+}
+
+// Hook to run test function when datapack loads
+on_load "test_scoped:test_scoped_access_and_assignment";

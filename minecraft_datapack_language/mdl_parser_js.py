@@ -86,6 +86,7 @@ class VariableDeclaration(ASTNode):
 class VariableAssignment(ASTNode):
     name: str
     value: 'Expression'
+    scope_selector: Optional[str] = None  # Optional scope selector for variable assignment
 
 # Expression Nodes
 @dataclass
@@ -110,6 +111,7 @@ class VariableExpression(Expression):
 @dataclass
 class VariableSubstitutionExpression(Expression):
     variable_name: str
+    scope_selector: Optional[str] = None  # Optional scope selector for variable access
 
 @dataclass
 class ConditionExpression(Expression):
@@ -462,17 +464,24 @@ class MDLParser:
         # Check for scope declaration
         scope = None
         if self._peek().type == TokenType.SCOPE:
-            self._match(TokenType.SCOPE)
-            # Expect opening angle bracket
-            self._match(TokenType.LANGLE)
-            # Parse the selector - collect all tokens until we find the closing angle bracket
-            scope_parts = []
-            while not self._is_at_end() and self._peek().type != TokenType.RANGLE:
-                token = self._advance()
-                scope_parts.append(token.value)
-            scope = ''.join(scope_parts)
-            # Expect closing angle bracket
-            self._match(TokenType.RANGLE)
+            scope_token = self._match(TokenType.SCOPE)
+            # Check if the scope token contains the selector (e.g., "scope<@a>")
+            if '<' in scope_token.value and scope_token.value.endswith('>'):
+                # Extract the selector from the scope token
+                parts = scope_token.value.split('<', 1)
+                if len(parts) == 2:
+                    scope = parts[1][:-1]  # Remove the closing >
+            else:
+                # Expect opening angle bracket
+                self._match(TokenType.LANGLE)
+                # Parse the selector - collect all tokens until we find the closing angle bracket
+                scope_parts = []
+                while not self._is_at_end() and self._peek().type != TokenType.RANGLE:
+                    token = self._advance()
+                    scope_parts.append(token.value)
+                scope = ''.join(scope_parts)
+                # Expect closing angle bracket
+                self._match(TokenType.RANGLE)
         
         # Parse assignment
         self._match(TokenType.ASSIGN)
@@ -489,12 +498,23 @@ class MDLParser:
         name_token = self._match(TokenType.IDENTIFIER)
         name = name_token.value
         
+        # Check for scoped variable syntax
+        scope_selector = None
+        if self._peek().type == TokenType.LANGLE:
+            self._match(TokenType.LANGLE)
+            scope_parts = []
+            while not self._is_at_end() and self._peek().type != TokenType.RANGLE:
+                token = self._advance()
+                scope_parts.append(token.value)
+            scope_selector = ''.join(scope_parts)
+            self._match(TokenType.RANGLE)
+        
         self._match(TokenType.ASSIGN)
         value = self._parse_expression()
         
         self._match(TokenType.SEMICOLON)
         
-        return VariableAssignment(name, value)
+        return VariableAssignment(name, value, scope_selector)
     
     def _parse_if_statement(self) -> IfStatement:
         """Parse if statement."""
@@ -754,10 +774,36 @@ class MDLParser:
             return LiteralExpression(token.value, "string")
         elif token.type == TokenType.VARIABLE_SUB:
             self._advance()
-            return VariableSubstitutionExpression(token.value)
+            # Parse scoped variable syntax: variable_name<selector>
+            variable_name = token.value
+            scope_selector = None
+            
+            # Check if the variable name contains a scope selector
+            if '<' in variable_name and variable_name.endswith('>'):
+                # Extract variable name and scope selector
+                parts = variable_name.split('<', 1)
+                if len(parts) == 2:
+                    var_name = parts[0]
+                    scope_selector = parts[1][:-1]  # Remove the closing >
+                    return VariableSubstitutionExpression(var_name, scope_selector)
+            
+            # Regular variable substitution without scope
+            return VariableSubstitutionExpression(variable_name)
         elif token.type == TokenType.IDENTIFIER:
             identifier_name = token.value
             self._advance()  # consume the identifier
+            
+            # Check if the identifier contains a scope selector
+            if '<' in identifier_name and identifier_name.endswith('>'):
+                # Extract variable name and scope selector
+                parts = identifier_name.split('<', 1)
+                if len(parts) == 2:
+                    var_name = parts[0]
+                    scope_selector = parts[1][:-1]  # Remove the closing >
+                    # For variable expressions in assignments, keep the full scoped name
+                    return VariableExpression(identifier_name)
+            
+            # Regular variable expression without scope
             return VariableExpression(identifier_name)
         elif token.type == TokenType.LPAREN:
             self._advance()  # consume (
