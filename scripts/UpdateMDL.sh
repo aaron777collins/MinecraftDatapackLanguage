@@ -6,6 +6,10 @@ set -e
 
 echo "🔧 UPDATE MDL - Git Upload, Release, Wait, Upgrade"
 
+# pull rebase
+echo "🔧 Pull & Rebase..."
+git pull --rebase
+
 # Git Upload
 echo "🔧 Git Upload..."
 git add .
