@@ -64,7 +64,9 @@ def _process_variable_substitutions(command: str, selector: str = "@s") -> str:
                                 if len(parts_split) == 2:
                                     actual_var_name = parts_split[0]
                                     scope_selector = parts_split[1][:-1]  # Remove closing >
-                                    parts.append({"score": {"name": scope_selector, "objective": actual_var_name}})
+                                    # Resolve the scope selector (e.g., "global" -> "@e[type=armor_stand,tag=mdl_server,limit=1]")
+                                    resolved_scope_selector = _resolve_selector(scope_selector)
+                                    parts.append({"score": {"name": resolved_scope_selector, "objective": actual_var_name}})
                                 else:
                                     # Fallback to default selector
                                     parts.append({"score": {"name": selector, "objective": var_name}})
@@ -107,7 +109,9 @@ def _process_variable_substitutions(command: str, selector: str = "@s") -> str:
             if len(parts) == 2:
                 actual_var_name = parts[0]
                 scope_selector = parts[1][:-1]  # Remove closing >
-                return f'{{"score":{{"name":"{scope_selector}","objective":"{actual_var_name}"}}}}'
+                # Resolve the scope selector (e.g., "global" -> "@e[type=armor_stand,tag=mdl_server,limit=1]")
+                resolved_scope_selector = _resolve_selector(scope_selector)
+                return f'{{"score":{{"name":"{resolved_scope_selector}","objective":"{actual_var_name}"}}}}'
         
         # Regular variable substitution
         return f'{{"score":{{"name":"{selector}","objective":"{var_name}"}}}}'
@@ -649,7 +653,9 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
                             if len(parts) == 2:
                                 actual_var_name = parts[0]
                                 scope_selector = parts[1][:-1]  # Remove closing >
-                                json_parts.append(f'{{"score":{{"name":"{scope_selector}","objective":"{actual_var_name}"}}}}')
+                                # Resolve the scope selector (e.g., "global" -> "@e[type=armor_stand,tag=mdl_server,limit=1]")
+                                resolved_scope_selector = _resolve_selector(scope_selector)
+                                json_parts.append(f'{{"score":{{"name":"{resolved_scope_selector}","objective":"{actual_var_name}"}}}}')
                             else:
                                 # Fallback to default selector
                                 json_parts.append(f'{{"score":{{"name":"{selector}","objective":"{var_name}"}}}}')
