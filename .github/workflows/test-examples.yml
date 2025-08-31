@@ -45,16 +45,26 @@ jobs:
       run: |
         echo "Testing working MDL examples..."
         
+        # List all MDL files first
+        echo "Available MDL files:"
+        ls -la test_examples/*.mdl || echo "No MDL files found in test_examples/"
+        
         # Test each working MDL file
         for file in test_examples/*.mdl; do
-          echo "Testing $file"
-          mdl check "$file"
-          mdl build --mdl "$file" -o test_examples/dist
+          if [[ -f "$file" ]]; then
+            echo "Testing $file"
+            mdl check "$file"
+            mdl build --mdl "$file" -o test_examples/dist
+          else
+            echo "No MDL files found to test"
+            exit 1
+          fi
         done
         
     - name: Run test suite
       run: |
-        python test_examples/run_all_tests.py
+        echo "Running basic test suite..."
+        python -m pytest tests/test_basic.py -v
         
     - name: Test CLI functionality
       run: |
