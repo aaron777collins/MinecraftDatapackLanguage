@@ -1,0 +1,20 @@
+// debug_namespace.mdl - Debug namespace tracking
+pack "Debug" "Debug namespace tracking" 82;
+
+namespace "first";
+
+recipe "first_recipe" "recipes/first.json";
+
+function "first_func" {
+    say First namespace function;
+}
+
+namespace "second";
+
+recipe "second_recipe" "recipes/second.json";
+
+function "second_func" {
+    say Second namespace function;
+}
+
+on_load "first:first_func";

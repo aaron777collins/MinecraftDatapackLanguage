@@ -297,10 +297,10 @@ def _merge_mdl_files(files: List[Path], verbose: bool = False) -> Optional[Dict[
             for entry in root_pack[key]:
                 if isinstance(entry, dict):
                     entry['_source_dir'] = first_file_dir
-                    entry['_source_namespace'] = first_file_namespace
+                    # Don't overwrite _source_namespace - it's already set correctly by the parser
                 else:
                     setattr(entry, '_source_dir', first_file_dir)
-                    setattr(entry, '_source_namespace', first_file_namespace)
+                    # Don't overwrite _source_namespace - it's already set correctly by the parser
     
     # Ensure root_pack has required keys
     if 'functions' not in root_pack:
@@ -363,10 +363,10 @@ def _merge_mdl_files(files: List[Path], verbose: bool = False) -> Optional[Dict[
                 for entry in ast[key]:
                     if isinstance(entry, dict):
                         entry['_source_dir'] = file_dir
-                        entry['_source_namespace'] = file_namespace
+                        # Don't overwrite _source_namespace - it's already set correctly by the parser
                     else:
                         setattr(entry, '_source_dir', file_dir)
-                        setattr(entry, '_source_namespace', file_namespace)
+                        # Don't overwrite _source_namespace - it's already set correctly by the parser
                 if key not in root_pack:
                     root_pack[key] = []
                 root_pack[key].extend(ast[key])

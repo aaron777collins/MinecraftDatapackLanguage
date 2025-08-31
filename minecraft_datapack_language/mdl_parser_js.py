@@ -200,6 +200,7 @@ class MDLParser:
                 namespace_decl = self._parse_namespace_declaration()
                 ast['namespace'] = namespace_decl
                 self.current_namespace = namespace_decl['name']  # Update current namespace
+                print(f"DEBUG: Parser updated current_namespace to: {self.current_namespace}")
             elif self._peek().type == TokenType.FUNCTION:
                 ast['functions'].append(self._parse_function_declaration())
             elif self._peek().type == TokenType.ON_LOAD:
@@ -212,6 +213,7 @@ class MDLParser:
                 # Handle top-level variable declarations
                 ast['variables'].append(self._parse_variable_declaration())
             elif self._peek().type == TokenType.RECIPE:
+                print(f"DEBUG: Found RECIPE token, current_namespace: {self.current_namespace}")
                 ast['recipes'].append(self._parse_recipe_declaration())
             elif self._peek().type == TokenType.LOOT_TABLE:
                 ast['loot_tables'].append(self._parse_loot_table_declaration())
@@ -293,7 +295,9 @@ class MDLParser:
         # Store reference to JSON file and current namespace
         data = {"json_file": json_file}
         
-        return {"name": name, "data": data, "_source_namespace": self.current_namespace}
+        result = {"name": name, "data": data, "_source_namespace": self.current_namespace}
+        print(f"DEBUG: Recipe '{name}' declared with namespace: {self.current_namespace}")
+        return result
     
     def _parse_json_block(self) -> dict:
         """Parse a JSON block until matching closing brace."""
