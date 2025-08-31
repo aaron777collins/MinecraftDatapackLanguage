@@ -267,6 +267,9 @@ def _find_mdl_files(directory: Path) -> List[Path]:
         if not should_exclude:
             filtered_files.append(file_path)
     
+    # Sort files alphabetically to ensure consistent ordering across platforms
+    filtered_files.sort(key=lambda x: x.name)
+    
     return filtered_files
 
 
