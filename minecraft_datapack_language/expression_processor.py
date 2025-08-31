@@ -99,14 +99,14 @@ class ExpressionProcessor:
             return str(expr)
     
     def parse_scoped_variable(self, var_str: str) -> tuple[str, str]:
-        """Parse a scoped variable string into (variable_name, scope_selector)"""
+        """Parse a scoped variable string into (scope_selector, variable_name) for use in scoreboard commands"""
         if '<' in var_str and var_str.endswith('>'):
             parts = var_str.split('<', 1)
             if len(parts) == 2:
                 variable_name = parts[0]
                 scope_selector = parts[1][:-1]  # Remove closing >
-                return variable_name, scope_selector
-        return var_str, "@s"  # Default to @s if no scope specified
+                return scope_selector, variable_name  # Return (selector, variable_name) for correct command order
+        return "@s", var_str  # Default to @s if no scope specified
     
     def generate_binary_operation(self, operator: str, left: str, right: str, target: str, selector: str = "@s") -> str:
         """Generate a binary operation command"""
@@ -131,6 +131,8 @@ class ExpressionProcessor:
         # Check if left and right are scoped variables
         left_selector, left_var = self.parse_scoped_variable(left)
         right_selector, right_var = self.parse_scoped_variable(right)
+        
+        # The parse_scoped_variable now returns (selector, variable_name) for correct command order
         
         # For literal numbers, we can use direct add/remove/set
         # For variable operands, we need to use scoreboard operations
@@ -284,13 +286,20 @@ class ExpressionProcessor:
         elif class_name == 'VariableExpression':
             # Variable reference - copy from scoreboard
             # Check if the variable name contains scope information
-            if '<' in expr.name and expr.name.endswith('>'):
+            if hasattr(expr, 'scope_selector') and expr.scope_selector:
+                # Use the scope selector from the AST node
+                source_selector = expr.scope_selector
+                source_var = expr.name
+            elif '<' in expr.name and expr.name.endswith('>'):
                 # Parse scoped variable
-                var_name, var_selector = self.parse_scoped_variable(expr.name)
-                commands = [f"scoreboard players operation {selector} {base_target_var} = {var_selector} {var_name}"]
+                var_selector, var_name = self.parse_scoped_variable(expr.name)
+                source_selector = var_selector
+                source_var = var_name
             else:
                 # Use default selector
-                commands = [f"scoreboard players operation {selector} {base_target_var} = {selector} {expr.name}"]
+                source_selector = selector
+                source_var = expr.name
+            commands = [f"scoreboard players operation {selector} {base_target_var} = {source_selector} {source_var}"]
             return ProcessedExpression(commands, "", [])
         elif class_name == 'VariableSubstitutionExpression':
             # Variable substitution ($variable$ or $variable<selector>$) - read from scoreboard
