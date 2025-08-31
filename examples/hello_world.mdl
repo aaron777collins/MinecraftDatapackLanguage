@@ -1,0 +1,12 @@
+// hello_world.mdl - Basic Hello World Example
+pack "hello_world" "A simple hello world datapack" 82;
+
+namespace "hello_world";
+
+function "hello" {
+    say Hello, World!;
+    tellraw @a {"text":"Welcome to MDL!","color":"green"};
+}
+
+// Hook to run hello function when datapack loads
+on_load "hello_world:hello";

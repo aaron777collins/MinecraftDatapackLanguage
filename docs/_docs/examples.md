@@ -77,21 +77,25 @@ on_load "demo:main";
 A simple datapack that displays a welcome message and counts how many times it's been called.
 
 ```mdl
-// hello.mdl
-pack "My First Pack" "A simple example" 82;
+// hello_world.mdl
+pack "Hello World" "A simple hello world example" 82;
 
-namespace "example";
-
-var num counter = 0;
+namespace "hello_world";
 
 function "hello" {
-    say Hello, Minecraft!;
-    tellraw @a {"text":"Welcome to my datapack!","color":"green"};
-    counter = counter + 1;
-    say Counter: $counter$;
+    say Hello, World!;
+    tellraw @a {"text":"Welcome to MDL!","color":"green"};
 }
 
-on_load "example:hello";
+// Hook to run hello function when datapack loads
+on_load "hello_world:hello";
+```
+
+**Build and use:**
+```bash
+mdl build --mdl hello_world.mdl -o dist
+# Copy dist/Hello_World/ to your world's datapacks folder
+# Run /reload in-game
 ```
 
 **Build and use:**

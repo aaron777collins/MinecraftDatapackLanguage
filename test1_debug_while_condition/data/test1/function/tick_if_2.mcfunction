@@ -1,2 +1,0 @@
-tellraw @a [{"text": "Server has been running for ", "color": "yellow"}, {"score": {"name": "@e[type=armor_stand,tag=mdl_server,limit=1]", "objective": "global_timer"}, "color": "yellow"}, {"text": " ticks!", "color": "yellow"}]
-execute if score @e[type=armor_stand,tag=mdl_server,limit=1] global_timer matches 200.. run function test1:test1_tick_while_1

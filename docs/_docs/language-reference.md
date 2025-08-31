@@ -183,6 +183,14 @@ function "example" {
 - **Flexible execution**: Use `execute as @a run function mypack:myfunction` to run functions for all players
 - **Explicit scope access**: Use `<selector>` syntax to access variables with specific scopes
 
+### Scoped Variable Best Practices
+
+1. **Use `@s` for player-specific data**: When variables should be unique per player
+2. **Use `global` for server-wide data**: When variables should be shared across all players
+3. **Use `@a` for all-player operations**: When you need to modify all players' scores simultaneously
+4. **Be explicit with scopes**: Use `<selector>` syntax when the default scope isn't what you want
+5. **Consider performance**: Broad selectors like `@a` can affect many entities at once
+
 **Basic Examples:**
 
 ```mdl

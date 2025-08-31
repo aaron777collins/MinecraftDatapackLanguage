@@ -74,39 +74,36 @@ Let's create a simple datapack that demonstrates MDL's core features.
 
 ### 1. Create the MDL File
 
-Create a file called `hello.mdl` with this content:
+Create a file called `hello_world.mdl` with this content:
 
 ```mdl
-// hello.mdl
-pack "My First Pack" "A simple example" 82;
+// hello_world.mdl
+pack "Hello World" "A simple hello world example" 82;
 
-namespace "example";
-
-var num counter = 0;
+namespace "hello_world";
 
 function "hello" {
-    say Hello, Minecraft!;
-    tellraw @a {"text":"Welcome to my datapack!","color":"green"};
-    counter = counter + 1;
-    say Counter: $counter$;
+    say Hello, World!;
+    tellraw @a {"text":"Welcome to MDL!","color":"green"};
 }
 
-on_load "example:hello";
+// Hook to run hello function when datapack loads
+on_load "hello_world:hello";
 ```
 
 ### 2. Build the Datapack
 
 ```bash
-mdl build --mdl hello.mdl -o dist
+mdl build --mdl hello_world.mdl -o dist
 ```
 
 This creates a `dist/` directory containing your compiled datapack.
 
 ### 3. Install in Minecraft
 
-1. Copy the `dist/my_first_pack/` folder to your Minecraft world's `datapacks/` folder
+1. Copy the `dist/Hello_World/` folder to your Minecraft world's `datapacks/` folder
 2. In-game, run `/reload` to load the datapack
-3. You should see the hello message and counter updates!
+3. You should see the hello message!
 
 ## Key Concepts
 

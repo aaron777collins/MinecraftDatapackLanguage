@@ -35,6 +35,7 @@ class TokenType:
     RAW = "RAW"
     RAW_START = "RAW_START"
     RAW_END = "RAW_END"
+    EXECUTE = "EXECUTE"
     
     # Registry types
     RECIPE = "RECIPE"
@@ -207,18 +208,19 @@ class MDLLexer:
         keyword_map = {
             'pack': TokenType.PACK,
             'namespace': TokenType.NAMESPACE,
-            'function': TokenType.FUNCTION,
-            'var': TokenType.VAR,
-            'num': TokenType.NUM,
-            'scope': TokenType.SCOPE,
-            'if': TokenType.IF,
-            'else': TokenType.ELSE,
-            'while': TokenType.WHILE,
-            'on_tick': TokenType.ON_TICK,
-            'on_load': TokenType.ON_LOAD,
-            'tag': TokenType.TAG,
-            'add': TokenType.ADD,
-            'raw': TokenType.RAW,
+                    'function': TokenType.FUNCTION,
+        'var': TokenType.VAR,
+        'num': TokenType.NUM,
+        'scope': TokenType.SCOPE,
+        'if': TokenType.IF,
+        'else': TokenType.ELSE,
+        'while': TokenType.WHILE,
+        'on_tick': TokenType.ON_TICK,
+        'on_load': TokenType.ON_LOAD,
+        'tag': TokenType.TAG,
+        'add': TokenType.ADD,
+        'raw': TokenType.RAW,
+        'execute': TokenType.EXECUTE,
             
             # Registry types
             'recipe': TokenType.RECIPE,

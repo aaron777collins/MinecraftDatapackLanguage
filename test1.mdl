@@ -17,13 +17,13 @@ function "hello" {
     tellraw @a {"text":"Welcome to my datapack!","color":"green"};
     
     // Update both global and player counters
-    global_hello_count<global> = global_hello_count<global> + 1;
+    global_hello_count = global_hello_count + 1;
     player_hello_count<@s> = player_hello_count<@s> + 1;
     
     // Display counters
     tellraw @a {"text":"Global Hello Count: $global_hello_count$","color":"gold"};
-    tellraw @a {"text":"Your Hello Count: $player_hello_count$","color":"blue"};
-    tellraw @a {"text":"Your Timer Enabled: $player_timer_enabled$","color":"green"};
+    tellraw @a {"text":"Your Hello Count: $player_hello_count<@s>$","color":"blue"};
+    tellraw @a {"text":"Your Timer Enabled: $player_timer_enabled<@s>$","color":"green"};
     
     // Raw text only for commands that contain MDL keywords
     $!raw
@@ -34,65 +34,62 @@ function "hello" {
 }
 
 function "enabletimer" {
-    $!raw
-    scoreboard players set @s player_timer_enabled 1
-    raw!$
+    $!raw scoreboard players set @s player_timer_enabled 1 raw!$
     say Your timer is now enabled!;
     tellraw @s {"text":"Timer enabled for you!","color":"green"};
 }
 
 function "disabletimer" {
-    $!raw
-    scoreboard players set @s player_timer_enabled 0
-    raw!$
+    $!raw scoreboard players set @s player_timer_enabled 0 raw!$
     say Your timer is now disabled!;
     tellraw @s {"text":"Timer disabled for you!","color":"red"};
 }
 
 function "tick" {
-    global_timer<global> = global_timer<global> + 1;
+    global_timer = global_timer + 1;
     
     // Execute as each player to increment their individual tick counters
-    $!raw
+    $!raw 
     execute as @a run function test1:increase_tick_per_player
     raw!$
     
     // Global timer event every 200 ticks
-    if "$global_timer<global>$ > 200" {
-        tellraw @a {"text":"Server has been running for $global_timer<global>$ ticks!","color":"yellow"};
-        
-        while "$global_timer<global>$ >= 200" {
-            global_timer<global> = global_timer<global> - 5;
-            tellraw @a {"text":"Reducing global timer by 5 ticks. New value: $global_timer<global>$","color":"yellow"};
+    if "$global_timer$ > 200" {
+        tellraw @a {"text":"Global timer is at $global_timer$ ticks! Using while loop to reduce it..","color":"yellow"};
+        while "$global_timer<global>$ > 50" {
+            global_timer<global> = global_timer<global> - 50;
+            tellraw @a {"text":"Reducing global timer by 50 ticks. New value: $global_timer<global>$","color":"yellow"};
         }
     }
 }
 
 function "increase_tick_per_player" {
-    $!raw
-    scoreboard players add @s player_tick_counter 1
-    raw!$
+    $!raw scoreboard players add @s player_tick_counter 1 raw!$
     
     if "$player_tick_counter$ > 100" {
         if "$player_timer_enabled$ == 1" {
             function "test1:hello";
         }
-        $!raw
-        scoreboard players set @s player_tick_counter 0
-        raw!$
+        $!raw scoreboard players set @s player_tick_counter 0 raw!$
     }
 }
 
 function "showstats" {
     tellraw @a {"text":"=== Player Statistics ===","color":"gold","bold":true};
-    tellraw @a {"text":"Global Hello Count: $global_hello_count$","color":"gold"};
-    tellraw @a {"text":"Your Hello Count: $player_hello_count$","color":"blue"};
-    tellraw @a {"text":"Your Timer Status: $player_timer_enabled$","color":"green"};
+    tellraw @a {"text":"Global Hello Count: $global_hello_count<global>$","color":"gold"};
+    $!raw 
+    execute as @a run function test1:showplayerstats
+    raw!$
+}
+
+function "showplayerstats" {
+    tellraw @s {"text":"Your Hello Count: $player_hello_count<@s>$","color":"blue"};
+    tellraw @s {"text":"Your Timer Status: $player_timer_enabled<@s>$","color":"green"};
 }
 
 function "resetstats" {
-    global_hello_count<global> = 0;
-    player_hello_count<@s> = 0;
+    global_hello_count = 0;
+    player_hello_count = 0;
     say Statistics reset!;
     tellraw @s {"text":"Your statistics have been reset!","color":"yellow"};
 }

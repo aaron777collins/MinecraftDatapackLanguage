@@ -1,0 +1,2 @@
+tellraw @s [{"text": "Your Hello Count: ", "color": "blue"}, {"score": {"name": "@s", "objective": "player_hello_count"}, "color": "blue"}]
+tellraw @s [{"text": "Your Timer Status: ", "color": "green"}, {"score": {"name": "@s", "objective": "player_timer_enabled"}, "color": "green"}]

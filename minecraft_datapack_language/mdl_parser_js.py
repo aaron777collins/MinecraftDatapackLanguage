@@ -64,6 +64,11 @@ class FunctionCall(ASTNode):
     arguments: List['Expression']
 
 @dataclass
+class ExecuteStatement(ASTNode):
+    target: str  # e.g., "@a"
+    function_name: str
+
+@dataclass
 class HookDeclaration(ASTNode):
     hook_type: str  # 'tick' or 'load'
     function_name: str
@@ -432,6 +437,8 @@ class MDLParser:
             return self._parse_while_loop()
         elif self._peek().type == TokenType.FUNCTION:
             return self._parse_function_call()
+        elif self._peek().type == TokenType.EXECUTE:
+            return self._parse_execute_statement()
         elif self._peek().type == TokenType.RAW_START:
             return self._parse_raw_text()
         elif self._peek().type == TokenType.IDENTIFIER:
@@ -619,6 +626,40 @@ class MDLParser:
         self._match(TokenType.SEMICOLON)
         
         return FunctionCall(name, [])
+    
+    def _parse_execute_statement(self) -> ExecuteStatement:
+        """Parse execute statement like 'execute as @a function "namespace:function"';"""
+        self._match(TokenType.EXECUTE)
+        
+        # Expect "as"
+        if self._peek().type != TokenType.IDENTIFIER or self._peek().value != "as":
+            raise RuntimeError(f"Expected 'as' after execute, got {self._peek().value}")
+        self._match(TokenType.IDENTIFIER)
+        
+        # Parse target selector (e.g., @a, @s, @p, etc.)
+        if self._peek().type != TokenType.IDENTIFIER:
+            raise RuntimeError(f"Expected target selector after 'as', got {self._peek().type}")
+        target_token = self._match(TokenType.IDENTIFIER)
+        target = target_token.value
+        
+        # Expect "function"
+        if self._peek().type != TokenType.FUNCTION:
+            raise RuntimeError(f"Expected 'function' after target selector, got {self._peek().value}")
+        self._match(TokenType.FUNCTION)
+        
+        # Parse function name
+        if self._peek().type == TokenType.STRING:
+            name_token = self._match(TokenType.STRING)
+            function_name = name_token.value.strip('"').strip("'")
+        elif self._peek().type == TokenType.IDENTIFIER:
+            name_token = self._match(TokenType.IDENTIFIER)
+            function_name = name_token.value
+        else:
+            raise RuntimeError(f"Expected STRING or IDENTIFIER for function name, got {self._peek().type}")
+        
+        self._match(TokenType.SEMICOLON)
+        
+        return ExecuteStatement(target, function_name)
     
     def _parse_raw_text(self) -> RawText:
         """Parse raw text block."""

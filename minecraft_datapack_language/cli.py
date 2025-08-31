@@ -486,6 +486,7 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
     
     if hasattr(statement, '__class__'):
         class_name = statement.__class__.__name__
+        print(f"DEBUG: Processing statement type: {class_name}")
         
         if class_name == 'VariableDeclaration':
             # Handle variable declaration
@@ -630,6 +631,10 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
         elif class_name == 'FunctionCall':
             # Handle function calls
             commands.append(f"function {statement.function_name}")
+        
+        elif class_name == 'ExecuteStatement':
+            # Handle execute statements
+            commands.append(f"execute as {statement.target} run function {statement.function_name}")
         
         elif class_name == 'Command':
             # Handle regular command
