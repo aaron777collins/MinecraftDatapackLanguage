@@ -236,14 +236,17 @@ code[class*="language-"] {
   color-scheme: dark;
 }
 
-[data-theme="dark"] body {
+[data-theme="dark"] body,
+[data-theme="dark"] html {
   background-color: #0d1117 !important;
   color: #c9d1d9 !important;
 }
 
 [data-theme="dark"] .main-content,
 [data-theme="dark"] .page-content,
-[data-theme="dark"] main {
+[data-theme="dark"] main,
+[data-theme="dark"] .container,
+[data-theme="dark"] .wrapper {
   background-color: #0d1117 !important;
   color: #c9d1d9 !important;
 }
@@ -423,186 +426,6 @@ code[class*="language-"] {
 
 [data-theme="dark"] .feature p {
   color: #a0aec0;
-}
-
-/* Comprehensive Dark Mode Styles */
-[data-theme="dark"] {
-  color-scheme: dark;
-}
-
-[data-theme="dark"] body {
-  background-color: #0d1117 !important;
-  color: #c9d1d9 !important;
-}
-
-[data-theme="dark"] .main-content,
-[data-theme="dark"] .page-content,
-[data-theme="dark"] main {
-  background-color: #0d1117 !important;
-  color: #c9d1d9 !important;
-}
-
-/* Dark mode for headings */
-[data-theme="dark"] h1,
-[data-theme="dark"] h2,
-[data-theme="dark"] h3,
-[data-theme="dark"] h4,
-[data-theme="dark"] h5,
-[data-theme="dark"] h6 {
-  color: #e6edf3 !important;
-}
-
-/* Dark mode for paragraphs and text */
-[data-theme="dark"] p,
-[data-theme="dark"] li,
-[data-theme="dark"] td,
-[data-theme="dark"] th {
-  color: #c9d1d9 !important;
-}
-
-/* Dark mode for links */
-[data-theme="dark"] a {
-  color: #58a6ff !important;
-}
-
-[data-theme="dark"] a:hover {
-  color: #79c0ff !important;
-}
-
-/* Dark mode for code blocks */
-[data-theme="dark"] pre[class*="language-"] {
-  background-color: #161b22 !important;
-  border-color: #30363d !important;
-}
-
-[data-theme="dark"] code[class*="language-"] {
-  background-color: #161b22 !important;
-}
-
-/* Dark mode for inline code */
-[data-theme="dark"] code:not([class*="language-"]) {
-  background-color: #21262d !important;
-  color: #e6edf3 !important;
-  border-color: #30363d !important;
-}
-
-/* Dark mode for tables */
-[data-theme="dark"] table {
-  background-color: #161b22 !important;
-  border-color: #30363d !important;
-}
-
-[data-theme="dark"] th {
-  background-color: #21262d !important;
-  border-color: #30363d !important;
-}
-
-[data-theme="dark"] td {
-  border-color: #30363d !important;
-}
-
-/* Dark mode for blockquotes */
-[data-theme="dark"] blockquote {
-  background-color: #161b22 !important;
-  border-left-color: #58a6ff !important;
-  color: #c9d1d9 !important;
-}
-
-/* Dark mode for horizontal rules */
-[data-theme="dark"] hr {
-  border-color: #30363d !important;
-}
-
-/* Dark mode for breadcrumbs */
-[data-theme="dark"] .breadcrumb-link {
-  color: #58a6ff !important;
-}
-
-[data-theme="dark"] .breadcrumb-link:hover {
-  background-color: #21262d !important;
-}
-
-[data-theme="dark"] .breadcrumb-item.active {
-  color: #8b949e !important;
-}
-
-[data-theme="dark"] .breadcrumb-item:not(:last-child)::after {
-  color: #8b949e !important;
-}
-
-/* Dark mode for docs grid cards */
-[data-theme="dark"] .doc-card {
-  background-color: #161b22 !important;
-  border-color: #30363d !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
-}
-
-[data-theme="dark"] .doc-card:hover {
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4) !important;
-}
-
-[data-theme="dark"] .doc-card h3 {
-  color: #e6edf3 !important;
-}
-
-[data-theme="dark"] .doc-card p {
-  color: #c9d1d9 !important;
-}
-
-[data-theme="dark"] .category {
-  background-color: #21262d !important;
-  color: #c9d1d9 !important;
-}
-
-[data-theme="dark"] .doc-link {
-  color: #58a6ff !important;
-  border-color: #58a6ff !important;
-}
-
-[data-theme="dark"] .doc-link:hover {
-  background-color: #58a6ff !important;
-  color: #0d1117 !important;
-}
-
-/* Dark mode for search input */
-[data-theme="dark"] .search-input {
-  background-color: #161b22 !important;
-  border-color: #30363d !important;
-  color: #c9d1d9 !important;
-}
-
-[data-theme="dark"] .search-input:focus {
-  border-color: #58a6ff !important;
-  box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.1) !important;
-}
-
-[data-theme="dark"] .search-icon {
-  color: #8b949e !important;
-}
-
-/* Dark mode for no results */
-[data-theme="dark"] .no-results {
-  color: #8b949e !important;
-}
-
-[data-theme="dark"] .no-results h3 {
-  color: #e6edf3 !important;
-}
-
-/* Dark mode for navigation (already handled in navigation.html) */
-[data-theme="dark"] .nav-menu {
-  background: linear-gradient(135deg, #0d1117 0%, #161b22 100%) !important;
-}
-
-/* Dark mode for mobile navigation */
-[data-theme="dark"] .nav-list {
-  background: linear-gradient(135deg, #0d1117 0%, #161b22 100%) !important;
-  border-top-color: #30363d !important;
-}
-
-/* Dark mode for theme toggle icons */
-[data-theme="dark"] .theme-icon {
-  color: #ffffff !important;
 }
 
 /* Responsive design */
@@ -610,20 +433,6 @@ code[class*="language-"] {
   .features {
     grid-template-columns: 1fr;
   }
-}
-
-/* Dark mode support */
-[data-theme="dark"] .feature {
-  background: #2d3748;
-  border-color: #4a5568;
-}
-
-[data-theme="dark"] .feature h3 {
-  color: #e2e8f0;
-}
-
-[data-theme="dark"] .feature p {
-  color: #a0aec0;
 }
 
 /* Remove any weird theme shadows and let the default theme handle it */
