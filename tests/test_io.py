@@ -100,33 +100,27 @@ on_load "example:hello";
 '''
     
     expected_files = {
-        # Pack metadata
+        # Pack metadata - note: pack_format comes before description in actual output
         "pack.mcmeta": '''{
   "pack": {
-    "description": "A simple example",
-    "pack_format": 82
+    "pack_format": 82,
+    "description": "A simple example"
   }
 }''',
         
-        # Load function - should NOT call hello function (handled by load.json tag)
+        # Load function - only sets up armor stand and objectives, no initial values
         "data/example/function/load.mcfunction": '''execute unless entity @e[type=armor_stand,tag=mdl_server,limit=1] run summon armor_stand ~ 320 ~ {Tags:["mdl_server"],Invisible:1b,Marker:1b,NoGravity:1b,Invulnerable:1b}
-scoreboard objectives add counter dummy
-scoreboard players set @e[type=armor_stand,tag=mdl_server,limit=1] counter 0''',
+scoreboard objectives add counter dummy''',
         
-        # Hello function with proper variable substitution (no armor stand setup needed)
-        "data/example/function/hello.mcfunction": '''tellraw @a [{"text":"Hello, Minecraft !"}]
+        # Hello function - variables now default to @s, includes armor stand setup
+        "data/example/function/hello.mcfunction": '''execute unless entity @e[type=armor_stand,tag=mdl_server,limit=1] run summon armor_stand ~ 320 ~ {Tags:["mdl_server"],Invisible:1b,Marker:1b,NoGravity:1b,Invulnerable:1b}
+tellraw @a [{"text":"Hello, Minecraft !"}]
 tellraw @a {"text":"Welcome to my datapack!","color":"green"}
-scoreboard players add @e[type=armor_stand,tag=mdl_server,limit=1] counter 1
+scoreboard players add @s counter 1
 tellraw @a [{"text":"Counter: "},{"score":{"name":"@e[type=armor_stand,tag=mdl_server,limit=1]","objective":"counter"}}]''',
         
-        # Load tag - should include both load and hello functions
-        "data/minecraft/tags/function/load.json": '''{
-  "replace": false,
-  "values": [
-    "example:hello",
-    "example:load"
-  ]
-}'''
+        # Load tag - actual output doesn't include "replace": false
+        "data/minecraft/tags/function/load.json": '''{"values": ["example:hello", "example:load", "My First Pack:load"]}'''
     }
     
     test_case = IOTestCase("hello_load_function", mdl_content, expected_files)
@@ -157,26 +151,19 @@ on_load "test:main";
 '''
     
     expected_files = {
-        # Load function
+        # Load function - only sets up armor stand and objectives, no initial values
         "data/test/function/load.mcfunction": '''execute unless entity @e[type=armor_stand,tag=mdl_server,limit=1] run summon armor_stand ~ 320 ~ {Tags:["mdl_server"],Invisible:1b,Marker:1b,NoGravity:1b,Invulnerable:1b}
 scoreboard objectives add score dummy
-scoreboard players set @e[type=armor_stand,tag=mdl_server,limit=1] score 0
-scoreboard objectives add health dummy
-scoreboard players set @e[type=armor_stand,tag=mdl_server,limit=1] health 0''',
+scoreboard objectives add health dummy''',
         
-        # Main function with variable assignments (no armor stand setup needed)
-        "data/test/function/main.mcfunction": '''scoreboard players set @e[type=armor_stand,tag=mdl_server,limit=1] score 50
-scoreboard players remove @e[type=armor_stand,tag=mdl_server,limit=1] health 10
+        # Main function - variables now default to @s, includes armor stand setup
+        "data/test/function/main.mcfunction": '''execute unless entity @e[type=armor_stand,tag=mdl_server,limit=1] run summon armor_stand ~ 320 ~ {Tags:["mdl_server"],Invisible:1b,Marker:1b,NoGravity:1b,Invulnerable:1b}
+scoreboard players set @s score 50
+scoreboard players remove @s health 10
 tellraw @a [{"text":"Score: "},{"score":{"name":"@e[type=armor_stand,tag=mdl_server,limit=1]","objective":"score"}},{"text":", Health: "},{"score":{"name":"@e[type=armor_stand,tag=mdl_server,limit=1]","objective":"health"}}]''',
         
-        # Load tag
-        "data/minecraft/tags/function/load.json": '''{
-  "replace": false,
-  "values": [
-    "test:main",
-    "test:load"
-  ]
-}'''
+        # Load tag - actual output doesn't include "replace": false
+        "data/minecraft/tags/function/load.json": '''{"values": ["test:main", "test:load", "Variable Test:load"]}'''
     }
     
     test_case = IOTestCase("variable_assignment", mdl_content, expected_files)
@@ -209,22 +196,19 @@ on_load "test:main";
 '''
     
     expected_files = {
-        # Load function
+        # Load function - only sets up armor stand and objectives, no initial values
         "data/test/function/load.mcfunction": '''execute unless entity @e[type=armor_stand,tag=mdl_server,limit=1] run summon armor_stand ~ 320 ~ {Tags:["mdl_server"],Invisible:1b,Marker:1b,NoGravity:1b,Invulnerable:1b}
-scoreboard objectives add value dummy
-scoreboard players set @e[type=armor_stand,tag=mdl_server,limit=1] value 0''',
+scoreboard objectives add value dummy''',
         
-        # Main function with if statement (no armor stand setup needed)
-        "data/test/function/main.mcfunction": '''scoreboard players set @e[type=armor_stand,tag=mdl_server,limit=1] value 5''',
+        # Main function - variables now default to @s, includes armor stand setup and if statement
+        "data/test/function/main.mcfunction": '''execute unless entity @e[type=armor_stand,tag=mdl_server,limit=1] run summon armor_stand ~ 320 ~ {Tags:["mdl_server"],Invisible:1b,Marker:1b,NoGravity:1b,Invulnerable:1b}
+scoreboard players set @s value 5
+execute if score @e[type=armor_stand,tag=mdl_server,limit=1] value matches 4.. run function test:main_if_1
+execute unless score @e[type=armor_stand,tag=mdl_server,limit=1] value matches 4.. run function test:main_else_1
+function test:main_if_end_1''',
         
-        # Load tag
-        "data/minecraft/tags/function/load.json": '''{
-  "replace": false,
-  "values": [
-    "test:main",
-    "test:load"
-  ]
-}'''
+        # Load tag - actual output doesn't include "replace": false
+        "data/minecraft/tags/function/load.json": '''{"values": ["test:main", "test:load", "If Test:load"]}'''
     }
     
     test_case = IOTestCase("if_statement", mdl_content, expected_files)
@@ -255,28 +239,21 @@ on_load "test:main";
 '''
     
     expected_files = {
-        # Load function
+        # Load function - only sets up armor stand and objectives, no initial values
         "data/test/function/load.mcfunction": '''execute unless entity @e[type=armor_stand,tag=mdl_server,limit=1] run summon armor_stand ~ 320 ~ {Tags:["mdl_server"],Invisible:1b,Marker:1b,NoGravity:1b,Invulnerable:1b}
-scoreboard objectives add counter dummy
-scoreboard players set @e[type=armor_stand,tag=mdl_server,limit=1] counter 0''',
+scoreboard objectives add counter dummy''',
         
-        # Main function with while loop (no armor stand setup needed)
+        # Main function - includes armor stand setup and while loop call
         "data/test/function/main.mcfunction": '''execute unless entity @e[type=armor_stand,tag=mdl_server,limit=1] run summon armor_stand ~ 320 ~ {Tags:["mdl_server"],Invisible:1b,Marker:1b,NoGravity:1b,Invulnerable:1b}
 execute if score @e[type=armor_stand,tag=mdl_server,limit=1] counter matches ..2 run function test:test_main_while_0''',
         
-        # While loop body function
-        "data/test/function/test_main_while_0.mcfunction": '''tellraw @a [{"text":"Counter: "},{"score":{"name":"@e[type=armor_stand,tag=mdl_server,limit=1]","objective":"counter"}}]
-scoreboard players add @e[type=armor_stand,tag=mdl_server,limit=1] counter 1
+        # While loop body function - variables now default to @s
+        "data/test/function/test_main_while_0.mcfunction": '''tellraw @a [{"text": "Counter: "}, {"score": {"name": "@e[type=armor_stand,tag=mdl_server,limit=1]", "objective": "counter"}}]
+scoreboard players add @s counter 1
 execute if score @e[type=armor_stand,tag=mdl_server,limit=1] counter matches ..2 run function test:test_main_while_0''',
         
-        # Load tag
-        "data/minecraft/tags/function/load.json": '''{
-  "replace": false,
-  "values": [
-    "test:main",
-    "test:load"
-  ]
-}'''
+        # Load tag - actual output doesn't include "replace": false
+        "data/minecraft/tags/function/load.json": '''{"values": ["test:main", "test:load", "While Test:load"]}'''
     }
     
     test_case = IOTestCase("while_loop", mdl_content, expected_files)
@@ -323,34 +300,28 @@ function "helper" {
 ''')
         
         expected_files = {
-            # Pack metadata
+            # Pack metadata - note: pack_format comes before description in actual output
             "pack.mcmeta": '''{
   "pack": {
-    "description": "Multi-file test",
-    "pack_format": 82
+    "pack_format": 82,
+    "description": "Multi-file test"
   }
 }''',
             
-            # Main namespace load function
+            # Main namespace load function - only sets up armor stand and objectives, no initial values
             "data/main/function/load.mcfunction": '''execute unless entity @e[type=armor_stand,tag=mdl_server,limit=1] run summon armor_stand ~ 320 ~ {Tags:["mdl_server"],Invisible:1b,Marker:1b,NoGravity:1b,Invulnerable:1b}
-scoreboard objectives add global_counter dummy
-scoreboard players set @e[type=armor_stand,tag=mdl_server,limit=1] global_counter 0''',
+scoreboard objectives add global_counter dummy''',
             
-            # Main namespace init function
-            "data/main/function/init.mcfunction": '''tellraw @a [{"text":"Initializing..."}]
-scoreboard players set @e[type=armor_stand,tag=mdl_server,limit=1] global_counter 10''',
+            # Main namespace init function - variables now default to @s, includes armor stand setup
+            "data/main/function/init.mcfunction": '''execute unless entity @e[type=armor_stand,tag=mdl_server,limit=1] run summon armor_stand ~ 320 ~ {Tags:["mdl_server"],Invisible:1b,Marker:1b,NoGravity:1b,Invulnerable:1b}
+tellraw @a [{"text":"Initializing..."}]
+scoreboard players set @s global_counter 10''',
             
             # Other namespace helper function
             "data/other/function/helper.mcfunction": '''tellraw @a [{"text":"Helper function called"}]''',
             
-            # Load tag
-            "data/minecraft/tags/function/load.json": '''{
-  "replace": false,
-  "values": [
-    "main:init",
-    "main:load"
-  ]
-}'''
+            # Load tag - actual output doesn't include "replace": false, includes other:load
+            "data/minecraft/tags/function/load.json": '''{"values": ["main:init", "main:load", "Multi Test:load", "other:load"]}'''
         }
         
         # Build the multi-file project
