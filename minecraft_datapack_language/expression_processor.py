@@ -110,6 +110,11 @@ class ExpressionProcessor:
     
     def generate_binary_operation(self, operator: str, left: str, right: str, target: str, selector: str = "@s") -> str:
         """Generate a binary operation command"""
+        # Extract base variable name from target if it's scoped
+        base_target = target
+        if '<' in target and target.endswith('>'):
+            base_target = target.split('<', 1)[0]
+        
         # Check if left and right are numeric literals
         try:
             left_num = int(left)
@@ -135,48 +140,48 @@ class ExpressionProcessor:
                 # For literal numbers, use direct add
                 if left == target:
                     # Avoid self-assignment
-                    return f"scoreboard players add {selector} {target} {right}"
+                    return f"scoreboard players add {selector} {base_target} {right}"
                 elif is_left_literal:
                     # Both are literals, set left then add right
-                    return f"scoreboard players set {selector} {target} {left}\nscoreboard players add {selector} {target} {right}"
+                    return f"scoreboard players set {selector} {base_target} {left}\nscoreboard players add {selector} {base_target} {right}"
                 else:
                     # Left is variable, right is literal
-                    return f"scoreboard players operation {selector} {target} = {left_selector} {left_var}\nscoreboard players add {selector} {target} {right}"
+                    return f"scoreboard players operation {selector} {base_target} = {left_selector} {left_var}\nscoreboard players add {selector} {base_target} {right}"
             else:
                 # For variable operands, use scoreboard operation
                 if left == target:
                     # Avoid self-assignment
-                    return f"scoreboard players operation {selector} {target} += {right_selector} {right_var}"
+                    return f"scoreboard players operation {selector} {base_target} += {right_selector} {right_var}"
                 elif is_left_literal:
                     # Left is literal, right is variable
-                    return f"scoreboard players set {selector} {target} {left}\nscoreboard players operation {selector} {target} += {right_selector} {right_var}"
+                    return f"scoreboard players set {selector} {base_target} {left}\nscoreboard players operation {selector} {base_target} += {right_selector} {right_var}"
                 else:
                     # Both are variables
-                    return f"scoreboard players operation {selector} {target} = {left_selector} {left_var}\nscoreboard players operation {selector} {target} += {right_selector} {right_var}"
+                    return f"scoreboard players operation {selector} {base_target} = {left_selector} {left_var}\nscoreboard players operation {selector} {base_target} += {right_selector} {right_var}"
         
         elif operator == '-':
             if is_right_literal:
                 # For literal numbers, use direct remove
                 if left == target:
                     # Avoid self-assignment
-                    return f"scoreboard players remove {selector} {target} {right}"
+                    return f"scoreboard players remove {selector} {base_target} {right}"
                 elif is_left_literal:
                     # Both are literals, set left then remove right
-                    return f"scoreboard players set {selector} {target} {left}\nscoreboard players remove {selector} {target} {right}"
+                    return f"scoreboard players set {selector} {base_target} {left}\nscoreboard players remove {selector} {base_target} {right}"
                 else:
                     # Left is variable, right is literal
-                    return f"scoreboard players operation {selector} {target} = {left_selector} {left_var}\nscoreboard players remove {selector} {target} {right}"
+                    return f"scoreboard players operation {selector} {base_target} = {left_selector} {left_var}\nscoreboard players remove {selector} {base_target} {right}"
             else:
                 # For variable operands, use scoreboard operation
                 if left == target:
                     # Avoid self-assignment
-                    return f"scoreboard players operation {selector} {target} -= {right_selector} {right_var}"
+                    return f"scoreboard players operation {selector} {base_target} -= {right_selector} {right_var}"
                 elif is_left_literal:
                     # Left is literal, right is variable
-                    return f"scoreboard players set {selector} {target} {left}\nscoreboard players operation {selector} {target} -= {right_selector} {right_var}"
+                    return f"scoreboard players set {selector} {base_target} {left}\nscoreboard players operation {selector} {base_target} -= {right_selector} {right_var}"
                 else:
                     # Both are variables
-                    return f"scoreboard players operation {selector} {target} = {left_selector} {left_var}\nscoreboard players operation {selector} {target} -= {right_selector} {right_var}"
+                    return f"scoreboard players operation {selector} {base_target} = {left_selector} {left_var}\nscoreboard players operation {selector} {base_target} -= {right_selector} {right_var}"
         
         elif operator == '*':
             if is_right_literal:
@@ -184,24 +189,24 @@ class ExpressionProcessor:
                 temp_obj = f"temp_{right}"
                 if left == target:
                     # Avoid self-assignment
-                    return f"scoreboard objectives add {temp_obj} dummy\nscoreboard players set {selector} {temp_obj} {right}\nscoreboard players operation {selector} {target} *= @s {temp_obj}"
+                    return f"scoreboard objectives add {temp_obj} dummy\nscoreboard players set {selector} {temp_obj} {right}\nscoreboard players operation {selector} {base_target} *= @s {temp_obj}"
                 elif is_left_literal:
                     # Both are literals, set left then multiply by right
-                    return f"scoreboard objectives add {temp_obj} dummy\nscoreboard players set {selector} {target} {left}\nscoreboard players set {selector} {temp_obj} {right}\nscoreboard players operation {selector} {target} *= @s {temp_obj}"
+                    return f"scoreboard objectives add {temp_obj} dummy\nscoreboard players set {selector} {base_target} {left}\nscoreboard players set {selector} {temp_obj} {right}\nscoreboard players operation {selector} {base_target} *= @s {temp_obj}"
                 else:
                     # Left is variable, right is literal
-                    return f"scoreboard objectives add {temp_obj} dummy\nscoreboard players set {selector} {temp_obj} {right}\nscoreboard players operation {selector} {target} = {left_selector} {left_var}\nscoreboard players operation {selector} {target} *= @s {temp_obj}"
+                    return f"scoreboard objectives add {temp_obj} dummy\nscoreboard players set {selector} {temp_obj} {right}\nscoreboard players operation {selector} {base_target} = {left_selector} {left_var}\nscoreboard players operation {selector} {base_target} *= @s {temp_obj}"
             else:
                 # For variable operands, use scoreboard operation
                 if left == target:
                     # Avoid self-assignment
-                    return f"scoreboard players operation {selector} {target} *= {right_selector} {right_var}"
+                    return f"scoreboard players operation {selector} {base_target} *= {right_selector} {right_var}"
                 elif is_left_literal:
                     # Left is literal, right is variable
-                    return f"scoreboard players set {selector} {target} {left}\nscoreboard players operation {selector} {target} *= {right_selector} {right_var}"
+                    return f"scoreboard players set {selector} {base_target} {left}\nscoreboard players operation {selector} {base_target} *= {right_selector} {right_var}"
                 else:
                     # Both are variables
-                    return f"scoreboard players operation {selector} {target} = {left_selector} {left_var}\nscoreboard players operation {selector} {target} *= {right_selector} {right_var}"
+                    return f"scoreboard players operation {selector} {base_target} = {left_selector} {left_var}\nscoreboard players operation {selector} {base_target} *= {right_selector} {right_var}"
         
         elif operator == '/':
             if is_right_literal:
@@ -209,67 +214,72 @@ class ExpressionProcessor:
                 temp_obj = f"temp_{right}"
                 if left == target:
                     # Avoid self-assignment
-                    return f"scoreboard objectives add {temp_obj} dummy\nscoreboard players set {selector} {temp_obj} {right}\nscoreboard players operation {selector} {target} /= @s {temp_obj}"
+                    return f"scoreboard objectives add {temp_obj} dummy\nscoreboard players set {selector} {temp_obj} {right}\nscoreboard players operation {selector} {base_target} /= @s {temp_obj}"
                 elif is_left_literal:
                     # Both are literals, set left then divide by right
-                    return f"scoreboard objectives add {temp_obj} dummy\nscoreboard players set {selector} {target} {left}\nscoreboard players set {selector} {temp_obj} {right}\nscoreboard players operation {selector} {target} /= @s {temp_obj}"
+                    return f"scoreboard objectives add {temp_obj} dummy\nscoreboard players set {selector} {base_target} {left}\nscoreboard players set {selector} {temp_obj} {right}\nscoreboard players operation {selector} {base_target} /= @s {temp_obj}"
                 else:
                     # Left is variable, right is literal
-                    return f"scoreboard objectives add {temp_obj} dummy\nscoreboard players set {selector} {temp_obj} {right}\nscoreboard players operation {selector} {target} = {left_selector} {left_var}\nscoreboard players operation {selector} {target} /= @s {temp_obj}"
+                    return f"scoreboard objectives add {temp_obj} dummy\nscoreboard players set {selector} {temp_obj} {right}\nscoreboard players operation {selector} {base_target} = {left_selector} {left_var}\nscoreboard players operation {selector} {base_target} /= @s {temp_obj}"
             else:
                 # For variable operands, use scoreboard operation
                 if left == target:
                     # Avoid self-assignment
-                    return f"scoreboard players operation {selector} {target} /= {right_selector} {right_var}"
+                    return f"scoreboard players operation {selector} {base_target} /= {right_selector} {right_var}"
                 elif is_left_literal:
                     # Left is literal, right is variable
-                    return f"scoreboard players set {selector} {target} {left}\nscoreboard players operation {selector} {target} /= {right_selector} {right_var}"
+                    return f"scoreboard players set {selector} {base_target} {left}\nscoreboard players operation {selector} {base_target} /= {right_selector} {right_var}"
                 else:
                     # Both are variables
-                    return f"scoreboard players operation {selector} {target} = {left_selector} {left_var}\nscoreboard players operation {selector} {target} /= {right_selector} {right_var}"
+                    return f"scoreboard players operation {selector} {base_target} = {left_selector} {left_var}\nscoreboard players operation {selector} {base_target} /= {right_selector} {right_var}"
         
         else:
             # Default to addition for unknown operators
             if is_right_literal:
                 if left == target:
                     # Avoid self-assignment
-                    return f"scoreboard players add {selector} {target} {right}"
+                    return f"scoreboard players add {selector} {base_target} {right}"
                 elif is_left_literal:
                     # Both are literals, set left then add right
-                    return f"scoreboard players set {selector} {target} {left}\nscoreboard players add {selector} {target} {right}"
+                    return f"scoreboard players set {selector} {base_target} {left}\nscoreboard players add {selector} {base_target} {right}"
                 else:
                     # Left is variable, right is literal
-                    return f"scoreboard players operation {selector} {target} = {left_selector} {left_var}\nscoreboard players add {selector} {target} {right}"
+                    return f"scoreboard players operation {selector} {base_target} = {left_selector} {left_var}\nscoreboard players add {selector} {base_target} {right}"
             else:
                 if left == target:
                     # Avoid self-assignment
-                    return f"scoreboard players operation {selector} {target} += {right_selector} {right_var}"
+                    return f"scoreboard players operation {selector} {base_target} += {right_selector} {right_var}"
                 elif is_left_literal:
                     # Left is literal, right is variable
-                    return f"scoreboard players set {selector} {target} {left}\nscoreboard players operation {selector} {target} += {right_selector} {right_var}"
+                    return f"scoreboard players set {selector} {base_target} {left}\nscoreboard players operation {selector} {base_target} += {right_selector} {right_var}"
                 else:
                     # Both are variables
-                    return f"scoreboard players operation {selector} {target} = {left_selector} {left_var}\nscoreboard players operation {selector} {target} += {right_selector} {right_var}"
+                    return f"scoreboard players operation {selector} {base_target} = {left_selector} {left_var}\nscoreboard players operation {selector} {base_target} += {right_selector} {right_var}"
     
     def process_expression(self, expr, target_var: str, selector: str = "@s") -> ProcessedExpression:
         """Main entry point for processing any expression"""
+        # Extract base variable name from target if it's scoped
+        base_target_var = target_var
+        if '<' in target_var and target_var.endswith('>'):
+            base_target_var = target_var.split('<', 1)[0]
+        
         if not hasattr(expr, '__class__'):
             # Simple value
-            commands = [f"scoreboard players set {selector} {target_var} {expr}"]
+            commands = [f"scoreboard players set {selector} {base_target_var} {expr}"]
             return ProcessedExpression(commands, "", [])
         
         class_name = expr.__class__.__name__
         
         if class_name == 'BinaryExpression':
-            return self.process_binary_expression(expr, target_var, selector)
+            return self.process_binary_expression(expr, base_target_var, selector)
         elif class_name == 'LiteralExpression':
             # Handle literal expressions (numbers only)
             try:
                 value = int(expr.value)
-                commands = [f"scoreboard players set {selector} {target_var} {value}"]
+                commands = [f"scoreboard players set {selector} {base_target_var} {value}"]
             except (ValueError, TypeError):
                 # If not a number, set to 0
-                commands = [f"scoreboard players set {selector} {target_var} 0"]
+                commands = [f"scoreboard players set {selector} {base_target_var} 0"]
             return ProcessedExpression(commands, "", [])
         elif class_name == 'VariableExpression':
             # Variable reference - copy from scoreboard
@@ -277,10 +287,10 @@ class ExpressionProcessor:
             if '<' in expr.name and expr.name.endswith('>'):
                 # Parse scoped variable
                 var_name, var_selector = self.parse_scoped_variable(expr.name)
-                commands = [f"scoreboard players operation {selector} {target_var} = {var_selector} {var_name}"]
+                commands = [f"scoreboard players operation {selector} {base_target_var} = {var_selector} {var_name}"]
             else:
                 # Use default selector
-                commands = [f"scoreboard players operation {selector} {target_var} = {selector} {expr.name}"]
+                commands = [f"scoreboard players operation {selector} {base_target_var} = {selector} {expr.name}"]
             return ProcessedExpression(commands, "", [])
         elif class_name == 'VariableSubstitutionExpression':
             # Variable substitution ($variable$ or $variable<selector>$) - read from scoreboard
@@ -291,14 +301,14 @@ class ExpressionProcessor:
                 # Use the default selector
                 source_selector = selector
             
-            commands = [f"scoreboard players operation {selector} {target_var} = {source_selector} {expr.variable_name}"]
+            commands = [f"scoreboard players operation {selector} {base_target_var} = {source_selector} {expr.variable_name}"]
             return ProcessedExpression(commands, "", [])
         elif hasattr(expr, 'left') and hasattr(expr, 'right') and hasattr(expr, 'operator'):
             # This is a binary expression that wasn't caught by BinaryExpression class
-            return self.process_binary_expression(expr, target_var, selector)
+            return self.process_binary_expression(expr, base_target_var, selector)
         else:
             # Unknown expression type - set to 0
-            commands = [f"scoreboard players set {selector} {target_var} 0"]
+            commands = [f"scoreboard players set {selector} {base_target_var} 0"]
             return ProcessedExpression(commands, "", [])
 
 

@@ -395,6 +395,13 @@ def _resolve_selector(selector: str) -> str:
     print(f"DEBUG: _resolve_selector returning: '{selector}'")
     return selector
 
+def _extract_base_variable_name(var_name: str) -> str:
+    """Extract the base variable name from a potentially scoped variable name."""
+    if '<' in var_name and var_name.endswith('>'):
+        # Extract the base name before the scope selector
+        return var_name.split('<', 1)[0]
+    return var_name
+
 
 def _generate_scoreboard_objectives(ast: Dict[str, Any], output_dir: Path) -> List[str]:
     """Generate scoreboard objectives for all variables."""
@@ -489,12 +496,14 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
                 print(f"DEBUG: Variable assignment with explicit scope: {var_name} -> {var_selector}")
             else:
                 # For variable assignments without explicit scope, determine from variable declaration
-                if variable_scopes and var_name in variable_scopes:
-                    original_scope = variable_scopes[var_name]
+                # Extract base variable name for scope lookup
+                base_var_name = _extract_base_variable_name(var_name)
+                if variable_scopes and base_var_name in variable_scopes:
+                    original_scope = variable_scopes[base_var_name]
                     var_selector = _resolve_selector(original_scope)
-                    print(f"DEBUG: Variable {var_name} found in scopes: {original_scope} -> resolved to: {var_selector}")
+                    print(f"DEBUG: Variable {base_var_name} found in scopes: {original_scope} -> resolved to: {var_selector}")
                 else:
-                    print(f"DEBUG: Variable {var_name} not found in scopes, using default: @s")
+                    print(f"DEBUG: Variable {base_var_name} not found in scopes, using default: @s")
                     print(f"DEBUG: Available scopes: {variable_scopes}")
             
             # Check if it's a simple assignment to 0 (which can be optimized out)
@@ -503,7 +512,9 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
                 pass
             else:
                 # Process the expression for non-zero values
-                result = expression_processor.process_expression(statement.value, statement.name, var_selector)
+                # Use the base variable name (without scope) for the target
+                target_var_name = _extract_base_variable_name(var_name)
+                result = expression_processor.process_expression(statement.value, target_var_name, var_selector)
                 temp_commands = []
                 temp_commands.extend(result.temp_assignments)
                 if result.final_command:
@@ -989,9 +1000,11 @@ def _generate_global_load_function(ast: Dict[str, Any], output_dir: Path, namesp
             # Check if this variable has a source namespace attribute
             var_namespace = getattr(var, '_source_namespace', root_namespace)
         
+        # Extract the base variable name (without scope selector)
+        base_var_name = _extract_base_variable_name(var_name)
         if var_namespace not in namespace_variables:
             namespace_variables[var_namespace] = []
-        namespace_variables[var_namespace].append(var_name)
+        namespace_variables[var_namespace].append(base_var_name)
     
     # Add function-level variables to their respective namespaces
     for function in ast.get('functions', []):
@@ -1017,10 +1030,12 @@ def _generate_global_load_function(ast: Dict[str, Any], output_dir: Path, namesp
             
             # Add the variable to its correct namespace
             if var_name:
+                # Extract the base variable name (without scope selector)
+                base_var_name = _extract_base_variable_name(var_name)
                 if func_namespace not in namespace_variables:
                     namespace_variables[func_namespace] = []
-                if var_name not in namespace_variables[func_namespace]:
-                    namespace_variables[func_namespace].append(var_name)
+                if base_var_name not in namespace_variables[func_namespace]:
+                    namespace_variables[func_namespace].append(base_var_name)
     
     # Generate load function for each namespace that has variables or functions
     for ns in set(list(namespace_functions.keys()) + list(namespace_variables.keys())):

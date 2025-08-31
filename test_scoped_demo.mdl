@@ -1,0 +1,52 @@
+// test_scoped_demo.mdl - Demo of scoped variable functionality
+pack "test_scoped_demo" "Demo of scoped variable access and assignment" 82;
+
+namespace "test_scoped_demo";
+
+// Global variable
+var num global_counter scope<global> = 0;
+
+// Player-scoped variable - declared for all players (@a) but accessed per player (@s)
+var num player_kills scope<@a> = 0;
+
+// Team-scoped variable
+var num red_team_score scope<@a[team=red]> = 0;
+
+function "demo" {
+    // Access and modify global variable
+    global_counter<global> = global_counter<global> + 1;
+    
+    // Access and modify player variable - using @s to modify only the current player's score
+    player_kills<@s> = player_kills<@s> + 1;
+    
+    // Access and modify team variable
+    red_team_score<@a[team=red]> = red_team_score<@a[team=red]> + 2;
+    
+    // Display values - different ways to use scoped variables in tellraw
+    tellraw @a {"text":"Global Counter: $global_counter<global>$","color":"gold"};
+    tellraw @s {"text":"Your Kills: $player_kills<@s>$","color":"blue"};
+    tellraw @a[team=red] {"text":"Red Team Score: $red_team_score<@a[team=red]>$","color":"red"};
+    
+    // Show current player's kills to everyone
+    tellraw @a {"text":"$player_kills<@s>$ just got a kill!","color":"yellow"};
+    
+    // Show global counter to current player
+    tellraw @s {"text":"Server has been running for $global_counter<global>$ ticks","color":"aqua"};
+}
+
+function "show_all_kills" {
+    // Show kills for all players
+    tellraw @a {"text":"=== All Player Kills ===","color":"yellow","bold":true};
+    tellraw @a {"text":"Your kills: $player_kills<@s>$","color":"green"};
+    
+    // Show global stats
+    tellraw @a {"text":"Server uptime: $global_counter<global>$ ticks","color":"gray"};
+}
+
+function "show_team_stats" {
+    // Show team-specific information
+    tellraw @a[team=red] {"text":"Red team score: $red_team_score<@a[team=red]>$","color":"red"};
+    tellraw @a[team=blue] {"text":"Red team score: $red_team_score<@a[team=red]>$","color":"blue"};
+}
+
+on_load "test_scoped_demo:demo";
