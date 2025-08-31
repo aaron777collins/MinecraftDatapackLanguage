@@ -1637,6 +1637,7 @@ def _ast_to_pack(ast: Dict[str, Any], mdl_files: List[Path]) -> Pack:
     print(f"DEBUG: Found {len(ast.get('predicates', []))} predicates in AST")
     print(f"DEBUG: Found {len(ast.get('item_modifiers', []))} item_modifiers in AST")
     print(f"DEBUG: Found {len(ast.get('structures', []))} structures in AST")
+    print(f"DEBUG: Processing {len(ast.get('recipes', []))} recipes in _ast_to_pack")
     for recipe in ast.get('recipes', []):
         if isinstance(recipe, dict):
             name = recipe.get('name', 'unknown')
@@ -1650,6 +1651,7 @@ def _ast_to_pack(ast: Dict[str, Any], mdl_files: List[Path]) -> Pack:
             recipe_namespace = getattr(recipe, '_source_namespace', namespace_name)
         
         # Get the correct namespace for this recipe
+        print(f"DEBUG: Recipe '{name}' namespace: {recipe_namespace} (from _source_namespace: {recipe.get('_source_namespace', 'NOT_SET')})")
         recipe_ns = pack.namespace(recipe_namespace)
         
         # Load JSON data from file if specified

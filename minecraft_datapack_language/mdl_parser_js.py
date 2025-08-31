@@ -172,6 +172,7 @@ class MDLParser:
     def __init__(self, tokens: List[Token]):
         self.tokens = tokens
         self.current = 0
+        self.current_namespace = "mdl"  # Track current namespace
     
     def parse(self) -> Dict[str, Any]:
         """Parse tokens into AST."""
@@ -196,7 +197,9 @@ class MDLParser:
             if self._peek().type == TokenType.PACK:
                 ast['pack'] = self._parse_pack_declaration()
             elif self._peek().type == TokenType.NAMESPACE:
-                ast['namespace'] = self._parse_namespace_declaration()
+                namespace_decl = self._parse_namespace_declaration()
+                ast['namespace'] = namespace_decl
+                self.current_namespace = namespace_decl['name']  # Update current namespace
             elif self._peek().type == TokenType.FUNCTION:
                 ast['functions'].append(self._parse_function_declaration())
             elif self._peek().type == TokenType.ON_LOAD:
@@ -287,10 +290,10 @@ class MDLParser:
         
         self._match(TokenType.SEMICOLON)
         
-        # Store reference to JSON file
+        # Store reference to JSON file and current namespace
         data = {"json_file": json_file}
         
-        return {"name": name, "data": data}
+        return {"name": name, "data": data, "_source_namespace": self.current_namespace}
     
     def _parse_json_block(self) -> dict:
         """Parse a JSON block until matching closing brace."""
@@ -338,10 +341,10 @@ class MDLParser:
         
         self._match(TokenType.SEMICOLON)
         
-        # Store reference to JSON file
+        # Store reference to JSON file and current namespace
         data = {"json_file": json_file}
         
-        return {"name": name, "data": data}
+        return {"name": name, "data": data, "_source_namespace": self.current_namespace}
     
     def _parse_advancement_declaration(self) -> AdvancementDeclaration:
         """Parse advancement declaration."""
@@ -356,10 +359,10 @@ class MDLParser:
         
         self._match(TokenType.SEMICOLON)
         
-        # Store reference to JSON file
+        # Store reference to JSON file and current namespace
         data = {"json_file": json_file}
         
-        return {"name": name, "data": data}
+        return {"name": name, "data": data, "_source_namespace": self.current_namespace}
     
     def _parse_predicate_declaration(self) -> PredicateDeclaration:
         """Parse predicate declaration."""
@@ -381,7 +384,7 @@ class MDLParser:
             self._match(TokenType.SEMICOLON)
             data = {"json_file": json_file}
         
-        return {"name": name, "data": data}
+        return {"name": name, "data": data, "_source_namespace": self.current_namespace}
     
     def _parse_item_modifier_declaration(self) -> ItemModifierDeclaration:
         """Parse item modifier declaration."""
@@ -403,7 +406,7 @@ class MDLParser:
             self._match(TokenType.SEMICOLON)
             data = {"json_file": json_file}
         
-        return {"name": name, "data": data}
+        return {"name": name, "data": data, "_source_namespace": self.current_namespace}
     
     def _parse_structure_declaration(self) -> StructureDeclaration:
         """Parse structure declaration."""
@@ -425,7 +428,7 @@ class MDLParser:
             self._match(TokenType.SEMICOLON)
             data = {"json_file": json_file}
         
-        return {"name": name, "data": data}
+        return {"name": name, "data": data, "_source_namespace": self.current_namespace}
     
     def _parse_statement(self) -> ASTNode:
         """Parse a statement."""
