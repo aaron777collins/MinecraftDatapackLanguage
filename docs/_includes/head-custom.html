@@ -120,19 +120,83 @@ main {
   box-shadow: none !important;
 }
 
-/* Force navigation links to be white on home page */
-.nav-link,
-.nav-link:visited,
-.nav-link:hover,
-.nav-link:active {
+/* Navigation link styles - only apply to header navigation, not quick nav cards */
+.nav-menu .nav-link,
+.nav-menu .nav-link:visited,
+.nav-menu .nav-link:hover,
+.nav-menu .nav-link:active {
   color: rgba(255, 255, 255, 0.85) !important;
 }
 
-.nav-link:hover {
+.nav-menu .nav-link:hover {
   color: #ffffff !important;
 }
 
-.nav-link.active {
+.nav-menu .nav-link.active {
   color: #ffffff !important;
+}
+
+/* Quick navigation card styles */
+.quick-nav .nav-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #0366d6 0%, #0256b3 100%);
+  color: white !important;
+  text-decoration: none;
+  font-weight: 600;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(3, 102, 214, 0.25);
+  position: relative;
+  overflow: hidden;
+}
+
+.quick-nav .nav-link::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.quick-nav .nav-link:hover {
+  background: linear-gradient(135deg, #0256b3 0%, #0147a0 100%);
+  color: white !important;
+  text-decoration: none;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(3, 102, 214, 0.4);
+}
+
+.quick-nav .nav-link:hover::before {
+  left: 100%;
+}
+
+.quick-nav .nav-link:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 12px rgba(3, 102, 214, 0.25);
+}
+
+/* Enhanced quick navigation grid */
+.quick-nav {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .quick-nav {
+    grid-template-columns: 1fr;
+  }
+  
+  .quick-nav .nav-link {
+    padding: 0.875rem 1.25rem;
+    font-size: 0.95rem;
+  }
 }
 </style>

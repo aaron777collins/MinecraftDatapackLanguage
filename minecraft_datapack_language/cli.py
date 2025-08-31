@@ -18,7 +18,21 @@ from .dir_map import get_dir_map
 from .pack import Pack, Namespace, Function, Tag, Recipe, Advancement, LootTable, Predicate, ItemModifier, Structure
 
 # Global variable to store conditional functions
+# NOTE: This is now deprecated and will be removed. Use instance-based storage instead.
 conditional_functions = []
+
+
+class BuildContext:
+    """Context for build operations to prevent race conditions."""
+    
+    def __init__(self):
+        self.conditional_functions = []
+        self.variable_scopes = {}
+        self.namespace_functions = {}
+
+
+# Global build context - will be replaced with instance-based approach
+_build_context = BuildContext()
 
 
 def ensure_dir(path: str) -> None:
@@ -493,7 +507,7 @@ def _generate_scoreboard_objectives(ast: Dict[str, Any], output_dir: Path) -> Li
     return commands
 
 
-def _process_statement(statement: Any, namespace: str, function_name: str, statement_index: int = 0, is_tag_function: bool = False, selector: str = "@s", variable_scopes: Dict[str, str] = None) -> List[str]:
+def _process_statement(statement: Any, namespace: str, function_name: str, statement_index: int = 0, is_tag_function: bool = False, selector: str = "@s", variable_scopes: Dict[str, str] = None, build_context: BuildContext = None) -> List[str]:
     """Process a single statement into Minecraft commands."""
     print(f"DEBUG: _process_statement called with statement type: {type(statement).__name__}")
     commands = []
@@ -767,7 +781,7 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
 
 
 
-def _generate_function_file(ast: Dict[str, Any], output_dir: Path, namespace: str, verbose: bool = False) -> None:
+def _generate_function_file(ast: Dict[str, Any], output_dir: Path, namespace: str, verbose: bool = False, build_context: BuildContext = None) -> None:
     """Generate function files with support for different pack format directory structures."""
     pack_info = ast.get('pack', {}) or {}
     pack_format = pack_info.get('pack_format', 82)
@@ -775,17 +789,20 @@ def _generate_function_file(ast: Dict[str, Any], output_dir: Path, namespace: st
     # Use directory mapping based on pack format
     dir_map = get_dir_map(pack_format)
     
+    # Use provided build context or create new one
+    if build_context is None:
+        build_context = BuildContext()
+    
     # Track all conditional functions that need to be generated
-    global conditional_functions
-    conditional_functions = []
+    build_context.conditional_functions = []
     
     # Collect variable scopes for use in statement processing
-    variable_scopes = {}
+    build_context.variable_scopes = {}
     
     # Collect scopes from top-level variables
     for variable in ast.get('variables', []):
         if hasattr(variable, 'name') and hasattr(variable, 'scope') and variable.scope:
-            variable_scopes[variable.name] = variable.scope
+            build_context.variable_scopes[variable.name] = variable.scope
     
     # Collect scopes from variables in functions
     for function in ast.get('functions', []):
@@ -797,10 +814,10 @@ def _generate_function_file(ast: Dict[str, Any], output_dir: Path, namespace: st
         for statement in body:
             if hasattr(statement, '__class__') and statement.__class__.__name__ == 'VariableDeclaration':
                 if hasattr(statement, 'name') and hasattr(statement, 'scope') and statement.scope:
-                    variable_scopes[statement.name] = statement.scope
+                    build_context.variable_scopes[statement.name] = statement.scope
     
     # Group functions by their namespace based on hooks
-    namespace_functions = {}
+    build_context.namespace_functions = {}
     
     # First, collect all functions and determine their namespace from hooks
     for function in ast.get('functions', []):
@@ -819,12 +836,12 @@ def _generate_function_file(ast: Dict[str, Any], output_dir: Path, namespace: st
             function_namespace = getattr(function, '_source_namespace', namespace)
         
         # Group function by namespace
-        if function_namespace not in namespace_functions:
-            namespace_functions[function_namespace] = []
-        namespace_functions[function_namespace].append((function_name, body))
+        if function_namespace not in build_context.namespace_functions:
+            build_context.namespace_functions[function_namespace] = []
+        build_context.namespace_functions[function_namespace].append((function_name, body))
     
     # Generate functions for each namespace
-    for func_namespace, functions in namespace_functions.items():
+    for func_namespace, functions in build_context.namespace_functions.items():
         functions_dir = output_dir / "data" / func_namespace / dir_map.function
         functions_dir.mkdir(parents=True, exist_ok=True)
         
@@ -868,13 +885,13 @@ def _generate_function_file(ast: Dict[str, Any], output_dir: Path, namespace: st
                 if verbose:
                     print(f"Processing statement: {type(statement)} = {statement}")
                 print(f"DEBUG: About to call _process_statement for statement {i}: {type(statement).__name__}")
-                statement_commands = _process_statement(statement, func_namespace, function_name, i, is_tag_function, selector, variable_scopes)
+                statement_commands = _process_statement(statement, func_namespace, function_name, i, is_tag_function, selector, build_context.variable_scopes, build_context)
                 print(f"DEBUG: Statement {i} returned commands: {statement_commands}")
                 commands.extend(statement_commands)
                 
                 # Collect conditional functions for if statements
                 if hasattr(statement, '__class__') and statement.__class__.__name__ == 'IfStatement':
-                    conditional_functions.extend(_collect_conditional_functions(statement, func_namespace, function_name, i, is_tag_function, selector, variable_scopes))
+                    build_context.conditional_functions.extend(_collect_conditional_functions(statement, func_namespace, function_name, i, is_tag_function, selector, build_context.variable_scopes, build_context))
             
             # Write the function file
             print(f"DEBUG: Final commands list for {func_namespace}:{function_name}: {commands}")
@@ -882,8 +899,8 @@ def _generate_function_file(ast: Dict[str, Any], output_dir: Path, namespace: st
                 f.write('\n'.join(commands))
     
     # Generate all conditional function files in their respective namespaces
-    print(f"DEBUG: Processing {len(conditional_functions)} conditional functions")
-    for func_name, func_body in conditional_functions:
+    print(f"DEBUG: Processing {len(build_context.conditional_functions)} conditional functions")
+    for func_name, func_body in build_context.conditional_functions:
         print(f"DEBUG: Processing conditional function: {func_name} with {len(func_body)} commands")
         # The function name format is now: functionname_if_statementindex
         # We need to use the current namespace for all conditional functions
@@ -1116,7 +1133,7 @@ def _generate_global_load_function(ast: Dict[str, Any], output_dir: Path, namesp
                     namespace_variables[func_namespace].append(base_var_name)
     
     # Generate load function for each namespace that has variables or functions
-    for ns in set(list(namespace_functions.keys()) + list(namespace_variables.keys())):
+    for ns in set(list(build_context.namespace_functions.keys()) + list(namespace_variables.keys())):
         functions_dir = output_dir / "data" / ns / dir_map.function
         functions_dir.mkdir(parents=True, exist_ok=True)
         
@@ -1258,7 +1275,7 @@ def _validate_pack_format(pack_format: int) -> None:
         print("  - Tag directories: items/, blocks/, entity_types/, fluids/, game_events/ (<43)")
 
 
-def _collect_conditional_functions(if_statement, namespace: str, function_name: str, statement_index: int, is_tag_function: bool = False, selector: str = "@s", variable_scopes: Dict[str, str] = None) -> List[tuple]:
+def _collect_conditional_functions(if_statement, namespace: str, function_name: str, statement_index: int, is_tag_function: bool = False, selector: str = "@s", variable_scopes: Dict[str, str] = None, build_context: BuildContext = None) -> List[tuple]:
     """Collect all conditional functions from an if statement"""
     functions = []
     
@@ -1268,10 +1285,10 @@ def _collect_conditional_functions(if_statement, namespace: str, function_name: 
     nested_conditionals = []  # Track nested conditional functions
     
     for j, stmt in enumerate(if_statement.body):
-        if_commands.extend(_process_statement(stmt, namespace, function_name, j, is_tag_function, selector, variable_scopes))
+        if_commands.extend(_process_statement(stmt, namespace, function_name, j, is_tag_function, selector, variable_scopes, build_context))
         # Check for nested if statements and collect their conditional functions
         if hasattr(stmt, '__class__') and stmt.__class__.__name__ == 'IfStatement':
-            nested_conditionals.extend(_collect_conditional_functions(stmt, namespace, function_name, j, is_tag_function, selector, variable_scopes))
+            nested_conditionals.extend(_collect_conditional_functions(stmt, namespace, function_name, j, is_tag_function, selector, variable_scopes, build_context))
     
     functions.append((if_label, if_commands))
     functions.extend(nested_conditionals)  # Add nested conditional functions
@@ -1283,10 +1300,10 @@ def _collect_conditional_functions(if_statement, namespace: str, function_name: 
         elif_nested_conditionals = []
         
         for j, stmt in enumerate(elif_branch.body):
-            elif_commands.extend(_process_statement(stmt, namespace, function_name, j, is_tag_function, selector, variable_scopes))
+            elif_commands.extend(_process_statement(stmt, namespace, function_name, j, is_tag_function, selector, variable_scopes, build_context))
             # Check for nested if statements in elif branches
             if hasattr(stmt, '__class__') and stmt.__class__.__name__ == 'IfStatement':
-                elif_nested_conditionals.extend(_collect_conditional_functions(stmt, namespace, function_name, j, is_tag_function, selector, variable_scopes))
+                elif_nested_conditionals.extend(_collect_conditional_functions(stmt, namespace, function_name, j, is_tag_function, selector, variable_scopes, build_context))
         
         functions.append((elif_label, elif_commands))
         functions.extend(elif_nested_conditionals)
@@ -1298,10 +1315,10 @@ def _collect_conditional_functions(if_statement, namespace: str, function_name: 
         else_nested_conditionals = []
         
         for j, stmt in enumerate(if_statement.else_body):
-            else_commands.extend(_process_statement(stmt, namespace, function_name, j, is_tag_function, selector, variable_scopes))
+            else_commands.extend(_process_statement(stmt, namespace, function_name, j, is_tag_function, selector, variable_scopes, build_context))
             # Check for nested if statements in else branches
             if hasattr(stmt, '__class__') and stmt.__class__.__name__ == 'IfStatement':
-                else_nested_conditionals.extend(_collect_conditional_functions(stmt, namespace, function_name, j, is_tag_function, selector, variable_scopes))
+                else_nested_conditionals.extend(_collect_conditional_functions(stmt, namespace, function_name, j, is_tag_function, selector, variable_scopes, build_context))
         
         functions.append((else_label, else_commands))
         functions.extend(else_nested_conditionals)
@@ -1313,7 +1330,7 @@ def _collect_conditional_functions(if_statement, namespace: str, function_name: 
     return functions
 
 
-def _process_while_loop_recursion(while_statement, namespace: str, function_name: str, statement_index: int, is_tag_function: bool = False, selector: str = "@s", variable_scopes: Dict[str, str] = None) -> List[str]:
+def _process_while_loop_recursion(while_statement, namespace: str, function_name: str, statement_index: int, is_tag_function: bool = False, selector: str = "@s", variable_scopes: Dict[str, str] = None, build_context: BuildContext = None) -> List[str]:
     """Process while loop using recursion method (creates multiple function files)"""
     print(f"DEBUG: Processing while loop recursion for {namespace}:{function_name}")
     commands = []
@@ -1325,16 +1342,17 @@ def _process_while_loop_recursion(while_statement, namespace: str, function_name
     loop_commands = []
     for j, stmt in enumerate(while_statement.body):
         print(f"DEBUG: Processing while loop body statement {j}: {type(stmt).__name__}")
-        loop_commands.extend(_process_statement(stmt, namespace, function_name, j, is_tag_function, selector, variable_scopes))
+        loop_commands.extend(_process_statement(stmt, namespace, function_name, j, is_tag_function, selector, variable_scopes, build_context))
     
     # Add recursive call to continue the loop
     loop_commands.append(f"execute if {condition} run function {namespace}:{loop_label}")
     
     # Add the loop body commands to the conditional functions list
     # (This will be handled by the _generate_function_file method)
-    global conditional_functions
+    if build_context is None:
+        build_context = _build_context
     print(f"DEBUG: Adding while loop conditional function: {loop_label} with {len(loop_commands)} commands")
-    conditional_functions.append((loop_label, loop_commands))
+    build_context.conditional_functions.append((loop_label, loop_commands))
     
     # Add condition check and function call
     commands.append(f"execute if {condition} run function {namespace}:{loop_label}")
@@ -1342,7 +1360,7 @@ def _process_while_loop_recursion(while_statement, namespace: str, function_name
     return commands
 
 
-def _process_while_loop_schedule(while_statement, namespace: str, function_name: str, statement_index: int, is_tag_function: bool = False, selector: str = "@s", variable_scopes: Dict[str, str] = None) -> List[str]:
+def _process_while_loop_schedule(while_statement, namespace: str, function_name: str, statement_index: int, is_tag_function: bool = False, selector: str = "@s", variable_scopes: Dict[str, str] = None, build_context: BuildContext = None) -> List[str]:
     """Process while loop using schedule method (single function with counter)"""
     commands = []
     
@@ -1358,8 +1376,9 @@ def _process_while_loop_schedule(while_statement, namespace: str, function_name:
     loop_commands.append(f"execute if {condition} run schedule function {namespace}:{loop_label} 1t")
     
     # Add the loop body commands to the conditional functions list
-    global conditional_functions
-    conditional_functions.append((loop_label, loop_commands))
+    if build_context is None:
+        build_context = _build_context
+    build_context.conditional_functions.append((loop_label, loop_commands))
     
     # Add condition check and schedule
     commands.append(f"execute if {condition} run function {namespace}:{loop_label}")
@@ -1918,8 +1937,9 @@ def build_mdl(input_path: str, output_path: str, verbose: bool = False, pack_for
             print(f"Generating load function with {len(scoreboard_commands)} scoreboard commands")
         _generate_load_function(scoreboard_commands, output_dir, namespace, ast)
     
-    # Generate function files
-    _generate_function_file(ast, output_dir, namespace, verbose)
+    # Generate function files with build context for thread safety
+    build_context = BuildContext()
+    _generate_function_file(ast, output_dir, namespace, verbose, build_context)
     
     # Generate hook files
     _generate_hook_files(ast, output_dir, namespace)

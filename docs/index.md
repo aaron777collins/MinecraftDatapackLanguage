@@ -241,51 +241,51 @@ advancement "first_sword" "advancements/sword.json";
 MDL is open source software licensed under the MIT License. See the [LICENSE](https://github.com/aaron777collins/MinecraftDatapackLanguage/blob/main/LICENSE) file for details.
 
 <style>
-.quick-nav {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1.5rem;
-  margin: 2rem 0;
+/* Enhanced quick navigation card styling */
+.nav-card {
+  text-align: center;
+  border: 1px solid #e1e4e8;
+  border-radius: 12px;
+  background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
 }
 
-.nav-card {
-  padding: 1.5rem;
-  border: 1px solid #e1e4e8;
-  border-radius: 8px;
-  background: white;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  transition: all 0.2s;
-  position: relative;
+.nav-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #0366d6, #0256b3, #0366d6);
+  background-size: 200% 100%;
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
 }
 
 .nav-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
 }
 
 .nav-card h3 {
   margin-top: 0;
   color: #24292e;
-  font-size: 1.2rem;
+  font-size: 1.3rem;
+  font-weight: 600;
 }
 
 .nav-card p {
-  margin: 0.5rem 0 1rem 0;
+  margin: 0.75rem 0 1.5rem 0;
   color: #586069;
-}
-
-.nav-link {
-  display: inline-flex;
-  align-items: center;
-  color: #0366d6;
-  text-decoration: none;
-  font-weight: 500;
-  transition: color 0.2s;
-}
-
-.nav-link:hover {
-  color: #0256b3;
-  text-decoration: none;
+  line-height: 1.5;
 }
 
 .features {
@@ -298,9 +298,15 @@ MDL is open source software licensed under the MIT License. See the [LICENSE](ht
 .feature {
   padding: 1.5rem;
   border: 1px solid #e1e4e8;
-  border-radius: 6px;
+  border-radius: 8px;
   background: #f6f8fa;
   position: relative;
+  transition: all 0.2s ease;
+}
+
+.feature:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
 .feature h3 {
@@ -314,14 +320,12 @@ MDL is open source software licensed under the MIT License. See the [LICENSE](ht
 }
 
 @media (max-width: 768px) {
-  .quick-nav {
-    grid-template-columns: 1fr;
-  }
-  
   .nav-card {
-    padding: 1rem;
+    padding: 1.25rem;
   }
   
-
+  .nav-card h3 {
+    font-size: 1.1rem;
+  }
 }
 </style>
