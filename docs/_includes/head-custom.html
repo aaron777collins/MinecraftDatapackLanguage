@@ -1,5 +1,6 @@
 <!-- Custom head content -->
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- viewport is defined in layouts; avoid duplicates that can cause inconsistencies -->
+
 
 <!-- Favicon -->
 <link rel="icon" type="image/png" sizes="32x32" href="{{ '/icons/favicon-32.png' | relative_url }}">
@@ -45,37 +46,7 @@
 
 <!-- Custom styles -->
 <style>
-/* Navigation styles */
-.nav-menu {
-  background: #24292e;
-  padding: 1rem 0;
-  margin-bottom: 2rem;
-}
-
-.nav-menu ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
-.nav-menu li {
-  margin: 0 1rem;
-}
-
-.nav-menu a {
-  color: white;
-  text-decoration: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  transition: background-color 0.2s;
-}
-
-.nav-menu a:hover {
-  background: #0366d6;
-}
+/* Navigation styles are defined in navigation.html include */
 
 /* Feature grid styles */
 .features {
@@ -115,15 +86,6 @@ code[class*="language-"] {
 
 /* Responsive design */
 @media (max-width: 768px) {
-  .nav-menu ul {
-    flex-direction: column;
-    align-items: center;
-  }
-  
-  .nav-menu li {
-    margin: 0.5rem 0;
-  }
-  
   .features {
     grid-template-columns: 1fr;
   }

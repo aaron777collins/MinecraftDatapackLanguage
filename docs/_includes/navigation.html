@@ -83,6 +83,7 @@
   align-items: center;
   justify-content: space-between;
   height: 60px;
+  position: relative;
 }
 
 .nav-brand {
@@ -234,6 +235,11 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
+  .nav-menu {
+    position: static;
+    margin-bottom: 1rem;
+  }
+
   .nav-list {
     display: none;
     position: absolute;
@@ -245,6 +251,9 @@
     flex-direction: column;
     padding: 1rem;
     box-shadow: 0 10px 20px rgba(2,6,23,0.35);
+    max-height: 60vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
   
   .nav-list.show {
@@ -274,12 +283,30 @@ document.addEventListener('DOMContentLoaded', function() {
   if (toggle && navList) {
     toggle.addEventListener('click', function() {
       navList.classList.toggle('show');
+      toggle.setAttribute('aria-expanded', navList.classList.contains('show') ? 'true' : 'false');
     });
     
     // Close mobile menu when clicking outside
     document.addEventListener('click', function(event) {
       if (!toggle.contains(event.target) && !navList.contains(event.target)) {
         navList.classList.remove('show');
+        toggle.setAttribute('aria-expanded', 'false');
+      }
+    });
+
+    // Close on link click to free screen space on mobile
+    navList.querySelectorAll('a.nav-link').forEach(function(link) {
+      link.addEventListener('click', function() {
+        navList.classList.remove('show');
+        toggle.setAttribute('aria-expanded', 'false');
+      });
+    });
+
+    // Close on Escape key
+    document.addEventListener('keydown', function(event) {
+      if (event.key === 'Escape') {
+        navList.classList.remove('show');
+        toggle.setAttribute('aria-expanded', 'false');
       }
     });
   }
