@@ -132,28 +132,33 @@ var num allPlayerCounter scope<@a> = 0;
 var num world_timer scope<@e[type=armor_stand,tag=world_timer,limit=1]> = 0;
 
 function "enabletimer" {
-    global_timer = 1;  // Uses global scope
-    player_score = player_score + 10;  // Uses @s (default)
-    team_score = team_score + 5;  // Uses @a[team=red]
-    world_timer = world_timer + 1;  // Uses custom armor stand
+    global_timer<global> = 1;  // Uses global scope
+    player_score<@s> = player_score<@s> + 10;  // Uses @s (explicit)
+    team_score<@a[team=red]> = team_score<@a[team=red]> + 5;  // Uses @a[team=red]
+    world_timer<@e[type=armor_stand,tag=world_timer,limit=1]> = world_timer<@e[type=armor_stand,tag=world_timer,limit=1]> + 1;  // Uses custom armor stand
 }
 
 function "disabletimer" {
-    global_timer = 0;  // Uses global scope
+    global_timer<global> = 0;  // Uses global scope
 }
 
 function "load" {
-    global_counter = 0;  // Uses global scope
-    global_timer = 0;  // Uses global scope
+    global_counter<global> = 0;  // Uses global scope
+    global_timer<global> = 0;  // Uses global scope
 }
 
 function "tick" {
-    if "score global_timer matches 1" {
-        global_counter = global_counter + 1;  // Uses global scope
-        player_score = player_score + 1;  // Uses @s (default)
-        team_score = team_score + 1;  // Uses @a[team=red]
-        world_timer = world_timer + 1;  // Uses custom armor stand
+    if "$global_timer<global>$ == 1" {
+        global_counter<global> = global_counter<global> + 1;  // Uses global scope
+        player_score<@s> = player_score<@s> + 1;  // Uses @s (explicit)
+        team_score<@a[team=red]> = team_score<@a[team=red]> + 1;  // Uses @a[team=red]
+        world_timer<@e[type=armor_stand,tag=world_timer,limit=1]> = world_timer<@e[type=armor_stand,tag=world_timer,limit=1]> + 1;  // Uses custom armor stand
     }
+    
+    // Display scoped variables
+    say Your score: $player_score<@s>$;
+    say Global counter: $global_counter<global>$;
+    say Team score: $team_score<@a[team=red]>$;
 }
 
 on_load "scope_example:load";
@@ -164,6 +169,7 @@ on_tick "scope_example:tick";
 - Variables default to `@s` for player-specific data
 - Use `scope<global>` for server-wide variables
 - Custom selectors allow team-based or entity-specific storage
+- Use `<selector>` syntax to access scoped variables: `variable_name<@s>`, `global_timer<global>`, etc.
 - Functions can be called by any entity and will work with the appropriate scope
 
 ## Player Counter System

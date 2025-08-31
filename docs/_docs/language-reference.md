@@ -145,18 +145,43 @@ var num world_timer scope<@e[type=armor_stand,tag=world_timer,limit=1]> = 0;
 
 ### Variable Assignment
 
-Variables are assigned using the `=` operator:
+Variables are assigned using the `=` operator. When using scoped variables, you can specify the scope in the assignment:
 
 ```mdl
+// Basic assignment (uses default scope)
 player_score = 10;
-global_counter = global_counter + 1;
-team_score = team_score + 5;
+
+// Scoped variable assignment
+player_hello_count<@s> = player_hello_count<@s> + 1;
+global_timer<global> = global_timer<global> + 1;
+team_score<@a[team=red]> = team_score<@a[team=red]> + 5;
+```
+
+### Scoped Variable Access
+
+When accessing scoped variables in expressions, conditions, and tellraw commands, you can specify the scope using the `<selector>` syntax:
+
+```mdl
+function "example" {
+    // In expressions
+    var num total = player_score<@s> + global_bonus<global>;
+    
+    // In conditions
+    if "$player_health<@s>$ < 10" {
+        say Health is low!;
+    }
+    
+    // In tellraw commands
+    tellraw @a {"text":"Your score: $player_score<@s>$","color":"gold"};
+    tellraw @a {"text":"Global timer: $global_timer<global>$","color":"blue"};
+}
 ```
 
 **Why this design?**
 - **`@s` as default**: Makes code more reusable - functions can be called by any entity
 - **`global` keyword**: Clear and explicit for server-wide variables
 - **Flexible execution**: Use `execute as @a run function mypack:myfunction` to run functions for all players
+- **Explicit scope access**: Use `<selector>` syntax to access variables with specific scopes
 
 **Basic Examples:**
 
@@ -169,17 +194,31 @@ var num experience = 0;
 
 ### Variable Substitution
 
-Use `$variable_name$` to read values from scoreboards in strings and conditions:
+Use `$variable_name$` to read values from scoreboards in strings and conditions. For scoped variables, use `$variable_name<selector>$`:
 
 ```mdl
 function "example" {
+    // Basic variable substitution
     say Health: $health$;
     say Level: $level$;
     say Experience: $experience$;
     
-    // In conditions
+    // Scoped variable substitution
+    say Your score: $player_score<@s>$;
+    say Global timer: $global_timer<global>$;
+    say Team score: $team_score<@a[team=red]>$;
+    
+    // In conditions with scoped variables
     if "$health$ < 10" {
         say Health is low!;
+    }
+    
+    if "$global_timer<global>$ > 200" {
+        say Global timer is high!;
+    }
+    
+    if "$player_health<@s>$ < 5" {
+        say Your health is critical!;
     }
 }
 ```
@@ -198,6 +237,11 @@ function "expressions" {
     var num difference = $a$ - $b$;
     var num product = $a$ * $b$;
     var num quotient = $a$ / $b$;
+    
+    // Scoped variable arithmetic
+    var num player_total = $player_score<@s>$ + $player_bonus<@s>$;
+    var num global_calculation = $global_timer<global>$ * 2 + $global_bonus<global>$;
+    var num team_average = $team_score<@a[team=red]>$ / 5;
     
     // Complex expressions
     var num total = $health$ + $experience$;
@@ -682,11 +726,16 @@ pack "Complete Example" description "Shows all MDL features" pack_format 82;
 
 namespace "example";
 
-// Variables with expressions
+// Variables with expressions and scoped variables
 var num counter = 0;
 var num health = 20;
 var num level = 1;
 var num experience = 0;
+
+// Scoped variables
+var num global_timer scope<global> = 0;
+var num player_hello_count scope<@a> = 0;
+var num player_timer_enabled scope<@a> = 0;
 
 function "init" {
     say [example:init] Initializing Complete Example...;
@@ -699,6 +748,7 @@ function "init" {
 
 function "tick" {
     counter = counter + 1;
+    global_timer<global> = global_timer<global> + 1;
     
     // Full control structure
     if "$health$ < 10" {
@@ -715,16 +765,21 @@ function "tick" {
     
     // Variable substitution
     say Counter: $counter$;
+    say Global timer: $global_timer<global>$;
     
-    // While loop
-    while "$counter$ < 10" {
-        counter = $counter$ + 1;
-        say Counter: $counter$;
+    // While loop with scoped variables
+    while "$global_timer<global>$ > 200" {
+        global_timer<global> = global_timer<global> - 1;
+        say Reducing global timer: $global_timer<global>$;
     }
     
-    // Expressions
+    // Expressions with scoped variables
     experience = $level$ * 100 + $counter$;
     say Experience: $experience$;
+    
+    // Scoped variable operations
+    player_hello_count<@s> = player_hello_count<@s> + 1;
+    say Your hello count: $player_hello_count<@s>$;
 }
 
 // Hooks
@@ -744,9 +799,11 @@ tag function "minecraft:tick" {
 This example demonstrates:
 - **JavaScript-style syntax** with curly braces and semicolons
 - **Variables** with expressions and arithmetic
+- **Scoped variables** with entity-specific storage
 - **Full control structures** with if/else if/else
 - **While loops** with method selection
 - **Variable substitution** in strings and conditions
+- **Scoped variable access** using `<selector>` syntax
 - **Hooks** for automatic execution
 - **Tags** for vanilla integration
 - **Optimizations** for better performance

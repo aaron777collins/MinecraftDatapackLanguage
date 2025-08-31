@@ -151,11 +151,17 @@ var num allPlayerCounter scope<@a> = 0;
 
 ### Variable Substitution
 
-Use `$variable_name$` to substitute variables in commands:
+Use `$variable_name$` to substitute variables in commands. For scoped variables, use `$variable_name<selector>$`:
 
 ```mdl
+// Basic variable substitution
 say Player health: $player_health$;
 tellraw @a {"text":"Score: $score$","color":"gold"};
+
+// Scoped variable substitution
+say Your health: $player_health<@s>$;
+tellraw @a {"text":"Global timer: $global_timer<global>$","color":"blue"};
+tellraw @a {"text":"Team score: $team_score<@a[team=red]>$","color":"red"};
 ```
 
 ### Control Structures
@@ -163,6 +169,7 @@ tellraw @a {"text":"Score: $score$","color":"gold"};
 MDL supports real if/else statements and while loops:
 
 ```mdl
+// Basic conditions
 if "$health$ < 10" {
     say Health is low!;
     effect give @s minecraft:regeneration 10 1;
@@ -170,9 +177,26 @@ if "$health$ < 10" {
     say Health is good;
 }
 
+// Scoped variable conditions
+if "$player_health<@s>$ < 5" {
+    say Your health is critical!;
+    effect give @s minecraft:regeneration 10 2;
+}
+
+if "$global_timer<global>$ > 200" {
+    say Global timer is high!;
+    global_timer<global> = 0;
+}
+
+// While loops with scoped variables
 while "$counter$ < 5" {
     say Counter: $counter$;
     counter = counter + 1;
+}
+
+while "$global_timer<global>$ > 0" {
+    global_timer<global> = global_timer<global> - 1;
+    say Reducing timer: $global_timer<global>$;
 }
 ```
 

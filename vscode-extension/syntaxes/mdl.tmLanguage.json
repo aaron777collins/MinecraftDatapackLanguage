@@ -68,17 +68,19 @@
       "match": "\\b(@p|@r|@a|@e|@s)\\b"
     },
     {
-      "name": "keyword.raw.mdl",
-      "match": "\\$!raw\\b"
-    },
-    {
-      "name": "keyword.raw.end.mdl",
-      "match": "\\braw!\\$"
-    },
-    {
       "name": "string.raw.mdl",
       "begin": "\\$!raw",
       "end": "raw!\\$",
+      "beginCaptures": {
+        "0": {
+          "name": "keyword.raw.mdl"
+        }
+      },
+      "endCaptures": {
+        "0": {
+          "name": "keyword.raw.end.mdl"
+        }
+      },
       "patterns": [
         {
           "name": "string.raw.content.mdl",
