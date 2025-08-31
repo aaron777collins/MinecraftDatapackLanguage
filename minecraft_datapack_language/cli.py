@@ -926,7 +926,7 @@ def _generate_function_file(ast: Dict[str, Any], output_dir: Path, namespace: st
             f.write('\n'.join(processed_commands))
 
 
-def _generate_hook_files(ast: Dict[str, Any], output_dir: Path, namespace: str) -> None:
+def _generate_hook_files(ast: Dict[str, Any], output_dir: Path, namespace: str, build_context: BuildContext = None) -> None:
     """Generate hook files (load.json, tick.json) with support for different pack format directory structures."""
     pack_info = ast.get('pack', {}) or {}
     pack_format = pack_info.get('pack_format', 82)
@@ -1015,7 +1015,7 @@ def _generate_hook_files(ast: Dict[str, Any], output_dir: Path, namespace: str) 
     
     # Generate load functions for each namespace if we have variables
     if has_variables:
-        _generate_global_load_function(ast, output_dir, namespace)
+        _generate_global_load_function(ast, output_dir, namespace, build_context)
         
         # Get all namespaces that have functions or variables
         pack_info = ast.get('pack', {}) or {}
@@ -1055,7 +1055,7 @@ def _generate_hook_files(ast: Dict[str, Any], output_dir: Path, namespace: str) 
                 f.write('{"values": [' + ', '.join(f'"{func}"' for func in load_functions) + ']}')
 
 
-def _generate_global_load_function(ast: Dict[str, Any], output_dir: Path, namespace: str) -> None:
+def _generate_global_load_function(ast: Dict[str, Any], output_dir: Path, namespace: str, build_context: BuildContext = None) -> None:
     """Generate load functions for each namespace that has variables."""
     pack_info = ast.get('pack', {}) or {}
     pack_format = pack_info.get('pack_format', 82)
@@ -1131,6 +1131,10 @@ def _generate_global_load_function(ast: Dict[str, Any], output_dir: Path, namesp
                     namespace_variables[func_namespace] = []
                 if base_var_name not in namespace_variables[func_namespace]:
                     namespace_variables[func_namespace].append(base_var_name)
+    
+    # Use default build context if none provided
+    if build_context is None:
+        build_context = _build_context
     
     # Generate load function for each namespace that has variables or functions
     for ns in set(list(build_context.namespace_functions.keys()) + list(namespace_variables.keys())):
@@ -1370,7 +1374,7 @@ def _process_while_loop_schedule(while_statement, namespace: str, function_name:
     loop_label = f"{namespace}_{function_name}_while_{statement_index}"
     loop_commands = []
     for j, stmt in enumerate(while_statement.body):
-        loop_commands.extend(_process_statement(stmt, namespace, function_name, j, is_tag_function, selector, variable_scopes))
+        loop_commands.extend(_process_statement(stmt, namespace, function_name, j, is_tag_function, selector, variable_scopes, build_context))
     
     # Add recursive schedule call to continue the loop
     loop_commands.append(f"execute if {condition} run schedule function {namespace}:{loop_label} 1t")
@@ -1942,7 +1946,7 @@ def build_mdl(input_path: str, output_path: str, verbose: bool = False, pack_for
     _generate_function_file(ast, output_dir, namespace, verbose, build_context)
     
     # Generate hook files
-    _generate_hook_files(ast, output_dir, namespace)
+    _generate_hook_files(ast, output_dir, namespace, build_context)
     
     # Generate tag files
     _generate_tag_files(ast, output_dir, namespace)
