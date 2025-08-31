@@ -1440,7 +1440,9 @@ def _ast_to_pack(ast: Dict[str, Any], mdl_files: List[Path]) -> Pack:
                                     if len(parts) == 2:
                                         actual_var_name = parts[0]
                                         scope_selector = parts[1][:-1]  # Remove closing >
-                                        json_parts.append(f'{{"score":{{"name":"{scope_selector}","objective":"{actual_var_name}"}}}}')
+                                        # Resolve the scope selector (e.g., "global" -> "@e[type=armor_stand,tag=mdl_server,limit=1]")
+                                        resolved_scope_selector = _resolve_selector(scope_selector)
+                                        json_parts.append(f'{{"score":{{"name":"{resolved_scope_selector}","objective":"{actual_var_name}"}}}}')
                                     else:
                                         # Fallback to default selector
                                         json_parts.append(f'{{"score":{{"name":"{selector}","objective":"{var_name}"}}}}')
