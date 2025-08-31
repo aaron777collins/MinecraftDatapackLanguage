@@ -9,46 +9,78 @@ A **modern JavaScript-style compiler** that lets you write Minecraft datapacks w
 
 ## Quick Navigation
 
-<div class="quick-nav">
-  <div class="nav-card">
+<div class="docs-grid">
+  <div class="doc-card">
     <h3>📥 Downloads</h3>
     <p>Get the latest version and VS Code extension</p>
-    <a href="{{ site.baseurl }}/downloads/" class="nav-link">Download Now →</a>
+    <div class="doc-meta">
+      <span class="category">Download</span>
+      <span class="category">Install</span>
+    </div>
+    <a href="{{ site.baseurl }}/downloads/" class="doc-link">Download Now →</a>
   </div>
-  <div class="nav-card">
+  <div class="doc-card">
     <h3>🚀 Getting Started</h3>
     <p>Install and create your first datapack</p>
-    <a href="{{ site.baseurl }}/docs/getting-started/" class="nav-link">Get Started →</a>
+    <div class="doc-meta">
+      <span class="category">Beginner</span>
+      <span class="category">Setup</span>
+    </div>
+    <a href="{{ site.baseurl }}/docs/getting-started/" class="doc-link">Get Started →</a>
   </div>
-  <div class="nav-card">
+  <div class="doc-card">
     <h3>📖 Language Reference</h3>
     <p>Complete MDL syntax guide</p>
-    <a href="{{ site.baseurl }}/docs/language-reference/" class="nav-link">Learn MDL →</a>
+    <div class="doc-meta">
+      <span class="category">Reference</span>
+      <span class="category">Syntax</span>
+    </div>
+    <a href="{{ site.baseurl }}/docs/language-reference/" class="doc-link">Learn MDL →</a>
   </div>
-  <div class="nav-card">
+  <div class="doc-card">
     <h3>📚 Examples</h3>
     <p>Working examples of all features</p>
-    <a href="{{ site.baseurl }}/docs/examples/" class="nav-link">View Examples →</a>
+    <div class="doc-meta">
+      <span class="category">Examples</span>
+      <span class="category">Code</span>
+    </div>
+    <a href="{{ site.baseurl }}/docs/examples/" class="doc-link">View Examples →</a>
   </div>
-  <div class="nav-card">
+  <div class="doc-card">
     <h3>💻 CLI Reference</h3>
     <p>Command-line tool usage</p>
-    <a href="{{ site.baseurl }}/docs/cli-reference/" class="nav-link">CLI Guide →</a>
+    <div class="doc-meta">
+      <span class="category">Tools</span>
+      <span class="category">CLI</span>
+    </div>
+    <a href="{{ site.baseurl }}/docs/cli-reference/" class="doc-link">CLI Guide →</a>
   </div>
-  <div class="nav-card">
+  <div class="doc-card">
     <h3>🔧 VS Code Extension</h3>
     <p>IDE integration and features</p>
-    <a href="{{ site.baseurl }}/docs/vscode-extension/" class="nav-link">VS Code →</a>
+    <div class="doc-meta">
+      <span class="category">IDE</span>
+      <span class="category">VS Code</span>
+    </div>
+    <a href="{{ site.baseurl }}/docs/vscode-extension/" class="doc-link">VS Code →</a>
   </div>
-  <div class="nav-card">
+  <div class="doc-card">
     <h3>📁 Multi-file Projects</h3>
     <p>Organize large projects</p>
-    <a href="{{ site.baseurl }}/docs/multi-file-projects/" class="nav-link">Learn More →</a>
+    <div class="doc-meta">
+      <span class="category">Advanced</span>
+      <span class="category">Structure</span>
+    </div>
+    <a href="{{ site.baseurl }}/docs/multi-file-projects/" class="doc-link">Learn More →</a>
   </div>
-  <div class="nav-card">
+  <div class="doc-card">
     <h3>🐍 Python API</h3>
     <p>Programmatic datapack creation</p>
-    <a href="{{ site.baseurl }}/docs/python-api/" class="nav-link">Python API →</a>
+    <div class="doc-meta">
+      <span class="category">API</span>
+      <span class="category">Python</span>
+    </div>
+    <a href="{{ site.baseurl }}/docs/python-api/" class="doc-link">Python API →</a>
   </div>
 </div>
 
@@ -241,51 +273,69 @@ advancement "first_sword" "advancements/sword.json";
 MDL is open source software licensed under the MIT License. See the [LICENSE](https://github.com/aaron777collins/MinecraftDatapackLanguage/blob/main/LICENSE) file for details.
 
 <style>
-/* Enhanced quick navigation card styling */
-.nav-card {
-  text-align: center;
+.docs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
+
+.doc-card {
+  background: #ffffff;
   border: 1px solid #e1e4e8;
-  border-radius: 12px;
-  background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.nav-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, #0366d6, #0256b3, #0366d6);
-  background-size: 200% 100%;
-  animation: shimmer 3s ease-in-out infinite;
+.doc-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.2);
 }
 
-@keyframes shimmer {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-}
-
-.nav-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-}
-
-.nav-card h3 {
-  margin-top: 0;
+.doc-card h3 {
+  margin: 0 0 0.5rem 0;
   color: #24292e;
-  font-size: 1.3rem;
-  font-weight: 600;
+  font-size: 1.1rem;
 }
 
-.nav-card p {
-  margin: 0.75rem 0 1.5rem 0;
+.doc-card p {
+  margin: 0 0 1rem 0;
   color: #586069;
   line-height: 1.5;
+}
+
+.doc-meta {
+  margin-bottom: 1rem;
+}
+
+.category {
+  display: inline-block;
+  background: #f1f3f4;
+  color: #586069;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  margin-right: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.doc-link {
+  display: inline-block;
+  color: #0366d6;
+  text-decoration: none;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border: 1px solid #0366d6;
+  border-radius: 6px;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.doc-link:hover {
+  background: #0366d6;
+  color: #ffffff;
+  text-decoration: none;
 }
 
 .features {
@@ -320,12 +370,8 @@ MDL is open source software licensed under the MIT License. See the [LICENSE](ht
 }
 
 @media (max-width: 768px) {
-  .nav-card {
-    padding: 1.25rem;
-  }
-  
-  .nav-card h3 {
-    font-size: 1.1rem;
+  .docs-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>
