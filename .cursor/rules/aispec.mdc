@@ -9,3 +9,4 @@ alwaysApply: true
 - Use and update the MDL_LANGUAGE_SPEC
 - Keep using mdlbeta (re-compile after changes using dev_build.sh) to check (use check-advanced) our sample code and outputs until it is perfect. Remember issues and document them in MDL_AI_SPEC_SHEET.
 - Put ALL temp files (inputs/outputs/builds) in the .tmp folder
+- Use ./scripts/UpdateMDL.sh to update mdl when testing the changes you just made.
