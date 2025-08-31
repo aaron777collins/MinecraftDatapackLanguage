@@ -6,14 +6,14 @@ set -e
 
 echo "🔧 UPDATE MDL - Git Upload, Release, Wait, Upgrade"
 
-# pull rebase
-echo "🔧 Pull & Rebase..."
-git pull --rebase
-
 # Git Upload
 echo "🔧 Git Upload..."
 git add .
 git commit -m "MDL Development Cycle"
+
+echo "🔧 Pull & Rebase..."
+git pull --rebase
+
 git push
 
 # Release
