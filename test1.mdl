@@ -52,8 +52,10 @@ function "disabletimer" {
 function "tick" {
     global_timer = global_timer + 1;
     
-    // execute as each player to increment their individual tick counters
-    execute as @a run function test1:increase_tick_per_player;
+    // Execute as each player to increment their individual tick counters
+    $!raw
+    execute as @a run function test1:increase_tick_per_player
+    raw!$
     
     // Global timer event every 200 ticks
     if "$global_timer$ > 200" {

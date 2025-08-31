@@ -344,8 +344,12 @@ def _validate_selector(selector: str, variable_name: str) -> None:
 
 def _resolve_selector(selector: str) -> str:
     """Resolve selector to actual Minecraft selector, handling special keywords."""
+    print(f"DEBUG: _resolve_selector called with: '{selector}'")
     if selector == "global":
-        return "@e[type=armor_stand,tag=mdl_server,limit=1]"
+        result = "@e[type=armor_stand,tag=mdl_server,limit=1]"
+        print(f"DEBUG: _resolve_selector returning: '{result}'")
+        return result
+    print(f"DEBUG: _resolve_selector returning: '{selector}'")
     return selector
 
 
@@ -436,8 +440,9 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
             # For variable assignments, we need to determine the scope from the variable declaration
             var_selector = "@s"  # Default to @s instead of current selector
             if variable_scopes and statement.name in variable_scopes:
-                var_selector = _resolve_selector(variable_scopes[statement.name])
-                print(f"DEBUG: Variable {statement.name} found in scopes: {var_selector}")
+                original_scope = variable_scopes[statement.name]
+                var_selector = _resolve_selector(original_scope)
+                print(f"DEBUG: Variable {statement.name} found in scopes: {original_scope} -> resolved to: {var_selector}")
             else:
                 print(f"DEBUG: Variable {statement.name} not found in scopes, using default: @s")
                 print(f"DEBUG: Available scopes: {variable_scopes}")
