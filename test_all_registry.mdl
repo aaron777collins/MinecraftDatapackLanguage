@@ -1,0 +1,30 @@
+// test_all_registry.mdl - Test all registry types
+pack "Registry Test" "Testing all registry types" 82;
+
+namespace "registry";
+
+// Recipe declarations
+recipe "test_recipe" "recipes/test_recipe.json";
+
+// Loot table declarations
+loot_table "test_loot" "loot_tables/test_loot.json";
+
+// Advancement declarations
+advancement "test_advancement" "advancements/test_advancement.json";
+
+// Predicate declarations
+predicate "test_predicate" "predicates/test_predicate.json";
+
+// Item modifier declarations
+item_modifier "test_item_modifier" "item_modifiers/test_item_modifier.json";
+
+// Structure declarations
+structure "test_structure" "structures/test_structure.json";
+
+// Simple function to test
+function "hello" {
+    say Testing all registry types!;
+    tellraw @a {"text":"All registry types should be generated!","color":"green"};
+}
+
+on_load "registry:hello";
