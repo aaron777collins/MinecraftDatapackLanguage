@@ -26,7 +26,7 @@ Search and browse all available documentation for the Minecraft Datapack Languag
       <span class="category">Beginner</span>
       <span class="category">Setup</span>
     </div>
-    <a href="/docs/getting-started/" class="doc-link">Get Started →</a>
+    <a href="{{ site.baseurl }}/docs/getting-started/" class="doc-link">Get Started →</a>
   </div>
   
   <div class="doc-card" data-categories="language reference syntax">
@@ -36,7 +36,7 @@ Search and browse all available documentation for the Minecraft Datapack Languag
       <span class="category">Reference</span>
       <span class="category">Syntax</span>
     </div>
-    <a href="/docs/language-reference/" class="doc-link">View Reference →</a>
+    <a href="{{ site.baseurl }}/docs/language-reference/" class="doc-link">View Reference →</a>
   </div>
   
   <div class="doc-card" data-categories="cli command-line tools">
@@ -46,7 +46,7 @@ Search and browse all available documentation for the Minecraft Datapack Languag
       <span class="category">Tools</span>
       <span class="category">CLI</span>
     </div>
-    <a href="/docs/cli-reference/" class="doc-link">CLI Guide →</a>
+    <a href="{{ site.baseurl }}/docs/cli-reference/" class="doc-link">CLI Guide →</a>
   </div>
   
   <div class="doc-card" data-categories="multi-file projects structure">
@@ -56,7 +56,7 @@ Search and browse all available documentation for the Minecraft Datapack Languag
       <span class="category">Advanced</span>
       <span class="category">Structure</span>
     </div>
-    <a href="/docs/multi-file-projects/" class="doc-link">Project Structure →</a>
+    <a href="{{ site.baseurl }}/docs/multi-file-projects/" class="doc-link">Project Structure →</a>
   </div>
   
   <div class="doc-card" data-categories="python api programming">
@@ -66,7 +66,7 @@ Search and browse all available documentation for the Minecraft Datapack Languag
       <span class="category">API</span>
       <span class="category">Python</span>
     </div>
-    <a href="/docs/python-api/" class="doc-link">API Reference →</a>
+    <a href="{{ site.baseurl }}/docs/python-api/" class="doc-link">API Reference →</a>
   </div>
   
   <div class="doc-card" data-categories="vscode extension ide">
@@ -76,7 +76,7 @@ Search and browse all available documentation for the Minecraft Datapack Languag
       <span class="category">IDE</span>
       <span class="category">VS Code</span>
     </div>
-    <a href="/docs/vscode-extension/" class="doc-link">Extension Guide →</a>
+    <a href="{{ site.baseurl }}/docs/vscode-extension/" class="doc-link">Extension Guide →</a>
   </div>
   
   <div class="doc-card" data-categories="examples code samples">
@@ -86,7 +86,7 @@ Search and browse all available documentation for the Minecraft Datapack Languag
       <span class="category">Examples</span>
       <span class="category">Code</span>
     </div>
-    <a href="/docs/examples/" class="doc-link">View Examples →</a>
+    <a href="{{ site.baseurl }}/docs/examples/" class="doc-link">View Examples →</a>
   </div>
   
   <div class="doc-card" data-categories="contributing development">
@@ -96,7 +96,7 @@ Search and browse all available documentation for the Minecraft Datapack Languag
       <span class="category">Community</span>
       <span class="category">Development</span>
     </div>
-    <a href="/docs/contributing/" class="doc-link">Contribute →</a>
+    <a href="{{ site.baseurl }}/docs/contributing/" class="doc-link">Contribute →</a>
   </div>
 </div>
 

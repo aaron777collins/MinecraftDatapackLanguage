@@ -8,7 +8,7 @@ permalink: /docs/getting-started/
 
 This guide will help you install Minecraft Datapack Language (MDL) and create your first datapack with control structures, variables, expressions, and multi-file projects.
 
-> **📚 Need help with MDL syntax?** Check out the [Language Reference](/docs/language-reference/) for complete syntax documentation.
+> **📚 Need help with MDL syntax?** Check out the [Language Reference]({{ site.baseurl }}/docs/language-reference/) for complete syntax documentation.
 
 ## Installation
 
@@ -122,7 +122,7 @@ var num level = 1;
 
 ### Variable Scoping
 
-MDL supports different scopes for variables using the `scope<selector>` syntax:
+MDL supports variable scoping to store data on different entities. By default, variables are stored on the executing entity (`@s`), but you can specify custom scopes.
 
 ```mdl
 // Player-specific variables (default behavior)
@@ -136,20 +136,18 @@ var num game_state scope<global> = 0;
 // Player-scoped variables (explicit)
 var num player_health scope<@s> = 20;
 
-// Team-scoped variables (stored on team members)
+// Team-scoped variables
 var num team_score scope<@a[team=red]> = 0;
-var num team_bonus scope<@a[team=blue]> = 0;
 
-// World-scoped variables (stored on specific entities)
-var num world_timer scope<@e[type=armor_stand,tag=world_timer,limit=1]> = 0;
+// All-player scoped variables
+var num allPlayerCounter scope<@a> = 0;
 ```
 
-**Default Behavior**: If no scope is specified, variables are stored on the executing entity (`@s`), making functions reusable and code more flexible.
-
-**Why this design?**
-- **`@s` as default**: Functions can be called by any entity
-- **`global` keyword**: Clear and explicit for server-wide variables
-- **Flexible execution**: Use `execute as @a run function mypack:myfunction` to run for all players
+**Key Points:**
+- Variables default to `@s` (the executing entity) for player-specific data
+- Use `scope<global>` for server-wide variables stored on the `mdl_server` armor stand
+- You can scope to any valid Minecraft selector like `@a[team=red]`
+- Be careful with broad selectors like `@a` or `@e` as they may affect multiple entities
 
 ### Variable Substitution
 
@@ -312,13 +310,4 @@ For contributors, MDL includes a comprehensive development system:
 ```
 
 This sets up:
-- **`mdl`** - Stable, globally installed version
-- **`mdlbeta`** - Local development version for testing changes
-
-**Development Workflow:**
-1. Make changes to the code
-2. Rebuild: `./scripts/dev_build.sh`
-3. Test: `mdlbeta build --mdl your_file.mdl -o dist`
-4. Validate: `mdl check-advanced your_file.mdl`
-
-For detailed development information, see [DEVELOPMENT.md](https://github.com/aaron777collins/MinecraftDatapackLanguage/blob/main/DEVELOPMENT.md).
+- **`

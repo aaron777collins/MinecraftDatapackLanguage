@@ -97,20 +97,21 @@ MDL supports **number variables** with **expressions, arithmetic operations, and
 
 ### Variable Declarations
 
+Variables in MDL are declared using the `var` keyword and are stored as Minecraft scoreboard objectives. Variables can be scoped to different entities using the `scope<selector>` syntax.
+
+### Basic Syntax
+
 ```mdl
 var num variable_name = initial_value;
 var num variable_name scope<selector> = initial_value;
 ```
 
-**Rules:**
-- Only `num` type is supported (stored in scoreboards)
-- Variable names should be descriptive
-- Initial values are optional (defaults to 0)
-- **Scope specification** (optional): Use `scope<selector>` to specify where the variable is stored
-- **Default scope**: If no scope is specified, variables are stored on the executing entity (`@s`)
-- **Statement termination**: Variable declarations must end with semicolons `;`
+### Default Behavior
 
-**Scope Examples:**
+- **Default Scope**: Variables without an explicit scope default to `@s` (the executing entity)
+- **Global Variables**: Use the special `global` keyword to store variables on the `mdl_server` armor stand
+
+### Scope Examples
 
 ```mdl
 // Player-specific variables (default behavior)
@@ -124,12 +125,32 @@ var num global_timer scope<global> = 0;
 // Player-scoped variables (explicit)
 var num player_health scope<@s> = 20;
 
-// Team-scoped variables (stored on team members)
+// Team-scoped variables
 var num team_score scope<@a[team=red]> = 0;
 var num team_bonus scope<@a[team=blue]> = 0;
 
-// World-scoped variables (stored on specific entities)
+// All-player scoped variables
+var num allPlayerCounter scope<@a> = 0;
+
+// World-scoped variables (stored on a specific armor stand)
 var num world_timer scope<@e[type=armor_stand,tag=world_timer,limit=1]> = 0;
+```
+
+### Scope Rules
+
+1. **Default Scope**: Variables without `scope<>` default to `@s` (the executing entity)
+2. **Global Storage**: Use `scope<global>` for variables that should be stored on the `mdl_server` armor stand
+3. **Custom Selectors**: You can use any valid Minecraft selector like `@a[team=red]`, `@e[type=armor_stand,tag=something,limit=1]`, etc.
+4. **Broad Selectors**: Be careful with broad selectors like `@a`, `@e`, or `@r` as they may affect multiple entities
+
+### Variable Assignment
+
+Variables are assigned using the `=` operator:
+
+```mdl
+player_score = 10;
+global_counter = global_counter + 1;
+team_score = team_score + 5;
 ```
 
 **Why this design?**
