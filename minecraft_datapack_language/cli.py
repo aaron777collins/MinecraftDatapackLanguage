@@ -1546,14 +1546,14 @@ def _ast_to_pack(ast: Dict[str, Any], mdl_files: List[Path]) -> Pack:
                             commands.append(line.strip())
                 elif class_name == 'FunctionCall':
                     # Support selector syntax on function calls: function name<selector>
-                    func_name = getattr(statement, 'function_name', '')
-                    if '<' in func_name and func_name.endswith('>'):
-                        base_name, selector_part = func_name.split('<', 1)
+                    called_func_name = getattr(statement, 'function_name', '')
+                    if '<' in called_func_name and called_func_name.endswith('>'):
+                        base_name, selector_part = called_func_name.split('<', 1)
                         selector_value = selector_part[:-1]
                         resolved_selector = _resolve_selector(selector_value)
                         commands.append(f"execute as {resolved_selector} run function {base_name}")
                     else:
-                        commands.append(f"function {func_name}")
+                        commands.append(f"function {called_func_name}")
                 elif class_name == 'IfStatement':
                     # Handle if statements - they'll be processed by the CLI
                     continue
