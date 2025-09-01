@@ -50,28 +50,22 @@
       }
     ],
     'keyword': {
-      pattern: /\b(pack|namespace|function|on_tick|on_load|tag|add|if|else if|else|while|for|in|var|let|const|num|str|list|try|catch|throw|switch|case|default|break|continue|return|import|from|as|recipe|loot_table|advancement|predicate|item_modifier|structure|scope|global)\b/,
-      lookbehind: true
+      pattern: /\b(pack|namespace|function|on_tick|on_load|tag|add|if|else if|else|while|for|in|var|let|const|num|str|list|try|catch|throw|switch|case|default|break|continue|return|import|from|as|recipe|loot_table|advancement|predicate|item_modifier|structure|scope|global)\b/
     },
     'builtin': {
-      pattern: /\b(say|tellraw|effect|particle|execute|scoreboard|data|function|tag|tp|kill|summon|give|clear|enchant|gamemode|weather|time|difficulty|gamerule|title|playsound|stopsound|kick|ban|ban-ip|pardon|pardon-ip|whitelist|op|deop|save-all|save-off|save-on|list|me|msg|team|trigger|advancement|recipe|loot|schedule|return|run)\b/,
-      lookbehind: true
+      pattern: /\b(say|tellraw|effect|particle|execute|scoreboard|data|function|tag|tp|kill|summon|give|clear|enchant|gamemode|weather|time|difficulty|gamerule|title|playsound|stopsound|kick|ban|ban-ip|pardon|pardon-ip|whitelist|op|deop|save-all|save-off|save-on|list|me|msg|team|trigger|advancement|recipe|loot|schedule|return|run)\b/
     },
     'selector': {
-      pattern: /\b(@p|@r|@a|@e|@s)\b/,
-      lookbehind: true
+      pattern: /\b(@p|@r|@a|@e|@s)\b/
     },
     'boolean': {
-      pattern: /\b(true|false|null|undefined)\b/,
-      lookbehind: true
+      pattern: /\b(true|false|null|undefined)\b/
     },
     'number': {
-      pattern: /\b\d+\b/,
-      lookbehind: true
+      pattern: /\b\d+\b/
     },
     'operator': {
-      pattern: /\b(\+|-|\*|\/|%|=|==|!=|<|>|<=|>=|&&|\|\||!|\+=|-=|\*=|\/=|%=)\b/,
-      lookbehind: true
+      pattern: /\b(\+|-|\*|\/|%|=|==|!=|<|>|<=|>=|&&|\|\||!|\+=|-=|\*=|\/=|%=)\b/
     },
     'punctuation': /[{}();[\]]/
   };
@@ -120,7 +114,7 @@
         
         tokens.forEach(function(token, tokenIndex) {
           const classes = Array.from(token.classList);
-          const tokenTypes = classes.filter(cls => cls.startsWith('token-')).map(cls => cls.replace('token-', ''));
+          const tokenTypes = classes.filter(cls => cls !== 'token' && cls.startsWith('token-')).map(cls => cls.replace('token-', ''));
           console.log(`Token ${tokenIndex}: "${token.textContent}" -> Types: [${tokenTypes.join(', ')}] -> Classes: [${classes.join(', ')}]`);
         });
         console.log('=== End Block', index, '===');
@@ -415,19 +409,7 @@ code.language-mdl .token.punctuation,
   color: #c9d1d9 !important;
 }
 
-/* Additional MDL Syntax Highlighting */
-pre code.language-mdl .token.keyword,
-code.language-mdl .token.keyword,
-.language-mdl .token.keyword {
-  color: #d73a49 !important;
-  font-weight: 600 !important;
-}
 
-[data-theme="dark"] pre code.language-mdl .token.keyword,
-[data-theme="dark"] code.language-mdl .token.keyword,
-[data-theme="dark"] .language-mdl .token.keyword {
-  color: #ff7b72 !important;
-}
 
 pre code.language-mdl .token.function,
 code.language-mdl .token.function,
