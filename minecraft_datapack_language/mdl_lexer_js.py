@@ -407,7 +407,7 @@ class MDLLexer:
         # Add raw text token
         content = ''.join(content_parts)
         if content.strip():  # Only add non-empty content
-            self.tokens.append(Token(TokenType.COMMAND, content, self.line, self.start - self.column + 1))
+            self.tokens.append(Token(TokenType.RAW, content, self.line, self.start - self.column + 1))
     
     def _scan_operator_or_delimiter(self, source: str):
         """Scan operators and delimiters."""
