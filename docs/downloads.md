@@ -350,9 +350,18 @@ MDL is open source software licensed under the MIT License. See the [LICENSE](ht
   margin-top: 1rem;
 }
 
+[data-theme="dark"] .install-code {
+  background: #21262d;
+  border-color: #30363d;
+}
+
 .install-code code {
   font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
   color: #24292e;
+}
+
+[data-theme="dark"] .install-code code {
+  color: #e6edf3;
 }
 
 .releases-section {
