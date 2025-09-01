@@ -298,14 +298,33 @@ class MDLParser:
         name_token = self._match(TokenType.IDENTIFIER)
         name = name_token.value
         
-        # Check for scope selector
+        # Check for scope selector after variable name
         scope = None
-        if '<' in name and name.endswith('>'):
-            # Extract scope from name
-            parts = name.split('<', 1)
-            if len(parts) == 2:
-                name = parts[0]
-                scope = parts[1][:-1]  # Remove the closing >
+        if not self._is_at_end() and self._peek().type == TokenType.SCOPE:
+            self._match(TokenType.SCOPE)  # consume 'scope'
+            
+            # Parse scope selector in angle brackets
+            if not self._is_at_end() and self._peek().type == TokenType.LANGLE:
+                self._match(TokenType.LANGLE)  # consume '<'
+                
+                # Parse scope selector content
+                scope_parts = []
+                while not self._is_at_end() and self._peek().type != TokenType.RANGLE:
+                    scope_parts.append(self._peek().value)
+                    self._advance()
+                
+                if self._is_at_end():
+                    raise create_parser_error(
+                        message="Unterminated scope selector",
+                        file_path=self.source_file,
+                        line=self._peek().line,
+                        column=self._peek().column,
+                        line_content=self._peek().value,
+                        suggestion="Add a closing '>' to terminate the scope selector"
+                    )
+                
+                self._match(TokenType.RANGLE)  # consume '>'
+                scope = ''.join(scope_parts)
         
         self._match(TokenType.ASSIGN)
         
