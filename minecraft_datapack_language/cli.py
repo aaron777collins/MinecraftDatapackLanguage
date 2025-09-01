@@ -20,6 +20,32 @@ def main():
     error_collector = MDLErrorCollector()
     
     try:
+        # Check for help requests and determine command first
+        has_help = '--help' in sys.argv or '-h' in sys.argv
+        
+        # Determine which command is being used for help
+        help_command = None
+        if has_help:
+            for i, arg in enumerate(sys.argv[1:], 1):
+                if arg in ['build', 'check', 'new']:
+                    help_command = arg
+                    break
+        
+        # Handle command-specific help before any parsing
+        if has_help and help_command == 'build':
+            show_build_help()
+            return
+        elif has_help and help_command == 'check':
+            show_check_help()
+            return
+        elif has_help and help_command == 'new':
+            show_new_help()
+            return
+        elif has_help:
+            # General help request
+            show_main_help()
+            return
+        
         # Create argument parser without built-in help
         parser = argparse.ArgumentParser(
             description="MDL (Minecraft Datapack Language) CLI",
@@ -50,36 +76,11 @@ def main():
         new_parser.add_argument('--pack-name', help='Custom pack name')
         new_parser.add_argument('--pack-format', type=int, default=82, help='Pack format number')
         
-        # Check for help requests and determine command before filtering
-        has_help = '--help' in sys.argv or '-h' in sys.argv
-        
-        # Determine which command is being used for help
-        help_command = None
-        if has_help:
-            for i, arg in enumerate(sys.argv[1:], 1):
-                if arg in ['build', 'check', 'new']:
-                    help_command = arg
-                    break
-        
-        # Filter out help arguments before parsing
-        filtered_args = [arg for arg in sys.argv[1:] if arg not in ['--help', '-h']]
-        
         try:
-            args = parser.parse_args(filtered_args)
+            args = parser.parse_args()
         except SystemExit:
             # Invalid arguments - show help
             show_main_help()
-            return
-        
-        # Handle command-specific help
-        if has_help and help_command == 'build':
-            show_build_help()
-            return
-        elif has_help and help_command == 'check':
-            show_check_help()
-            return
-        elif has_help and help_command == 'new':
-            show_new_help()
             return
         
         # Process commands
