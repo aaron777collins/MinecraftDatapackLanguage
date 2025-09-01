@@ -55,7 +55,36 @@ class MDLParser:
                     self.current_namespace = namespace_decl['name']  # Update current namespace
                     print(f"DEBUG: Parser updated current_namespace to: {self.current_namespace}")
                 elif self._peek().type == TokenType.FUNCTION:
-                    ast['functions'].append(self._parse_function_declaration())
+                    # Check if this is a function call or declaration
+                    # Look ahead to see if there's a semicolon or brace
+                    function_token = self._peek()
+                    self._advance()  # Consume 'function'
+                    
+                    # Look ahead to see what comes after the function name
+                    name_token = self._peek()
+                    if name_token.type != TokenType.STRING:
+                        raise create_parser_error(
+                            message="Expected function name after 'function'",
+                            file_path=self.source_file,
+                            line=name_token.line,
+                            column=name_token.column,
+                            line_content=name_token.value,
+                            suggestion="Provide a function name in quotes"
+                        )
+                    
+                    # Look ahead to see if there's a semicolon (function call) or brace (function declaration)
+                    self._advance()  # Consume function name
+                    next_token = self._peek()
+                    
+                    if next_token.type == TokenType.SEMICOLON:
+                        # This is a function call
+                        self._advance()  # Consume semicolon
+                        name = name_token.value.strip('"').strip("'")
+                        ast['functions'].append({"type": "function_call", "name": name})
+                    else:
+                        # This is a function declaration - reset and parse properly
+                        self.current -= 2  # Go back to 'function' token
+                        ast['functions'].append(self._parse_function_declaration())
                 elif self._peek().type == TokenType.ON_LOAD:
                     ast['hooks'].append(self._parse_hook_declaration())
                 elif self._peek().type == TokenType.ON_TICK:

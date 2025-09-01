@@ -46,7 +46,7 @@ class TestBasicSyntaxFeatures(unittest.TestCase):
         code = 'namespace "test";'
         ast = parse_mdl_js(code)
         self.assertIn('namespace', ast)
-        self.assertEqual(ast['namespace'], 'test')
+        self.assertEqual(ast['namespace']['name'], 'test')
     
     def test_variable_declarations(self):
         """Test all variable declaration types and scopes"""
@@ -329,9 +329,11 @@ class TestHooksFeatures(unittest.TestCase):
                 ast = parse_mdl_js(code)
                 self.assertIsNotNone(ast)
                 if 'on_load' in code:
-                    self.assertIn('on_load', ast)
+                    self.assertIn('hooks', ast)
+                    self.assertTrue(any(hook.get('hook_type') == 'load' for hook in ast['hooks']))
                 if 'on_tick' in code:
-                    self.assertIn('on_tick', ast)
+                    self.assertIn('hooks', ast)
+                    self.assertTrue(any(hook.get('hook_type') == 'tick' for hook in ast['hooks']))
 
 
 class TestScopeSystemFeatures(unittest.TestCase):
@@ -504,8 +506,9 @@ class TestComplexIntegrationFeatures(unittest.TestCase):
         self.assertIn('namespace', ast)
         self.assertIn('variables', ast)
         self.assertIn('functions', ast)
-        self.assertIn('on_load', ast)
-        self.assertIn('on_tick', ast)
+        self.assertIn('hooks', ast)
+        self.assertTrue(any(hook.get('hook_type') == 'load' for hook in ast['hooks']))
+        self.assertTrue(any(hook.get('hook_type') == 'tick' for hook in ast['hooks']))
     
     def test_multi_namespace_project(self):
         """Test multi-namespace project with complex interactions"""

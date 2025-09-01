@@ -157,10 +157,15 @@ class MDLLexer:
         
         # Handle raw block markers
         if char == '$':
-            # Check if this is a raw block marker
+            # Check if this is a raw block start marker
             if (self.current + 4 < len(source) and 
                 source[self.current:self.current + 5] == '$!raw'):
                 self._scan_raw_start(source)
+                return
+            # Check if this is a raw block end marker
+            elif (self.current + 4 < len(source) and 
+                  source[self.current:self.current + 5] == 'raw!$'):
+                self._scan_raw_end(source)
                 return
             else:
                 self._scan_variable_substitution(source)
@@ -310,6 +315,14 @@ class MDLLexer:
         self.column += 1
         
         scope_selector = None
+        variable_name = ""
+        
+        # Scan the variable name
+        while (self.current < len(source) and 
+               (source[self.current].isalnum() or source[self.current] == '_')):
+            variable_name += source[self.current]
+            self.current += 1
+            self.column += 1
         
         # Check for scope selector after variable name
         if (self.current < len(source) and 
@@ -339,7 +352,6 @@ class MDLLexer:
                     file_path=self.source_file,
                     line=self.line,
                     column=self.column - (self.current - self.start),
-                    line_content=source[self.line-1:self.line] if self.line <= len(source.split('\n')) else "",
                     suggestion="Add a closing '>' to terminate the scope selector"
                 )
         
@@ -349,14 +361,11 @@ class MDLLexer:
             self.current += 1
             self.column += 1
             
-            text = source[self.start:self.current]
-            variable_name = text[1:-1]  # Remove $ symbols
-            
             # If we have a scope selector, include it in the token
             if scope_selector:
                 variable_name = f"{variable_name}<{scope_selector}>"
             
-            self.tokens.append(Token(TokenType.VARIABLE_SUB, variable_name, self.line, self.column - len(text)))
+            self.tokens.append(Token(TokenType.VARIABLE_SUB, variable_name, self.line, self.column - len(variable_name) - 2))
         else:
             # Not a valid variable substitution - report error
             raise create_lexer_error(
@@ -364,7 +373,6 @@ class MDLLexer:
                 file_path=self.source_file,
                 line=self.line,
                 column=self.column - (self.current - self.start),
-                line_content=source[self.line-1:self.line] if self.line <= len(source.split('\n')) else "",
                 suggestion="Add a closing '$' to complete the variable substitution"
             )
     
@@ -380,6 +388,18 @@ class MDLLexer:
         # Enter raw mode
         self.in_raw_mode = True
     
+    def _scan_raw_end(self, source: str):
+        """Scan raw block end marker (raw!$)."""
+        # Consume the raw!$
+        self.current += 5
+        self.column += 5
+        
+        text = source[self.start:self.current]
+        self.tokens.append(Token(TokenType.RAW_END, text, self.line, self.column - len(text)))
+        
+        # Exit raw mode
+        self.in_raw_mode = False
+    
     def _scan_raw_text(self, source: str):
         """Scan raw text content between $!raw and raw!$."""
         content_parts = []
@@ -393,10 +413,7 @@ class MDLLexer:
             if (char == 'r' and 
                 self.current + 4 < len(source) and 
                 source[self.current:self.current + 5] == 'raw!$'):
-                # Add raw end token and exit raw mode
-                self.tokens.append(Token(TokenType.RAW_END, "raw!$", self.line, self.column))
-                self.current += 5
-                self.column += 5
+                # Exit raw mode and let the main scanner handle the end marker
                 self.in_raw_mode = False
                 break
             
@@ -421,7 +438,6 @@ class MDLLexer:
     def _scan_say_command(self, source: str):
         """Scan a say command and its content until semicolon."""
         # We've already consumed 'say', now scan the content
-        content_parts = []
         say_start_line = self.line
         say_start_column = self.column
         
@@ -443,16 +459,17 @@ class MDLLexer:
                 # Found the end of the say command
                 break
             
-            # Add character to content (including $ for variable substitution)
-            content_parts.append(char)
+            # Handle variable substitution within say command
+            if char == '$':
+                # Check if this is a variable substitution
+                if (self.current + 1 < len(source) and 
+                    source[self.current + 1].isalnum()):
+                    self._scan_variable_substitution(source)
+                    continue
             
-            # Update position
-            if char == '\n':
-                self.line += 1
-                self.column = 1
-            else:
-                self.column += 1
+            # Add character to content
             self.current += 1
+            self.column += 1
         
         if self.current >= len(source):
             # Unterminated say command
@@ -461,14 +478,8 @@ class MDLLexer:
                 file_path=self.source_file,
                 line=say_start_line,
                 column=say_start_column,
-                line_content=source[say_start_line-1:say_start_line] if say_start_line <= len(source.split('\n')) else "",
                 suggestion="Add a semicolon (;) at the end of the say command"
             )
-        
-        # Add the entire say command content as a SAY token
-        content = ''.join(content_parts).strip()
-        if content:
-            self.tokens.append(Token(TokenType.SAY, content, say_start_line, say_start_column))
     
     def _scan_operator_or_delimiter(self, source: str):
         """Scan operators and delimiters."""
