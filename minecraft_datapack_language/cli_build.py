@@ -477,7 +477,7 @@ def _generate_function_file(ast: Dict[str, Any], output_dir: Path, namespace: st
         if function_commands:
             # Only add armor stand setup to main functions that need it
             # Don't add to helper functions or functions in the "other" namespace
-                        should_add_armor_stand = (namespace != "other" and 
+            should_add_armor_stand = (namespace != "other" and 
                                      (func_name in ["main", "init", "load"] or 
                                       any(cmd for cmd in function_commands if "scoreboard" in cmd or "tellraw" in cmd)))
             
