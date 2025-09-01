@@ -1,0 +1,4 @@
+tellraw @ a [{"text": "Player: ", "color": "white"}, {"text": "@s", "color": "green"}, {"text": " | Score: ", "color": "gray"}, {"text": "$playerScore$", "color": "gold"}, {"text": " | Health: ", "color": "gray"}, {"text": "$playerHealth$", "color": "red"}, {"text": " | Timer: ", "color": "gray"}, {"text": "$globalTimer$", "color": "blue"}]
+tellraw @ a {"text":"Status Report","color":"purple","bold": true,"hoverEvent": {"action":"show_text","contents": [{"text": "Score: $playerScore$", "color": "gold"}, {"text": "\nHealth: $playerHealth$", "color": "red"}, {"text": "\nTimer: $globalTimer$", "color": "blue"}]}}
+say say
+say "Complex variable tellraw complete"

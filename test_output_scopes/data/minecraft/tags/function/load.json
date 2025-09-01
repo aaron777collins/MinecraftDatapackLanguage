@@ -1,1 +1,5 @@
-{"values": ["variables:main", "variables:load"]}
+{
+  "values": [
+    "comprehensive_scope_test:load"
+  ]
+}

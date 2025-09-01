@@ -1,0 +1,2 @@
+execute score $globalTimer$ @s matches ..99 run function comprehensive_control_test:test_nested_if_if_2_if_0_if_0
+execute unless score $globalTimer$ @s matches ..99 run function comprehensive_control_test:test_nested_if_if_2_if_0_else_0

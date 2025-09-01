@@ -1,0 +1,6 @@
+say say
+say "Testing raw conditional logic"
+execute if score @s test_score matches 100.. run say "High score achieved!"
+    execute unless score @s test_score matches 100.. run say "Keep trying!"
+    execute if entity @a[team=red] run say "Red team is present"
+    execute unless entity @a[team=blue] run say "No blue team players"say "Raw conditional logic complete"

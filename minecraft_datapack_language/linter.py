@@ -390,16 +390,16 @@ def format_lint_report(issues: List[LintIssue], file_path: str = None) -> str:
     
     for severity in ['error', 'warning', 'info']:
         if by_severity[severity]:
-            icon = {'error': '❌', 'warning': '⚠️', 'info': 'ℹ️'}[severity]
+            icon = {'error': 'ERROR', 'warning': 'WARNING', 'info': 'INFO'}[severity]
             report.append(f"\n{icon} {severity.upper()}S ({len(by_severity[severity])})")
             report.append("-" * 30)
             
             for issue in by_severity[severity]:
                 report.append(f"Line {issue.line_number}: {issue.message}")
                 if issue.suggestion:
-                    report.append(f"  💡 Suggestion: {issue.suggestion}")
+                    report.append(f"  Suggestion: {issue.suggestion}")
                 if issue.command:
-                    report.append(f"  📝 Command: {issue.command[:80]}{'...' if len(issue.command) > 80 else ''}")
+                    report.append(f"  Command: {issue.command[:80]}{'...' if len(issue.command) > 80 else ''}")
                 report.append("")
     
     return "\n".join(report)

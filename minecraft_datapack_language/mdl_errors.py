@@ -46,7 +46,7 @@ class MDLError(BaseException):
         parts.append(f"Error: {self.message}")
         
         if self.suggestion:
-            parts.append(f"💡 Suggestion: {self.suggestion}")
+            parts.append(f"Suggestion: {self.suggestion}")
         
         # Add context if we have file and line information
         if self.file_path and self.line is not None:
@@ -174,12 +174,12 @@ class MDLErrorCollector:
             return
         
         if self.errors:
-            print(f"\n❌ Found {len(self.errors)} error(s):")
+            print(f"\nERROR: Found {len(self.errors)} error(s):")
             for i, error in enumerate(self.errors, 1):
                 print(f"\n{i}. {error}")
         
         if self.warnings and not ignore_warnings:
-            print(f"\n⚠️  Found {len(self.warnings)} warning(s):")
+            print(f"\nWARNING: Found {len(self.warnings)} warning(s):")
             for i, warning in enumerate(self.warnings, 1):
                 print(f"\n{i}. {warning}")
     

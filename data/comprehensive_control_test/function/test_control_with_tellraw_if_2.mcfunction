@@ -1,0 +1,1 @@
+tellraw @ a {"text":"High score achieved!","color":"gold"}

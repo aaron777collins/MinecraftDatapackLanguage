@@ -1,0 +1,2 @@
+execute score $flag$ @s matches 1 run function comprehensive_control_test:test_nested_if_else_3_if_0
+execute unless score $flag$ @s matches 1 run function comprehensive_control_test:test_nested_if_else_3_else_0

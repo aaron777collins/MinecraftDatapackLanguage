@@ -1,0 +1,15 @@
+scoreboard objectives add adminData dummy
+scoreboard objectives add allPlayersHealth dummy
+scoreboard objectives add allPlayersScore dummy
+scoreboard objectives add blueTeamScore dummy
+scoreboard objectives add entityCounter dummy
+scoreboard objectives add globalCounter dummy
+scoreboard objectives add globalPhase dummy
+scoreboard objectives add globalTimer dummy
+scoreboard objectives add greenTeamScore dummy
+scoreboard objectives add playerHealth dummy
+scoreboard objectives add playerLevel dummy
+scoreboard objectives add playerScore dummy
+scoreboard objectives add redTeamScore dummy
+scoreboard objectives add serverData dummy
+scoreboard objectives add vipData dummy
