@@ -20,11 +20,6 @@ def main():
     error_collector = MDLErrorCollector()
     
     try:
-        # Check for help request first
-        if '--help' in sys.argv or '-h' in sys.argv:
-            show_main_help()
-            return
-        
         # Create argument parser without built-in help
         parser = argparse.ArgumentParser(
             description="MDL (Minecraft Datapack Language) CLI",
