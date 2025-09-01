@@ -85,9 +85,9 @@ if (score > 5) {
 
 ## 📚 Resources
 
-- **Language Reference**: https://mdl-lang.com/docs/language-reference
-- **CLI Reference**: https://mdl-lang.com/docs/cli-reference
-- **Examples**: https://mdl-lang.com/docs/examples
+- **Language Reference**: https://www.mcmdl.com/docs/language-reference
+- **CLI Reference**: https://www.mcmdl.com/docs/cli-reference
+- **Examples**: https://www.mcmdl.com/docs/examples
 - **Website**: https://www.mcmdl.com
 - **GitHub**: https://github.com/aaron777collins/MinecraftDatapackLanguage
 
@@ -110,7 +110,7 @@ if (score > 5) {
 ### Getting Help
 
 - Check the error messages - they include helpful suggestions
-- Visit the documentation: https://mdl-lang.com/docs
+- Visit the documentation: https://www.mcmdl.com/docs
 - Report bugs: https://www.mcmdl.com
 
 ## 📄 License

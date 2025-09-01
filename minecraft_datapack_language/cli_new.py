@@ -267,7 +267,7 @@ if (score > 5) {{
 ### Getting Help
 
 - Check the error messages - they include helpful suggestions
-- Visit the documentation: https://mdl-lang.com/docs
+- Visit the documentation: https://www.mcmdl.com/docs
 - Report bugs: https://www.mcmdl.com
 
 ## 📄 License
