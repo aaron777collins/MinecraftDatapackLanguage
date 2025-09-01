@@ -333,7 +333,7 @@ class MDLParser:
         
         self._match(TokenType.SEMICOLON)
         
-        return {"name": name, "scope": scope, "value": value}
+        return {"type": "variable_declaration", "name": name, "scope": scope, "value": value}
     
     def _parse_variable_assignment(self) -> VariableAssignment:
         """Parse variable assignment."""
@@ -347,7 +347,7 @@ class MDLParser:
         
         self._match(TokenType.SEMICOLON)
         
-        return {"name": name, "value": value}
+        return {"type": "variable_assignment", "name": name, "value": value}
     
     def _parse_if_statement(self) -> IfStatement:
         """Parse if statement."""
