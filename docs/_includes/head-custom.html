@@ -98,7 +98,20 @@
     
     // Highlight all code blocks
     if (typeof Prism !== 'undefined') {
+      console.log('Prism found, highlighting all...');
       Prism.highlightAll();
+      
+      // Debug: Check for MDL code blocks
+      const mdlBlocks = document.querySelectorAll('pre code.language-mdl');
+      console.log('Found MDL code blocks:', mdlBlocks.length);
+      
+      // Force highlight MDL blocks specifically
+      mdlBlocks.forEach(function(block, index) {
+        console.log('Highlighting MDL block', index, ':', block.textContent.substring(0, 50));
+        Prism.highlightElement(block);
+      });
+    } else {
+      console.log('Prism not found!');
     }
   }
 
