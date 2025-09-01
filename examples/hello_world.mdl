@@ -5,7 +5,16 @@ namespace "hello_world";
 
 function "main" {
     say "Hello, World!";
+    
+    // Raw block with tellraw and JSON formatting
+    $!raw
     tellraw @a {"text":"Welcome to MDL!","color":"green"};
+    raw!$
+    
+    // Raw block with complex tellraw
+    $!raw
+    tellraw @a {"text":"","extra":[{"text":"Hello ","color":"blue"},{"text":"World!","color":"red","bold":true}]};
+    raw!$
 }
 
 on_load "hello_world:main";

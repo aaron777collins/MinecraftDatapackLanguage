@@ -147,9 +147,22 @@ class MDLLexer:
             self._scan_number(source)
             return
         
-        # Handle variable substitution
+        # Handle raw block markers
         if char == '$':
-            self._scan_variable_substitution(source)
+            # Check if this is a raw block marker
+            if (self.current + 4 < len(source) and 
+                source[self.current:self.current + 5] == '$!raw'):
+                self._scan_raw_start(source)
+                return
+            else:
+                self._scan_variable_substitution(source)
+                return
+        
+        # Handle raw block end markers
+        if (char == 'r' and 
+            self.current + 4 < len(source) and 
+            source[self.current:self.current + 5] == 'raw!$'):
+            self._scan_raw_end(source)
             return
         
         # Handle identifiers and keywords
@@ -345,6 +358,24 @@ class MDLLexer:
                 line_content=source[self.line-1:self.line] if self.line <= len(source.split('\n')) else "",
                 suggestion="Add a closing '$' to complete the variable substitution"
             )
+    
+    def _scan_raw_start(self, source: str):
+        """Scan raw block start marker ($!raw)."""
+        # Consume the $!raw
+        self.current += 5
+        self.column += 5
+        
+        text = source[self.start:self.current]
+        self.tokens.append(Token(TokenType.RAW_START, text, self.line, self.start - self.column + 1))
+    
+    def _scan_raw_end(self, source: str):
+        """Scan raw block end marker (raw!$)."""
+        # Consume the raw!$
+        self.current += 5
+        self.column += 5
+        
+        text = source[self.start:self.current]
+        self.tokens.append(Token(TokenType.RAW_END, text, self.line, self.start - self.column + 1))
     
     def _scan_operator_or_delimiter(self, source: str):
         """Scan operators and delimiters."""
