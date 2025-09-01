@@ -492,7 +492,6 @@ def _generate_function_file(ast: Dict[str, Any], output_dir: Path, namespace: st
             # Add armor stand setup to the beginning of each function
             final_commands = []
             final_commands.append("execute unless entity @e[type=armor_stand,tag=mdl_server,limit=1] run summon armor_stand ~ 320 ~ {Tags:[\"mdl_server\"],Invisible:1b,Marker:1b,NoGravity:1b,Invulnerable:1b}")
-            final_commands.append("")
             final_commands.extend(function_commands)
             
             if verbose:
