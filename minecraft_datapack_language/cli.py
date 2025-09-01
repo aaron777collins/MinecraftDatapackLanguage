@@ -2579,6 +2579,241 @@ def lint_mdl_file(file_path: str, verbose: bool = False):
             print()
 
 
+def show_main_help():
+    """Display comprehensive main help information."""
+    print("🎯 MDL - Minecraft Datapack Language Compiler")
+    print("=" * 60)
+    print("A modern JavaScript-style compiler for Minecraft datapacks")
+    print()
+    
+    print("📖 USAGE")
+    print("  mdl <command> [options]")
+    print()
+    
+    print("🚀 COMMANDS")
+    print("  build    Compile MDL files into Minecraft datapacks")
+    print("  check    Validate MDL files for syntax and errors")
+    print("  new      Create a new MDL project with templates")
+    print()
+    
+    print("💡 EXAMPLES")
+    print("  mdl build --mdl mypack.mdl -o dist")
+    print("  mdl check myproject/")
+    print("  mdl new my_awesome_pack")
+    print()
+    
+    print("📚 GETTING HELP")
+    print("  mdl --help                    Show this help")
+    print("  mdl build --help              Show build command help")
+    print("  mdl check --help              Show check command help")
+    print("  mdl new --help                Show new command help")
+    print()
+    
+    print("🔗 RESOURCES")
+    print("  Documentation: https://aaron777collins.github.io/MinecraftDatapackLanguage/")
+    print("  GitHub: https://github.com/aaron777collins/MinecraftDatapackLanguage")
+    print("  PyPI: https://pypi.org/project/minecraft-datapack-language/")
+    print()
+
+
+def show_build_help():
+    """Display comprehensive build command help."""
+    print("🔨 MDL BUILD - Compile MDL files into Minecraft datapacks")
+    print("=" * 60)
+    print("Compiles MDL (Minecraft Datapack Language) files into Minecraft datapacks")
+    print("with proper function files, tags, and metadata.")
+    print()
+    
+    print("📖 USAGE")
+    print("  mdl build --mdl <input> --output <dir> [options]")
+    print()
+    
+    print("📋 REQUIRED ARGUMENTS")
+    print("  --mdl, -m <input>           MDL file or directory to compile")
+    print("  --output, -o <dir>          Output directory for the datapack")
+    print()
+    
+    print("🔧 OPTIONAL ARGUMENTS")
+    print("  --pack-format <N>           Override pack format (e.g., 48, 82)")
+    print("  --wrapper <name>            Custom zip file name (without .zip)")
+    print("  --verbose, -v               Enable detailed debug output")
+    print("  --help, -h                  Show this help message")
+    print()
+    
+    print("💡 EXAMPLES")
+    print("  # Build single file")
+    print("  mdl build --mdl hello.mdl -o dist")
+    print()
+    print("  # Build entire directory")
+    print("  mdl build --mdl myproject/ -o dist")
+    print()
+    print("  # Build with custom pack format")
+    print("  mdl build --mdl mypack.mdl -o dist --pack-format 48")
+    print()
+    print("  # Build with custom zip name")
+    print("  mdl build --mdl mypack.mdl -o dist --wrapper my_custom_name")
+    print()
+    print("  # Build with verbose output")
+    print("  mdl build --mdl mypack.mdl -o dist --verbose")
+    print()
+    
+    print("📁 OUTPUT STRUCTURE")
+    print("  dist/")
+    print("  ├── pack.mcmeta              # Datapack metadata")
+    print("  ├── data/")
+    print("  │   ├── minecraft/tags/function/")
+    print("  │   │   ├── load.json       # Load function tags")
+    print("  │   │   └── tick.json       # Tick function tags")
+    print("  │   └── <namespace>/")
+    print("  │       └── function/")
+    print("  │           └── *.mcfunction # Compiled functions")
+    print("  └── <pack_name>.zip          # Zipped datapack")
+    print()
+    
+    print("🔍 WHAT IT DOES")
+    print("  • Parses MDL files with modern JavaScript-style syntax")
+    print("  • Generates Minecraft function files (.mcfunction)")
+    print("  • Creates proper function tags (load.json, tick.json)")
+    print("  • Handles variables, control structures, and expressions")
+    print("  • Supports multi-file projects with automatic merging")
+    print("  • Generates scoreboard objectives for variables")
+    print("  • Creates pack.mcmeta with proper format")
+    print("  • Produces both folder and zip output")
+    print()
+    
+    print("⚠️  TROUBLESHOOTING")
+    print("  • Use --verbose for detailed debug information")
+    print("  • Check that input files have .mdl extension")
+    print("  • Ensure output directory is writable")
+    print("  • Verify pack format compatibility with your Minecraft version")
+
+
+def show_check_help():
+    """Display comprehensive check command help."""
+    print("✅ MDL CHECK - Validate MDL files for syntax and errors")
+    print("=" * 60)
+    print("Validates MDL files for syntax errors, warnings, and potential issues.")
+    print("Use this to catch problems before building your datapack.")
+    print()
+    
+    print("📖 USAGE")
+    print("  mdl check <input> [options]")
+    print()
+    
+    print("📋 ARGUMENTS")
+    print("  <input>                     MDL file or directory to check")
+    print()
+    
+    print("🔧 OPTIONS")
+    print("  --verbose, -v               Show detailed error information")
+    print("  --help, -h                  Show this help message")
+    print()
+    
+    print("💡 EXAMPLES")
+    print("  # Check single file")
+    print("  mdl check hello.mdl")
+    print()
+    print("  # Check entire directory")
+    print("  mdl check myproject/")
+    print()
+    print("  # Check current directory")
+    print("  mdl check .")
+    print()
+    print("  # Check with verbose output")
+    print("  mdl check myfile.mdl --verbose")
+    print()
+    
+    print("🔍 WHAT IT CHECKS")
+    print("  • Syntax errors (missing semicolons, brackets, etc.)")
+    print("  • Variable declarations and usage")
+    print("  • Function definitions and calls")
+    print("  • Control structure syntax (if/else, while loops)")
+    print("  • Namespace declarations")
+    print("  • Pack declarations")
+    print("  • Hook declarations (on_load, on_tick)")
+    print("  • Tag declarations")
+    print("  • File structure and organization")
+    print()
+    
+    print("📊 ERROR TYPES")
+    print("  ❌ ERROR:   Critical issues that prevent compilation")
+    print("  ⚠️  WARNING: Potential problems or best practice violations")
+    print("  ℹ️  INFO:    Informational messages and suggestions")
+    print()
+    
+    print("💡 BEST PRACTICES")
+    print("  • Run check before building to catch errors early")
+    print("  • Use --verbose for detailed error context")
+    print("  • Check entire project directories for comprehensive validation")
+    print("  • Fix errors before proceeding to build")
+
+
+def show_new_help():
+    """Display comprehensive new command help."""
+    print("🆕 MDL NEW - Create a new MDL project with templates")
+    print("=" * 60)
+    print("Creates a new MDL project with starter files, examples, and documentation.")
+    print("Perfect for getting started with MDL development.")
+    print()
+    
+    print("📖 USAGE")
+    print("  mdl new <project_name> [options]")
+    print()
+    
+    print("📋 ARGUMENTS")
+    print("  <project_name>              Name of the project to create")
+    print()
+    
+    print("🔧 OPTIONS")
+    print("  --name <pack_name>          Custom pack name (defaults to project name)")
+    print("  --pack-format <N>           Pack format version (default: 82)")
+    print("  --help, -h                  Show this help message")
+    print()
+    
+    print("💡 EXAMPLES")
+    print("  # Create basic project")
+    print("  mdl new my_awesome_pack")
+    print()
+    print("  # Create project with custom pack name")
+    print("  mdl new my_project --name \"My Cool Pack\"")
+    print()
+    print("  # Create project with legacy pack format")
+    print("  mdl new legacy_pack --pack-format 48")
+    print()
+    print("  # Create project with all custom options")
+    print("  mdl new adventure_pack --name \"Adventure Pack\" --pack-format 82")
+    print()
+    
+    print("📁 CREATED FILES")
+    print("  <project_name>/")
+    print("  ├── <pack_name>.mdl         # Main MDL file with hello world example")
+    print("  ├── README.md               # Project documentation and instructions")
+    print("  └── LANGUAGE_REFERENCE.md   # Quick MDL syntax reference")
+    print()
+    
+    print("🚀 WHAT'S INCLUDED")
+    print("  • Complete hello world example with variables")
+    print("  • Modern JavaScript-style MDL syntax")
+    print("  • Variable declarations and usage examples")
+    print("  • Function definitions and hooks")
+    print("  • Build and test instructions")
+    print("  • Links to full documentation")
+    print()
+    
+    print("📚 NEXT STEPS")
+    print("  1. cd <project_name>")
+    print("  2. mdl build --mdl . -o dist")
+    print("  3. Copy dist/ to your Minecraft world's datapacks folder")
+    print("  4. Run /reload in Minecraft")
+    print("  5. See your hello world message!")
+    print()
+    
+    print("🔗 RESOURCES")
+    print("  • Full Documentation: https://aaron777collins.github.io/MinecraftDatapackLanguage/")
+    print("  • Language Reference: See LANGUAGE_REFERENCE.md in your project")
+    print("  • Examples: Check the documentation for advanced examples")
+
+
 def main():
     """Main CLI entry point."""
     import sys
@@ -2586,29 +2821,24 @@ def main():
     
     # Top-level flags
     if len(sys.argv) >= 2 and sys.argv[1] in ("--help", "-h"):
-        print("MDL - Minecraft Datapack Language Compiler")
-        print("Usage: mdl <command> [options]")
-        print("Commands:")
-        print("  build --mdl <file|dir> --output <dir> [--pack-format <N>] [--wrapper <name>]  Build MDL into datapack")
-        print("  check <file|dir>                        Check MDL files for syntax issues")
-        print("  new <project_name> [--name <pack_name>] [--pack-format <N>]  Create project")
+        show_main_help()
         return
     if len(sys.argv) >= 2 and sys.argv[1] in ("--version", "-V", "-v"):
         print(__version__)
         return
 
     if len(sys.argv) < 2:
-        print("MDL - Minecraft Datapack Language Compiler")
-        print("Usage: mdl <command> [options]")
-        print("Commands:")
-        print("  build --mdl <file|dir> --output <dir> [--pack-format <N>] [--wrapper <name>]  Build MDL files into datapack")
-        print("  check <file|dir>  Check MDL files for syntax issues")
-        print("  new <project_name> [--name <pack_name>] [--pack-format <N>]  Create new MDL project")
+        show_main_help()
         sys.exit(1)
     
     command = sys.argv[1]
     
     if command == "build":
+        # Check for help request first
+        if len(sys.argv) >= 3 and sys.argv[2] in ("--help", "-h"):
+            show_build_help()
+            return
+            
         parser = argparse.ArgumentParser(description="MDL - Build MDL files into datapack")
         parser.add_argument("--mdl", "-m", required=True, help="Input MDL file or directory")
         parser.add_argument("--output", "-o", required=True, help="Output directory")
@@ -2620,6 +2850,11 @@ def main():
         build_mdl(args.mdl, args.output, args.verbose, args.pack_format, args.wrapper)
         
     elif command == "check":
+        # Check for help request first
+        if len(sys.argv) >= 3 and sys.argv[2] in ("--help", "-h"):
+            show_check_help()
+            return
+            
         parser = argparse.ArgumentParser(description="MDL - Check MDL files for syntax issues")
         parser.add_argument("file", help="MDL file or directory to check")
         parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose output")
@@ -2628,6 +2863,11 @@ def main():
         lint_mdl_file(args.file, args.verbose)
         
     elif command == "new":
+        # Check for help request first
+        if len(sys.argv) >= 3 and sys.argv[2] in ("--help", "-h"):
+            show_new_help()
+            return
+            
         parser = argparse.ArgumentParser(description="MDL - Create new MDL project")
         parser.add_argument("project_name", help="Name of the project to create")
         parser.add_argument("--name", help="Pack name (defaults to project name)")
