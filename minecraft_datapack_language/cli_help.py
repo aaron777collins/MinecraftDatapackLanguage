@@ -52,9 +52,9 @@ Examples:
 📚 Documentation:
 ================
 
-• Language Reference: https://mdl-lang.com/docs/language-reference
-• CLI Reference: https://mdl-lang.com/docs/cli-reference
-• Examples: https://mdl-lang.com/docs/examples
+• Language Reference: https://www.mcmdl.com/docs/language-reference
+• CLI Reference: https://www.mcmdl.com/docs/cli-reference
+• Examples: https://www.mcmdl.com/docs/examples
 
 🐛 Error Reporting:
 ==================
@@ -164,7 +164,7 @@ The build command provides comprehensive error reporting:
 • Helpful suggestions for fixing issues
 • Multiple error collection (won't stop on first error)
 
-For more information, visit: https://mdl-lang.com/docs/cli-reference#build
+For more information, visit: https://www.mcmdl.com/docs/cli-reference#build
 """)
 
 
@@ -285,7 +285,7 @@ The check command is perfect for:
 • Learning MDL - Understand syntax requirements
 • Debugging - Identify and fix issues quickly
 
-For more information, visit: https://mdl-lang.com/docs/cli-reference#check
+For more information, visit: https://www.mcmdl.com/docs/cli-reference#check
 """)
 
 
