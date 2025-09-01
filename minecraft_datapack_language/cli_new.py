@@ -66,9 +66,9 @@ def create_new_project(project_name: str, pack_name: str = None, pack_format: in
         print(f"  4. mdl check {clean_name}.mdl")
         print()
         print("📚 Learn more:")
-        print("   • Language Reference: https://mdl-lang.com/docs/language-reference")
-        print("   • Examples: https://mdl-lang.com/docs/examples")
-        print("   • CLI Reference: https://mdl-lang.com/docs/cli-reference")
+        print("   • Language Reference: https://www.mcmdl.com/docs/language-reference")
+print("   • Examples: https://www.mcmdl.com/docs/examples")
+print("   • CLI Reference: https://www.mcmdl.com/docs/cli-reference")
     
     except Exception as e:
         # Clean up on error
@@ -242,9 +242,9 @@ if (score > 5) {{
 
 ## 📚 Resources
 
-- **Language Reference**: https://mdl-lang.com/docs/language-reference
-- **CLI Reference**: https://mdl-lang.com/docs/cli-reference
-- **Examples**: https://mdl-lang.com/docs/examples
+- **Language Reference**: https://www.mcmdl.com/docs/language-reference
+- **CLI Reference**: https://www.mcmdl.com/docs/cli-reference
+- **Examples**: https://www.mcmdl.com/docs/examples
 - **Website**: https://www.mcmdl.com
 - **GitHub**: https://github.com/aaron777collins/MinecraftDatapackLanguage
 

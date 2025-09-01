@@ -423,9 +423,9 @@ After creating a new project:
 📚 Next Steps:
 =============
 
-• Language Reference: https://mdl-lang.com/docs/language-reference
-• Examples: https://mdl-lang.com/docs/examples
-• CLI Reference: https://mdl-lang.com/docs/cli-reference
+• Language Reference: https://www.mcmdl.com/docs/language-reference
+• Examples: https://www.mcmdl.com/docs/examples
+• CLI Reference: https://www.mcmdl.com/docs/cli-reference
 
-For more information, visit: https://mdl-lang.com/docs/cli-reference#new
+For more information, visit: https://www.mcmdl.com/docs/cli-reference#new
 """)
