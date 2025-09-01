@@ -16,36 +16,6 @@ from .ast_nodes import (
     StructureDeclaration
 )
 
-@dataclass
-class RecipeDeclaration(ASTNode):
-    name: str
-    data: Dict[str, Any]
-
-@dataclass
-class LootTableDeclaration(ASTNode):
-    name: str
-    data: Dict[str, Any]
-
-@dataclass
-class AdvancementDeclaration(ASTNode):
-    name: str
-    data: Dict[str, Any]
-
-@dataclass
-class PredicateDeclaration(ASTNode):
-    name: str
-    data: Dict[str, Any]
-
-@dataclass
-class ItemModifierDeclaration(ASTNode):
-    name: str
-    data: Dict[str, Any]
-
-@dataclass
-class StructureDeclaration(ASTNode):
-    name: str
-    data: Dict[str, Any]
-
 
 class MDLParser:
     """Parser for simplified MDL language."""
