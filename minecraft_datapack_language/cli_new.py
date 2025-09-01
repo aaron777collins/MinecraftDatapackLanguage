@@ -67,8 +67,8 @@ def create_new_project(project_name: str, pack_name: str = None, pack_format: in
         print()
         print("📚 Learn more:")
         print("   • Language Reference: https://www.mcmdl.com/docs/language-reference")
-print("   • Examples: https://www.mcmdl.com/docs/examples")
-print("   • CLI Reference: https://www.mcmdl.com/docs/cli-reference")
+        print("   • Examples: https://www.mcmdl.com/docs/examples")
+        print("   • CLI Reference: https://www.mcmdl.com/docs/cli-reference")
     
     except Exception as e:
         # Clean up on error
