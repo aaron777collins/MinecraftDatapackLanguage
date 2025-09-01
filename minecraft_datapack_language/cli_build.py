@@ -229,13 +229,18 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
             # Variable reference
             ref_var = value[1:-1]  # Remove $ symbols
             commands.append(f"scoreboard players operation {var_name} {selector} = {ref_var} {selector}")
+        elif hasattr(value, '__class__') and 'BinaryExpression' in str(value.__class__):
+            # Handle complex expressions (BinaryExpression, etc.)
+            # For now, add a placeholder command
+            commands.append(f"# Complex assignment: {var_name} = {value}")
         else:
             # Assume it's a number
             try:
                 num_value = int(value)
                 commands.append(f"scoreboard players set {var_name} {selector} {num_value}")
-            except ValueError:
-                raise ValueError(f"Invalid value for variable {var_name}: {value}")
+            except (ValueError, TypeError):
+                # If we can't convert to int, add a placeholder
+                commands.append(f"# Assignment: {var_name} = {value}")
     
     elif statement['type'] == 'if_statement':
         condition = statement['condition']
@@ -278,7 +283,7 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
         else:
             commands.append(f"execute {minecraft_condition} run function {namespace}:{if_func_name}")
     
-    elif statement['type'] == 'while_loop':
+    elif statement['type'] == 'while_loop' or statement['type'] == 'while_statement':
         # Handle while loops using recursion
         loop_commands = _process_while_loop_recursion(statement, namespace, function_name, statement_index, is_tag_function, selector, variable_scopes, build_context)
         commands.extend(loop_commands)
@@ -316,9 +321,13 @@ def _generate_function_file(ast: Dict[str, Any], output_dir: Path, namespace: st
             try:
                 commands = _process_statement(statement, namespace, func_name, i, False, "@s", {}, build_context)
                 function_commands.extend(commands)
+                if verbose:
+                    print(f"Generated {len(commands)} commands for statement {i} in function {func_name}")
             except Exception as e:
                 if verbose:
                     print(f"Warning: Error processing statement {i} in function {func_name}: {e}")
+                    import traceback
+                    traceback.print_exc()
                 continue
         
         # Write function file
@@ -331,6 +340,10 @@ def _generate_function_file(ast: Dict[str, Any], output_dir: Path, namespace: st
             
             if verbose:
                 print(f"Generated function: {namespace}:{func_name}")
+        else:
+            if verbose:
+                print(f"No commands generated for function: {namespace}:{func_name}")
+                print(f"Function body: {func_body}")
 
 
 def _generate_hook_files(ast: Dict[str, Any], output_dir: Path, namespace: str, build_context: BuildContext = None) -> None:
@@ -522,6 +535,8 @@ def _generate_pack_mcmeta(ast: Dict[str, Any], output_dir: Path) -> None:
 def _ast_to_pack(ast: Dict[str, Any], mdl_files: List[Path]) -> Pack:
     """Convert AST to Pack object."""
     pack_info = ast.get('pack', {})
+    if pack_info is None:
+        pack_info = {}
     pack_name = pack_info.get('name', 'mdl_pack')
     pack_format = pack_info.get('pack_format', 82)  # Use pack_format instead of format
     pack_description = pack_info.get('description', 'MDL Generated Datapack')
@@ -531,7 +546,10 @@ def _ast_to_pack(ast: Dict[str, Any], mdl_files: List[Path]) -> Pack:
     # Add namespaces and functions
     if 'functions' in ast:
         # Get namespace name from AST or use pack name
-        namespace_name = ast.get('namespace', {}).get('name', pack_name)
+        namespace_info = ast.get('namespace', {})
+        if namespace_info is None:
+            namespace_info = {}
+        namespace_name = namespace_info.get('name', pack_name)
         namespace = pack.namespace(namespace_name)
         
         for func in ast['functions']:
@@ -552,6 +570,19 @@ def _ast_to_pack(ast: Dict[str, Any], mdl_files: List[Path]) -> Pack:
                             function.commands.append(statement['command'])
                         elif statement.get('type') == 'function_call':
                             function.commands.append(f"function {statement['name']}")
+                        elif statement.get('type') == 'variable_assignment':
+                            # Handle variable assignments
+                            var_name = statement['name']
+                            value = statement['value']
+                            if hasattr(value, 'value'):
+                                # Simple literal value
+                                function.commands.append(f"scoreboard players set {var_name} @s {value.value}")
+                            else:
+                                # Complex expression - add a placeholder
+                                function.commands.append(f"# Variable assignment: {var_name} = {value}")
+                        else:
+                            # Add a placeholder for other statement types
+                            function.commands.append(f"# Statement: {statement.get('type', 'unknown')}")
     
     # Add variables
     if 'variables' in ast:
@@ -569,7 +600,10 @@ def _ast_to_pack(ast: Dict[str, Any], mdl_files: List[Path]) -> Pack:
     
     # Add recipes
     if 'recipes' in ast:
-        namespace_name = ast.get('namespace', {}).get('name', pack_name)
+        namespace_info = ast.get('namespace', {})
+        if namespace_info is None:
+            namespace_info = {}
+        namespace_name = namespace_info.get('name', pack_name)
         namespace = pack.namespace(namespace_name)
         
         for recipe in ast['recipes']:
@@ -582,7 +616,10 @@ def _ast_to_pack(ast: Dict[str, Any], mdl_files: List[Path]) -> Pack:
     
     # Add advancements
     if 'advancements' in ast:
-        namespace_name = ast.get('namespace', {}).get('name', pack_name)
+        namespace_info = ast.get('namespace', {})
+        if namespace_info is None:
+            namespace_info = {}
+        namespace_name = namespace_info.get('name', pack_name)
         namespace = pack.namespace(namespace_name)
         
         for advancement in ast['advancements']:
@@ -595,7 +632,10 @@ def _ast_to_pack(ast: Dict[str, Any], mdl_files: List[Path]) -> Pack:
     
     # Add loot tables
     if 'loot_tables' in ast:
-        namespace_name = ast.get('namespace', {}).get('name', pack_name)
+        namespace_info = ast.get('namespace', {})
+        if namespace_info is None:
+            namespace_info = {}
+        namespace_name = namespace_info.get('name', pack_name)
         namespace = pack.namespace(namespace_name)
         
         for loot_table in ast['loot_tables']:

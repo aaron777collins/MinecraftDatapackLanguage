@@ -649,22 +649,31 @@ class TestControlStructures(unittest.TestCase):
             f_path = f.name
         
         try:
-            pack = _ast_to_pack(ast, [f_path])
+            # Use the actual build system instead of _ast_to_pack
+            from minecraft_datapack_language.cli_build import build_mdl
             
-            # Check that the function was created
-            self.assertIsNotNone(pack)
-            
-            # Check that the namespace was created
-            namespace = pack.namespace('test')
-            self.assertIsNotNone(namespace)
-            
-            # Check that the function was created
-            function = namespace.function('main')
-            self.assertIsNotNone(function)
-            
-            # Check the generated commands
-            commands = function.commands
-            self.assertGreater(len(commands), 0)
+            # Create a temporary directory for the build
+            with tempfile.TemporaryDirectory() as temp_dir:
+                # Write the MDL file
+                mdl_file = Path(temp_dir) / "test.mdl"
+                with open(mdl_file, 'w') as f:
+                    f.write(code)
+                
+                # Build the datapack
+                output_dir = Path(temp_dir) / "output"
+                build_mdl(str(mdl_file), str(output_dir), verbose=False)
+                
+                # Check that the output was created
+                self.assertTrue(output_dir.exists())
+                
+                # Check that the function file was created
+                function_file = output_dir / "data" / "test" / "function" / "main.mcfunction"
+                self.assertTrue(function_file.exists())
+                
+                # Check that the function file has content
+                with open(function_file, 'r') as f:
+                    content = f.read()
+                    self.assertGreater(len(content), 0)
             
         finally:
             os.unlink(f_path)

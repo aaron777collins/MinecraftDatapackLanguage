@@ -155,7 +155,7 @@ class MDLLexer:
             self._scan_number(source)
             return
         
-        # Handle raw block markers
+        # Handle raw block markers and variable substitutions
         if char == '$':
             # Check if this is a raw block start marker
             if (self.current + 4 < len(source) and 
@@ -213,8 +213,6 @@ class MDLLexer:
         start_column = self.column
         start_line = self.line
         
-        string_parts = []
-        
         while (self.current < len(source) and 
                source[self.current] != quote_char):
             if source[self.current] == '\n':
@@ -230,26 +228,9 @@ class MDLLexer:
             
             if source[self.current] == '\\' and self.current + 1 < len(source):
                 # Handle escape sequences
-                string_parts.append(source[self.current:self.current + 2])
                 self.current += 2
                 self.column += 2
-            elif source[self.current] == '$':
-                # Handle variable substitution inside string
-                # Save current position
-                var_start = self.current
-                var_start_line = self.line
-                var_start_column = self.column
-                
-                # Scan the variable substitution
-                self._scan_variable_substitution(source)
-                
-                # Get the variable token we just created
-                var_token = self.tokens[-1]
-                
-                # Add the variable substitution to string parts
-                string_parts.append(var_token.value)
             else:
-                string_parts.append(source[self.current])
                 self.current += 1
                 self.column += 1
         
@@ -268,8 +249,7 @@ class MDLLexer:
         self.current += 1
         self.column += 1
         
-        # Join the string parts and create the token
-        text = quote_char + ''.join(string_parts) + quote_char
+        text = source[self.start:self.current]
         self.tokens.append(Token(TokenType.STRING, text, start_line, start_column))
     
     def _scan_number(self, source: str):
@@ -331,18 +311,9 @@ class MDLLexer:
         
         token_type = keyword_map.get(text.lower(), TokenType.IDENTIFIER)
         
-        # Special handling for say command
-        if text.lower() == 'say':
-            self.tokens.append(Token(token_type, text, self.line, self.column - len(text)))
-            # After 'say', scan the command content
-            self._scan_say_command(source)
-        # Special handling for execute command
-        elif text.lower() == 'execute':
-            self.tokens.append(Token(token_type, text, self.line, self.column - len(text)))
-            # After 'execute', scan the command content
-            self._scan_execute_command(source)
-        else:
-            self.tokens.append(Token(token_type, text, self.line, self.column - len(text)))
+        # Note: Special handling for say and execute commands is done in _scan_token
+        # to avoid duplicate processing
+        self.tokens.append(Token(token_type, text, self.line, self.column - len(text)))
     
     def _scan_variable_substitution(self, source: str):
         """Scan variable substitution ($variable$)."""

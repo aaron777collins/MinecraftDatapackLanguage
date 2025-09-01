@@ -1,0 +1,1 @@
+say "Counter is 3 or less"
