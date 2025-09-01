@@ -337,7 +337,6 @@ code.language-mdl .token.keyword,
 .language-mdl .token.keyword {
   color: #d73a49 !important;
   font-weight: 600 !important;
-  background-color: rgba(215, 58, 73, 0.1) !important;
 }
 
 pre code.language-mdl .token.builtin,
@@ -345,7 +344,6 @@ code.language-mdl .token.builtin,
 .language-mdl .token.builtin {
   color: #6f42c1 !important;
   font-weight: 500 !important;
-  background-color: rgba(111, 66, 193, 0.1) !important;
 }
 
 pre code.language-mdl .token.selector,
@@ -353,14 +351,12 @@ code.language-mdl .token.selector,
 .language-mdl .token.selector {
   color: #e36209 !important;
   font-weight: 600 !important;
-  background-color: rgba(227, 98, 9, 0.1) !important;
 }
 
 pre code.language-mdl .token.string,
 code.language-mdl .token.string,
 .language-mdl .token.string {
   color: #032f62 !important;
-  background-color: rgba(3, 47, 98, 0.1) !important;
 }
 
 pre code.language-mdl .token.comment,
@@ -368,7 +364,6 @@ code.language-mdl .token.comment,
 .language-mdl .token.comment {
   color: #6a737d !important;
   font-style: italic !important;
-  background-color: rgba(106, 115, 125, 0.1) !important;
 }
 
 pre code.language-mdl .token.number,
@@ -376,7 +371,6 @@ code.language-mdl .token.number,
 .language-mdl .token.number {
   color: #005cc5 !important;
   font-weight: 500 !important;
-  background-color: rgba(0, 92, 197, 0.1) !important;
 }
 
 pre code.language-mdl .token.boolean,
@@ -384,7 +378,6 @@ code.language-mdl .token.boolean,
 .language-mdl .token.boolean {
   color: #005cc5 !important;
   font-weight: 500 !important;
-  background-color: rgba(0, 92, 197, 0.1) !important;
 }
 
 pre code.language-mdl .token.operator,
@@ -392,14 +385,12 @@ code.language-mdl .token.operator,
 .language-mdl .token.operator {
   color: #d73a49 !important;
   font-weight: 500 !important;
-  background-color: rgba(215, 58, 73, 0.1) !important;
 }
 
 pre code.language-mdl .token.punctuation,
 code.language-mdl .token.punctuation,
 .language-mdl .token.punctuation {
   color: #24292e !important;
-  background-color: rgba(36, 41, 46, 0.1) !important;
 }
 
 /* MDL Syntax Highlighting - Dark Mode */
@@ -407,63 +398,54 @@ code.language-mdl .token.punctuation,
 [data-theme="dark"] code.language-mdl .token.keyword,
 [data-theme="dark"] .language-mdl .token.keyword {
   color: #ff7b72 !important;
-  background-color: rgba(255, 123, 114, 0.1) !important;
 }
 
 [data-theme="dark"] pre code.language-mdl .token.builtin,
 [data-theme="dark"] code.language-mdl .token.builtin,
 [data-theme="dark"] .language-mdl .token.builtin {
   color: #d2a8ff !important;
-  background-color: rgba(210, 168, 255, 0.1) !important;
 }
 
 [data-theme="dark"] pre code.language-mdl .token.selector,
 [data-theme="dark"] code.language-mdl .token.selector,
 [data-theme="dark"] .language-mdl .token.selector {
   color: #ffa657 !important;
-  background-color: rgba(255, 166, 87, 0.1) !important;
 }
 
 [data-theme="dark"] pre code.language-mdl .token.string,
 [data-theme="dark"] code.language-mdl .token.string,
 [data-theme="dark"] .language-mdl .token.string {
   color: #a5d6ff !important;
-  background-color: rgba(165, 214, 255, 0.1) !important;
 }
 
 [data-theme="dark"] pre code.language-mdl .token.comment,
 [data-theme="dark"] code.language-mdl .token.comment,
 [data-theme="dark"] .language-mdl .token.comment {
   color: #8b949e !important;
-  background-color: rgba(139, 148, 158, 0.1) !important;
 }
 
 [data-theme="dark"] pre code.language-mdl .token.number,
 [data-theme="dark"] code.language-mdl .token.number,
 [data-theme="dark"] .language-mdl .token.number {
   color: #79c0ff !important;
-  background-color: rgba(121, 192, 255, 0.1) !important;
 }
 
 [data-theme="dark"] pre code.language-mdl .token.boolean,
 [data-theme="dark"] code.language-mdl .token.boolean,
 [data-theme="dark"] .language-mdl .token.boolean {
   color: #79c0ff !important;
-  background-color: rgba(121, 192, 255, 0.1) !important;
 }
 
 [data-theme="dark"] pre code.language-mdl .token.operator,
 [data-theme="dark"] code.language-mdl .token.operator,
 [data-theme="dark"] .language-mdl .token.operator {
   color: #ff7b72 !important;
-  background-color: rgba(255, 123, 114, 0.1) !important;
 }
 
 [data-theme="dark"] pre code.language-mdl .token.punctuation,
 [data-theme="dark"] code.language-mdl .token.punctuation,
 [data-theme="dark"] .language-mdl .token.punctuation {
   color: #c9d1d9 !important;
-  background-color: rgba(201, 209, 217, 0.1) !important;
 }
 
 /* Override any default Prism colors for MDL */
@@ -473,6 +455,33 @@ code.language-mdl .token.punctuation,
 
 [data-theme="dark"] .language-mdl .token {
   color: #c9d1d9 !important;
+}
+
+/* Fix code block sizing */
+pre[class*="language-"],
+pre,
+.highlight,
+.highlight pre {
+  background-color: var(--code-bg) !important;
+  border: 1px solid var(--code-border) !important;
+  border-radius: 6px;
+  margin: 1rem 0;
+  color: var(--code-text) !important;
+  font-size: 0.9rem !important;
+  line-height: 1.4 !important;
+  padding: 1rem !important;
+  overflow-x: auto !important;
+  max-width: 100% !important;
+}
+
+code[class*="language-"],
+code,
+.highlight code {
+  font-size: 0.9rem !important;
+  color: var(--code-text) !important;
+  background-color: transparent !important;
+  padding: 0 !important;
+  border: none !important;
 }
 
 /* Feature grid styles */
