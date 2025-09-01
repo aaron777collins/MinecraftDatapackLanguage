@@ -374,56 +374,56 @@ def _merge_mdl_files(files: List[Path], verbose: bool = False, error_collector: 
             ast = parse_mdl_js(source, str(file_path))
             file_dir = os.path.dirname(os.path.abspath(file_path))
         
-        # Get the namespace for this file
-        file_namespace = ast.get('namespace', {}).get('name', 'unknown') if ast.get('namespace') else 'unknown'
-        
-        # Merge functions with namespace and source directory information
-        if ast.get('functions'):
-            for func in ast['functions']:
-                # Add namespace information to the function
-                if isinstance(func, dict):
-                    func['_source_namespace'] = file_namespace
-                    func['_source_dir'] = file_dir
-                else:
-                    # For AST node objects, we'll handle this differently
-                    setattr(func, '_source_namespace', file_namespace)
-                    setattr(func, '_source_dir', file_dir)
-            root_pack['functions'].extend(ast['functions'])
-        
-        # Merge hooks
-        if ast.get('hooks'):
-            root_pack['hooks'].extend(ast['hooks'])
-        
-        # Merge tags
-        if ast.get('tags'):
-            root_pack['tags'].extend(ast['tags'])
-        
-        # Merge variables with namespace and source directory information
-        if ast.get('variables'):
-            for var in ast['variables']:
-                # Add namespace information to the variable
-                if isinstance(var, dict):
-                    var['_source_namespace'] = file_namespace
-                    var['_source_dir'] = file_dir
-                else:
-                    # For AST node objects, we'll handle this differently
-                    setattr(var, '_source_namespace', file_namespace)
-                    setattr(var, '_source_dir', file_dir)
-            root_pack['variables'].extend(ast['variables'])
-
-        # Merge registry declarations and attach source directory for JSON resolution
-        for key in ['recipes', 'loot_tables', 'advancements', 'predicates', 'item_modifiers', 'structures']:
-            if ast.get(key):
-                for entry in ast[key]:
-                    if isinstance(entry, dict):
-                        entry['_source_dir'] = file_dir
-                        # Don't overwrite _source_namespace - it's already set correctly by the parser
+            # Get the namespace for this file
+            file_namespace = ast.get('namespace', {}).get('name', 'unknown') if ast.get('namespace') else 'unknown'
+            
+            # Merge functions with namespace and source directory information
+            if ast.get('functions'):
+                for func in ast['functions']:
+                    # Add namespace information to the function
+                    if isinstance(func, dict):
+                        func['_source_namespace'] = file_namespace
+                        func['_source_dir'] = file_dir
                     else:
-                        setattr(entry, '_source_dir', file_dir)
-                        # Don't overwrite _source_namespace - it's already set correctly by the parser
-                if key not in root_pack:
-                    root_pack[key] = []
-                root_pack[key].extend(ast[key])
+                        # For AST node objects, we'll handle this differently
+                        setattr(func, '_source_namespace', file_namespace)
+                        setattr(func, '_source_dir', file_dir)
+                root_pack['functions'].extend(ast['functions'])
+            
+            # Merge hooks
+            if ast.get('hooks'):
+                root_pack['hooks'].extend(ast['hooks'])
+            
+            # Merge tags
+            if ast.get('tags'):
+                root_pack['tags'].extend(ast['tags'])
+            
+            # Merge variables with namespace and source directory information
+            if ast.get('variables'):
+                for var in ast['variables']:
+                    # Add namespace information to the variable
+                    if isinstance(var, dict):
+                        var['_source_namespace'] = file_namespace
+                        var['_source_dir'] = file_dir
+                    else:
+                        # For AST node objects, we'll handle this differently
+                        setattr(var, '_source_namespace', file_namespace)
+                        setattr(var, '_source_dir', file_dir)
+                root_pack['variables'].extend(ast['variables'])
+
+            # Merge registry declarations and attach source directory for JSON resolution
+            for key in ['recipes', 'loot_tables', 'advancements', 'predicates', 'item_modifiers', 'structures']:
+                if ast.get(key):
+                    for entry in ast[key]:
+                        if isinstance(entry, dict):
+                            entry['_source_dir'] = file_dir
+                            # Don't overwrite _source_namespace - it's already set correctly by the parser
+                        else:
+                            setattr(entry, '_source_dir', file_dir)
+                            # Don't overwrite _source_namespace - it's already set correctly by the parser
+                    if key not in root_pack:
+                        root_pack[key] = []
+                    root_pack[key].extend(ast[key])
         
         except (MDLLexerError, MDLParserError, MDLSyntaxError) as e:
             if error_collector:
