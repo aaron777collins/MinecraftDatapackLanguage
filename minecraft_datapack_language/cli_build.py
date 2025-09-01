@@ -465,7 +465,10 @@ def _generate_function_file(ast: Dict[str, Any], output_dir: Path, namespace: st
             ensure_dir(str(func_dir))
             
             with open(func_dir / f"{func_name}.mcfunction", 'w', encoding='utf-8') as f:
-                f.write('\n'.join(final_commands))
+                content = '\n'.join(final_commands)
+                if verbose:
+                    print(f"DEBUG: Writing to file {func_name}.mcfunction: {repr(content)}")
+                f.write(content)
             
             if verbose:
                 print(f"Generated function: {namespace}:{func_name}")
