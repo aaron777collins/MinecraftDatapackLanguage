@@ -533,6 +533,10 @@ class MDLLexer:
             ':': TokenType.COLON,
             '!': TokenType.RAW,  # Allow exclamation marks in text
             '?': TokenType.RAW,  # Allow question marks in text
+            '@': TokenType.RAW,  # Allow @ for player selectors
+            '#': TokenType.RAW,  # Allow # for tags
+            '~': TokenType.RAW,  # Allow ~ for relative coordinates
+            '^': TokenType.RAW,  # Allow ^ for relative coordinates
         }
         
         if char in operator_map:
