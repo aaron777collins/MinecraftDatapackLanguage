@@ -81,7 +81,7 @@ python -m pip install -e .
 
 ## 💻 CLI
 
-### Modern JavaScript-style MDL (v12.0+)
+### Modern JavaScript-style MDL (v15.0+)
 ```bash
 # Build JavaScript-style MDL files
 mdl build --mdl my_pack/mypack.mdl -o dist --wrapper mypack
@@ -93,7 +93,48 @@ mdl check my_pack/mypack.mdl
 # Multi-file projects
 mdl build --mdl my_pack/ -o dist      # Build entire directory
 mdl build --mdl "file1.mdl file2.mdl" -o dist  # Build specific files
+
+# Create new projects
+mdl new my_awesome_pack
 ```
+
+### 🐛 **Comprehensive Error Handling**
+
+MDL provides detailed error reporting with exact locations and helpful suggestions:
+
+```bash
+# Check for errors with detailed output
+mdl check my_pack.mdl --verbose
+```
+
+**Example Error Output:**
+```
+Error 1: MDLSyntaxError in test.mdl:15:8
+Missing closing brace for if statement
+Context:
+  13:   if (score > 10) {
+  14:     say "High score!"
+  15:     score = 0
+  16:   }
+
+Suggestion: Add closing brace '}' after line 15
+
+Error 2: MDLLexerError in test.mdl:22:12
+Unterminated string literal
+Context:
+  20:   say "Hello world
+  21:   score = 10
+  22:   say "Goodbye
+
+Suggestion: Add closing quote '"' at the end of line 20
+```
+
+**Error Features:**
+- ✅ **Exact Location**: Line and column numbers for precise error location
+- ✅ **Context Lines**: Shows surrounding code for better debugging
+- ✅ **Helpful Suggestions**: Specific fix recommendations
+- ✅ **Multiple Error Collection**: Reports all errors, not just the first
+- ✅ **Error Types**: Syntax, Lexer, Parser, Validation, File, Build, and Configuration errors
 
 ### Comments in MDL
 MDL supports modern JavaScript-style comments:

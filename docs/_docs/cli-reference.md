@@ -64,7 +64,7 @@ mdl check myproject/
 
 ### Check Command
 
-Check MDL files for style and potential issues:
+Validate MDL files for syntax and semantic errors:
 
 ```bash
 mdl check <files>
@@ -75,11 +75,40 @@ mdl check <files>
 # Check single file
 mdl check hello.mdl
 
-# Check multiple files
-mdl check myproject/
-
-# Check multiple files
+# Check current directory
 mdl check .
+
+# Check entire directory
+mdl check myproject/
+```
+
+**Error Reporting:**
+The check command provides comprehensive error reporting with:
+- Exact file location (line, column)
+- Context lines showing the problematic code
+- Helpful suggestions for fixing issues
+- Multiple error collection (reports all errors, not just the first)
+
+**Example Error Output:**
+```
+Error 1: MDLSyntaxError in test.mdl:15:8
+Missing closing brace for if statement
+Context:
+  13:   if (score > 10) {
+  14:     say "High score!"
+  15:     score = 0
+  16:   }
+
+Suggestion: Add closing brace '}' after line 15
+
+Error 2: MDLLexerError in test.mdl:22:12
+Unterminated string literal
+Context:
+  20:   say "Hello world
+  21:   score = 10
+  22:   say "Goodbye
+
+Suggestion: Add closing quote '"' at the end of line 20
 ```
 
 ## Command Options
@@ -97,7 +126,68 @@ mdl check .
 
 | Option | Description | Example |
 |--------|-------------|---------|
-| `--json` | Output in JSON format | `--json` |
+| `--verbose` | Show detailed validation information | `--verbose` |
+
+## Error Handling
+
+MDL provides comprehensive error handling and reporting:
+
+### Error Types
+
+- **MDLSyntaxError**: Basic syntax violations (missing semicolons, braces)
+- **MDLLexerError**: Token recognition issues (unterminated strings, invalid characters)
+- **MDLParserError**: Parsing and structure problems (malformed statements)
+- **MDLValidationError**: Semantic validation failures (undefined variables, invalid references)
+- **MDLFileError**: File access and I/O issues
+- **MDLBuildError**: Build process failures
+- **MDLCompilationError**: Compilation and linking issues
+- **MDLConfigurationError**: CLI configuration and argument errors
+
+### Error Features
+
+- **Exact Location**: Errors include precise line and column numbers
+- **Context Lines**: Shows surrounding code for better debugging
+- **Helpful Suggestions**: Provides specific fix recommendations
+- **Multiple Error Collection**: Reports all errors, not just the first one
+- **Error Summaries**: Shows total error and warning counts
+- **Verbose Mode**: Detailed error information with additional context
+
+### Example Error Output
+
+```
+🔍 Checking test.mdl...
+
+Error 1: MDLSyntaxError in test.mdl:15:8
+Missing closing brace for if statement
+Context:
+  13:   if (score > 10) {
+  14:     say "High score!"
+  15:     score = 0
+  16:   }
+
+Suggestion: Add closing brace '}' after line 15
+
+Error 2: MDLLexerError in test.mdl:22:12
+Unterminated string literal
+Context:
+  20:   say "Hello world
+  21:   score = 10
+  22:   say "Goodbye
+
+Suggestion: Add closing quote '"' at the end of line 20
+
+Error 3: MDLValidationError in test.mdl:8:5
+Undefined variable 'player_score'
+Context:
+   6:   score = 10
+   7:   lives = 3
+   8:   player_score = 5
+   9:   say "Score: $score$"
+
+Suggestion: Declare the variable first with 'variable player_score = 0'
+
+Summary: 3 errors found
+```
 | `--verbose` | Show detailed output | `--verbose` |
 
 ## Examples
