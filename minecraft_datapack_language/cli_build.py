@@ -216,6 +216,8 @@ def _process_say_command_with_variables(content: str, selector: str) -> str:
     """Process say command content with variable substitution, converting to tellraw with score components."""
     import re
     
+    print(f"DEBUG: _process_say_command_with_variables called with content: {repr(content)}, selector: {selector}")
+    
     # Clean up the content - remove quotes if present
     content = content.strip()
     if content.startswith('"') and content.endswith('"'):
@@ -277,12 +279,15 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
         
         # Handle say commands specifically
         if command.startswith('say '):
+            print(f"DEBUG: Found say command: {repr(command)}")
             # Convert say command to tellraw command
             content = command[4:]  # Remove "say " prefix
+            print(f"DEBUG: Say command content: {repr(content)}")
             # Convert to Minecraft tellraw format
             processed_command = _process_say_command_with_variables(content, selector)
+            print(f"DEBUG: Processed say command: {repr(processed_command)}")
             commands.append(processed_command)
-        elif command.startswith('tellraw @a '):
+        elif command.startswith('tellraw @a ') or command.startswith('tellraw @ a '):
             # Fix extra space in tellraw commands
             fixed_command = command.replace('tellraw @ a ', 'tellraw @a ')
             commands.append(fixed_command)
