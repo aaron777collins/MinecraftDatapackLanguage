@@ -195,7 +195,6 @@ def _generate_load_function(scoreboard_commands: List[str], output_dir: Path, na
     
     # Add armor stand setup for server-side operations
     load_content.append("execute unless entity @e[type=armor_stand,tag=mdl_server,limit=1] run summon armor_stand ~ 320 ~ {Tags:[\"mdl_server\"],Invisible:1b,Marker:1b,NoGravity:1b,Invulnerable:1b}")
-    load_content.append("")
     
     # Add scoreboard objectives
     load_content.extend(scoreboard_commands)
@@ -283,6 +282,10 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
             # Convert to Minecraft tellraw format
             processed_command = _process_say_command_with_variables(content, selector)
             commands.append(processed_command)
+        elif command.startswith('tellraw @a '):
+            # Fix extra space in tellraw commands
+            fixed_command = command.replace('tellraw @ a ', 'tellraw @a ')
+            commands.append(fixed_command)
         else:
             # Process other commands normally
             processed_command = _process_variable_substitutions(command, selector)
@@ -294,11 +297,11 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
         
         # Handle different value types
         if isinstance(value, int):
-            commands.append(f"scoreboard players set {var_name} {selector} {value}")
+            commands.append(f"scoreboard players set {selector} {var_name} {value}")
         elif isinstance(value, str) and value.startswith('$') and value.endswith('$'):
             # Variable reference
             ref_var = value[1:-1]  # Remove $ symbols
-            commands.append(f"scoreboard players operation {var_name} {selector} = {ref_var} {selector}")
+            commands.append(f"scoreboard players operation {selector} {var_name} = {selector} {ref_var}")
         elif hasattr(value, '__class__') and 'BinaryExpression' in str(value.__class__):
             # Handle complex expressions (BinaryExpression, etc.)
             # Convert to proper Minecraft scoreboard commands
@@ -311,14 +314,14 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
                 if operator == 'PLUS':
                     if hasattr(left, 'name') and hasattr(right, 'value'):
                         # counter = counter + 1
-                        commands.append(f"scoreboard players add {var_name} {selector} {right.value}")
+                        commands.append(f"scoreboard players add {selector} {var_name} {right.value}")
                     else:
                         # Complex case - use operation
                         commands.append(f"# Complex addition: {var_name} = {left} + {right}")
                 elif operator == 'MINUS':
                     if hasattr(left, 'name') and hasattr(right, 'value'):
                         # health = health - 10
-                        commands.append(f"scoreboard players remove {var_name} {selector} {right.value}")
+                        commands.append(f"scoreboard players remove {selector} {var_name} {right.value}")
                     else:
                         # Complex case - use operation
                         commands.append(f"# Complex subtraction: {var_name} = {left} - {right}")
@@ -333,11 +336,11 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
                 if hasattr(value, 'value'):
                     # LiteralExpression case
                     num_value = int(value.value)
-                    commands.append(f"scoreboard players set {var_name} {selector} {num_value}")
+                    commands.append(f"scoreboard players set {selector} {var_name} {num_value}")
                 else:
                     # Direct value case
                     num_value = int(value)
-                    commands.append(f"scoreboard players set {var_name} {selector} {num_value}")
+                    commands.append(f"scoreboard players set {selector} {var_name} {num_value}")
             except (ValueError, TypeError):
                 # If we can't convert to int, add a placeholder
                 commands.append(f"# Assignment: {var_name} = {value}")
@@ -447,11 +450,17 @@ def _generate_function_file(ast: Dict[str, Any], output_dir: Path, namespace: st
         
         # Write function file
         if function_commands:
+            # Add armor stand setup to the beginning of each function
+            final_commands = []
+            final_commands.append("execute unless entity @e[type=armor_stand,tag=mdl_server,limit=1] run summon armor_stand ~ 320 ~ {Tags:[\"mdl_server\"],Invisible:1b,Marker:1b,NoGravity:1b,Invulnerable:1b}")
+            final_commands.append("")
+            final_commands.extend(function_commands)
+            
             func_dir = output_dir / "data" / namespace / "function"
             ensure_dir(str(func_dir))
             
             with open(func_dir / f"{func_name}.mcfunction", 'w', encoding='utf-8') as f:
-                f.write('\n'.join(function_commands))
+                f.write('\n'.join(final_commands))
             
             if verbose:
                 print(f"Generated function: {namespace}:{func_name}")
