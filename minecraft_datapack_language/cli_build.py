@@ -155,14 +155,16 @@ def _generate_scoreboard_objectives(ast: Dict[str, Any], output_dir: Path) -> Li
     """Generate scoreboard objectives for all variables."""
     scoreboard_commands = []
     
-    # Collect all variable names
-    variables = set()
+    # Collect all variable names in order of appearance
+    variables = []
+    seen_variables = set()
     
-    # From variable declarations
+    # From variable declarations (preserve order)
     if 'variables' in ast:
         for var_decl in ast['variables']:
-            if 'name' in var_decl:
-                variables.add(var_decl['name'])
+            if 'name' in var_decl and var_decl['name'] not in seen_variables:
+                variables.append(var_decl['name'])
+                seen_variables.add(var_decl['name'])
     
     # From functions (scan for variable usage)
     if 'functions' in ast:
@@ -171,7 +173,9 @@ def _generate_scoreboard_objectives(ast: Dict[str, Any], output_dir: Path) -> Li
                 for statement in func['body']:
                     # Look for variable assignments and usage
                     if statement['type'] == 'variable_assignment':
-                        variables.add(statement['name'])
+                        if statement['name'] not in seen_variables:
+                            variables.append(statement['name'])
+                            seen_variables.add(statement['name'])
                     elif statement['type'] == 'command':
                         # Scan command for variable substitutions
                         command = statement['command']
@@ -180,10 +184,12 @@ def _generate_scoreboard_objectives(ast: Dict[str, Any], output_dir: Path) -> Li
                         for var_name in var_matches:
                             # Extract base name from scoped variables
                             base_name = _extract_base_variable_name(var_name)
-                            variables.add(base_name)
+                            if base_name not in seen_variables:
+                                variables.append(base_name)
+                                seen_variables.add(base_name)
     
-    # Create scoreboard objectives
-    for var_name in sorted(variables):
+    # Create scoreboard objectives in the order they were found
+    for var_name in variables:
         scoreboard_commands.append(f"scoreboard objectives add {var_name} dummy")
     
     return scoreboard_commands
@@ -228,50 +234,8 @@ def _process_say_command_with_variables(content: str, selector: str) -> str:
     matches = re.findall(var_pattern, content)
     
     if not matches:
-        # Check for common variable names that might have been processed
-        # This handles the case where $counter$ was converted to just "counter"
-        word_pattern = r'\b(counter|health|score|value|num|count|timer|level)\b'
-        word_matches = re.findall(word_pattern, content)
-        
-        if word_matches:
-            # Process the content by replacing each variable with a score component
-            components = []
-            processed_content = content
-            
-            # Sort variables by their position in the content to process them in order
-            var_positions = []
-            for var_name in set(word_matches):  # Remove duplicates
-                pos = processed_content.find(var_name)
-                if pos >= 0:
-                    var_positions.append((pos, var_name))
-            
-            var_positions.sort()  # Sort by position
-            
-            last_pos = 0
-            for pos, var_name in var_positions:
-                # Add text before this variable
-                if pos > last_pos:
-                    text_before = processed_content[last_pos:pos]
-                    if text_before:
-                        components.append(f'{{"text":"{text_before}"}}')
-                
-                # Add score component for variable
-                components.append(f'{{"score":{{"name":"@e[type=armor_stand,tag=mdl_server,limit=1]","objective":"{var_name}"}}}}')
-                
-                last_pos = pos + len(var_name)
-            
-            # Add remaining text after last variable
-            if last_pos < len(processed_content):
-                remaining_text = processed_content[last_pos:]
-                if remaining_text:
-                    components.append(f'{{"text":"{remaining_text}"}}')
-            
-            # Combine all components
-            components_str = ','.join(components)
-            return f'tellraw @a [{components_str}]'
-        else:
-            # No variables, return simple tellraw
-            return f'tellraw @a [{{"text":"{content}"}}]'
+        # No variables, return simple tellraw
+        return f'tellraw @a [{{"text":"{content}"}}]'
     
     # Split content by variable references while preserving the structure
     parts = re.split(var_pattern, content)
