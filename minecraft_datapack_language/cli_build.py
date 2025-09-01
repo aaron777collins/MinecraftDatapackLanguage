@@ -283,7 +283,7 @@ def _process_say_command_with_variables(content: str, selector: str) -> str:
     return f'tellraw @a [{components_str}]'
 
 
-def _process_statement(statement: Any, namespace: str, function_name: str, statement_index: int = 0, is_tag_function: bool = False, selector: str = "@s", variable_scopes: Dict[str, str] = None, build_context: BuildContext = None) -> List[str]:
+def _process_statement(statement: Any, namespace: str, function_name: str, statement_index: int = 0, is_tag_function: bool = False, selector: str = "@s", variable_scopes: Dict[str, str] = None, build_context: BuildContext = None, output_dir: Path = None) -> List[str]:
     """Process a single statement and return Minecraft commands."""
     if variable_scopes is None:
         variable_scopes = {}
@@ -384,13 +384,13 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
         # Create conditional function
         if_commands = []
         for i, stmt in enumerate(then_body):
-            if_commands.extend(_process_statement(stmt, namespace, if_func_name, i, is_tag_function, selector, variable_scopes, build_context))
+            if_commands.extend(_process_statement(stmt, namespace, if_func_name, i, is_tag_function, selector, variable_scopes, build_context, output_dir))
         
         # Write conditional function
         if if_commands:
-            # Use the output directory from build context
-            if hasattr(build_context, 'output_dir'):
-                if_dir = build_context.output_dir / "data" / namespace / "function"
+            # Use the output directory parameter
+            if output_dir:
+                if_dir = output_dir / "data" / namespace / "function"
             else:
                 if_dir = Path(f"data/{namespace}/function")
             ensure_dir(str(if_dir))
@@ -401,7 +401,7 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
         if else_body:
             else_commands = []
             for i, stmt in enumerate(else_body):
-                else_commands.extend(_process_statement(stmt, namespace, else_func_name, i, is_tag_function, selector, variable_scopes, build_context))
+                else_commands.extend(_process_statement(stmt, namespace, else_func_name, i, is_tag_function, selector, variable_scopes, build_context, output_dir))
             
             if else_commands:
                 with open(if_dir / f"{else_func_name}.mcfunction", 'w', encoding='utf-8') as f:
@@ -418,7 +418,7 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
     
     elif statement['type'] == 'while_loop' or statement['type'] == 'while_statement':
         # Handle while loops using recursion
-        loop_commands = _process_while_loop_recursion(statement, namespace, function_name, statement_index, is_tag_function, selector, variable_scopes, build_context)
+        loop_commands = _process_while_loop_recursion(statement, namespace, function_name, statement_index, is_tag_function, selector, variable_scopes, build_context, output_dir)
         commands.extend(loop_commands)
     
     elif statement['type'] == 'function_call':
@@ -464,7 +464,7 @@ def _generate_function_file(ast: Dict[str, Any], output_dir: Path, namespace: st
         for i, statement in enumerate(func_body):
             try:
                 print(f"DEBUG: Processing statement {i} of type {statement.get('type', 'unknown')}: {statement}")
-                commands = _process_statement(statement, namespace, func_name, i, False, "@s", {}, build_context)
+                commands = _process_statement(statement, namespace, func_name, i, False, "@s", {}, build_context, output_dir)
                 function_commands.extend(commands)
                 print(f"Generated {len(commands)} commands for statement {i} in function {func_name}: {commands}")
             except Exception as e:
@@ -605,7 +605,7 @@ def _collect_conditional_functions(if_statement, namespace: str, function_name: 
     return conditional_functions
 
 
-def _process_while_loop_recursion(while_statement, namespace: str, function_name: str, statement_index: int, is_tag_function: bool = False, selector: str = "@s", variable_scopes: Dict[str, str] = None, build_context: BuildContext = None) -> List[str]:
+def _process_while_loop_recursion(while_statement, namespace: str, function_name: str, statement_index: int, is_tag_function: bool = False, selector: str = "@s", variable_scopes: Dict[str, str] = None, build_context: BuildContext = None, output_dir: Path = None) -> List[str]:
     """Process while loops using recursive function calls."""
     if variable_scopes is None:
         variable_scopes = {}
@@ -616,44 +616,34 @@ def _process_while_loop_recursion(while_statement, namespace: str, function_name
     condition = while_statement['condition']
     body = while_statement['body']
     
-    print(f"DEBUG: _process_while_loop_recursion called with namespace={namespace}, function_name={function_name}, statement_index={statement_index}")
-    
     # Generate unique function names - they should be the same according to the test
     loop_func_name = f"test_{function_name}_while_{statement_index}"
-    
-    print(f"DEBUG: Generated function name: loop_func_name={loop_func_name}")
     
     # Process loop body
     body_commands = []
     for i, stmt in enumerate(body):
-        body_commands.extend(_process_statement(stmt, namespace, loop_func_name, i, is_tag_function, selector, variable_scopes, build_context))
-    
-    print(f"DEBUG: Generated body_commands: {body_commands}")
+        body_commands.extend(_process_statement(stmt, namespace, loop_func_name, i, is_tag_function, selector, variable_scopes, build_context, output_dir))
     
     # Add the recursive call to the loop body
     minecraft_condition = _convert_condition_to_minecraft_syntax(condition, selector)
     body_commands.append(f"execute if {minecraft_condition} run function {namespace}:{loop_func_name}")
     
-    print(f"DEBUG: Final body_commands with recursive call: {body_commands}")
-    
     # Write the single loop function
     if body_commands:
-        # Use the output directory from build context
-        if hasattr(build_context, 'output_dir'):
-            func_dir = build_context.output_dir / "data" / namespace / "function"
+        # Use the output directory parameter
+        if output_dir:
+            func_dir = output_dir / "data" / namespace / "function"
         else:
             func_dir = Path(f"data/{namespace}/function")
         ensure_dir(str(func_dir))
-        print(f"DEBUG: Writing loop function to: {func_dir / f'{loop_func_name}.mcfunction'}")
         with open(func_dir / f"{loop_func_name}.mcfunction", 'w', encoding='utf-8') as f:
             f.write('\n'.join(body_commands))
-        print(f"DEBUG: Successfully wrote loop function file")
     
     # Return the command to start the loop with conditional execution
     return [f"execute if {minecraft_condition} run function {namespace}:{loop_func_name}"]
 
 
-def _process_while_loop_schedule(while_statement, namespace: str, function_name: str, statement_index: int, is_tag_function: bool = False, selector: str = "@s", variable_scopes: Dict[str, str] = None, build_context: BuildContext = None) -> List[str]:
+def _process_while_loop_schedule(while_statement, namespace: str, function_name: str, statement_index: int, is_tag_function: bool = False, selector: str = "@s", variable_scopes: Dict[str, str] = None, build_context: BuildContext = None, output_dir: Path = None) -> List[str]:
     """Process while loops using scheduled functions."""
     if variable_scopes is None:
         variable_scopes = {}
@@ -671,7 +661,7 @@ def _process_while_loop_schedule(while_statement, namespace: str, function_name:
     # Process loop body
     body_commands = []
     for i, stmt in enumerate(body):
-        body_commands.extend(_process_statement(stmt, namespace, loop_body_func_name, i, is_tag_function, selector, variable_scopes, build_context))
+        body_commands.extend(_process_statement(stmt, namespace, loop_body_func_name, i, is_tag_function, selector, variable_scopes, build_context, output_dir))
     
     # Add the loop continuation command
     minecraft_condition = _convert_condition_to_minecraft_syntax(condition, selector)
@@ -679,9 +669,9 @@ def _process_while_loop_schedule(while_statement, namespace: str, function_name:
     
     # Write loop body function
     if body_commands:
-        # Use the output directory from build context
-        if hasattr(build_context, 'output_dir'):
-            func_dir = build_context.output_dir / "data" / namespace / "function"
+        # Use the output directory parameter
+        if output_dir:
+            func_dir = output_dir / "data" / namespace / "function"
         else:
             func_dir = Path(f"data/{namespace}/function")
         ensure_dir(str(func_dir))
@@ -746,7 +736,7 @@ def _ast_to_pack(ast: Dict[str, Any], mdl_files: List[Path]) -> Pack:
                 for i, statement in enumerate(func['body']):
                     try:
                         # Use the same processing logic as the build system
-                        commands = _process_statement(statement, namespace_name, function_name, i, False, "@s", {}, BuildContext())
+                        commands = _process_statement(statement, namespace_name, function_name, i, False, "@s", {}, BuildContext(), None)
                         function.commands.extend(commands)
                     except Exception as e:
                         # If processing fails, try to add as simple command
