@@ -2839,15 +2839,22 @@ def main():
             show_build_help()
             return
             
-        parser = argparse.ArgumentParser(description="MDL - Build MDL files into datapack")
+        # Remove help arguments to prevent argparse from showing its own help
+        build_args = [arg for arg in sys.argv[2:] if arg not in ("--help", "-h")]
+        
+        parser = argparse.ArgumentParser(description="MDL - Build MDL files into datapack", add_help=False)
         parser.add_argument("--mdl", "-m", required=True, help="Input MDL file or directory")
         parser.add_argument("--output", "-o", required=True, help="Output directory")
         parser.add_argument("--pack-format", type=int, default=None, help="Override pack format for output (e.g., 48, 82)")
         parser.add_argument("--wrapper", type=str, default=None, help="Optional zip name override (does not change folder layout)")
         parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose output")
         
-        args = parser.parse_args(sys.argv[2:])
-        build_mdl(args.mdl, args.output, args.verbose, args.pack_format, args.wrapper)
+        try:
+            args = parser.parse_args(build_args)
+            build_mdl(args.mdl, args.output, args.verbose, args.pack_format, args.wrapper)
+        except SystemExit:
+            show_build_help()
+            return
         
     elif command == "check":
         # Check for help request first
@@ -2855,12 +2862,19 @@ def main():
             show_check_help()
             return
             
-        parser = argparse.ArgumentParser(description="MDL - Check MDL files for syntax issues")
+        # Remove help arguments to prevent argparse from showing its own help
+        check_args = [arg for arg in sys.argv[2:] if arg not in ("--help", "-h")]
+        
+        parser = argparse.ArgumentParser(description="MDL - Check MDL files for syntax issues", add_help=False)
         parser.add_argument("file", help="MDL file or directory to check")
         parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose output")
         
-        args = parser.parse_args(sys.argv[2:])
-        lint_mdl_file(args.file, args.verbose)
+        try:
+            args = parser.parse_args(check_args)
+            lint_mdl_file(args.file, args.verbose)
+        except SystemExit:
+            show_check_help()
+            return
         
     elif command == "new":
         # Check for help request first
@@ -2868,13 +2882,20 @@ def main():
             show_new_help()
             return
             
-        parser = argparse.ArgumentParser(description="MDL - Create new MDL project")
+        # Remove help arguments to prevent argparse from showing its own help
+        new_args = [arg for arg in sys.argv[2:] if arg not in ("--help", "-h")]
+        
+        parser = argparse.ArgumentParser(description="MDL - Create new MDL project", add_help=False)
         parser.add_argument("project_name", help="Name of the project to create")
         parser.add_argument("--name", help="Pack name (defaults to project name)")
         parser.add_argument("--pack-format", type=int, default=82, help="Pack format (default 82)")
         
-        args = parser.parse_args(sys.argv[2:])
-        create_new_project(args.project_name, args.name, args.pack_format)
+        try:
+            args = parser.parse_args(new_args)
+            create_new_project(args.project_name, args.name, args.pack_format)
+        except SystemExit:
+            show_new_help()
+            return
         
     else:
         print(f"Unknown command: {command}")
