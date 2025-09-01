@@ -401,6 +401,7 @@ class MDLLexer:
             if (char == 'r' and 
                 self.current + 4 < len(source) and 
                 source[self.current:self.current + 5] == 'raw!$'):
+                # Don't consume the raw!$ here - let the main scanner handle it
                 break
             
             # Add character to content
