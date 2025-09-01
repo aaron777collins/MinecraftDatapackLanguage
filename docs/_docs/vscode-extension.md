@@ -20,7 +20,7 @@ The MDL VS Code extension provides syntax highlighting, error checking, and buil
 
 The VS Code extension is automatically built and available for download with each release:
 
-1. **Go to [GitHub Releases](https://github.com/aaron777collins/MinecraftDatapackLanguage/releases)**
+1. **Go to [www.mcmdl.com](https://www.mcmdl.com)**
 2. **Download the latest `.vsix` file** from the release assets
 3. **Install in your editor**:
    - Open VS Code/Cursor

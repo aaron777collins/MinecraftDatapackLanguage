@@ -263,7 +263,7 @@ This extension is licensed under the same license as the main MDL project.
 ## Support
 
 For issues and questions:
-- Check the [MDL documentation](https://github.com/aaron777collins/MinecraftDatapackLanguage)
+- Check the [MDL documentation](https://www.mcmdl.com)
 - Report issues on the GitHub repository
 - Join the community discussions
 

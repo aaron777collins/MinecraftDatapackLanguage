@@ -111,7 +111,7 @@ if (score > 5) {
 
 - Check the error messages - they include helpful suggestions
 - Visit the documentation: https://mdl-lang.com/docs
-- Report bugs: https://github.com/aaron777collins/MinecraftDatapackLanguage/issues
+- Report bugs: https://www.mcmdl.com
 
 ## 📄 License
 
