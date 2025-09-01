@@ -149,8 +149,87 @@
   document.addEventListener('themeChanged', updatePrismTheme);
 </script>
 
-<!-- Simple Dark Mode Styles -->
+<!-- Professional Header Styling - Override Cayman Theme -->
 <style>
+/* Override Cayman theme's cartoony header colors with professional styling */
+h1, h2, h3, h4, h5, h6 {
+  color: #24292e !important;
+  font-weight: 600 !important;
+  text-shadow: none !important;
+}
+
+h1 {
+  color: #1a1a1a !important;
+  font-weight: 700 !important;
+  border-bottom: 2px solid #0366d6 !important;
+  padding-bottom: 0.3em !important;
+}
+
+h2 {
+  color: #24292e !important;
+  font-weight: 600 !important;
+  border-bottom: 1px solid #e1e4e8 !important;
+  padding-bottom: 0.3em !important;
+}
+
+h3 {
+  color: #2f363d !important;
+  font-weight: 600 !important;
+}
+
+h4, h5, h6 {
+  color: #586069 !important;
+  font-weight: 600 !important;
+}
+
+/* Page header styling */
+.page-header {
+  background: linear-gradient(135deg, #0366d6 0%, #1f4e79 100%) !important;
+  color: #ffffff !important;
+}
+
+.page-header h1 {
+  color: #ffffff !important;
+  border-bottom: none !important;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3) !important;
+}
+
+.page-header h2 {
+  color: #e6f3ff !important;
+  border-bottom: none !important;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3) !important;
+}
+
+/* Dark mode header overrides */
+[data-theme="dark"] h1, 
+[data-theme="dark"] h2, 
+[data-theme="dark"] h3, 
+[data-theme="dark"] h4, 
+[data-theme="dark"] h5, 
+[data-theme="dark"] h6 {
+  color: #e6edf3 !important;
+}
+
+[data-theme="dark"] h1 {
+  border-bottom-color: #58a6ff !important;
+}
+
+[data-theme="dark"] h2 {
+  border-bottom-color: #30363d !important;
+}
+
+[data-theme="dark"] .page-header {
+  background: linear-gradient(135deg, #0d1117 0%, #161b22 100%) !important;
+}
+
+[data-theme="dark"] .page-header h1 {
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .page-header h2 {
+  color: #c9d1d9 !important;
+}
+
 /* Dark mode styles */
 [data-theme="dark"] {
   background-color: #0d1117 !important;
@@ -498,7 +577,7 @@ code.language-mcfunction .token.keyword,
 
 pre code.language-mcfunction .token.builtin,
 code.language-mcfunction .token.builtin,
-.language-mcfunction .token.builtin {
+.language-mdl .token.builtin {
   color: #6f42c1 !important;
   font-weight: 500 !important;
 }
@@ -539,12 +618,6 @@ code.language-mcfunction .token.comment,
 .language-mcfunction .token.comment {
   color: #6a737d !important;
   font-style: italic !important;
-}
-
-[data-theme="dark"] pre code.language-mcfunction .token.comment,
-[data-theme="dark"] code.language-mcfunction .token.comment,
-[data-theme="dark"] .language-mcfunction .token.comment {
-  color: #8b949e !important;
 }
 
 pre code.language-mcfunction .token.number,
