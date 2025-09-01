@@ -51,7 +51,12 @@ class MDLParser:
                     ast['pack'] = self._parse_pack_declaration()
                 elif self._peek().type == TokenType.NAMESPACE:
                     namespace_decl = self._parse_namespace_declaration()
+                    # Store namespace in both places for compatibility
                     ast['namespace'] = namespace_decl
+                    # Also collect all namespaces in a list
+                    if 'namespaces' not in ast:
+                        ast['namespaces'] = []
+                    ast['namespaces'].append(namespace_decl)
                     self.current_namespace = namespace_decl['name']  # Update current namespace
                     print(f"DEBUG: Parser updated current_namespace to: {self.current_namespace}")
                 elif self._peek().type == TokenType.FUNCTION:
@@ -672,10 +677,8 @@ class MDLParser:
         say_token = self._match(TokenType.SAY)
         content = say_token.value
         
-        # The semicolon should already be consumed by the lexer
-        # But let's make sure we have it
-        if not self._is_at_end() and self._peek().type == TokenType.SEMICOLON:
-            self._match(TokenType.SEMICOLON)
+        # Always consume the semicolon
+        self._match(TokenType.SEMICOLON)
         
         return {"type": "command", "command": f"say {content}"}
     
