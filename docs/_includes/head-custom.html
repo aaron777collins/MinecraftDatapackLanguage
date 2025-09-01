@@ -151,11 +151,19 @@
 
 <!-- Professional Header Styling - Override Cayman Theme -->
 <style>
-/* Override Cayman theme's cartoony header colors with professional styling */
+/* Override Cayman theme's cartoony fonts with professional system fonts */
+body, html {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif !important;
+  font-weight: 400 !important;
+  line-height: 1.6 !important;
+}
+
 h1, h2, h3, h4, h5, h6 {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif !important;
   color: #24292e !important;
   font-weight: 600 !important;
   text-shadow: none !important;
+  letter-spacing: -0.025em !important;
 }
 
 h1 {
@@ -163,6 +171,7 @@ h1 {
   font-weight: 700 !important;
   border-bottom: 2px solid #0366d6 !important;
   padding-bottom: 0.3em !important;
+  font-size: 2.25rem !important;
 }
 
 h2 {
@@ -170,16 +179,19 @@ h2 {
   font-weight: 600 !important;
   border-bottom: 1px solid #e1e4e8 !important;
   padding-bottom: 0.3em !important;
+  font-size: 1.875rem !important;
 }
 
 h3 {
   color: #2f363d !important;
   font-weight: 600 !important;
+  font-size: 1.5rem !important;
 }
 
 h4, h5, h6 {
   color: #586069 !important;
   font-weight: 600 !important;
+  font-size: 1.25rem !important;
 }
 
 /* Page header styling */
@@ -192,12 +204,29 @@ h4, h5, h6 {
   color: #ffffff !important;
   border-bottom: none !important;
   text-shadow: 0 1px 2px rgba(0,0,0,0.3) !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif !important;
 }
 
 .page-header h2 {
   color: #e6f3ff !important;
   border-bottom: none !important;
   text-shadow: 0 1px 2px rgba(0,0,0,0.3) !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif !important;
+}
+
+/* Override any remaining Cayman theme fonts */
+.main-content, .post, .page-content {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif !important;
+}
+
+/* Navigation and sidebar fonts */
+.nav, .sidebar, .breadcrumb, .doc-card, .feature {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif !important;
+}
+
+/* Code blocks keep monospace fonts */
+pre, code, .highlight {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, "Courier New", monospace !important;
 }
 
 /* Dark mode header overrides */
@@ -208,6 +237,7 @@ h4, h5, h6 {
 [data-theme="dark"] h5, 
 [data-theme="dark"] h6 {
   color: #e6edf3 !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif !important;
 }
 
 [data-theme="dark"] h1 {
