@@ -203,10 +203,19 @@ MDL is open source software licensed under the MIT License. See the [LICENSE](ht
   border: 1px solid #e1e4e8;
 }
 
+[data-theme="dark"] .download-section {
+  background: #161b22;
+  border-color: #30363d;
+}
+
 .release-date {
   color: #586069;
   font-style: italic;
   margin-bottom: 1.5rem;
+}
+
+[data-theme="dark"] .release-date {
+  color: #8b949e;
 }
 
 .download-grid {
@@ -225,15 +234,37 @@ MDL is open source software licensed under the MIT License. See the [LICENSE](ht
   transition: transform 0.2s, box-shadow 0.2s;
 }
 
+[data-theme="dark"] .download-card {
+  background: #21262d;
+  border-color: #30363d;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
 .download-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+}
+
+[data-theme="dark"] .download-card:hover {
+  box-shadow: 0 6px 20px rgba(0,0,0,0.4);
 }
 
 .download-card h3 {
   margin-top: 0;
   color: #24292e;
   font-size: 1.3rem;
+}
+
+[data-theme="dark"] .download-card h3 {
+  color: #e6edf3;
+}
+
+.download-card p {
+  color: #586069;
+}
+
+[data-theme="dark"] .download-card p {
+  color: #c9d1d9;
 }
 
 .download-buttons {
@@ -274,9 +305,19 @@ MDL is open source software licensed under the MIT License. See the [LICENSE](ht
   border: 1px solid #e1e4e8;
 }
 
+[data-theme="dark"] .btn-secondary {
+  background: #21262d;
+  color: #e6edf3;
+  border-color: #30363d;
+}
+
 .btn-secondary:hover {
   background: #e1e4e8;
   text-decoration: none;
+}
+
+[data-theme="dark"] .btn-secondary:hover {
+  background: #30363d;
 }
 
 .btn-outline {
@@ -285,10 +326,20 @@ MDL is open source software licensed under the MIT License. See the [LICENSE](ht
   border: 1px solid #0366d6;
 }
 
+[data-theme="dark"] .btn-outline {
+  color: #58a6ff;
+  border-color: #58a6ff;
+}
+
 .btn-outline:hover {
   background: #0366d6;
   color: white;
   text-decoration: none;
+}
+
+[data-theme="dark"] .btn-outline:hover {
+  background: #58a6ff;
+  color: #0d1117;
 }
 
 .install-code {
