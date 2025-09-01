@@ -6,7 +6,7 @@ Handles basic control structures and number variables only
 import re
 from dataclasses import dataclass
 from typing import List, Optional
-from .mdl_errors import MDLLexerError, create_lexer_error
+from .mdl_errors import MDLLexerError
 
 
 @dataclass
