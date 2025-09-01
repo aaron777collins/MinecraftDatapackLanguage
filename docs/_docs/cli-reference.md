@@ -29,14 +29,11 @@ mdl build --mdl <files> -o <output_dir>
 # Build single file
 mdl build --mdl hello.mdl -o dist
 
-# Build multiple files
-mdl build --mdl "file1.mdl file2.mdl" -o dist
-
 # Build entire directory
 mdl build --mdl myproject/ -o dist
 
-# Build with wildcards
-mdl build --mdl "*.mdl" -o dist
+# Build current directory
+mdl build --mdl . -o dist
 ```
 
 **Options:**
@@ -58,8 +55,8 @@ mdl check <files>
 # Check single file
 mdl check hello.mdl
 
-# Check multiple files
-mdl check "file1.mdl file2.mdl"
+# Check current directory
+mdl check .
 
 # Check entire directory
 mdl check myproject/
@@ -79,7 +76,10 @@ mdl lint <files>
 mdl lint hello.mdl
 
 # Lint multiple files
-mdl lint "*.mdl"
+mdl lint myproject/
+
+# Lint multiple files
+mdl lint .
 ```
 
 ## Command Options
@@ -143,12 +143,7 @@ my_project/
 
 **Build command:**
 ```bash
-mdl build --mdl "main.mdl ui.mdl game.mdl" -o dist
-```
-
-**Or build entire directory:**
-```bash
-mdl build --mdl my_project/ -o dist
+mdl build --mdl . -o dist
 ```
 
 ### Verbose Build
@@ -176,6 +171,9 @@ ls *.mdl
 
 # Use explicit file paths
 mdl build --mdl ./myfile.mdl -o dist
+
+# or build the directory itself
+mdl build --mdl . -o dist
 ```
 
 **"Failed to parse MDL files"**
@@ -229,21 +227,21 @@ dist/
 .PHONY: build clean
 
 build:
-	mdl build --mdl "*.mdl" -o dist
+	mdl build --mdl . -o dist
 
 clean:
 	rm -rf dist/
 
 check:
-	mdl check "*.mdl"
+	mdl check .
 ```
 
 **npm scripts example:**
 ```json
 {
   "scripts": {
-    "build": "mdl build --mdl \"*.mdl\" -o dist",
-    "check": "mdl check \"*.mdl\"",
+    "build": "mdl build --mdl . -o dist",
+    "check": "mdl check .",
     "clean": "rm -rf dist/"
   }
 }
@@ -265,7 +263,7 @@ jobs:
         with:
           python-version: '3.9'
       - run: pip install minecraft-datapack-language
-      - run: mdl check "*.mdl"
-      - run: mdl build --mdl "*.mdl" -o dist
-      - run: mdl lint "*.mdl"
+      - run: mdl check .
+      - run: mdl build --mdl . -o dist
+      - run: mdl lint .
 ```

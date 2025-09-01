@@ -2516,33 +2516,67 @@ tag function "minecraft:tick" {
 
 
 def lint_mdl_file(file_path: str, verbose: bool = False):
-    """Lint an MDL file and display issues."""
-    from .mdl_linter import lint_mdl_file as lint_file
+    """Lint an MDL file or directory and display issues."""
+    from .mdl_linter import lint_mdl_file as lint_file, lint_mdl_directory as lint_dir
+    from pathlib import Path
     
-    print(f"Linting {file_path}...")
-    issues = lint_file(file_path)
+    path = Path(file_path)
     
-    if not issues:
-        print("✅ No issues found!")
-        return
-    
-    print(f"\nFound {len(issues)} issue(s):")
-    print()
-    
-    for issue in issues:
-        severity_icon = {
-            'error': '❌',
-            'warning': '⚠️',
-            'info': 'ℹ️'
-        }.get(issue.severity, '❓')
+    if path.is_dir():
+        print(f"Linting directory {file_path}...")
+        results = lint_dir(file_path)
         
-        print(f"{severity_icon} Line {issue.line_number}: {issue.severity.upper()}")
-        print(f"   {issue.message}")
-        if issue.suggestion:
-            print(f"   💡 {issue.suggestion}")
-        if verbose and issue.code:
-            print(f"   📝 {issue.code.strip()}")
+        total_issues = 0
+        files_with_issues = 0
+        
+        for file_path, issues in results.items():
+            if issues:
+                files_with_issues += 1
+                total_issues += len(issues)
+                print(f"\n📁 {file_path}:")
+                for issue in issues:
+                    severity_icon = {
+                        'error': '❌',
+                        'warning': '⚠️',
+                        'info': 'ℹ️'
+                    }.get(issue.severity, '❓')
+                    
+                    print(f"  {severity_icon} Line {issue.line_number}: {issue.severity.upper()}")
+                    print(f"     {issue.message}")
+                    if issue.suggestion:
+                        print(f"     💡 {issue.suggestion}")
+                    if verbose and hasattr(issue, 'code') and issue.code:
+                        print(f"     📝 {issue.code.strip()}")
+        
+        if total_issues == 0:
+            print("✅ No issues found in any files!")
+        else:
+            print(f"\n📊 Summary: {total_issues} issue(s) found in {files_with_issues} file(s)")
+    else:
+        print(f"Linting {file_path}...")
+        issues = lint_file(file_path)
+        
+        if not issues:
+            print("✅ No issues found!")
+            return
+        
+        print(f"\nFound {len(issues)} issue(s):")
         print()
+        
+        for issue in issues:
+            severity_icon = {
+                'error': '❌',
+                'warning': '⚠️',
+                'info': 'ℹ️'
+            }.get(issue.severity, '❓')
+            
+            print(f"{severity_icon} Line {issue.line_number}: {issue.severity.upper()}")
+            print(f"   {issue.message}")
+            if issue.suggestion:
+                print(f"   💡 {issue.suggestion}")
+            if verbose and hasattr(issue, 'code') and issue.code:
+                print(f"   📝 {issue.code.strip()}")
+            print()
 
 
 def main():
