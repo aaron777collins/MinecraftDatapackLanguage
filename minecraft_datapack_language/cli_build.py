@@ -310,14 +310,25 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
 
 
 def _generate_function_file(ast: Dict[str, Any], output_dir: Path, namespace: str, verbose: bool = False, build_context: BuildContext = None) -> None:
-    """Generate function files from the AST."""
+    """Generate function files from the AST for a specific namespace."""
     if build_context is None:
         build_context = BuildContext()
     
     if 'functions' not in ast:
         return
     
+    # Filter functions by namespace
+    namespace_functions = []
     for func in ast['functions']:
+        # Check if function belongs to this namespace
+        # For now, we'll generate all functions in all namespaces
+        # In the future, we could add namespace annotations to functions
+        namespace_functions.append(func)
+    
+    if verbose:
+        print(f"DEBUG: Processing {len(namespace_functions)} functions for namespace {namespace}")
+    
+    for func in namespace_functions:
         func_name = func['name']
         func_body = func.get('body', [])
         
@@ -724,29 +735,47 @@ def build_mdl(input_path: str, output_path: str, verbose: bool = False, pack_for
         # Generate pack.mcmeta
         _generate_pack_mcmeta(ast, output_dir)
         
-        # Get namespace from AST or fall back to pack name
-        namespace = ast.get('namespace', {}).get('name', ast.get('pack', {}).get('name', 'mdl_pack'))
-        namespace = _slugify(namespace)
+        # Handle multiple namespaces from multiple files
+        namespaces = []
         
-        # Debug: Show what namespace we're using
+        # Get namespaces from AST
+        if 'namespaces' in ast:
+            for ns in ast['namespaces']:
+                if 'name' in ns:
+                    namespaces.append(_slugify(ns['name']))
+        
+        # If no explicit namespaces, use the pack name as default
+        if not namespaces:
+            default_namespace = ast.get('pack', {}).get('name', 'mdl_pack')
+            namespaces.append(_slugify(default_namespace))
+        
+        # Debug: Show what namespaces we're using
         if verbose:
-            print(f"DEBUG: AST namespace: {ast.get('namespace', {})}")
+            print(f"DEBUG: AST namespaces: {ast.get('namespaces', [])}")
             print(f"DEBUG: AST pack: {ast.get('pack', {})}")
-            print(f"DEBUG: Using namespace: {namespace}")
+            print(f"DEBUG: Using namespaces: {namespaces}")
         
-        # Generate functions
+        # Generate functions for each namespace
         build_context = BuildContext()
-        _generate_function_file(ast, output_dir, namespace, verbose, build_context)
+        for namespace in namespaces:
+            if verbose:
+                print(f"DEBUG: Processing namespace: {namespace}")
+            _generate_function_file(ast, output_dir, namespace, verbose, build_context)
         
-        # Generate hook files (load/tick tags)
-        _generate_hook_files(ast, output_dir, namespace, build_context)
+        # Generate hook files (load/tick tags) - use first namespace for global functions
+        primary_namespace = namespaces[0] if namespaces else 'mdl_pack'
+        _generate_hook_files(ast, output_dir, primary_namespace, build_context)
         
-        # Generate global load function
-        _generate_global_load_function(ast, output_dir, namespace, build_context)
+        # Generate global load function - use first namespace for global functions
+        _generate_global_load_function(ast, output_dir, primary_namespace, build_context)
         
         # Create zip file (always create one, use wrapper name if specified)
         zip_name = wrapper if wrapper else output_dir.name
-        zip_path = output_dir.parent / f"{zip_name}.zip"
+        # When using wrapper, create zip in output directory; otherwise in parent directory
+        if wrapper:
+            zip_path = output_dir / f"{zip_name}.zip"
+        else:
+            zip_path = output_dir.parent / f"{zip_name}.zip"
         _create_zip_file(output_dir, zip_path)
         if verbose:
             print(f"[ZIP] Created zip file: {zip_path}")

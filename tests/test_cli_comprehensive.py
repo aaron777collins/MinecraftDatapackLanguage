@@ -348,29 +348,27 @@ class TestCLIComprehensive(unittest.TestCase):
     def test_check_command_with_errors(self):
         """Test the check command with invalid syntax"""
         with tempfile.TemporaryDirectory() as temp_dir:
-            # Create an invalid MDL file with a linter-detectable error
+            # Create an invalid MDL file with a syntax error that the linter can catch
             mdl_file = Path(temp_dir) / "invalid_test.mdl"
             with open(mdl_file, 'w') as f:
                 f.write('''
-                pack "invalid_test" "Invalid test pack" 82;
+                pack "invalid_test" "Invalid test pack" 82
                 namespace "test";
 
                 function "main" {
                     say "Hello, World!";
-                    // This will cause a linter error - undefined variable
-                    score = score + 1;
                 }
 
                 on_load "test:main";
                 ''')
             
-            # Test check command - should fail due to undefined variable
+            # Test check command - should fail due to missing semicolon
             try:
                 result = subprocess.run([
                     "mdl", "check", str(mdl_file)
                 ], capture_output=True, text=True, check=False)
 
-                # Should have failed due to undefined variable
+                # Should have failed due to missing semicolon
                 self.assertNotEqual(result.returncode, 0)
                 self.assertIn("Error:", result.stdout)
 

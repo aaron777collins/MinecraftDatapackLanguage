@@ -471,7 +471,7 @@ class TestComplexIntegrationFeatures(unittest.TestCase):
             if "$score$ >= 100" {
                 level = level + 1;
                 score = score - 100;
-                say Level up! New level: $level$;
+                say "Level up! New level: $level$";
                 tellraw @a {"text":"Player leveled up!","color":"gold"};
             }
         }
