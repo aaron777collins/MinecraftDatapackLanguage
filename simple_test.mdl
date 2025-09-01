@@ -1,0 +1,1 @@
+pack "Test" "Test" 82; namespace "test"; function "main" { say Hello World; }

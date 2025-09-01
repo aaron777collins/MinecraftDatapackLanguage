@@ -437,10 +437,12 @@ def _generate_function_file(ast: Dict[str, Any], output_dir: Path, namespace: st
         function_commands = []
         for i, statement in enumerate(func_body):
             try:
+                if verbose:
+                    print(f"DEBUG: Processing statement {i} of type {statement.get('type', 'unknown')}: {statement}")
                 commands = _process_statement(statement, namespace, func_name, i, False, "@s", {}, build_context)
                 function_commands.extend(commands)
                 if verbose:
-                    print(f"Generated {len(commands)} commands for statement {i} in function {func_name}")
+                    print(f"Generated {len(commands)} commands for statement {i} in function {func_name}: {commands}")
             except Exception as e:
                 if verbose:
                     print(f"Warning: Error processing statement {i} in function {func_name}: {e}")
