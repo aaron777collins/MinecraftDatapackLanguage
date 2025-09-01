@@ -164,6 +164,7 @@
   text-decoration: none;
   padding: 0.35rem;
   border-radius: 8px;
+  transition: background-color 0.2s;
 }
 
 .nav-icon-link:hover {
@@ -179,6 +180,8 @@
   padding: 0.35rem;
   border-radius: 8px;
   transition: background-color 0.2s;
+  position: relative;
+  color: #ffffff;
 }
 
 .theme-toggle:hover {
@@ -187,28 +190,31 @@
 
 .theme-icon {
   transition: opacity 0.3s ease, transform 0.3s ease;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
 .theme-icon.sun-icon {
   opacity: 1;
-  transform: rotate(0deg);
+  transform: translate(-50%, -50%) rotate(0deg);
 }
 
 .theme-icon.moon-icon {
   opacity: 0;
-  transform: rotate(-90deg);
-  position: absolute;
+  transform: translate(-50%, -50%) rotate(-90deg);
 }
 
 /* Dark mode styles for theme toggle */
 [data-theme="dark"] .theme-icon.sun-icon {
   opacity: 0;
-  transform: rotate(90deg);
+  transform: translate(-50%, -50%) rotate(90deg);
 }
 
 [data-theme="dark"] .theme-icon.moon-icon {
   opacity: 1;
-  transform: rotate(0deg);
+  transform: translate(-50%, -50%) rotate(0deg);
 }
 
 .nav-toggle {
@@ -219,67 +225,11 @@
   cursor: pointer;
   padding: 0.5rem;
   border-radius: 8px;
+  transition: background-color 0.2s;
 }
 
 .nav-toggle:hover {
   background: rgba(255, 255, 255, 0.12);
-}
-
-/* Breadcrumb Styles */
-.breadcrumb-nav {
-  margin: 1rem 0 2rem 0;
-  padding: 0 1rem;
-  max-width: 1200px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.breadcrumb {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  font-size: 0.9rem;
-}
-
-.breadcrumb-item {
-  display: flex;
-  align-items: center;
-}
-
-.breadcrumb-item:not(:last-child)::after {
-  content: "›";
-  margin-left: 0.5rem;
-  color: #586069;
-}
-
-.breadcrumb-link {
-  color: #0366d6;
-  text-decoration: none;
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  transition: background-color 0.2s;
-}
-
-.breadcrumb-link:hover {
-  background: #e1f5fe;
-  text-decoration: none;
-}
-
-.breadcrumb-icon {
-  width: 16px;
-  height: 16px;
-}
-
-.breadcrumb-item.active {
-  color: #586069;
-  font-weight: 500;
 }
 
 /* Responsive Design */
@@ -316,10 +266,6 @@
   .nav-actions {
     margin-left: 0.5rem;
   }
-  
-  .breadcrumb {
-    font-size: 0.8rem;
-  }
 }
 </style>
 
@@ -353,6 +299,16 @@ document.addEventListener('DOMContentLoaded', function() {
       
       // Update aria-label
       themeToggle.setAttribute('aria-label', newTheme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
+      
+      // Dispatch custom event for other scripts to listen to
+      document.dispatchEvent(new CustomEvent('themeChanged', { detail: { theme: newTheme } }));
+      
+      // Force re-highlight code blocks with new theme
+      if (typeof Prism !== 'undefined') {
+        setTimeout(() => {
+          Prism.highlightAll();
+        }, 100);
+      }
     });
   }
   
@@ -360,6 +316,7 @@ document.addEventListener('DOMContentLoaded', function() {
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
     if (!localStorage.getItem('theme')) {
       html.setAttribute('data-theme', e.matches ? 'dark' : 'light');
+      document.dispatchEvent(new CustomEvent('themeChanged', { detail: { theme: e.matches ? 'dark' : 'light' } }));
     }
   });
 });

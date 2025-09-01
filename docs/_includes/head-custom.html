@@ -1,7 +1,6 @@
 <!-- Custom head content -->
 <!-- viewport is defined in layouts; avoid duplicates that can cause inconsistencies -->
 
-
 <!-- Favicon -->
 <link rel="icon" type="image/png" sizes="32x32" href="{{ '/icons/favicon-32.png' | relative_url }}">
 <link rel="icon" type="image/png" sizes="16x16" href="{{ '/icons/favicon-16.png' | relative_url }}">
@@ -12,10 +11,13 @@
 
 <!-- Syntax highlighting for code blocks -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" id="prism-dark-theme" disabled>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+
 <script>
-  // Configure Prism autoloader to load from the CDN components directory
+  // Configure Prism autoloader
   window.Prism = window.Prism || {};
   Prism.plugins = Prism.plugins || {};
   Prism.plugins.autoloader = Prism.plugins.autoloader || {};
@@ -73,36 +75,207 @@
     'punctuation': /[{}();[\]]/
   };
 
-  // Force Prism to highlight MDL code blocks on page load
-  document.addEventListener('DOMContentLoaded', function() {
+  // mcfunction fallback
+  Prism.languages.mcfunction = Prism.languages.none;
+
+  // Theme management and highlighting
+  function initializeTheme() {
+    const html = document.documentElement;
+    const savedTheme = localStorage.getItem('theme');
+    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    
+    // Set initial theme
+    if (savedTheme) {
+      html.setAttribute('data-theme', savedTheme);
+    } else if (systemPrefersDark) {
+      html.setAttribute('data-theme', 'dark');
+    } else {
+      html.setAttribute('data-theme', 'light');
+    }
+    
+    // Update Prism theme
+    updatePrismTheme();
+    
+    // Highlight all code blocks
     if (typeof Prism !== 'undefined') {
       Prism.highlightAll();
     }
-  });
+  }
 
-  // mcfunction is not officially supported; fall back to none (plain text) to avoid failed loads
-  Prism.languages.mcfunction = Prism.languages.none;
+  function updatePrismTheme() {
+    const darkTheme = document.getElementById('prism-dark-theme');
+    const lightTheme = document.querySelector('link[href*="prism.min.css"]');
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    
+    if (isDark) {
+      if (lightTheme) lightTheme.disabled = true;
+      if (darkTheme) darkTheme.disabled = false;
+    } else {
+      if (lightTheme) lightTheme.disabled = false;
+      if (darkTheme) darkTheme.disabled = true;
+    }
+  }
 
-  // Preload a few common languages used in the docs to reduce autoloader fetches
-  (function preload(langFiles) {
-    var head = document.head || document.getElementsByTagName('head')[0];
-    langFiles.forEach(function(file) {
-      var s = document.createElement('script');
-      s.defer = true;
-      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/' + file;
-      head.appendChild(s);
-    });
-  })([
-    'prism-clike.min.js',
-    'prism-javascript.min.js',
-    'prism-bash.min.js',
-    'prism-python.min.js'
-  ]);
+  // Initialize when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeTheme);
+  } else {
+    initializeTheme();
+  }
+
+  // Listen for theme changes
+  document.addEventListener('themeChanged', updatePrismTheme);
 </script>
 
 <!-- Custom styles -->
 <style>
-/* Navigation styles are defined in navigation.html include */
+/* Reset and base styles */
+* {
+  box-sizing: border-box;
+}
+
+/* Light mode (default) */
+:root {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f6f8fa;
+  --bg-tertiary: #f1f3f4;
+  --text-primary: #24292e;
+  --text-secondary: #586069;
+  --text-muted: #6a737d;
+  --border-color: #e1e4e8;
+  --border-color-strong: #d0d7de;
+  --link-color: #0366d6;
+  --link-hover: #0256b3;
+  --code-bg: #f6f8fa;
+  --code-border: #e1e4e8;
+  --code-text: #24292e;
+  --nav-bg: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  --card-bg: #ffffff;
+  --card-border: #e1e4e8;
+  --card-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  --card-shadow-hover: 0 6px 20px rgba(0,0,0,0.2);
+}
+
+/* Dark mode */
+[data-theme="dark"] {
+  --bg-primary: #0d1117;
+  --bg-secondary: #161b22;
+  --bg-tertiary: #21262d;
+  --text-primary: #e6edf3;
+  --text-secondary: #c9d1d9;
+  --text-muted: #8b949e;
+  --border-color: #30363d;
+  --border-color-strong: #484f58;
+  --link-color: #58a6ff;
+  --link-hover: #79c0ff;
+  --code-bg: #161b22;
+  --code-border: #30363d;
+  --code-text: #e6edf3;
+  --nav-bg: linear-gradient(135deg, #0d1117 0%, #161b22 100%);
+  --card-bg: #161b22;
+  --card-border: #30363d;
+  --card-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  --card-shadow-hover: 0 6px 20px rgba(0,0,0,0.4);
+}
+
+/* Apply CSS variables with !important to override Jekyll theme */
+body,
+html {
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.main-content,
+.page-content,
+main,
+.container,
+.wrapper {
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Override Jekyll theme's default styles */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif !important;
+  line-height: 1.6 !important;
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-primary) !important;
+}
+
+p, li, td, th {
+  color: var(--text-secondary) !important;
+}
+
+/* Links */
+a {
+  color: var(--link-color) !important;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: var(--link-hover) !important;
+}
+
+/* Code blocks */
+pre[class*="language-"] {
+  background-color: var(--code-bg) !important;
+  border: 1px solid var(--code-border) !important;
+  border-radius: 6px;
+  margin: 1rem 0;
+}
+
+code[class*="language-"] {
+  font-size: 0.9rem;
+  color: var(--code-text) !important;
+}
+
+/* Inline code */
+code:not([class*="language-"]) {
+  background-color: var(--code-bg) !important;
+  color: var(--code-text) !important;
+  border: 1px solid var(--code-border) !important;
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+  font-size: 0.85em;
+}
+
+/* Tables */
+table {
+  background-color: var(--bg-secondary) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 6px;
+}
+
+th {
+  background-color: var(--bg-tertiary) !important;
+  border-bottom: 1px solid var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+td {
+  border-bottom: 1px solid var(--border-color) !important;
+  color: var(--text-secondary) !important;
+}
+
+/* Blockquotes */
+blockquote {
+  background-color: var(--bg-secondary) !important;
+  border-left: 4px solid var(--link-color) !important;
+  color: var(--text-secondary) !important;
+  padding: 1rem;
+  margin: 1rem 0;
+  border-radius: 0 6px 6px 0;
+}
+
+/* Horizontal rules */
+hr {
+  border-color: var(--border-color) !important;
+  margin: 2rem 0;
+}
 
 /* Feature grid styles */
 .features {
@@ -114,30 +287,92 @@
 
 .feature {
   padding: 1.5rem;
-  border: 1px solid #e1e4e8;
+  border: 1px solid var(--border-color);
   border-radius: 6px;
-  background: #f6f8fa;
+  background: var(--card-bg);
   text-align: center;
+  box-shadow: var(--card-shadow);
+  transition: box-shadow 0.2s ease;
+}
+
+.feature:hover {
+  box-shadow: var(--card-shadow-hover);
 }
 
 .feature h3 {
   margin-top: 0;
-  color: #24292e;
+  color: var(--text-primary);
 }
 
 .feature p {
   margin-bottom: 0;
-  color: #586069;
+  color: var(--text-secondary);
 }
 
-/* Code block improvements */
-pre[class*="language-"] {
+/* Docs grid styles */
+.docs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
+
+.doc-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: var(--card-shadow);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.doc-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--card-shadow-hover);
+}
+
+.doc-card h3 {
+  margin: 0 0 0.5rem 0;
+  color: var(--text-primary);
+  font-size: 1.1rem;
+}
+
+.doc-card p {
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+}
+
+.doc-meta {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.category {
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.doc-link {
+  display: inline-block;
+  color: var(--link-color);
+  text-decoration: none;
+  font-weight: 600;
+  border: 2px solid var(--link-color);
+  padding: 0.5rem 1rem;
   border-radius: 6px;
-  border: 1px solid #e1e4e8;
+  transition: all 0.2s ease;
 }
 
-code[class*="language-"] {
-  font-size: 0.9rem;
+.doc-link:hover {
+  background: var(--link-color);
+  color: var(--bg-primary);
+  text-decoration: none;
 }
 
 /* MDL Syntax Highlighting - Light Mode */
@@ -184,12 +419,7 @@ code[class*="language-"] {
   color: #24292e !important;
 }
 
-/* Override any default Prism colors */
-.language-mdl .token {
-  color: #24292e !important;
-}
-
-/* Dark mode support for MDL syntax */
+/* MDL Syntax Highlighting - Dark Mode */
 [data-theme="dark"] .language-mdl .token.keyword {
   color: #ff7b72 !important;
 }
@@ -226,251 +456,83 @@ code[class*="language-"] {
   color: #c9d1d9 !important;
 }
 
-/* Override any default Prism colors in dark mode */
-[data-theme="dark"] .language-mdl .token {
-  color: #c9d1d9 !important;
-}
-
-/* Comprehensive Dark Mode Styles */
-[data-theme="dark"] {
-  color-scheme: dark;
-}
-
-[data-theme="dark"] body,
-[data-theme="dark"] html {
-  background-color: #0d1117 !important;
-  color: #c9d1d9 !important;
-}
-
-[data-theme="dark"] .main-content,
-[data-theme="dark"] .page-content,
-[data-theme="dark"] main,
-[data-theme="dark"] .container,
-[data-theme="dark"] .wrapper {
-  background-color: #0d1117 !important;
-  color: #c9d1d9 !important;
-}
-
-/* Dark mode for headings */
-[data-theme="dark"] h1,
-[data-theme="dark"] h2,
-[data-theme="dark"] h3,
-[data-theme="dark"] h4,
-[data-theme="dark"] h5,
-[data-theme="dark"] h6 {
-  color: #e6edf3 !important;
-}
-
-/* Dark mode for paragraphs and text */
-[data-theme="dark"] p,
-[data-theme="dark"] li,
-[data-theme="dark"] td,
-[data-theme="dark"] th {
-  color: #c9d1d9 !important;
-}
-
-/* Dark mode for links */
-[data-theme="dark"] a {
-  color: #58a6ff !important;
-}
-
-[data-theme="dark"] a:hover {
-  color: #79c0ff !important;
-}
-
-/* Dark mode for code blocks */
-[data-theme="dark"] pre[class*="language-"] {
-  background-color: #161b22 !important;
-  border-color: #30363d !important;
-}
-
-[data-theme="dark"] code[class*="language-"] {
-  background-color: #161b22 !important;
-}
-
-/* Dark mode for inline code */
-[data-theme="dark"] code:not([class*="language-"]) {
-  background-color: #21262d !important;
-  color: #e6edf3 !important;
-  border-color: #30363d !important;
-}
-
-/* Dark mode for tables */
-[data-theme="dark"] table {
-  background-color: #161b22 !important;
-  border-color: #30363d !important;
-}
-
-[data-theme="dark"] th {
-  background-color: #21262d !important;
-  border-color: #30363d !important;
-}
-
-[data-theme="dark"] td {
-  border-color: #30363d !important;
-}
-
-/* Dark mode for blockquotes */
-[data-theme="dark"] blockquote {
-  background-color: #161b22 !important;
-  border-left-color: #58a6ff !important;
-  color: #c9d1d9 !important;
-}
-
-/* Dark mode for horizontal rules */
-[data-theme="dark"] hr {
-  border-color: #30363d !important;
-}
-
-/* Dark mode for breadcrumbs */
-[data-theme="dark"] .breadcrumb-link {
-  color: #58a6ff !important;
-}
-
-[data-theme="dark"] .breadcrumb-link:hover {
-  background-color: #21262d !important;
-}
-
-[data-theme="dark"] .breadcrumb-item.active {
-  color: #8b949e !important;
-}
-
-[data-theme="dark"] .breadcrumb-item:not(:last-child)::after {
-  color: #8b949e !important;
-}
-
-/* Dark mode for docs grid cards */
-[data-theme="dark"] .doc-card {
-  background-color: #161b22 !important;
-  border-color: #30363d !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
-}
-
-[data-theme="dark"] .doc-card:hover {
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4) !important;
-}
-
-[data-theme="dark"] .doc-card h3 {
-  color: #e6edf3 !important;
-}
-
-[data-theme="dark"] .doc-card p {
-  color: #c9d1d9 !important;
-}
-
-[data-theme="dark"] .category {
-  background-color: #21262d !important;
-  color: #c9d1d9 !important;
-}
-
-[data-theme="dark"] .doc-link {
-  color: #58a6ff !important;
-  border-color: #58a6ff !important;
-}
-
-[data-theme="dark"] .doc-link:hover {
-  background-color: #58a6ff !important;
-  color: #0d1117 !important;
-}
-
-/* Dark mode for search input */
-[data-theme="dark"] .search-input {
-  background-color: #161b22 !important;
-  border-color: #30363d !important;
-  color: #c9d1d9 !important;
-}
-
-[data-theme="dark"] .search-input:focus {
-  border-color: #58a6ff !important;
-  box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.1) !important;
-}
-
-[data-theme="dark"] .search-icon {
-  color: #8b949e !important;
-}
-
-/* Dark mode for no results */
-[data-theme="dark"] .no-results {
-  color: #8b949e !important;
-}
-
-[data-theme="dark"] .no-results h3 {
-  color: #e6edf3 !important;
-}
-
-/* Dark mode for navigation (already handled in navigation.html) */
-[data-theme="dark"] .nav-menu {
-  background: linear-gradient(135deg, #0d1117 0%, #161b22 100%) !important;
-}
-
-/* Dark mode for mobile navigation */
-[data-theme="dark"] .nav-list {
-  background: linear-gradient(135deg, #0d1117 0%, #161b22 100%) !important;
-  border-top-color: #30363d !important;
-}
-
-/* Dark mode for theme toggle icons */
-[data-theme="dark"] .theme-icon {
+/* Navigation styles (overrides from navigation.html) */
+.nav-menu {
+  background: var(--nav-bg) !important;
   color: #ffffff !important;
 }
 
-/* Dark mode support */
-[data-theme="dark"] .feature {
-  background: #2d3748;
-  border-color: #4a5568;
+/* Breadcrumb styles */
+.breadcrumb-nav {
+  margin: 1rem 0 2rem 0;
+  padding: 0 1rem;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
-[data-theme="dark"] .feature h3 {
-  color: #e2e8f0;
+.breadcrumb {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  font-size: 0.9rem;
 }
 
-[data-theme="dark"] .feature p {
-  color: #a0aec0;
+.breadcrumb-item {
+  display: flex;
+  align-items: center;
 }
 
-/* Responsive design */
-@media (max-width: 768px) {
-  .features {
-    grid-template-columns: 1fr;
-  }
+.breadcrumb-item:not(:last-child)::after {
+  content: "›";
+  margin-left: 0.5rem;
+  color: var(--text-muted);
 }
 
-/* Remove any weird theme shadows and let the default theme handle it */
-.main-content {
-  box-shadow: none !important;
+.breadcrumb-link {
+  color: var(--link-color);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  transition: background-color 0.2s;
 }
 
-.page-content {
-  box-shadow: none !important;
+.breadcrumb-link:hover {
+  background: var(--bg-secondary);
+  text-decoration: none;
 }
 
-main {
-  box-shadow: none !important;
+.breadcrumb-icon {
+  width: 16px;
+  height: 16px;
 }
 
-/* Navigation link styles - only apply to header navigation, not quick nav cards */
-.nav-menu .nav-link,
-.nav-menu .nav-link:visited,
-.nav-menu .nav-link:hover,
-.nav-menu .nav-link:active {
-  color: rgba(255, 255, 255, 0.85) !important;
+.breadcrumb-item.active {
+  color: var(--text-muted);
+  font-weight: 500;
 }
 
-.nav-menu .nav-link:hover {
-  color: #ffffff !important;
+/* Quick navigation styles */
+.quick-nav {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.5rem;
+  margin: 2rem 0;
 }
 
-.nav-menu .nav-link.active {
-  color: #ffffff !important;
-}
-
-/* Quick navigation card styles */
 .quick-nav .nav-link {
   display: inline-flex;
   align-items: center;
   padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, #0366d6 0%, #0256b3 100%);
-  color: white !important;
+  background: linear-gradient(135deg, var(--link-color) 0%, var(--link-hover) 100%);
+  color: var(--bg-primary) !important;
   text-decoration: none;
   font-weight: 600;
   border-radius: 8px;
@@ -492,8 +554,7 @@ main {
 }
 
 .quick-nav .nav-link:hover {
-  background: linear-gradient(135deg, #0256b3 0%, #0147a0 100%);
-  color: white !important;
+  color: var(--bg-primary) !important;
   text-decoration: none;
   transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(3, 102, 214, 0.4);
@@ -508,16 +569,10 @@ main {
   box-shadow: 0 4px 12px rgba(3, 102, 214, 0.25);
 }
 
-/* Enhanced quick navigation grid */
-.quick-nav {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 1.5rem;
-  margin: 2rem 0;
-}
-
-/* Responsive adjustments */
+/* Responsive design */
 @media (max-width: 768px) {
+  .features,
+  .docs-grid,
   .quick-nav {
     grid-template-columns: 1fr;
   }
@@ -526,5 +581,60 @@ main {
     padding: 0.875rem 1.25rem;
     font-size: 0.95rem;
   }
+  
+  .breadcrumb {
+    font-size: 0.8rem;
+  }
+}
+
+/* Remove theme shadows */
+.main-content,
+.page-content,
+main {
+  box-shadow: none !important;
+}
+
+/* Navigation link styles - only apply to header navigation */
+.nav-menu .nav-link,
+.nav-menu .nav-link:visited,
+.nav-menu .nav-link:hover,
+.nav-menu .nav-link:active {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+
+.nav-menu .nav-link:hover {
+  color: #ffffff !important;
+}
+
+.nav-menu .nav-link.active {
+  color: #ffffff !important;
+}
+
+/* Override Jekyll theme's default code highlighting */
+.highlight {
+  background-color: var(--code-bg) !important;
+  border: 1px solid var(--code-border) !important;
+  border-radius: 6px;
+  margin: 1rem 0;
+}
+
+.highlight pre {
+  background-color: var(--code-bg) !important;
+  color: var(--code-text) !important;
+}
+
+/* Override any remaining Jekyll theme styles */
+.site-footer {
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-secondary) !important;
+  border-top: 1px solid var(--border-color) !important;
+}
+
+.site-footer a {
+  color: var(--link-color) !important;
+}
+
+.site-footer a:hover {
+  color: var(--link-hover) !important;
 }
 </style>
