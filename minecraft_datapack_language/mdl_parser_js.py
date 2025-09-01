@@ -116,7 +116,7 @@ class MDLParser:
         
         self._match(TokenType.SEMICOLON)
         
-        return {"name": name, "description": description, "pack_format": pack_format}
+        return {"type": "pack_declaration", "name": name, "description": description, "pack_format": pack_format}
     
     def _parse_namespace_declaration(self) -> NamespaceDeclaration:
         """Parse namespace declaration."""
@@ -127,7 +127,7 @@ class MDLParser:
         
         self._match(TokenType.SEMICOLON)
         
-        return {"name": name}
+        return {"type": "function_call", "name": name}
     
     def _parse_function_declaration(self) -> FunctionDeclaration:
         """Parse function declaration."""
@@ -154,7 +154,7 @@ class MDLParser:
         
         self._match(TokenType.RBRACE)
         
-        return {"name": name, "body": body}
+        return {"type": "function_declaration", "name": name, "body": body}
     
     def _parse_recipe_declaration(self) -> RecipeDeclaration:
         """Parse recipe declaration."""
@@ -398,7 +398,7 @@ class MDLParser:
             
             self._match(TokenType.RBRACE)
         
-        return {"condition": condition, "then_body": then_body, "else_body": else_body}
+        return {"type": "if_statement", "condition": condition, "then_body": then_body, "else_body": else_body}
     
     def _parse_while_loop(self) -> WhileLoop:
         """Parse while loop."""
@@ -435,7 +435,7 @@ class MDLParser:
         
         self._match(TokenType.RBRACE)
         
-        return {"condition": condition, "method": method, "body": body}
+        return {"type": "while_statement", "condition": condition, "method": method, "body": body}
     
     def _parse_function_call(self) -> FunctionCall:
         """Parse function call."""
@@ -446,7 +446,7 @@ class MDLParser:
         
         self._match(TokenType.SEMICOLON)
         
-        return {"name": name}
+        return {"type": "namespace_declaration", "name": name}
     
     def _parse_execute_statement(self) -> ExecuteStatement:
         """Parse execute statement."""
@@ -553,7 +553,7 @@ class MDLParser:
         
         self._match(TokenType.SEMICOLON)
         
-        return {"hook_type": hook_type, "function_name": function_name}
+        return {"type": "hook_declaration", "hook_type": hook_type, "function_name": function_name}
     
     def _parse_tag_declaration(self) -> TagDeclaration:
         """Parse tag declaration."""
@@ -591,7 +591,7 @@ class MDLParser:
         
         self._match(TokenType.RBRACE)
         
-        return {"tag_type": tag_type, "name": name, "values": values}
+        return {"type": "tag_declaration", "tag_type": tag_type, "name": name, "values": values}
     
     def _parse_expression(self) -> Any:
         """Parse an expression with operator precedence."""
