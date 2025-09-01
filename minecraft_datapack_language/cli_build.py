@@ -221,8 +221,19 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
     
     if statement['type'] == 'command':
         command = statement['command']
-        processed_command = _process_variable_substitutions(command, selector)
-        commands.append(processed_command)
+        
+        # Handle say commands specifically
+        if command.startswith('say '):
+            # Convert say command to tellraw command
+            content = command[4:]  # Remove "say " prefix
+            # Convert to Minecraft tellraw format
+            tellraw_command = f'tellraw @a [{{"text":{content}}}]'
+            processed_command = _process_variable_substitutions(tellraw_command, selector)
+            commands.append(processed_command)
+        else:
+            # Process other commands normally
+            processed_command = _process_variable_substitutions(command, selector)
+            commands.append(processed_command)
     
     elif statement['type'] == 'variable_assignment':
         var_name = statement['name']
