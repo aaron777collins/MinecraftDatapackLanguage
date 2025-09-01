@@ -404,7 +404,7 @@ class MDLLexer:
                 self.column += 1
             self.current += 1
         
-        # Add raw text token
+        # Add the raw content as a single RAW token
         content = ''.join(content_parts)
         if content.strip():  # Only add non-empty content
             self.tokens.append(Token(TokenType.RAW, content, self.line, self.start - self.column + 1))

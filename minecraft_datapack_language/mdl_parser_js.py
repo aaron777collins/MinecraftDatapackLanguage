@@ -459,8 +459,13 @@ class MDLParser:
         # Parse the raw content
         content_parts = []
         while not self._is_at_end() and self._peek().type != TokenType.RAW_END:
-            content_parts.append(self._peek().value)
-            self._advance()
+            if self._peek().type == TokenType.RAW:
+                # Add raw content
+                content_parts.append(self._peek().value)
+                self._advance()
+            else:
+                # Skip other tokens (shouldn't happen in raw mode)
+                self._advance()
         
         if self._is_at_end():
             raise create_parser_error(
