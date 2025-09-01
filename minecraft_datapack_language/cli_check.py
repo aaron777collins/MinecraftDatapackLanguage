@@ -42,7 +42,7 @@ def lint_mdl_file_wrapper(file_path: str, verbose: bool = False, ignore_warnings
         
         # Perform linting
         try:
-            lint_mdl_file(str(path), verbose)
+            lint_mdl_file(str(path))
             print(f"🔍 Successfully checked: {file_path}")
             print("✅ No errors found!")
         
