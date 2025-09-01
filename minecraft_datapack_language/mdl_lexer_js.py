@@ -101,6 +101,7 @@ class MDLLexer:
         self.line = 1
         self.column = 1
         self.source_file = source_file
+        self.in_raw_mode = False
     
     def lex(self, source: str) -> List[Token]:
         """Lex the source code into tokens."""
@@ -109,6 +110,7 @@ class MDLLexer:
         self.start = 0
         self.line = 1
         self.column = 1
+        self.in_raw_mode = False
         
         while self.current < len(source):
             self.start = self.current
@@ -121,6 +123,11 @@ class MDLLexer:
     def _scan_token(self, source: str):
         """Scan a single token."""
         char = source[self.current]
+        
+        # If in raw mode, scan raw text until we find raw!$
+        if self.in_raw_mode:
+            self._scan_raw_text(source)
+            return
         
         # Handle whitespace and newlines
         if char.isspace():
@@ -367,6 +374,9 @@ class MDLLexer:
         
         text = source[self.start:self.current]
         self.tokens.append(Token(TokenType.RAW_START, text, self.line, self.start - self.column + 1))
+        
+        # Enter raw mode
+        self.in_raw_mode = True
     
     def _scan_raw_end(self, source: str):
         """Scan raw block end marker (raw!$)."""
@@ -376,6 +386,38 @@ class MDLLexer:
         
         text = source[self.start:self.current]
         self.tokens.append(Token(TokenType.RAW_END, text, self.line, self.start - self.column + 1))
+        
+        # Exit raw mode
+        self.in_raw_mode = False
+    
+    def _scan_raw_text(self, source: str):
+        """Scan raw text content between $!raw and raw!$."""
+        content_parts = []
+        
+        while self.current < len(source):
+            char = source[self.current]
+            
+            # Check if we've reached the end of the raw block
+            if (char == 'r' and 
+                self.current + 4 < len(source) and 
+                source[self.current:self.current + 5] == 'raw!$'):
+                break
+            
+            # Add character to content
+            content_parts.append(char)
+            
+            # Update position
+            if char == '\n':
+                self.line += 1
+                self.column = 1
+            else:
+                self.column += 1
+            self.current += 1
+        
+        # Add raw text token
+        content = ''.join(content_parts)
+        if content.strip():  # Only add non-empty content
+            self.tokens.append(Token(TokenType.COMMAND, content, self.line, self.start - self.column + 1))
     
     def _scan_operator_or_delimiter(self, source: str):
         """Scan operators and delimiters."""

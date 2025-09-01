@@ -6,9 +6,9 @@ namespace "hello_world";
 function "main" {
     say "Hello, World!";
     
-    // Simple raw block test
+    // Raw block with simple tellraw
     $!raw
-    say "This is raw content";
+    tellraw @a "Welcome to MDL!";
     raw!$
 }
 
