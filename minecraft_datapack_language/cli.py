@@ -372,7 +372,7 @@ def _merge_mdl_files(files: List[Path], verbose: bool = False, error_collector: 
                 source = f.read()
             
             ast = parse_mdl_js(source, str(file_path))
-        file_dir = os.path.dirname(os.path.abspath(file_path))
+            file_dir = os.path.dirname(os.path.abspath(file_path))
         
         # Get the namespace for this file
         file_namespace = ast.get('namespace', {}).get('name', 'unknown') if ast.get('namespace') else 'unknown'
@@ -421,9 +421,9 @@ def _merge_mdl_files(files: List[Path], verbose: bool = False, error_collector: 
                     else:
                         setattr(entry, '_source_dir', file_dir)
                         # Don't overwrite _source_namespace - it's already set correctly by the parser
-                                    if key not in root_pack:
-                        root_pack[key] = []
-                    root_pack[key].extend(ast[key])
+                if key not in root_pack:
+                    root_pack[key] = []
+                root_pack[key].extend(ast[key])
         
         except (MDLLexerError, MDLParserError, MDLSyntaxError) as e:
             if error_collector:
