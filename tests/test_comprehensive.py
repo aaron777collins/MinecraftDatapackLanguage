@@ -16,7 +16,7 @@ from minecraft_datapack_language.mdl_lexer_js import MDLLexer, TokenType
 from minecraft_datapack_language.mdl_parser_js import parse_mdl_js
 from minecraft_datapack_language.mdl_linter import MDLLinter
 from minecraft_datapack_language.expression_processor import ExpressionProcessor
-from minecraft_datapack_language.cli import _merge_mdl_files, _ast_to_pack
+from minecraft_datapack_language.cli_build import _merge_mdl_files, _ast_to_pack
 
 
 class TestMDLLexer(unittest.TestCase):
