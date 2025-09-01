@@ -165,12 +165,7 @@ class MDLLexer:
                 self._scan_variable_substitution(source)
                 return
         
-        # Handle raw block end markers (only when not in raw mode)
-        if not self.in_raw_mode and (char == 'r' and 
-            self.current + 4 < len(source) and 
-            source[self.current:self.current + 5] == 'raw!$'):
-            self._scan_raw_end(source)
-            return
+
         
         # Handle identifiers and keywords
         if char.isalpha() or char == '_':
@@ -378,17 +373,7 @@ class MDLLexer:
         # Enter raw mode
         self.in_raw_mode = True
     
-    def _scan_raw_end(self, source: str):
-        """Scan raw block end marker (raw!$)."""
-        # Consume the raw!$
-        self.current += 5
-        self.column += 5
-        
-        text = source[self.start:self.current]
-        self.tokens.append(Token(TokenType.RAW_END, text, self.line, self.start - self.column + 1))
-        
-        # Exit raw mode
-        self.in_raw_mode = False
+
     
     def _scan_raw_text(self, source: str):
         """Scan raw text content between $!raw and raw!$."""
@@ -401,7 +386,10 @@ class MDLLexer:
             if (char == 'r' and 
                 self.current + 4 < len(source) and 
                 source[self.current:self.current + 5] == 'raw!$'):
-                # Don't consume the raw!$ here - let the main scanner handle it
+                # Consume the raw!$ and exit raw mode
+                self.current += 5
+                self.column += 5
+                self.in_raw_mode = False
                 break
             
             # Add character to content
