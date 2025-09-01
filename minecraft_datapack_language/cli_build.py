@@ -101,6 +101,12 @@ def _merge_mdl_files(files: List[Path], verbose: bool = False, error_collector: 
                     ast['variables'] = []
                 ast['variables'].extend(additional_ast['variables'])
             
+            # Merge namespaces (append to existing list)
+            if 'namespaces' in additional_ast:
+                if 'namespaces' not in ast:
+                    ast['namespaces'] = []
+                ast['namespaces'].extend(additional_ast['namespaces'])
+            
             # Merge registry declarations
             for registry_type in ['recipes', 'loot_tables', 'advancements', 'predicates', 'item_modifiers', 'structures']:
                 if registry_type in additional_ast:
@@ -740,7 +746,7 @@ def build_mdl(input_path: str, output_path: str, verbose: bool = False, pack_for
         
         # Create zip file (always create one, use wrapper name if specified)
         zip_name = wrapper if wrapper else output_dir.name
-        zip_path = output_dir / f"{zip_name}.zip"
+        zip_path = output_dir.parent / f"{zip_name}.zip"
         _create_zip_file(output_dir, zip_path)
         if verbose:
             print(f"[ZIP] Created zip file: {zip_path}")

@@ -39,7 +39,7 @@ def create_new_project(project_name: str, pack_name: str = None, pack_format: in
         project_dir.mkdir(parents=True, exist_ok=False)
         
         # Create the main MDL file
-        mdl_file = project_dir / f"{clean_name}.mdl"
+        mdl_file = project_dir / "main.mdl"
         
         # Generate template content
         template_content = _generate_mdl_template(clean_name, pack_name, pack_format)
@@ -61,9 +61,9 @@ def create_new_project(project_name: str, pack_name: str = None, pack_format: in
         print()
         print("[NEXT] Next steps:")
         print(f"  1. cd {clean_name}")
-        print(f"  2. Edit {clean_name}.mdl with your code")
-        print(f"  3. mdl build --mdl {clean_name}.mdl -o dist")
-        print(f"  4. mdl check {clean_name}.mdl")
+        print(f"  2. Edit main.mdl with your code")
+        print(f"  3. mdl build --mdl main.mdl -o dist")
+        print(f"  4. mdl check main.mdl")
         print()
         print("[INFO] Learn more:")
         print("   • Language Reference: https://www.mcmdl.com/docs/language-reference")
@@ -168,7 +168,7 @@ This datapack was generated using the MDL CLI tool. MDL is a simplified language
 ```
 {project_name}/
 ├── README.md              # This file
-└── {project_name}.mdl    # Main MDL source file
+└── main.mdl              # Main MDL source file
 ```
 
 ## [NEXT] Getting Started

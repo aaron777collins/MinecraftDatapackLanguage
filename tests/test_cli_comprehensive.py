@@ -348,32 +348,34 @@ class TestCLIComprehensive(unittest.TestCase):
     def test_check_command_with_errors(self):
         """Test the check command with invalid syntax"""
         with tempfile.TemporaryDirectory() as temp_dir:
-            # Create an invalid MDL file
+            # Create an invalid MDL file with a linter-detectable error
             mdl_file = Path(temp_dir) / "invalid_test.mdl"
-                        with open(mdl_file, 'w') as f:
+            with open(mdl_file, 'w') as f:
                 f.write('''
                 pack "invalid_test" "Invalid test pack" 82;
                 namespace "test";
 
                 function "main" {
                     say "Hello, World!";
+                    // This will cause a linter error - undefined variable
+                    score = score + 1;
                 }
 
                 on_load "test:main";
                 ''')
             
-                        # Test check command - should pass now that syntax is fixed
+            # Test check command - should fail due to undefined variable
             try:
                 result = subprocess.run([
                     "mdl", "check", str(mdl_file)
-                ], capture_output=True, text=True, check=True)
+                ], capture_output=True, text=True, check=False)
 
-                # Should have passed
-                self.assertEqual(result.returncode, 0)
-                self.assertIn("Successfully checked", result.stdout)
+                # Should have failed due to undefined variable
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn("Error:", result.stdout)
 
-            except subprocess.CalledProcessError as e:
-                self.fail(f"Check command failed: {e}\nstdout: {e.stdout}\nstderr: {e.stderr}")
+            except Exception as e:
+                self.fail(f"Check command failed unexpectedly: {e}")
     
     def test_new_command(self):
         """Test the new command"""

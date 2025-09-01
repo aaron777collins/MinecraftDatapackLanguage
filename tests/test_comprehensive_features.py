@@ -463,7 +463,7 @@ class TestComplexIntegrationFeatures(unittest.TestCase):
         function "start_game" {
             score = 0;
             level = 1;
-            say Game started! Level: $level$, Score: $score$;
+            say "Game started! Level: $level$, Score: $score$";
         }
 
         // Level up function
