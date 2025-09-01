@@ -265,6 +265,8 @@ class MDLParser:
             return self._parse_execute_statement()
         elif self._peek().type == TokenType.RAW_START:
             return self._parse_raw_text()
+        elif self._peek().type == TokenType.SAY:
+            return self._parse_say_command()
         elif self._peek().type == TokenType.IDENTIFIER:
             # Check for for loops (which are no longer supported)
             if self._peek().value == "for":
@@ -506,6 +508,18 @@ class MDLParser:
         command = _smart_join_command_parts(command_parts)
         return {"type": "command", "command": command}
     
+    def _parse_say_command(self) -> Command:
+        """Parse a say command."""
+        say_token = self._match(TokenType.SAY)
+        content = say_token.value
+        
+        # The semicolon should already be consumed by the lexer
+        # But let's make sure we have it
+        if not self._is_at_end() and self._peek().type == TokenType.SEMICOLON:
+            self._match(TokenType.SEMICOLON)
+        
+        return {"type": "command", "command": f"say {content}"}
+    
     def _parse_hook_declaration(self) -> HookDeclaration:
         """Parse hook declaration."""
         if self._peek().type == TokenType.ON_TICK:
@@ -561,7 +575,35 @@ class MDLParser:
         return {"tag_type": tag_type, "name": name, "values": values}
     
     def _parse_expression(self) -> Any:
-        """Parse an expression."""
+        """Parse an expression with operator precedence."""
+        return self._parse_addition()
+    
+    def _parse_addition(self) -> Any:
+        """Parse addition and subtraction."""
+        expr = self._parse_multiplication()
+        
+        while not self._is_at_end() and self._peek().type in [TokenType.PLUS, TokenType.MINUS]:
+            operator = self._peek().type
+            self._advance()  # consume operator
+            right = self._parse_multiplication()
+            expr = BinaryExpression(expr, operator, right)
+        
+        return expr
+    
+    def _parse_multiplication(self) -> Any:
+        """Parse multiplication, division, and modulo."""
+        expr = self._parse_primary()
+        
+        while not self._is_at_end() and self._peek().type in [TokenType.MULTIPLY, TokenType.DIVIDE, TokenType.MODULO]:
+            operator = self._peek().type
+            self._advance()  # consume operator
+            right = self._parse_primary()
+            expr = BinaryExpression(expr, operator, right)
+        
+        return expr
+    
+    def _parse_primary(self) -> Any:
+        """Parse primary expressions (numbers, strings, variables, parenthesized expressions)."""
         token = self._peek()
         
         if token.type == TokenType.NUMBER:
