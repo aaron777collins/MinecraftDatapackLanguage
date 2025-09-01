@@ -443,20 +443,7 @@ class MDLLexer:
                 # Found the end of the say command
                 break
             
-            # Handle variable substitution within say command
-            if char == '$':
-                # Add any accumulated content first
-                if content_parts:
-                    accumulated_content = ''.join(content_parts).strip()
-                    if accumulated_content:
-                        self.tokens.append(Token(TokenType.RAW, accumulated_content, say_start_line, say_start_column))
-                    content_parts = []
-                
-                # Scan the variable substitution
-                self._scan_variable_substitution(source)
-                continue
-            
-            # Add character to content
+            # Add character to content (including $ for variable substitution)
             content_parts.append(char)
             
             # Update position
@@ -478,11 +465,10 @@ class MDLLexer:
                 suggestion="Add a semicolon (;) at the end of the say command"
             )
         
-        # Add any remaining content as a RAW token
-        if content_parts:
-            remaining_content = ''.join(content_parts).strip()
-            if remaining_content:
-                self.tokens.append(Token(TokenType.RAW, remaining_content, say_start_line, say_start_column))
+        # Add the entire say command content as a SAY token
+        content = ''.join(content_parts).strip()
+        if content:
+            self.tokens.append(Token(TokenType.SAY, content, say_start_line, say_start_column))
     
     def _scan_operator_or_delimiter(self, source: str):
         """Scan operators and delimiters."""
