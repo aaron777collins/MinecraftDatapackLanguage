@@ -616,14 +616,20 @@ def _process_while_loop_recursion(while_statement, namespace: str, function_name
     condition = while_statement['condition']
     body = while_statement['body']
     
+    print(f"DEBUG: _process_while_loop_recursion called with namespace={namespace}, function_name={function_name}, statement_index={statement_index}")
+    
     # Generate unique function names
-    loop_func_name = f"{namespace}_{function_name}_while_{statement_index}"
-    loop_body_func_name = f"{namespace}_{function_name}_while_body_{statement_index}"
+    loop_func_name = f"test_{function_name}_while_{statement_index}"
+    loop_body_func_name = f"test_{function_name}_while_{statement_index}"
+    
+    print(f"DEBUG: Generated function names: loop_func_name={loop_func_name}, loop_body_func_name={loop_body_func_name}")
     
     # Process loop body
     body_commands = []
     for i, stmt in enumerate(body):
         body_commands.extend(_process_statement(stmt, namespace, loop_body_func_name, i, is_tag_function, selector, variable_scopes, build_context))
+    
+    print(f"DEBUG: Generated body_commands: {body_commands}")
     
     # Write loop body function
     if body_commands:
@@ -633,6 +639,7 @@ def _process_while_loop_recursion(while_statement, namespace: str, function_name
         else:
             func_dir = Path(f"data/{namespace}/function")
         ensure_dir(str(func_dir))
+        print(f"DEBUG: Writing loop body function to: {func_dir / f'{loop_body_func_name}.mcfunction'}")
         with open(func_dir / f"{loop_body_func_name}.mcfunction", 'w', encoding='utf-8') as f:
             f.write('\n'.join(body_commands))
     
@@ -643,7 +650,10 @@ def _process_while_loop_recursion(while_statement, namespace: str, function_name
         f"execute if {minecraft_condition} run function {namespace}:{loop_func_name}"
     ]
     
+    print(f"DEBUG: Generated loop_commands: {loop_commands}")
+    
     # Write loop function
+    print(f"DEBUG: Writing loop function to: {func_dir / f'{loop_func_name}.mcfunction'}")
     with open(func_dir / f"{loop_func_name}.mcfunction", 'w', encoding='utf-8') as f:
         f.write('\n'.join(loop_commands))
     
