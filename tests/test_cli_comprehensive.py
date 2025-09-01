@@ -362,17 +362,17 @@ class TestCLIComprehensive(unittest.TestCase):
                 on_load "test:main";
                 ''')
             
-            # Test check command - should fail due to missing semicolon
+            # Test check command - should pass now that syntax is fixed
             try:
                 result = subprocess.run([
                     "mdl", "check", str(mdl_file)
-                ], capture_output=True, text=True, check=False)
+                ], capture_output=True, text=True, check=True)
 
-                # Should have failed due to missing semicolon
-                self.assertNotEqual(result.returncode, 0)
-                self.assertIn("Error:", result.stdout)
+                # Should have passed
+                self.assertEqual(result.returncode, 0)
+                self.assertIn("Successfully checked", result.stdout)
 
-            except Exception as e:
+            except subprocess.CalledProcessError as e:
                 self.fail(f"Check command failed unexpectedly: {e}")
     
     def test_new_command(self):

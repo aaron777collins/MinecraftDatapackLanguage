@@ -543,7 +543,7 @@ class TestComplexIntegrationFeatures(unittest.TestCase):
         
         function "update_score" {
             playerScore = playerScore + 10;
-            say Score: $playerScore$;
+            say "Score: $playerScore$";
             function "ui:show_welcome<@s>";
         }
         
@@ -675,8 +675,9 @@ class TestCLIFeatures(unittest.TestCase):
 class TestErrorHandlingFeatures(unittest.TestCase):
     """Test error handling for various scenarios"""
     
-    def test_invalid_syntax_handling(self):
+        def test_invalid_syntax_handling(self):
         """Test handling of invalid syntax"""
+        # Test that the parser correctly handles invalid syntax
         invalid_codes = [
             'pack "test" description 82;',  # Missing quotes around description
             'var num counter = 0',          # Missing semicolon
@@ -684,10 +685,15 @@ class TestErrorHandlingFeatures(unittest.TestCase):
             'if "$counter$ > 5" { say "Test"', # Missing closing brace
             'say "Unterminated string',     # Unterminated string
         ]
-        
+
         for code in invalid_codes:
-            with self.assertRaises((MDLParserError, MDLLexerError, MDLSyntaxError)):
+            try:
                 parse_mdl_js(code)
+                # If we get here, the parser didn't catch the error
+                self.fail(f"Parser should have failed for invalid code: {code}")
+            except (MDLParserError, MDLLexerError, MDLSyntaxError):
+                # Expected error was caught
+                pass
     
     def test_undefined_variable_handling(self):
         """Test handling of undefined variables"""
