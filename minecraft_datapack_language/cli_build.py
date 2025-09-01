@@ -278,10 +278,6 @@ def _process_say_command_with_variables(content: str, selector: str) -> str:
                 # Simple variable: $variable$ - use server armor stand
                 components.append(f'{{"score":{{"name":"@e[type=armor_stand,tag=mdl_server,limit=1]","objective":"{var_name}"}}}}')
     
-    for var_name in matches:
-        # Add score component for each variable
-        components.append(f'{{"score": {{"name": "@e[type=armor_stand,tag=mdl_server,limit=1]", "objective": "{var_name}"}}}}')
-    
     # Join components and create tellraw command
     components_str = ', '.join(components)
     return f'tellraw @a [{components_str}]'
