@@ -55,6 +55,9 @@ def main():
         new_parser.add_argument('--pack-name', help='Custom pack name')
         new_parser.add_argument('--pack-format', type=int, default=82, help='Pack format number')
         
+        # Check for help requests before filtering
+        has_help = '--help' in sys.argv or '-h' in sys.argv
+        
         # Filter out help arguments before parsing
         filtered_args = [arg for arg in sys.argv[1:] if arg not in ['--help', '-h']]
         
@@ -66,13 +69,13 @@ def main():
             return
         
         # Handle command-specific help
-        if args.command == 'build' and ('--help' in sys.argv or '-h' in sys.argv):
+        if has_help and args.command == 'build':
             show_build_help()
             return
-        elif args.command == 'check' and ('--help' in sys.argv or '-h' in sys.argv):
+        elif has_help and args.command == 'check':
             show_check_help()
             return
-        elif args.command == 'new' and ('--help' in sys.argv or '-h' in sys.argv):
+        elif has_help and args.command == 'new':
             show_new_help()
             return
         
