@@ -1,2 +1,2 @@
 tellraw @a [{"text":"Counter: "},{"score":{"name":"@e[type=armor_stand,tag=mdl_server,limit=1]","objective":"counter"}},{"text":"counter"}]
-scoreboard players add counter @s 1
+scoreboard players add @s counter 1

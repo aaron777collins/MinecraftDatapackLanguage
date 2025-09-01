@@ -239,18 +239,20 @@ def _process_say_command_with_variables(content: str, selector: str) -> str:
             remaining_content = content
             
             for var_name in word_matches:
-                # Split content around the variable name
-                parts = remaining_content.split(var_name, 1)
-                if len(parts) == 2:
+                # Find the position of this variable in the remaining content
+                var_pos = remaining_content.find(var_name)
+                if var_pos >= 0:
                     # Add text before variable
-                    if parts[0]:
-                        components.append(f'{{"text":"{parts[0]}"}}')
+                    if var_pos > 0:
+                        text_before = remaining_content[:var_pos]
+                        if text_before:
+                            components.append(f'{{"text":"{text_before}"}}')
                     
                     # Add score component for variable
                     components.append(f'{{"score":{{"name":"@e[type=armor_stand,tag=mdl_server,limit=1]","objective":"{var_name}"}}}}')
                     
-                    # Continue with remaining content
-                    remaining_content = parts[1]
+                    # Continue with remaining content after this variable
+                    remaining_content = remaining_content[var_pos + len(var_name):]
             
             # Add remaining text
             if remaining_content:
@@ -474,12 +476,10 @@ def _generate_function_file(ast: Dict[str, Any], output_dir: Path, namespace: st
         function_commands = []
         for i, statement in enumerate(func_body):
             try:
-                if verbose:
-                    print(f"DEBUG: Processing statement {i} of type {statement.get('type', 'unknown')}: {statement}")
+                print(f"DEBUG: Processing statement {i} of type {statement.get('type', 'unknown')}: {statement}")
                 commands = _process_statement(statement, namespace, func_name, i, False, "@s", {}, build_context)
                 function_commands.extend(commands)
-                if verbose:
-                    print(f"Generated {len(commands)} commands for statement {i} in function {func_name}: {commands}")
+                print(f"Generated {len(commands)} commands for statement {i} in function {func_name}: {commands}")
             except Exception as e:
                 if verbose:
                     print(f"Warning: Error processing statement {i} in function {func_name}: {e}")

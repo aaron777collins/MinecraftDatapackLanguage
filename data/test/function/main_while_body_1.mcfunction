@@ -1,2 +1,2 @@
-# Complex assignment: counter = BinaryExpression(left=VariableExpression(name='counter'), operator='PLUS', right=LiteralExpression(value='1', type='number'))
-tellraw @a [{"text":""Counter: "},{"score":{"name":"@s","objective":"counter"}},{"text":"counter"},{"text":"""}]
+scoreboard players add @s counter 1
+tellraw @a [{"text":"Counter: "},{"score":{"name":"@e[type=armor_stand,tag=mdl_server,limit=1]","objective":"counter"}},{"text":"counter"}]
