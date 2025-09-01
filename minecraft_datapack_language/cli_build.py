@@ -261,8 +261,8 @@ def _process_say_command_with_variables(content: str, selector: str) -> str:
     for i, part in enumerate(parts):
         if i % 2 == 0:
             # Text part
-            if part.strip():  # Only add non-empty text parts
-                components.append(f'{{"text": "{part.strip()}"}}')
+            if part:  # Only add non-empty text parts
+                components.append(f'{{"text":"{part}"}}')
         else:
             # Variable part
             var_name = part
@@ -279,7 +279,7 @@ def _process_say_command_with_variables(content: str, selector: str) -> str:
                 components.append(f'{{"score":{{"name":"@e[type=armor_stand,tag=mdl_server,limit=1]","objective":"{var_name}"}}}}')
     
     # Join components and create tellraw command
-    components_str = ', '.join(components)
+    components_str = ','.join(components)
     return f'tellraw @a [{components_str}]'
 
 
