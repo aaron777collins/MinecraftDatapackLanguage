@@ -295,10 +295,16 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
             # For now, add a placeholder command
             commands.append(f"# Complex assignment: {var_name} = {value}")
         else:
-            # Assume it's a number
+            # Handle LiteralExpression and other value types
             try:
-                num_value = int(value)
-                commands.append(f"scoreboard players set {var_name} {selector} {num_value}")
+                if hasattr(value, 'value'):
+                    # LiteralExpression case
+                    num_value = int(value.value)
+                    commands.append(f"scoreboard players set {var_name} {selector} {num_value}")
+                else:
+                    # Direct value case
+                    num_value = int(value)
+                    commands.append(f"scoreboard players set {var_name} {selector} {num_value}")
             except (ValueError, TypeError):
                 # If we can't convert to int, add a placeholder
                 commands.append(f"# Assignment: {var_name} = {value}")

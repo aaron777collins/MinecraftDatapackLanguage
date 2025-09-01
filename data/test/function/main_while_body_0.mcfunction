@@ -1,2 +1,2 @@
-tellraw @a [{"text": "Counter: $counter$"}]
+tellraw @a [{"text":""Counter: "},{"score":{"name":"@s","objective":"counter"}},{"text":"counter"},{"text":"""}]
 # Complex assignment: counter = BinaryExpression(left=VariableSubstitutionExpression(name='counter', scope=None), operator='PLUS', right=LiteralExpression(value='1', type='number'))

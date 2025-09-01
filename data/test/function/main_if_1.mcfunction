@@ -1,1 +1,1 @@
-tellraw @a [{"text": "Value is greater than 3"}]
+tellraw @a [{"text":"Value is greater than 3"}]
