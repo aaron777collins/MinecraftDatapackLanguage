@@ -2990,32 +2990,32 @@ def main():
                 error_collector.print_errors(verbose=True)
                 error_collector.raise_if_errors()
         
-    elif command == "new":
-        # Check for help request first
-        if len(sys.argv) >= 3 and sys.argv[2] in ("--help", "-h"):
-            show_new_help()
-            return
+        elif command == "new":
+            # Check for help request first
+            if len(sys.argv) >= 3 and sys.argv[2] in ("--help", "-h"):
+                show_new_help()
+                return
+                
+            # Remove help arguments to prevent argparse from showing its own help
+            new_args = [arg for arg in sys.argv[2:] if arg not in ("--help", "-h")]
             
-        # Remove help arguments to prevent argparse from showing its own help
-        new_args = [arg for arg in sys.argv[2:] if arg not in ("--help", "-h")]
-        
-        parser = argparse.ArgumentParser(description="MDL - Create new MDL project", add_help=False)
-        parser.add_argument("project_name", help="Name of the project to create")
-        parser.add_argument("--name", help="Pack name (defaults to project name)")
-        parser.add_argument("--pack-format", type=int, default=82, help="Pack format (default 82)")
-        
-        try:
-            args = parser.parse_args(new_args)
-            create_new_project(args.project_name, args.name, args.pack_format)
-        except SystemExit:
-            show_new_help()
-            return
-        except Exception as e:
-            error_collector.add_error(create_error(
-                "new", f"New project command error: {str(e)}"
-            ))
-            error_collector.print_errors(verbose=True)
-            error_collector.raise_if_errors()
+            parser = argparse.ArgumentParser(description="MDL - Create new MDL project", add_help=False)
+            parser.add_argument("project_name", help="Name of the project to create")
+            parser.add_argument("--name", help="Pack name (defaults to project name)")
+            parser.add_argument("--pack-format", type=int, default=82, help="Pack format (default 82)")
+            
+            try:
+                args = parser.parse_args(new_args)
+                create_new_project(args.project_name, args.name, args.pack_format)
+            except SystemExit:
+                show_new_help()
+                return
+            except Exception as e:
+                error_collector.add_error(create_error(
+                    "new", f"New project command error: {str(e)}"
+                ))
+                error_collector.print_errors(verbose=True)
+                error_collector.raise_if_errors()
         
         else:
             error_collector.add_error(create_error(
