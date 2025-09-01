@@ -105,7 +105,7 @@ MinecraftDatapackLanguage/
 
 ### 1. Choose an Issue
 
-1. Check the [Issues](https://www.mcmdl.com) page
+1. Check the [Issues](https://github.com/aaron777collins/MinecraftDatapackLanguage/issues) page
 2. Look for issues labeled `good first issue` for beginners
 3. Comment on the issue to let others know you're working on it
 4. Fork the repository if you haven't already

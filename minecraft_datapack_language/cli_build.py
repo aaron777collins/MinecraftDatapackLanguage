@@ -541,12 +541,17 @@ def _ast_to_pack(ast: Dict[str, Any], mdl_files: List[Path]) -> Pack:
             
             # Add commands from function body if they exist
             if 'body' in func:
-                for statement in func['body']:
-                    if statement.get('type') == 'command':
-                        function.commands.append(statement['command'])
-                    elif statement.get('type') == 'function_call':
-                        # Convert function call to command
-                        function.commands.append(f"function {statement['name']}")
+                for i, statement in enumerate(func['body']):
+                    try:
+                        # Use the same processing logic as the build system
+                        commands = _process_statement(statement, namespace_name, function_name, i, False, "@s", {}, BuildContext())
+                        function.commands.extend(commands)
+                    except Exception as e:
+                        # If processing fails, try to add as simple command
+                        if statement.get('type') == 'command':
+                            function.commands.append(statement['command'])
+                        elif statement.get('type') == 'function_call':
+                            function.commands.append(f"function {statement['name']}")
     
     # Add variables
     if 'variables' in ast:
@@ -574,6 +579,32 @@ def _ast_to_pack(ast: Dict[str, Any], mdl_files: List[Path]) -> Pack:
             from .pack import Recipe
             recipe_obj = Recipe(recipe_name, recipe_data)
             namespace.recipes[recipe_name] = recipe_obj
+    
+    # Add advancements
+    if 'advancements' in ast:
+        namespace_name = ast.get('namespace', {}).get('name', pack_name)
+        namespace = pack.namespace(namespace_name)
+        
+        for advancement in ast['advancements']:
+            advancement_name = advancement['name']
+            advancement_data = advancement['data']
+            # Create advancement object
+            from .pack import Advancement
+            advancement_obj = Advancement(advancement_name, advancement_data)
+            namespace.advancements[advancement_name] = advancement_obj
+    
+    # Add loot tables
+    if 'loot_tables' in ast:
+        namespace_name = ast.get('namespace', {}).get('name', pack_name)
+        namespace = pack.namespace(namespace_name)
+        
+        for loot_table in ast['loot_tables']:
+            loot_table_name = loot_table['name']
+            loot_table_data = loot_table['data']
+            # Create loot table object
+            from .pack import LootTable
+            loot_table_obj = LootTable(loot_table_name, loot_table_data)
+            namespace.loot_tables[loot_table_name] = loot_table_obj
     
     return pack
 

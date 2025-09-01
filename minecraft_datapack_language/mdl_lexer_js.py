@@ -176,10 +176,11 @@ class MDLLexer:
         
         # Handle identifiers and keywords
         if char.isalpha() or char == '_':
-            # Special handling for 'say' command
+            # Special handling for 'say' command - but be more careful about context
             if (char == 's' and 
                 self.current + 2 < len(source) and 
-                source[self.current:self.current + 3] == 'say'):
+                source[self.current:self.current + 3] == 'say' and
+                not self._is_inside_control_structure(source)):
                 self._scan_say_command(source)
                 return
             else:
@@ -212,6 +213,8 @@ class MDLLexer:
         start_column = self.column
         start_line = self.line
         
+        string_parts = []
+        
         while (self.current < len(source) and 
                source[self.current] != quote_char):
             if source[self.current] == '\n':
@@ -227,9 +230,26 @@ class MDLLexer:
             
             if source[self.current] == '\\' and self.current + 1 < len(source):
                 # Handle escape sequences
+                string_parts.append(source[self.current:self.current + 2])
                 self.current += 2
                 self.column += 2
+            elif source[self.current] == '$':
+                # Handle variable substitution inside string
+                # Save current position
+                var_start = self.current
+                var_start_line = self.line
+                var_start_column = self.column
+                
+                # Scan the variable substitution
+                self._scan_variable_substitution(source)
+                
+                # Get the variable token we just created
+                var_token = self.tokens[-1]
+                
+                # Add the variable substitution to string parts
+                string_parts.append(var_token.value)
             else:
+                string_parts.append(source[self.current])
                 self.current += 1
                 self.column += 1
         
@@ -248,7 +268,8 @@ class MDLLexer:
         self.current += 1
         self.column += 1
         
-        text = source[self.start:self.current]
+        # Join the string parts and create the token
+        text = quote_char + ''.join(string_parts) + quote_char
         self.tokens.append(Token(TokenType.STRING, text, start_line, start_column))
     
     def _scan_number(self, source: str):
@@ -315,6 +336,11 @@ class MDLLexer:
             self.tokens.append(Token(token_type, text, self.line, self.column - len(text)))
             # After 'say', scan the command content
             self._scan_say_command(source)
+        # Special handling for execute command
+        elif text.lower() == 'execute':
+            self.tokens.append(Token(token_type, text, self.line, self.column - len(text)))
+            # After 'execute', scan the command content
+            self._scan_execute_command(source)
         else:
             self.tokens.append(Token(token_type, text, self.line, self.column - len(text)))
     
@@ -332,6 +358,17 @@ class MDLLexer:
             variable_name += source[self.current]
             self.current += 1
             self.column += 1
+        
+        # Validate variable name starts with letter or underscore
+        if variable_name and (variable_name[0].isdigit()):
+            raise create_lexer_error(
+                message=f"Invalid variable name '{variable_name}' - cannot start with a digit",
+                file_path=self.source_file,
+                line=self.line,
+                column=self.column - len(variable_name),
+                line_content=source[self.line-1:self.line] if self.line <= len(source.split('\n')) else "",
+                suggestion="Variable names must start with a letter or underscore"
+            )
         
         # Check for scope selector after variable name
         if (self.current < len(source) and 
@@ -525,6 +562,83 @@ class MDLLexer:
         content = ''.join(content_parts).strip()
         full_command = f"say {content};"
         self.tokens.append(Token(TokenType.SAY, full_command, say_start_line, say_start_column))
+    
+    def _scan_execute_command(self, source: str):
+        """Scan an execute command and its content until semicolon."""
+        # Consume 'execute'
+        self.current += 7
+        self.column += 7
+        
+        execute_start_line = self.line
+        execute_start_column = self.column
+        
+        # Skip whitespace after 'execute'
+        while (self.current < len(source) and 
+               source[self.current].isspace()):
+            if source[self.current] == '\n':
+                self.line += 1
+                self.column = 1
+            else:
+                self.column += 1
+            self.current += 1
+        
+        # Scan content until we find a semicolon
+        content_parts = []
+        while self.current < len(source):
+            char = source[self.current]
+            
+            if char == ';':
+                # Found the end of the execute command
+                break
+            
+            # Add character to content
+            content_parts.append(char)
+            
+            # Update position
+            if char == '\n':
+                self.line += 1
+                self.column = 1
+            else:
+                self.column += 1
+            self.current += 1
+        
+        if self.current >= len(source):
+            # Unterminated execute command - report error
+            raise create_lexer_error(
+                message="Unterminated execute command - missing semicolon",
+                file_path=self.source_file,
+                line=execute_start_line,
+                column=execute_start_column,
+                line_content=source[execute_start_line-1:execute_start_line] if execute_start_line <= len(source.split('\n')) else "",
+                suggestion="Add a semicolon (;) to terminate the execute command"
+            )
+        
+        # Consume the semicolon
+        self.current += 1
+        self.column += 1
+        
+        # Create the execute command token with full content
+        content = ''.join(content_parts).strip()
+        full_command = f"execute {content};"
+        self.tokens.append(Token(TokenType.EXECUTE, full_command, execute_start_line, execute_start_column))
+    
+    def _is_inside_control_structure(self, source: str) -> bool:
+        """Check if we're inside a control structure (if/while)."""
+        # Look backwards to see if we're inside a control structure
+        # This is a simplified check - in a more robust implementation,
+        # we would track the parsing context more carefully
+        
+        # For now, let's be conservative and only apply special handling
+        # when we're clearly at the top level
+        brace_count = 0
+        for i in range(self.current):
+            if source[i] == '{':
+                brace_count += 1
+            elif source[i] == '}':
+                brace_count -= 1
+        
+        # If we're inside braces, we're likely in a control structure
+        return brace_count > 0
     
     def _scan_operator_or_delimiter(self, source: str):
         """Scan operators and delimiters."""
