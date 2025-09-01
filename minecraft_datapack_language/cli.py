@@ -2965,30 +2965,30 @@ def main():
                 error_collector.raise_if_errors()
         
         elif command == "check":
-        # Check for help request first
-        if len(sys.argv) >= 3 and sys.argv[2] in ("--help", "-h"):
-            show_check_help()
-            return
+            # Check for help request first
+            if len(sys.argv) >= 3 and sys.argv[2] in ("--help", "-h"):
+                show_check_help()
+                return
+                
+            # Remove help arguments to prevent argparse from showing its own help
+            check_args = [arg for arg in sys.argv[2:] if arg not in ("--help", "-h")]
             
-        # Remove help arguments to prevent argparse from showing its own help
-        check_args = [arg for arg in sys.argv[2:] if arg not in ("--help", "-h")]
-        
-        parser = argparse.ArgumentParser(description="MDL - Check MDL files for syntax issues", add_help=False)
-        parser.add_argument("file", help="MDL file or directory to check")
-        parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose output")
-        
-        try:
-            args = parser.parse_args(check_args)
-            lint_mdl_file(args.file, args.verbose)
-        except SystemExit:
-            show_check_help()
-            return
-        except Exception as e:
-            error_collector.add_error(create_error(
-                "check", f"Check command error: {str(e)}"
-            ))
-            error_collector.print_errors(verbose=True)
-            error_collector.raise_if_errors()
+            parser = argparse.ArgumentParser(description="MDL - Check MDL files for syntax issues", add_help=False)
+            parser.add_argument("file", help="MDL file or directory to check")
+            parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose output")
+            
+            try:
+                args = parser.parse_args(check_args)
+                lint_mdl_file(args.file, args.verbose)
+            except SystemExit:
+                show_check_help()
+                return
+            except Exception as e:
+                error_collector.add_error(create_error(
+                    "check", f"Check command error: {str(e)}"
+                ))
+                error_collector.print_errors(verbose=True)
+                error_collector.raise_if_errors()
         
     elif command == "new":
         # Check for help request first
