@@ -141,78 +141,13 @@ tellraw @a {{"text":"Raw command example","color":"gold"}}
 raw!$
 
 // Example recipe (optional)
-recipe "diamond_sword" {{
-    "type": "minecraft:crafting_shaped",
-    "pattern": [
-        " D ",
-        " D ",
-        " S "
-    ],
-    "key": {{
-        "D": {{"item": "minecraft:diamond"}},
-        "S": {{"item": "minecraft:stick"}}
-    }},
-    "result": {{
-        "item": "minecraft:diamond_sword",
-        "count": 1
-    }}
-}}
+// recipe "diamond_sword" "diamond_sword.json";
 
 // Example loot table (optional)
-loot_table "chest_loot" {{
-    "type": "minecraft:chest",
-    "pools": [
-        {{
-            "rolls": 1,
-            "entries": [
-                {{
-                    "type": "minecraft:item",
-                    "name": "minecraft:diamond",
-                    "functions": [
-                        {{
-                            "function": "minecraft:set_count",
-                            "count": {{
-                                "min": 1,
-                                "max": 3
-                            }}
-                        }}
-                    ]
-        }}
-      ]
-    }}
-  ]
-}}
+// loot_table "chest_loot" "chest_loot.json";
 
 // Example advancement (optional)
-advancement first_diamond {{
-  "display": {{
-    "icon": {{
-      "item": "minecraft:diamond"
-    }},
-    "title": {{
-      "text": "First Diamond!"
-    }},
-    "description": {{
-      "text": "Find your first diamond"
-    }},
-    "frame": "task",
-    "show_toast": true,
-    "announce_to_chat": true,
-    "hidden": false
-  }},
-  "criteria": {{
-    "requirement": {{
-      "trigger": "minecraft:inventory_changed",
-      "conditions": {{
-        "items": [
-          {{
-            "item": "minecraft:diamond"
-          }}
-        ]
-      }}
-    }}
-      }}
-}}
+// advancement "first_diamond" "first_diamond.json";
 
 on_load "{project_name}:main";
 '''
