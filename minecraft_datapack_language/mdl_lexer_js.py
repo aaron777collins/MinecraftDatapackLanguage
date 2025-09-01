@@ -86,6 +86,7 @@ class TokenType:
     EOF = "EOF"
     COMMENT = "COMMENT"
     COMMAND = "COMMAND"
+    SAY = "SAY"  # Say command
     
     # Variable substitution
     VARIABLE_SUB = "VARIABLE_SUB"  # $variable$
@@ -284,6 +285,7 @@ class MDLLexer:
             'add': TokenType.ADD,
             'raw': TokenType.RAW,
             'execute': TokenType.EXECUTE,
+            'say': TokenType.SAY,  # Add say as a keyword
             'recipe': TokenType.RECIPE,
             'loot_table': TokenType.LOOT_TABLE,
             'advancement': TokenType.ADVANCEMENT,
@@ -293,7 +295,14 @@ class MDLLexer:
         }
         
         token_type = keyword_map.get(text.lower(), TokenType.IDENTIFIER)
-        self.tokens.append(Token(token_type, text, self.line, self.column - len(text)))
+        
+        # Special handling for say command
+        if text.lower() == 'say':
+            self.tokens.append(Token(token_type, text, self.line, self.column - len(text)))
+            # After 'say', scan the command content
+            self._scan_say_command(source)
+        else:
+            self.tokens.append(Token(token_type, text, self.line, self.column - len(text)))
     
     def _scan_variable_substitution(self, source: str):
         """Scan variable substitution ($variable$)."""
@@ -409,6 +418,72 @@ class MDLLexer:
             clean_content = content.strip()
             self.tokens.append(Token(TokenType.RAW, clean_content, raw_start_line, raw_start_column))
     
+    def _scan_say_command(self, source: str):
+        """Scan a say command and its content until semicolon."""
+        # We've already consumed 'say', now scan the content
+        content_parts = []
+        say_start_line = self.line
+        say_start_column = self.column
+        
+        # Skip whitespace after 'say'
+        while (self.current < len(source) and 
+               source[self.current].isspace()):
+            if source[self.current] == '\n':
+                self.line += 1
+                self.column = 1
+            else:
+                self.column += 1
+            self.current += 1
+        
+        # Scan content until we find a semicolon
+        while self.current < len(source):
+            char = source[self.current]
+            
+            if char == ';':
+                # Found the end of the say command
+                break
+            
+            # Handle variable substitution within say command
+            if char == '$':
+                # Add any accumulated content first
+                if content_parts:
+                    accumulated_content = ''.join(content_parts).strip()
+                    if accumulated_content:
+                        self.tokens.append(Token(TokenType.RAW, accumulated_content, say_start_line, say_start_column))
+                    content_parts = []
+                
+                # Scan the variable substitution
+                self._scan_variable_substitution(source)
+                continue
+            
+            # Add character to content
+            content_parts.append(char)
+            
+            # Update position
+            if char == '\n':
+                self.line += 1
+                self.column = 1
+            else:
+                self.column += 1
+            self.current += 1
+        
+        if self.current >= len(source):
+            # Unterminated say command
+            raise create_lexer_error(
+                message="Unterminated say command - missing semicolon",
+                file_path=self.source_file,
+                line=say_start_line,
+                column=say_start_column,
+                line_content=source[say_start_line-1:say_start_line] if say_start_line <= len(source.split('\n')) else "",
+                suggestion="Add a semicolon (;) at the end of the say command"
+            )
+        
+        # Add any remaining content as a RAW token
+        if content_parts:
+            remaining_content = ''.join(content_parts).strip()
+            if remaining_content:
+                self.tokens.append(Token(TokenType.RAW, remaining_content, say_start_line, say_start_column))
+    
     def _scan_operator_or_delimiter(self, source: str):
         """Scan operators and delimiters."""
         char = source[self.current]
@@ -456,6 +531,8 @@ class MDLLexer:
             ']': TokenType.RBRACKET,
             '.': TokenType.DOT,
             ':': TokenType.COLON,
+            '!': TokenType.RAW,  # Allow exclamation marks in text
+            '?': TokenType.RAW,  # Allow question marks in text
         }
         
         if char in operator_map:
