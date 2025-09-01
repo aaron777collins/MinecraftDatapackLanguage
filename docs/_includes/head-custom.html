@@ -9,117 +9,135 @@
 <link rel="apple-touch-icon" sizes="180x180" href="{{ '/icons/icon-128.png' | relative_url }}">
 <meta name="theme-color" content="#0366d6">
 
+<!-- Syntax highlighting for code blocks -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" id="prism-dark-theme" disabled>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+
 <script>
-  // Simple naive syntax highlighter (like VSCode)
-  function highlightMDL(codeElement) {
-    let content = codeElement.innerHTML;
-    
-    // Comments (// and /* */)
-    content = content.replace(/\/\*[\s\S]*?\*\//g, '<span class="comment">$&</span>');
-    content = content.replace(/\/\/.*$/gm, '<span class="comment">$&</span>');
-    
-    // Strings (quoted text)
-    content = content.replace(/"([^"]*)"/g, '<span class="string">"$1"</span>');
-    content = content.replace(/'([^']*)'/g, '<span class="string">\'$1\'</span>');
-    
-    // Keywords
-    const keywords = ['pack', 'namespace', 'function', 'on_tick', 'on_load', 'tag', 'add', 'if', 'else if', 'else', 'while', 'for', 'in', 'var', 'let', 'const', 'num', 'str', 'list', 'try', 'catch', 'throw', 'switch', 'case', 'default', 'break', 'continue', 'return', 'import', 'from', 'as', 'recipe', 'loot_table', 'advancement', 'predicate', 'item_modifier', 'structure', 'scope', 'global'];
-    keywords.forEach(keyword => {
-      const regex = new RegExp(`\\b${keyword}\\b`, 'g');
-      content = content.replace(regex, '<span class="keyword">$&</span>');
-    });
-    
-    // Builtins (Minecraft commands)
-    const builtins = ['say', 'tellraw', 'effect', 'particle', 'execute', 'scoreboard', 'data', 'function', 'tag', 'tp', 'kill', 'summon', 'give', 'clear', 'enchant', 'gamemode', 'weather', 'time', 'difficulty', 'gamerule', 'title', 'playsound', 'stopsound', 'kick', 'ban', 'ban-ip', 'pardon', 'pardon-ip', 'whitelist', 'op', 'deop', 'save-all', 'save-off', 'save-on', 'list', 'me', 'msg', 'team', 'trigger', 'advancement', 'recipe', 'loot', 'schedule', 'return', 'run'];
-    builtins.forEach(builtin => {
-      const regex = new RegExp(`\\b${builtin}\\b`, 'g');
-      content = content.replace(regex, '<span class="builtin">$&</span>');
-    });
-    
-    // Selectors
-    content = content.replace(/\b(@p|@r|@a|@e|@s)\b/g, '<span class="selector">$&</span>');
-    
-    // Booleans and null
-    content = content.replace(/\b(true|false|null|undefined)\b/g, '<span class="boolean">$&</span>');
-    
-    // Numbers
-    content = content.replace(/\b\d+\b/g, '<span class="number">$&</span>');
-    
-    // Operators
-    content = content.replace(/(\+|-|\*|\/|%|=|==|!=|<|>|<=|>=|&&|\|\||!|\+=|-=|\*=|\/=|%=)/g, '<span class="operator">$&</span>');
-    
-    codeElement.innerHTML = content;
-  }
-  
-  // Theme management
-  function setTheme(theme) {
-    document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('theme', theme);
-    
-    // Re-highlight all MDL code blocks
-    document.querySelectorAll('code.language-mdl').forEach(highlightMDL);
-  }
-  
-  // Initialize theme
-  function initTheme() {
+  // Configure Prism autoloader
+  window.Prism = window.Prism || {};
+  Prism.plugins = Prism.plugins || {};
+  Prism.plugins.autoloader = Prism.plugins.autoloader || {};
+  Prism.plugins.autoloader.languages_path = 'https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/';
+
+  // Custom MDL language definition
+  Prism.languages.mdl = {
+    'comment': [
+      {
+        pattern: /\/\*[\s\S]*?\*\//,
+        greedy: true
+      },
+      {
+        pattern: /\/\/.*/,
+        greedy: true
+      }
+    ],
+    'string': [
+      {
+        pattern: /"([^"\\]|\\.)*"/,
+        greedy: true
+      },
+      {
+        pattern: /\$!raw[\s\S]*?raw!\$/,
+        greedy: true,
+        inside: {
+          'keyword': /\$!raw|raw!\$/
+        }
+      }
+    ],
+    'keyword': {
+      pattern: /\b(pack|namespace|function|on_tick|on_load|tag|add|if|else if|else|while|for|in|var|let|const|num|str|list|try|catch|throw|switch|case|default|break|continue|return|import|from|as|recipe|loot_table|advancement|predicate|item_modifier|structure|scope|global)\b/,
+      lookbehind: true
+    },
+    'builtin': {
+      pattern: /\b(say|tellraw|effect|particle|execute|scoreboard|data|function|tag|tp|kill|summon|give|clear|enchant|gamemode|weather|time|difficulty|gamerule|title|playsound|stopsound|kick|ban|ban-ip|pardon|pardon-ip|whitelist|op|deop|save-all|save-off|save-on|list|me|msg|team|trigger|advancement|recipe|loot|schedule|return|run)\b/,
+      lookbehind: true
+    },
+    'selector': {
+      pattern: /\b(@p|@r|@a|@e|@s)\b/,
+      lookbehind: true
+    },
+    'boolean': {
+      pattern: /\b(true|false|null|undefined)\b/,
+      lookbehind: true
+    },
+    'number': {
+      pattern: /\b\d+\b/,
+      lookbehind: true
+    },
+    'operator': {
+      pattern: /\b(\+|-|\*|\/|%|=|==|!=|<|>|<=|>=|&&|\|\||!|\+=|-=|\*=|\/=|%=)\b/,
+      lookbehind: true
+    },
+    'punctuation': /[{}();[\]]/
+  };
+
+  // mcfunction fallback
+  Prism.languages.mcfunction = Prism.languages.none;
+
+  // Simple theme management
+  function initializeTheme() {
+    const html = document.documentElement;
     const savedTheme = localStorage.getItem('theme');
-    const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    const theme = savedTheme || systemTheme;
-    setTheme(theme);
-  }
-  
-  // Theme toggle
-  function toggleTheme() {
-    const currentTheme = document.documentElement.getAttribute('data-theme');
-    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-    setTheme(newTheme);
-  }
-  
-  // Initialize on page load
-  document.addEventListener('DOMContentLoaded', function() {
-    initTheme();
+    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     
-    // Highlight all MDL code blocks
-    document.querySelectorAll('code.language-mdl').forEach(highlightMDL);
-    
-    // Set up theme toggle
-    const themeToggle = document.querySelector('.theme-toggle, #themeToggle');
-    if (themeToggle) {
-      themeToggle.addEventListener('click', toggleTheme);
+    // Set initial theme
+    if (savedTheme) {
+      html.setAttribute('data-theme', savedTheme);
+    } else if (systemPrefersDark) {
+      html.setAttribute('data-theme', 'dark');
+    } else {
+      html.setAttribute('data-theme', 'light');
     }
     
-    // Listen for system theme changes
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
-      if (!localStorage.getItem('theme')) {
-        setTheme(e.matches ? 'dark' : 'light');
-      }
-    });
-  });
-  
-  // Re-highlight when content changes (for dynamic content)
-  const observer = new MutationObserver(function(mutations) {
-    mutations.forEach(function(mutation) {
-      mutation.addedNodes.forEach(function(node) {
-        if (node.nodeType === 1) { // Element node
-          if (node.classList && node.classList.contains('language-mdl')) {
-            highlightMDL(node);
-          }
-          const mdlBlocks = node.querySelectorAll && node.querySelectorAll('code.language-mdl');
-          if (mdlBlocks) {
-            mdlBlocks.forEach(highlightMDL);
-          }
-        }
+    // Update Prism theme
+    updatePrismTheme();
+    
+    // Highlight all code blocks
+    if (typeof Prism !== 'undefined') {
+      console.log('Prism found, highlighting all...');
+      Prism.highlightAll();
+      
+      // Debug: Check for MDL code blocks
+      const mdlBlocks = document.querySelectorAll('pre code.language-mdl');
+      console.log('Found MDL code blocks:', mdlBlocks.length);
+      
+      // Force highlight MDL blocks specifically
+      mdlBlocks.forEach(function(block, index) {
+        console.log('Highlighting MDL block', index, ':', block.textContent.substring(0, 50));
+        Prism.highlightElement(block);
       });
-    });
-  });
-  
-  // Start observing
-  document.addEventListener('DOMContentLoaded', function() {
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true
-    });
-  });
+    } else {
+      console.log('Prism not found!');
+    }
+  }
+
+  function updatePrismTheme() {
+    const darkTheme = document.getElementById('prism-dark-theme');
+    const lightTheme = document.querySelector('link[href*="prism.min.css"]');
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    
+    if (isDark) {
+      if (lightTheme) lightTheme.disabled = true;
+      if (darkTheme) darkTheme.disabled = false;
+    } else {
+      if (lightTheme) lightTheme.disabled = false;
+      if (darkTheme) darkTheme.disabled = true;
+    }
+  }
+
+  // Initialize when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeTheme);
+  } else {
+    initializeTheme();
+  }
+
+  // Listen for theme changes
+  document.addEventListener('themeChanged', updatePrismTheme);
 </script>
 
 <!-- Simple Dark Mode Styles -->
@@ -256,46 +274,13 @@
   color: #79c0ff !important;
 }
 
-/* Only override navigation colors in dark mode to prevent theme interference */
-[data-theme="dark"] .nav-menu .nav-link,
-[data-theme="dark"] .nav-menu .nav-link:visited,
-[data-theme="dark"] .nav-menu .nav-link:hover,
-[data-theme="dark"] .nav-menu .nav-link:active {
-  color: rgba(255, 255, 255, 0.85) !important;
-}
-
-[data-theme="dark"] .nav-menu .nav-link:hover {
-  color: #ffffff !important;
-}
-
-[data-theme="dark"] .nav-menu .nav-link.active {
-  color: #ffffff !important;
-}
-
-[data-theme="dark"] .nav-menu .nav-icon-link,
-[data-theme="dark"] .nav-menu .nav-icon-link:hover,
-[data-theme="dark"] .nav-menu .nav-icon-link:active {
-  color: #ffffff !important;
-}
-
-[data-theme="dark"] .nav-menu .theme-toggle,
-[data-theme="dark"] .nav-menu .theme-toggle:hover,
-[data-theme="dark"] .nav-menu .theme-toggle:active {
-  color: #ffffff !important;
-}
-
-[data-theme="dark"] .nav-menu .nav-toggle,
-[data-theme="dark"] .nav-menu .nav-toggle:hover,
-[data-theme="dark"] .nav-menu .nav-toggle:active {
-  color: #ffffff !important;
-}
-
 /* MDL Syntax Highlighting - Light Mode */
 pre code.language-mdl .token.keyword,
 code.language-mdl .token.keyword,
 .language-mdl .token.keyword {
   color: #d73a49 !important;
   font-weight: 600 !important;
+  background-color: rgba(215, 58, 73, 0.1) !important;
 }
 
 pre code.language-mdl .token.builtin,
@@ -303,6 +288,7 @@ code.language-mdl .token.builtin,
 .language-mdl .token.builtin {
   color: #6f42c1 !important;
   font-weight: 500 !important;
+  background-color: rgba(111, 66, 193, 0.1) !important;
 }
 
 pre code.language-mdl .token.selector,
@@ -310,12 +296,14 @@ code.language-mdl .token.selector,
 .language-mdl .token.selector {
   color: #e36209 !important;
   font-weight: 600 !important;
+  background-color: rgba(227, 98, 9, 0.1) !important;
 }
 
 pre code.language-mdl .token.string,
 code.language-mdl .token.string,
 .language-mdl .token.string {
   color: #032f62 !important;
+  background-color: rgba(3, 47, 98, 0.1) !important;
 }
 
 pre code.language-mdl .token.comment,
@@ -323,6 +311,7 @@ code.language-mdl .token.comment,
 .language-mdl .token.comment {
   color: #6a737d !important;
   font-style: italic !important;
+  background-color: rgba(106, 115, 125, 0.1) !important;
 }
 
 pre code.language-mdl .token.number,
@@ -330,6 +319,7 @@ code.language-mdl .token.number,
 .language-mdl .token.number {
   color: #005cc5 !important;
   font-weight: 500 !important;
+  background-color: rgba(0, 92, 197, 0.1) !important;
 }
 
 pre code.language-mdl .token.boolean,
@@ -337,6 +327,7 @@ code.language-mdl .token.boolean,
 .language-mdl .token.boolean {
   color: #005cc5 !important;
   font-weight: 500 !important;
+  background-color: rgba(0, 92, 197, 0.1) !important;
 }
 
 pre code.language-mdl .token.operator,
@@ -344,12 +335,14 @@ code.language-mdl .token.operator,
 .language-mdl .token.operator {
   color: #d73a49 !important;
   font-weight: 500 !important;
+  background-color: rgba(215, 58, 73, 0.1) !important;
 }
 
 pre code.language-mdl .token.punctuation,
 code.language-mdl .token.punctuation,
 .language-mdl .token.punctuation {
   color: #24292e !important;
+  background-color: rgba(36, 41, 46, 0.1) !important;
 }
 
 /* MDL Syntax Highlighting - Dark Mode */
@@ -357,54 +350,63 @@ code.language-mdl .token.punctuation,
 [data-theme="dark"] code.language-mdl .token.keyword,
 [data-theme="dark"] .language-mdl .token.keyword {
   color: #ff7b72 !important;
+  background-color: rgba(255, 123, 114, 0.1) !important;
 }
 
 [data-theme="dark"] pre code.language-mdl .token.builtin,
 [data-theme="dark"] code.language-mdl .token.builtin,
 [data-theme="dark"] .language-mdl .token.builtin {
   color: #d2a8ff !important;
+  background-color: rgba(210, 168, 255, 0.1) !important;
 }
 
 [data-theme="dark"] pre code.language-mdl .token.selector,
 [data-theme="dark"] code.language-mdl .token.selector,
 [data-theme="dark"] .language-mdl .token.selector {
   color: #ffa657 !important;
+  background-color: rgba(255, 166, 87, 0.1) !important;
 }
 
 [data-theme="dark"] pre code.language-mdl .token.string,
 [data-theme="dark"] code.language-mdl .token.string,
 [data-theme="dark"] .language-mdl .token.string {
   color: #a5d6ff !important;
+  background-color: rgba(165, 214, 255, 0.1) !important;
 }
 
 [data-theme="dark"] pre code.language-mdl .token.comment,
 [data-theme="dark"] code.language-mdl .token.comment,
 [data-theme="dark"] .language-mdl .token.comment {
   color: #8b949e !important;
+  background-color: rgba(139, 148, 158, 0.1) !important;
 }
 
 [data-theme="dark"] pre code.language-mdl .token.number,
 [data-theme="dark"] code.language-mdl .token.number,
 [data-theme="dark"] .language-mdl .token.number {
   color: #79c0ff !important;
+  background-color: rgba(121, 192, 255, 0.1) !important;
 }
 
 [data-theme="dark"] pre code.language-mdl .token.boolean,
 [data-theme="dark"] code.language-mdl .token.boolean,
 [data-theme="dark"] .language-mdl .token.boolean {
   color: #79c0ff !important;
+  background-color: rgba(121, 192, 255, 0.1) !important;
 }
 
 [data-theme="dark"] pre code.language-mdl .token.operator,
 [data-theme="dark"] code.language-mdl .token.operator,
 [data-theme="dark"] .language-mdl .token.operator {
   color: #ff7b72 !important;
+  background-color: rgba(255, 123, 114, 0.1) !important;
 }
 
 [data-theme="dark"] pre code.language-mdl .token.punctuation,
 [data-theme="dark"] code.language-mdl .token.punctuation,
 [data-theme="dark"] .language-mdl .token.punctuation {
   color: #c9d1d9 !important;
+  background-color: rgba(201, 209, 217, 0.1) !important;
 }
 
 /* Override any default Prism colors for MDL */
@@ -413,48 +415,6 @@ code.language-mdl .token.punctuation,
 }
 
 [data-theme="dark"] .language-mdl .token {
-  color: #c9d1d9 !important;
-}
-
-/* Fix code block sizing */
-pre[class*="language-"],
-pre,
-.highlight,
-.highlight pre {
-  background-color: #f6f8fa !important;
-  border: 1px solid #e1e4e8 !important;
-  border-radius: 6px;
-  margin: 1rem 0;
-  color: #24292e !important;
-  font-size: 0.9rem !important;
-  line-height: 1.4 !important;
-  padding: 1rem !important;
-  overflow-x: auto !important;
-  max-width: 100% !important;
-}
-
-[data-theme="dark"] pre[class*="language-"],
-[data-theme="dark"] pre,
-[data-theme="dark"] .highlight,
-[data-theme="dark"] .highlight pre {
-  background-color: #0d1117 !important;
-  border: 1px solid #30363d !important;
-  color: #c9d1d9 !important;
-}
-
-code[class*="language-"],
-code,
-.highlight code {
-  font-size: 0.9rem !important;
-  color: #24292e !important;
-  background-color: transparent !important;
-  padding: 0 !important;
-  border: none !important;
-}
-
-[data-theme="dark"] code[class*="language-"],
-[data-theme="dark"] code,
-[data-theme="dark"] .highlight code {
   color: #c9d1d9 !important;
 }
 
