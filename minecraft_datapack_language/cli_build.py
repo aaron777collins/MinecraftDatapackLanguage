@@ -523,20 +523,41 @@ def _ast_to_pack(ast: Dict[str, Any], mdl_files: List[Path]) -> Pack:
     """Convert AST to Pack object."""
     pack_info = ast.get('pack', {})
     pack_name = pack_info.get('name', 'mdl_pack')
-    pack_format = pack_info.get('format', 82)
+    pack_format = pack_info.get('pack_format', 82)  # Use pack_format instead of format
     pack_description = pack_info.get('description', 'MDL Generated Datapack')
     
-    pack = Pack(pack_name, pack_format, pack_description)
+    pack = Pack(pack_name, pack_description, pack_format)
     
-    # Add namespaces
+    # Add namespaces and functions
     if 'functions' in ast:
-        namespace = Namespace(pack_name)
+        # Get namespace name from AST or use pack name
+        namespace_name = ast.get('namespace', {}).get('name', pack_name)
+        namespace = pack.namespace(namespace_name)
         
         for func in ast['functions']:
-            function = Function(func['name'])
-            namespace.add_function(function)
-        
-        pack.add_namespace(namespace)
+            function_name = func['name']
+            # Create function and add commands if they exist
+            function = namespace.function(function_name)
+            
+            # Add commands from function body if they exist
+            if 'body' in func:
+                for statement in func['body']:
+                    if statement.get('type') == 'command':
+                        function.commands.append(statement['command'])
+    
+    # Add variables
+    if 'variables' in ast:
+        for var in ast['variables']:
+            # Variables are handled during command processing
+            pass
+    
+    # Add hooks
+    if 'hooks' in ast:
+        for hook in ast['hooks']:
+            if hook['hook_type'] == 'load':
+                pack.on_load(hook['function_name'])
+            elif hook['hook_type'] == 'tick':
+                pack.on_tick(hook['function_name'])
     
     return pack
 
