@@ -16,6 +16,8 @@ class MDLError(BaseException):
     column: Optional[int] = None
     line_content: Optional[str] = None
     error_type: str = "error"
+    suggestion: Optional[str] = None
+    context_lines: int = 2
     
     def __str__(self) -> str:
         """Format error message with location information."""
@@ -43,6 +45,15 @@ class MDLError(BaseException):
         
         parts.append(f"Error: {self.message}")
         
+        if self.suggestion:
+            parts.append(f"💡 Suggestion: {self.suggestion}")
+        
+        # Add context if we have file and line information
+        if self.file_path and self.line is not None:
+            context = format_error_context(self.file_path, self.line, self.column, self.context_lines)
+            if context:
+                parts.append(f"\nContext:\n{context}")
+        
         return "\n".join(parts)
     
     def to_dict(self) -> dict:
@@ -53,7 +64,8 @@ class MDLError(BaseException):
             "file": self.file_path,
             "line": self.line,
             "column": self.column,
-            "line_content": self.line_content
+            "line_content": self.line_content,
+            "suggestion": self.suggestion
         }
 
 
@@ -102,6 +114,33 @@ class MDLBuildError(MDLError):
         return f"Build Error: {super().__str__()}"
 
 
+@dataclass
+class MDLCompilationError(MDLError):
+    """Error during compilation."""
+    error_type: str = "compilation_error"
+    
+    def __str__(self) -> str:
+        return f"Compilation Error: {super().__str__()}"
+
+
+@dataclass
+class MDLFileError(MDLError):
+    """Error related to file operations."""
+    error_type: str = "file_error"
+    
+    def __str__(self) -> str:
+        return f"File Error: {super().__str__()}"
+
+
+@dataclass
+class MDLConfigurationError(MDLError):
+    """Error related to configuration."""
+    error_type: str = "configuration_error"
+    
+    def __str__(self) -> str:
+        return f"Configuration Error: {super().__str__()}"
+
+
 class MDLErrorCollector:
     """Collects and manages multiple MDL errors."""
     
@@ -136,17 +175,13 @@ class MDLErrorCollector:
         
         if self.errors:
             print(f"\n❌ Found {len(self.errors)} error(s):")
-            for error in self.errors:
-                print(f"\n{error}")
-                if verbose and hasattr(error, 'suggestion') and error.suggestion:
-                    print(f"💡 Suggestion: {error.suggestion}")
+            for i, error in enumerate(self.errors, 1):
+                print(f"\n{i}. {error}")
         
         if self.warnings:
             print(f"\n⚠️  Found {len(self.warnings)} warning(s):")
-            for warning in self.warnings:
-                print(f"\n{warning}")
-                if verbose and hasattr(warning, 'suggestion') and warning.suggestion:
-                    print(f"💡 Suggestion: {warning.suggestion}")
+            for i, warning in enumerate(self.warnings, 1):
+                print(f"\n{i}. {warning}")
     
     def raise_if_errors(self) -> None:
         """Raise an exception if there are any errors."""
@@ -156,18 +191,36 @@ class MDLErrorCollector:
                 message=f"Build failed with {len(self.errors)} error(s):\n" + "\n".join(error_messages),
                 error_type="build_error"
             )
+    
+    def get_summary(self) -> str:
+        """Get a summary of errors and warnings."""
+        summary_parts = []
+        
+        if self.errors:
+            summary_parts.append(f"{len(self.errors)} error(s)")
+        
+        if self.warnings:
+            summary_parts.append(f"{len(self.warnings)} warning(s)")
+        
+        if not summary_parts:
+            return "No issues found"
+        
+        return ", ".join(summary_parts)
 
 
 def create_error(error_type: str, message: str, file_path: Optional[str] = None, 
                 line: Optional[int] = None, column: Optional[int] = None, 
-                line_content: Optional[str] = None) -> MDLError:
+                line_content: Optional[str] = None, suggestion: Optional[str] = None) -> MDLError:
     """Factory function to create appropriate error type."""
     error_classes = {
         "syntax": MDLSyntaxError,
         "lexer": MDLLexerError,
         "parser": MDLParserError,
         "validation": MDLValidationError,
-        "build": MDLBuildError
+        "build": MDLBuildError,
+        "compilation": MDLCompilationError,
+        "file": MDLFileError,
+        "configuration": MDLConfigurationError
     }
     
     error_class = error_classes.get(error_type, MDLError)
@@ -177,7 +230,8 @@ def create_error(error_type: str, message: str, file_path: Optional[str] = None,
         line=line,
         column=column,
         line_content=line_content,
-        error_type=error_type
+        error_type=error_type,
+        suggestion=suggestion
     )
 
 
@@ -218,4 +272,70 @@ def format_error_context(file_path: str, line: int, column: int,
         return "\n".join(context)
     except (FileNotFoundError, UnicodeDecodeError):
         return f"Unable to read file: {file_path}"
+
+
+def create_syntax_error(message: str, file_path: Optional[str] = None, 
+                       line: Optional[int] = None, column: Optional[int] = None,
+                       line_content: Optional[str] = None, suggestion: Optional[str] = None) -> MDLSyntaxError:
+    """Create a syntax error with common suggestions."""
+    if not suggestion:
+        if "missing semicolon" in message.lower():
+            suggestion = "Add a semicolon (;) at the end of the statement"
+        elif "missing brace" in message.lower():
+            suggestion = "Add a closing brace (}) to match the opening brace"
+        elif "unexpected token" in message.lower():
+            suggestion = "Check for missing or extra characters in the statement"
+        elif "unterminated string" in message.lower():
+            suggestion = "Add a closing quote (\") to terminate the string"
+    
+    return MDLSyntaxError(
+        message=message,
+        file_path=file_path,
+        line=line,
+        column=column,
+        line_content=line_content,
+        suggestion=suggestion
+    )
+
+
+def create_parser_error(message: str, file_path: Optional[str] = None,
+                       line: Optional[int] = None, column: Optional[int] = None,
+                       line_content: Optional[str] = None, suggestion: Optional[str] = None) -> MDLParserError:
+    """Create a parser error with common suggestions."""
+    if not suggestion:
+        if "expected" in message.lower() and "got" in message.lower():
+            suggestion = "Check the syntax and ensure all required tokens are present"
+        elif "unexpected end" in message.lower():
+            suggestion = "Check for missing closing braces, parentheses, or quotes"
+    
+    return MDLParserError(
+        message=message,
+        file_path=file_path,
+        line=line,
+        column=column,
+        line_content=line_content,
+        suggestion=suggestion
+    )
+
+
+def create_validation_error(message: str, file_path: Optional[str] = None,
+                           line: Optional[int] = None, column: Optional[int] = None,
+                           line_content: Optional[str] = None, suggestion: Optional[str] = None) -> MDLValidationError:
+    """Create a validation error with common suggestions."""
+    if not suggestion:
+        if "undefined variable" in message.lower():
+            suggestion = "Declare the variable using 'var num variable_name = value;' before using it"
+        elif "duplicate" in message.lower():
+            suggestion = "Use unique names for functions, variables, and other declarations"
+        elif "invalid namespace" in message.lower():
+            suggestion = "Use lowercase letters, numbers, and underscores only for namespace names"
+    
+    return MDLValidationError(
+        message=message,
+        file_path=file_path,
+        line=line,
+        column=column,
+        line_content=line_content,
+        suggestion=suggestion
+    )
 

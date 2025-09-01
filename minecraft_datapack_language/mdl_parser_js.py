@@ -6,6 +6,7 @@ Handles basic control structures and number variables only
 from dataclasses import dataclass
 from typing import List, Optional, Dict, Any, Union
 from .mdl_lexer_js import Token, TokenType, lex_mdl_js
+from .mdl_errors import MDLParserError, create_parser_error, MDLLexerError
 
 @dataclass
 class ASTNode:
@@ -25,52 +26,70 @@ class NamespaceDeclaration(ASTNode):
 @dataclass
 class FunctionDeclaration(ASTNode):
     name: str
-    parameters: List[str]
-    body: List[ASTNode]
-    return_type: Optional[str] = None
+    body: List[Any]
+
+@dataclass
+class VariableDeclaration(ASTNode):
+    name: str
+    scope: Optional[str]
+    value: Any
+
+@dataclass
+class VariableAssignment(ASTNode):
+    name: str
+    value: Any
+
+@dataclass
+class IfStatement(ASTNode):
+    condition: str
+    then_body: List[Any]
+    else_body: Optional[List[Any]]
+
+@dataclass
+class WhileLoop(ASTNode):
+    condition: str
+    method: Optional[str]
+    body: List[Any]
+
+@dataclass
+class FunctionCall(ASTNode):
+    name: str
+
+@dataclass
+class ExecuteStatement(ASTNode):
+    command: str
+
+@dataclass
+class RawText(ASTNode):
+    content: str
 
 @dataclass
 class Command(ASTNode):
     command: str
 
 @dataclass
-class RawText(ASTNode):
-    """Raw text that will be inserted directly without parsing."""
-    text: str
+class VariableExpression(ASTNode):
+    name: str
 
 @dataclass
-class IfStatement(ASTNode):
-    condition: str
-    body: List[ASTNode]
-    elif_branches: List['ElifBranch']
-    else_body: Optional[List[ASTNode]]
+class VariableSubstitutionExpression(ASTNode):
+    name: str
+    scope: Optional[str]
 
 @dataclass
-class ElifBranch(ASTNode):
-    condition: str
-    body: List[ASTNode]
-
-
+class LiteralExpression(ASTNode):
+    value: str
+    type: str
 
 @dataclass
-class WhileLoop(ASTNode):
-    condition: 'Expression'  # Changed from str to Expression
-    body: List[ASTNode]
-    method: str = "recursion"  # "recursion" or "schedule", defaults to recursion
-
-@dataclass
-class FunctionCall(ASTNode):
-    function_name: str
-    arguments: List['Expression']
-
-@dataclass
-class ExecuteStatement(ASTNode):
-    target: str  # e.g., "@a"
-    function_name: str
+class BinaryExpression(ASTNode):
+    left: Any
+    operator: str
+    right: Any
 
 @dataclass
 class HookDeclaration(ASTNode):
-    hook_type: str  # 'tick' or 'load'
+    hook_type: str
     function_name: str
 
 @dataclass
@@ -80,99 +99,44 @@ class TagDeclaration(ASTNode):
     values: List[str]
 
 @dataclass
-class VariableDeclaration(ASTNode):
-    var_type: str  # 'var'
-    data_type: str  # 'num'
-    name: str
-    value: Optional['Expression']
-    scope: Optional[str] = None  # Minecraft selector like @s, @e[type=armor_stand,tag=mdl_server,limit=1], etc.
-
-@dataclass
-class VariableAssignment(ASTNode):
-    name: str
-    value: 'Expression'
-    scope_selector: Optional[str] = None  # Optional scope selector for variable assignment
-
-# Expression Nodes
-@dataclass
-class Expression(ASTNode):
-    pass
-
-@dataclass
-class BinaryExpression(Expression):
-    left: Expression
-    operator: str
-    right: Expression
-
-@dataclass
-class LiteralExpression(Expression):
-    value: str
-    type: str  # 'number'
-
-@dataclass
-class VariableExpression(Expression):
-    name: str
-
-@dataclass
-class VariableSubstitutionExpression(Expression):
-    variable_name: str
-    scope_selector: Optional[str] = None  # Optional scope selector for variable access
-
-@dataclass
-class ConditionExpression(Expression):
-    """Special expression for while loop conditions that contain Minecraft command syntax."""
-    condition_string: str
-
-
-@dataclass
 class RecipeDeclaration(ASTNode):
-    """Recipe declaration."""
     name: str
-    data: dict
-
+    data: Dict[str, Any]
 
 @dataclass
 class LootTableDeclaration(ASTNode):
-    """Loot table declaration."""
     name: str
-    data: dict
-
+    data: Dict[str, Any]
 
 @dataclass
 class AdvancementDeclaration(ASTNode):
-    """Advancement declaration."""
     name: str
-    data: dict
-
+    data: Dict[str, Any]
 
 @dataclass
 class PredicateDeclaration(ASTNode):
-    """Predicate declaration."""
     name: str
-    data: dict
-
+    data: Dict[str, Any]
 
 @dataclass
 class ItemModifierDeclaration(ASTNode):
-    """Item modifier declaration."""
     name: str
-    data: dict
-
+    data: Dict[str, Any]
 
 @dataclass
 class StructureDeclaration(ASTNode):
-    """Structure declaration."""
     name: str
-    data: dict
+    data: Dict[str, Any]
 
 
 class MDLParser:
     """Parser for simplified MDL language."""
     
-    def __init__(self, tokens: List[Token]):
+    def __init__(self, tokens: List[Token], source_file: str = None):
         self.tokens = tokens
         self.current = 0
         self.current_namespace = "mdl"  # Track current namespace
+        self.source_file = source_file
     
     def parse(self) -> Dict[str, Any]:
         """Parse tokens into AST."""
@@ -194,40 +158,55 @@ class MDLParser:
         }
         
         while not self._is_at_end():
-            if self._peek().type == TokenType.PACK:
-                ast['pack'] = self._parse_pack_declaration()
-            elif self._peek().type == TokenType.NAMESPACE:
-                namespace_decl = self._parse_namespace_declaration()
-                ast['namespace'] = namespace_decl
-                self.current_namespace = namespace_decl['name']  # Update current namespace
-                print(f"DEBUG: Parser updated current_namespace to: {self.current_namespace}")
-            elif self._peek().type == TokenType.FUNCTION:
-                ast['functions'].append(self._parse_function_declaration())
-            elif self._peek().type == TokenType.ON_LOAD:
-                ast['hooks'].append(self._parse_hook_declaration())
-            elif self._peek().type == TokenType.ON_TICK:
-                ast['hooks'].append(self._parse_hook_declaration())
-            elif self._peek().type == TokenType.TAG:
-                ast['tags'].append(self._parse_tag_declaration())
-            elif self._peek().type == TokenType.VAR:
-                # Handle top-level variable declarations
-                ast['variables'].append(self._parse_variable_declaration())
-            elif self._peek().type == TokenType.RECIPE:
-                print(f"DEBUG: Found RECIPE token, current_namespace: {self.current_namespace}")
-                ast['recipes'].append(self._parse_recipe_declaration())
-            elif self._peek().type == TokenType.LOOT_TABLE:
-                ast['loot_tables'].append(self._parse_loot_table_declaration())
-            elif self._peek().type == TokenType.ADVANCEMENT:
-                ast['advancements'].append(self._parse_advancement_declaration())
-            elif self._peek().type == TokenType.PREDICATE:
-                ast['predicates'].append(self._parse_predicate_declaration())
-            elif self._peek().type == TokenType.ITEM_MODIFIER:
-                ast['item_modifiers'].append(self._parse_item_modifier_declaration())
-            elif self._peek().type == TokenType.STRUCTURE:
-                ast['structures'].append(self._parse_structure_declaration())
-            else:
-                # Skip unknown tokens
-                self._advance()
+            try:
+                if self._peek().type == TokenType.PACK:
+                    ast['pack'] = self._parse_pack_declaration()
+                elif self._peek().type == TokenType.NAMESPACE:
+                    namespace_decl = self._parse_namespace_declaration()
+                    ast['namespace'] = namespace_decl
+                    self.current_namespace = namespace_decl['name']  # Update current namespace
+                    print(f"DEBUG: Parser updated current_namespace to: {self.current_namespace}")
+                elif self._peek().type == TokenType.FUNCTION:
+                    ast['functions'].append(self._parse_function_declaration())
+                elif self._peek().type == TokenType.ON_LOAD:
+                    ast['hooks'].append(self._parse_hook_declaration())
+                elif self._peek().type == TokenType.ON_TICK:
+                    ast['hooks'].append(self._parse_hook_declaration())
+                elif self._peek().type == TokenType.TAG:
+                    ast['tags'].append(self._parse_tag_declaration())
+                elif self._peek().type == TokenType.VAR:
+                    # Handle top-level variable declarations
+                    ast['variables'].append(self._parse_variable_declaration())
+                elif self._peek().type == TokenType.RECIPE:
+                    print(f"DEBUG: Found RECIPE token, current_namespace: {self.current_namespace}")
+                    ast['recipes'].append(self._parse_recipe_declaration())
+                elif self._peek().type == TokenType.LOOT_TABLE:
+                    ast['loot_tables'].append(self._parse_loot_table_declaration())
+                elif self._peek().type == TokenType.ADVANCEMENT:
+                    ast['advancements'].append(self._parse_advancement_declaration())
+                elif self._peek().type == TokenType.PREDICATE:
+                    ast['predicates'].append(self._parse_predicate_declaration())
+                elif self._peek().type == TokenType.ITEM_MODIFIER:
+                    ast['item_modifiers'].append(self._parse_item_modifier_declaration())
+                elif self._peek().type == TokenType.STRUCTURE:
+                    ast['structures'].append(self._parse_structure_declaration())
+                else:
+                    # Skip unknown tokens
+                    self._advance()
+            except MDLLexerError:
+                # Re-raise lexer errors as they already have proper formatting
+                raise
+            except Exception as e:
+                # Convert other exceptions to parser errors
+                current_token = self._peek()
+                raise create_parser_error(
+                    message=str(e),
+                    file_path=self.source_file,
+                    line=current_token.line,
+                    column=current_token.column,
+                    line_content=current_token.value,
+                    suggestion="Check the syntax and ensure all required tokens are present"
+                )
         
         return ast
     
@@ -275,6 +254,16 @@ class MDLParser:
         while not self._is_at_end() and self._peek().type != TokenType.RBRACE:
             body.append(self._parse_statement())
         
+        if self._is_at_end():
+            raise create_parser_error(
+                message="Missing closing brace for function",
+                file_path=self.source_file,
+                line=self._peek().line,
+                column=self._peek().column,
+                line_content=self._peek().value,
+                suggestion="Add a closing brace (}) to match the opening brace"
+            )
+        
         self._match(TokenType.RBRACE)
         
         return {"name": name, "body": body}
@@ -299,39 +288,6 @@ class MDLParser:
         print(f"DEBUG: Recipe '{name}' declared with namespace: {self.current_namespace}")
         return result
     
-    def _parse_json_block(self) -> dict:
-        """Parse a JSON block until matching closing brace."""
-        import json
-        
-        # For now, just collect the raw source until matching closing brace
-        # This is a simpler approach that should work reliably
-        source = ""
-        brace_count = 1
-        
-        # Skip the opening brace
-        self._advance()
-        
-        while not self._is_at_end() and brace_count > 0:
-            token = self._peek()
-            if token.type == TokenType.LBRACE:
-                brace_count += 1
-            elif token.type == TokenType.RBRACE:
-                brace_count -= 1
-            
-            if brace_count > 0:  # Don't include the final closing brace
-                source += token.value
-            
-            self._advance()
-        
-        try:
-            # Parse as JSON
-            return json.loads(source)
-        except json.JSONDecodeError as e:
-            print(f"Warning: JSON parsing failed: {e}")
-            print(f"JSON source: {source}")
-            # Return as raw string if JSON parsing fails
-            return {"raw_json": source}
-    
     def _parse_loot_table_declaration(self) -> LootTableDeclaration:
         """Parse loot table declaration."""
         self._match(TokenType.LOOT_TABLE)
@@ -339,15 +295,12 @@ class MDLParser:
         name_token = self._match(TokenType.STRING)
         name = name_token.value.strip('"').strip("'")
         
-        # Expect a JSON file path
         json_file_token = self._match(TokenType.STRING)
         json_file = json_file_token.value.strip('"').strip("'")
         
         self._match(TokenType.SEMICOLON)
         
-        # Store reference to JSON file and current namespace
         data = {"json_file": json_file}
-        
         return {"name": name, "data": data, "_source_namespace": self.current_namespace}
     
     def _parse_advancement_declaration(self) -> AdvancementDeclaration:
@@ -357,15 +310,12 @@ class MDLParser:
         name_token = self._match(TokenType.STRING)
         name = name_token.value.strip('"').strip("'")
         
-        # Expect a JSON file path
         json_file_token = self._match(TokenType.STRING)
         json_file = json_file_token.value.strip('"').strip("'")
         
         self._match(TokenType.SEMICOLON)
         
-        # Store reference to JSON file and current namespace
         data = {"json_file": json_file}
-        
         return {"name": name, "data": data, "_source_namespace": self.current_namespace}
     
     def _parse_predicate_declaration(self) -> PredicateDeclaration:
@@ -375,19 +325,12 @@ class MDLParser:
         name_token = self._match(TokenType.STRING)
         name = name_token.value.strip('"').strip("'")
         
-        # Check if next token is a brace (inline JSON) or string (file path)
-        if self._peek().type == TokenType.LBRACE:
-            # Inline JSON
-            self._match(TokenType.LBRACE)
-            json_data = self._parse_json_block()
-            data = json_data
-        else:
-            # JSON file path
-            json_file_token = self._match(TokenType.STRING)
-            json_file = json_file_token.value.strip('"').strip("'")
-            self._match(TokenType.SEMICOLON)
-            data = {"json_file": json_file}
+        json_file_token = self._match(TokenType.STRING)
+        json_file = json_file_token.value.strip('"').strip("'")
         
+        self._match(TokenType.SEMICOLON)
+        
+        data = {"json_file": json_file}
         return {"name": name, "data": data, "_source_namespace": self.current_namespace}
     
     def _parse_item_modifier_declaration(self) -> ItemModifierDeclaration:
@@ -397,19 +340,12 @@ class MDLParser:
         name_token = self._match(TokenType.STRING)
         name = name_token.value.strip('"').strip("'")
         
-        # Check if next token is a brace (inline JSON) or string (file path)
-        if self._peek().type == TokenType.LBRACE:
-            # Inline JSON
-            self._match(TokenType.LBRACE)
-            json_data = self._parse_json_block()
-            data = json_data
-        else:
-            # JSON file path
-            json_file_token = self._match(TokenType.STRING)
-            json_file = json_file_token.value.strip('"').strip("'")
-            self._match(TokenType.SEMICOLON)
-            data = {"json_file": json_file}
+        json_file_token = self._match(TokenType.STRING)
+        json_file = json_file_token.value.strip('"').strip("'")
         
+        self._match(TokenType.SEMICOLON)
+        
+        data = {"json_file": json_file}
         return {"name": name, "data": data, "_source_namespace": self.current_namespace}
     
     def _parse_structure_declaration(self) -> StructureDeclaration:
@@ -419,19 +355,12 @@ class MDLParser:
         name_token = self._match(TokenType.STRING)
         name = name_token.value.strip('"').strip("'")
         
-        # Check if next token is a brace (inline JSON) or string (file path)
-        if self._peek().type == TokenType.LBRACE:
-            # Inline JSON
-            self._match(TokenType.LBRACE)
-            json_data = self._parse_json_block()
-            data = json_data
-        else:
-            # JSON file path
-            json_file_token = self._match(TokenType.STRING)
-            json_file = json_file_token.value.strip('"').strip("'")
-            self._match(TokenType.SEMICOLON)
-            data = {"json_file": json_file}
+        json_file_token = self._match(TokenType.STRING)
+        json_file = json_file_token.value.strip('"').strip("'")
         
+        self._match(TokenType.SEMICOLON)
+        
+        data = {"json_file": json_file}
         return {"name": name, "data": data, "_source_namespace": self.current_namespace}
     
     def _parse_statement(self) -> ASTNode:
@@ -451,7 +380,14 @@ class MDLParser:
         elif self._peek().type == TokenType.IDENTIFIER:
             # Check for for loops (which are no longer supported)
             if self._peek().value == "for":
-                raise ValueError("For loops are no longer supported in MDL. Use while loops instead.")
+                raise create_parser_error(
+                    message="For loops are no longer supported in MDL. Use while loops instead.",
+                    file_path=self.source_file,
+                    line=self._peek().line,
+                    column=self._peek().column,
+                    line_content=self._peek().value,
+                    suggestion="Replace 'for' with 'while' and adjust the loop structure"
+                )
             
             # Check if this is a variable assignment (identifier followed by =)
             if (self.current + 1 < len(self.tokens) and 
@@ -467,68 +403,42 @@ class MDLParser:
     def _parse_variable_declaration(self) -> VariableDeclaration:
         """Parse variable declaration."""
         self._match(TokenType.VAR)
-        
-        # Parse data type (only num supported)
         self._match(TokenType.NUM)
         
-        # Parse variable name
         name_token = self._match(TokenType.IDENTIFIER)
         name = name_token.value
         
-        # Check for scope declaration
+        # Check for scope selector
         scope = None
-        if self._peek().type == TokenType.SCOPE:
-            scope_token = self._match(TokenType.SCOPE)
-            # Check if the scope token contains the selector (e.g., "scope<@a>")
-            if '<' in scope_token.value and scope_token.value.endswith('>'):
-                # Extract the selector from the scope token
-                parts = scope_token.value.split('<', 1)
-                if len(parts) == 2:
-                    scope = parts[1][:-1]  # Remove the closing >
-            else:
-                # Expect opening angle bracket
-                self._match(TokenType.LANGLE)
-                # Parse the selector - collect all tokens until we find the closing angle bracket
-                scope_parts = []
-                while not self._is_at_end() and self._peek().type != TokenType.RANGLE:
-                    token = self._advance()
-                    scope_parts.append(token.value)
-                scope = ''.join(scope_parts)
-                # Expect closing angle bracket
-                self._match(TokenType.RANGLE)
+        if '<' in name and name.endswith('>'):
+            # Extract scope from name
+            parts = name.split('<', 1)
+            if len(parts) == 2:
+                name = parts[0]
+                scope = parts[1][:-1]  # Remove the closing >
         
-        # Parse assignment
         self._match(TokenType.ASSIGN)
         
-        # Parse value
+        # Parse the value (could be a number or expression)
         value = self._parse_expression()
         
         self._match(TokenType.SEMICOLON)
         
-        return VariableDeclaration("var", "num", name, value, scope)
+        return {"name": name, "scope": scope, "value": value}
     
     def _parse_variable_assignment(self) -> VariableAssignment:
         """Parse variable assignment."""
         name_token = self._match(TokenType.IDENTIFIER)
         name = name_token.value
         
-        # Check for scoped variable syntax
-        scope_selector = None
-        if self._peek().type == TokenType.LANGLE:
-            self._match(TokenType.LANGLE)
-            scope_parts = []
-            while not self._is_at_end() and self._peek().type != TokenType.RANGLE:
-                token = self._advance()
-                scope_parts.append(token.value)
-            scope_selector = ''.join(scope_parts)
-            self._match(TokenType.RANGLE)
-        
         self._match(TokenType.ASSIGN)
+        
+        # Parse the value (could be a number or expression)
         value = self._parse_expression()
         
         self._match(TokenType.SEMICOLON)
         
-        return VariableAssignment(name, value, scope_selector)
+        return {"name": name, "value": value}
     
     def _parse_if_statement(self) -> IfStatement:
         """Parse if statement."""
@@ -545,44 +455,41 @@ class MDLParser:
         while not self._is_at_end() and self._peek().type != TokenType.RBRACE:
             then_body.append(self._parse_statement())
         
+        if self._is_at_end():
+            raise create_parser_error(
+                message="Missing closing brace for if statement",
+                file_path=self.source_file,
+                line=self._peek().line,
+                column=self._peek().column,
+                line_content=self._peek().value,
+                suggestion="Add a closing brace (}) to match the opening brace"
+            )
+        
         self._match(TokenType.RBRACE)
         
-        # Parse else if branches
-        elif_branches = []
-        while (self._peek().type == TokenType.ELSE and 
-               self.current + 1 < len(self.tokens) and
-               self.tokens[self.current + 1].type == TokenType.IF):
-            elif_branches.append(self._parse_elif_branch())
-        
-        # Parse else body
+        # Check for else
         else_body = None
-        if self._peek().type == TokenType.ELSE:
+        if not self._is_at_end() and self._peek().type == TokenType.ELSE:
             self._match(TokenType.ELSE)
             self._match(TokenType.LBRACE)
+            
             else_body = []
             while not self._is_at_end() and self._peek().type != TokenType.RBRACE:
                 else_body.append(self._parse_statement())
+            
+            if self._is_at_end():
+                raise create_parser_error(
+                    message="Missing closing brace for else statement",
+                    file_path=self.source_file,
+                    line=self._peek().line,
+                    column=self._peek().column,
+                    line_content=self._peek().value,
+                    suggestion="Add a closing brace (}) to match the opening brace"
+                )
+            
             self._match(TokenType.RBRACE)
         
-        return IfStatement(condition, then_body, elif_branches, else_body)
-    
-    def _parse_elif_branch(self) -> ElifBranch:
-        """Parse else if branch."""
-        self._match(TokenType.ELSE)
-        self._match(TokenType.IF)
-        
-        condition_token = self._match(TokenType.STRING)
-        condition = condition_token.value.strip('"').strip("'")
-        
-        self._match(TokenType.LBRACE)
-        
-        body = []
-        while not self._is_at_end() and self._peek().type != TokenType.RBRACE:
-            body.append(self._parse_statement())
-        
-        self._match(TokenType.RBRACE)
-        
-        return ElifBranch(condition, body)
+        return {"condition": condition, "then_body": then_body, "else_body": else_body}
     
     def _parse_while_loop(self) -> WhileLoop:
         """Parse while loop."""
@@ -590,125 +497,128 @@ class MDLParser:
         
         # Parse condition
         condition_token = self._match(TokenType.STRING)
-        condition = ConditionExpression(condition_token.value.strip('"').strip("'"))
+        condition = condition_token.value.strip('"').strip("'")
         
-        # Parse optional method parameter
-        method = "recursion"  # default
-        if self._peek().type == TokenType.IDENTIFIER and self._peek().value == "method":
+        # Check for method parameter
+        method = None
+        if not self._is_at_end() and self._peek().type == TokenType.IDENTIFIER and self._peek().value == "method":
             self._match(TokenType.IDENTIFIER)  # consume "method"
-            self._match(TokenType.ASSIGN)  # consume "="
+            self._match(TokenType.ASSIGN)
             method_token = self._match(TokenType.STRING)
             method = method_token.value.strip('"').strip("'")
-            
-            # Validate method value
-            if method not in ["recursion", "schedule"]:
-                raise ValueError(f"Invalid while loop method: {method}. Must be 'recursion' or 'schedule'")
         
         self._match(TokenType.LBRACE)
         
+        # Parse body
         body = []
         while not self._is_at_end() and self._peek().type != TokenType.RBRACE:
             body.append(self._parse_statement())
         
+        if self._is_at_end():
+            raise create_parser_error(
+                message="Missing closing brace for while loop",
+                file_path=self.source_file,
+                line=self._peek().line,
+                column=self._peek().column,
+                line_content=self._peek().value,
+                suggestion="Add a closing brace (}) to match the opening brace"
+            )
+        
         self._match(TokenType.RBRACE)
         
-        return WhileLoop(condition, body, method)
-    
-
+        return {"condition": condition, "method": method, "body": body}
     
     def _parse_function_call(self) -> FunctionCall:
         """Parse function call."""
         self._match(TokenType.FUNCTION)
         
-        # Handle both quoted and unquoted function names
-        if self._peek().type == TokenType.STRING:
-            name_token = self._match(TokenType.STRING)
-            name = name_token.value.strip('"').strip("'")
-        elif self._peek().type == TokenType.IDENTIFIER:
-            name_token = self._match(TokenType.IDENTIFIER)
-            name = name_token.value
-        else:
-            raise RuntimeError(f"Expected STRING or IDENTIFIER for function name, got {self._peek().type}")
+        name_token = self._match(TokenType.STRING)
+        name = name_token.value.strip('"').strip("'")
         
         self._match(TokenType.SEMICOLON)
         
-        return FunctionCall(name, [])
+        return {"name": name}
     
     def _parse_execute_statement(self) -> ExecuteStatement:
-        """Parse execute statement like 'execute as @a function "namespace:function"';"""
+        """Parse execute statement."""
         self._match(TokenType.EXECUTE)
         
-        # Expect "as"
-        if self._peek().type != TokenType.IDENTIFIER or self._peek().value != "as":
-            raise RuntimeError(f"Expected 'as' after execute, got {self._peek().value}")
-        self._match(TokenType.IDENTIFIER)
+        # Parse the command
+        command_parts = []
+        while not self._is_at_end() and self._peek().type != TokenType.SEMICOLON:
+            command_parts.append(self._peek().value)
+            self._advance()
         
-        # Parse target selector (e.g., @a, @s, @p, etc.)
-        if self._peek().type != TokenType.IDENTIFIER:
-            raise RuntimeError(f"Expected target selector after 'as', got {self._peek().type}")
-        target_token = self._match(TokenType.IDENTIFIER)
-        target = target_token.value
-        
-        # Expect "function"
-        if self._peek().type != TokenType.FUNCTION:
-            raise RuntimeError(f"Expected 'function' after target selector, got {self._peek().value}")
-        self._match(TokenType.FUNCTION)
-        
-        # Parse function name
-        if self._peek().type == TokenType.STRING:
-            name_token = self._match(TokenType.STRING)
-            function_name = name_token.value.strip('"').strip("'")
-        elif self._peek().type == TokenType.IDENTIFIER:
-            name_token = self._match(TokenType.IDENTIFIER)
-            function_name = name_token.value
-        else:
-            raise RuntimeError(f"Expected STRING or IDENTIFIER for function name, got {self._peek().type}")
+        if self._is_at_end():
+            raise create_parser_error(
+                message="Missing semicolon after execute statement",
+                file_path=self.source_file,
+                line=self._peek().line,
+                column=self._peek().column,
+                line_content=self._peek().value,
+                suggestion="Add a semicolon (;) at the end of the execute statement"
+            )
         
         self._match(TokenType.SEMICOLON)
         
-        return ExecuteStatement(target, function_name)
+        command = _smart_join_command_parts(command_parts)
+        return {"command": command}
     
     def _parse_raw_text(self) -> RawText:
         """Parse raw text block."""
-        # Consume RAW_START
         self._match(TokenType.RAW_START)
         
-        # Get the raw text content
-        raw_token = self._match(TokenType.RAW)
-        raw_text = raw_token.value
+        # Parse the raw content
+        content_parts = []
+        while not self._is_at_end() and self._peek().type != TokenType.RAW_END:
+            content_parts.append(self._peek().value)
+            self._advance()
         
-        # Consume RAW_END
+        if self._is_at_end():
+            raise create_parser_error(
+                message="Missing closing 'raw!$' for raw text block",
+                file_path=self.source_file,
+                line=self._peek().line,
+                column=self._peek().column,
+                line_content=self._peek().value,
+                suggestion="Add 'raw!$' to close the raw text block"
+            )
+        
         self._match(TokenType.RAW_END)
         
-        return RawText(raw_text)
+        content = "".join(content_parts)
+        return {"content": content}
     
     def _parse_command(self) -> Command:
         """Parse a command."""
         command_parts = []
-        
         while not self._is_at_end() and self._peek().type != TokenType.SEMICOLON:
-            token = self._advance()
-            # Preserve variable substitutions with $ symbols
-            if token.type == TokenType.VARIABLE_SUB:
-                command_parts.append(f"${token.value}$")
-            else:
-                command_parts.append(token.value)
+            command_parts.append(self._peek().value)
+            self._advance()
         
-        if not self._is_at_end():
-            self._match(TokenType.SEMICOLON)
+        if self._is_at_end():
+            raise create_parser_error(
+                message="Missing semicolon after command",
+                file_path=self.source_file,
+                line=self._peek().line,
+                column=self._peek().column,
+                line_content=self._peek().value,
+                suggestion="Add a semicolon (;) at the end of the command"
+            )
         
-        # Smart join to preserve proper spacing
+        self._match(TokenType.SEMICOLON)
+        
         command = _smart_join_command_parts(command_parts)
-        return Command(command)
+        return {"command": command}
     
-    def _parse_hook_declaration(self) -> Dict[str, str]:
+    def _parse_hook_declaration(self) -> HookDeclaration:
         """Parse hook declaration."""
-        if self._peek().type == TokenType.ON_LOAD:
-            self._match(TokenType.ON_LOAD)
-            hook_type = "load"
-        else:
+        if self._peek().type == TokenType.ON_TICK:
             self._match(TokenType.ON_TICK)
             hook_type = "tick"
+        else:
+            self._match(TokenType.ON_LOAD)
+            hook_type = "load"
         
         function_name_token = self._match(TokenType.STRING)
         function_name = function_name_token.value.strip('"').strip("'")
@@ -717,101 +627,46 @@ class MDLParser:
         
         return {"hook_type": hook_type, "function_name": function_name}
     
-    def _parse_tag_declaration(self) -> Dict[str, Any]:
+    def _parse_tag_declaration(self) -> TagDeclaration:
         """Parse tag declaration."""
         self._match(TokenType.TAG)
         
-        # Tag type can be an identifier or certain keywords
-        token = self._peek()
-        if token.type in [TokenType.IDENTIFIER, TokenType.FUNCTION]:
-            tag_type_token = self._advance()
-            tag_type = tag_type_token.value
-        else:
-            raise RuntimeError(f"Expected tag type identifier, got {token.type}")
+        # Parse tag type
+        tag_type_token = self._match(TokenType.IDENTIFIER)
+        tag_type = tag_type_token.value
         
+        # Parse tag name
         name_token = self._match(TokenType.STRING)
         name = name_token.value.strip('"').strip("'")
         
         self._match(TokenType.LBRACE)
         
+        # Parse tag values
         values = []
         while not self._is_at_end() and self._peek().type != TokenType.RBRACE:
-            if self._peek().type == TokenType.ADD:
-                self._match(TokenType.ADD)
+            if self._peek().type == TokenType.STRING:
                 value_token = self._match(TokenType.STRING)
                 values.append(value_token.value.strip('"').strip("'"))
-                self._match(TokenType.SEMICOLON)
             else:
+                # Skip non-string tokens
                 self._advance()
+        
+        if self._is_at_end():
+            raise create_parser_error(
+                message="Missing closing brace for tag declaration",
+                file_path=self.source_file,
+                line=self._peek().line,
+                column=self._peek().column,
+                line_content=self._peek().value,
+                suggestion="Add a closing brace (}) to match the opening brace"
+            )
         
         self._match(TokenType.RBRACE)
         
         return {"tag_type": tag_type, "name": name, "values": values}
     
-    def _parse_expression(self) -> Expression:
+    def _parse_expression(self) -> Any:
         """Parse an expression."""
-        return self._parse_assignment_expression()
-    
-    def _parse_assignment_expression(self) -> Expression:
-        """Parse assignment expression."""
-        left = self._parse_logical_expression()
-        
-        if self._peek() and self._peek().type == TokenType.ASSIGN:
-            self._advance()  # consume =
-            right = self._parse_assignment_expression()
-            return BinaryExpression(left, "=", right)
-        
-        return left
-    
-    def _parse_additive_expression(self) -> Expression:
-        """Parse additive expressions (+, -)."""
-        left = self._parse_multiplicative_expression()
-        
-        while self._peek() and self._peek().type in [TokenType.PLUS, TokenType.MINUS]:
-            operator = self._advance().value
-            right = self._parse_multiplicative_expression()
-            left = BinaryExpression(left, operator, right)
-        
-        return left
-    
-    def _parse_comparison_expression(self) -> Expression:
-        """Parse comparison expressions (==, !=, <, <=, >, >=)."""
-        left = self._parse_additive_expression()
-        
-        while self._peek() and self._peek().type in [
-            TokenType.EQUAL, TokenType.NOT_EQUAL, TokenType.LESS, 
-            TokenType.LESS_EQUAL, TokenType.GREATER, TokenType.GREATER_EQUAL
-        ]:
-            operator = self._advance().value
-            right = self._parse_additive_expression()
-            left = BinaryExpression(left, operator, right)
-        
-        return left
-    
-    def _parse_logical_expression(self) -> Expression:
-        """Parse logical expressions (&&, ||)."""
-        left = self._parse_comparison_expression()
-        
-        while self._peek() and self._peek().type in [TokenType.AND, TokenType.OR]:
-            operator = self._advance().value
-            right = self._parse_comparison_expression()
-            left = BinaryExpression(left, operator, right)
-        
-        return left
-    
-    def _parse_multiplicative_expression(self) -> Expression:
-        """Parse multiplicative expressions (*, /, %)."""
-        left = self._parse_primary_expression()
-        
-        while self._peek() and self._peek().type in [TokenType.MULTIPLY, TokenType.DIVIDE, TokenType.MODULO]:
-            operator = self._advance().value
-            right = self._parse_primary_expression()
-            left = BinaryExpression(left, operator, right)
-        
-        return left
-    
-    def _parse_primary_expression(self) -> Expression:
-        """Parse primary expressions (literals, variables, parenthesized)."""
         token = self._peek()
         
         if token.type == TokenType.NUMBER:
@@ -819,14 +674,12 @@ class MDLParser:
             return LiteralExpression(token.value, "number")
         elif token.type == TokenType.STRING:
             self._advance()
-            return LiteralExpression(token.value, "string")
+            return LiteralExpression(token.value.strip('"').strip("'"), "string")
         elif token.type == TokenType.VARIABLE_SUB:
             self._advance()
-            # Parse scoped variable syntax: variable_name<selector>
             variable_name = token.value
-            scope_selector = None
             
-            # Check if the variable name contains a scope selector
+            # Check if the variable contains a scope selector
             if '<' in variable_name and variable_name.endswith('>'):
                 # Extract variable name and scope selector
                 parts = variable_name.split('<', 1)
@@ -866,13 +719,27 @@ class MDLParser:
     def _match(self, expected_type: TokenType) -> Token:
         """Match and consume a token of the expected type."""
         if self._is_at_end():
-            raise RuntimeError(f"Unexpected end of input, expected {expected_type}")
+            raise create_parser_error(
+                message=f"Unexpected end of input, expected {expected_type}",
+                file_path=self.source_file,
+                line=self._peek().line,
+                column=self._peek().column,
+                line_content=self._peek().value,
+                suggestion="Check for missing tokens or incomplete statements"
+            )
         
         token = self._peek()
         if token.type == expected_type:
             return self._advance()
         else:
-            raise RuntimeError(f"Expected {expected_type}, got {token.type}")
+            raise create_parser_error(
+                message=f"Expected {expected_type}, got {token.type}",
+                file_path=self.source_file,
+                line=token.line,
+                column=token.column,
+                line_content=token.value,
+                suggestion=f"Replace '{token.value}' with the expected {expected_type}"
+            )
     
     def _advance(self) -> Token:
         """Advance to the next token."""
@@ -925,8 +792,8 @@ def _smart_join_command_parts(parts: List[str]) -> str:
     return result
 
 
-def parse_mdl_js(source: str) -> Dict[str, Any]:
+def parse_mdl_js(source: str, source_file: str = None) -> Dict[str, Any]:
     """Parse JavaScript-style MDL source code into AST."""
-    tokens = lex_mdl_js(source)
-    parser = MDLParser(tokens)
+    tokens = lex_mdl_js(source, source_file)
+    parser = MDLParser(tokens, source_file)
     return parser.parse()

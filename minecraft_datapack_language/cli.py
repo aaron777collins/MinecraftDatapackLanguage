@@ -15,6 +15,8 @@ from .mdl_parser_js import parse_mdl_js
 from .expression_processor import ExpressionProcessor
 from .dir_map import get_dir_map
 from .pack import Pack, Namespace, Function, Tag, Recipe, Advancement, LootTable, Predicate, ItemModifier, Structure
+from .mdl_errors import MDLErrorCollector, create_error, MDLBuildError, MDLFileError, MDLCompilationError, MDLSyntaxError, MDLParserError, MDLLexerError
+from .mdl_linter import lint_mdl_file, lint_mdl_directory
 
 # Global variable to store conditional functions
 # NOTE: This is now deprecated and will be removed. Use instance-based storage instead.
@@ -273,16 +275,40 @@ def _find_mdl_files(directory: Path) -> List[Path]:
     return filtered_files
 
 
-def _merge_mdl_files(files: List[Path], verbose: bool = False) -> Optional[Dict[str, Any]]:
+def _merge_mdl_files(files: List[Path], verbose: bool = False, error_collector: MDLErrorCollector = None) -> Optional[Dict[str, Any]]:
     """Merge multiple MDL files into a single AST."""
     if not files:
         return None
     
     # Read and parse the first file
-    with open(files[0], 'r', encoding='utf-8') as f:
-        source = f.read()
-    
-    root_pack = parse_mdl_js(source)
+    try:
+        with open(files[0], 'r', encoding='utf-8') as f:
+            source = f.read()
+        
+        root_pack = parse_mdl_js(source, str(files[0]))
+        
+        # Debug: Check pack information from first file
+        if verbose:
+            print(f"DEBUG: First file pack info: {root_pack.get('pack')}")
+            if root_pack.get('pack'):
+                print(f"DEBUG: Pack name: {root_pack['pack'].get('name')}")
+                print(f"DEBUG: Pack description: {root_pack['pack'].get('description')}")
+                print(f"DEBUG: Pack format: {root_pack['pack'].get('pack_format')}")
+    except (MDLLexerError, MDLParserError, MDLSyntaxError) as e:
+        if error_collector:
+            error_collector.add_error(e)
+        else:
+            raise
+        return None
+    except Exception as e:
+        if error_collector:
+            error_collector.add_error(create_error(
+                "file", f"Error reading file {files[0]}: {str(e)}",
+                file_path=str(files[0])
+            ))
+        else:
+            raise
+        return None
     
     # Debug: Check pack information from first file
     print(f"DEBUG: First file pack info: {root_pack.get('pack')}")
@@ -341,10 +367,11 @@ def _merge_mdl_files(files: List[Path], verbose: bool = False) -> Optional[Dict[
     
     # Merge additional files
     for file_path in files[1:]:
-        with open(file_path, 'r', encoding='utf-8') as f:
-            source = f.read()
-        
-        ast = parse_mdl_js(source)
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                source = f.read()
+            
+            ast = parse_mdl_js(source, str(file_path))
         file_dir = os.path.dirname(os.path.abspath(file_path))
         
         # Get the namespace for this file
@@ -394,9 +421,25 @@ def _merge_mdl_files(files: List[Path], verbose: bool = False) -> Optional[Dict[
                     else:
                         setattr(entry, '_source_dir', file_dir)
                         # Don't overwrite _source_namespace - it's already set correctly by the parser
-                if key not in root_pack:
-                    root_pack[key] = []
-                root_pack[key].extend(ast[key])
+                                    if key not in root_pack:
+                        root_pack[key] = []
+                    root_pack[key].extend(ast[key])
+        
+        except (MDLLexerError, MDLParserError, MDLSyntaxError) as e:
+            if error_collector:
+                error_collector.add_error(e)
+            else:
+                raise
+            return None
+        except Exception as e:
+            if error_collector:
+                error_collector.add_error(create_error(
+                    "file", f"Error reading file {file_path}: {str(e)}",
+                    file_path=str(file_path)
+                ))
+            else:
+                raise
+            return None
     
     if verbose:
         pack_name = root_pack.get('pack', {}).get('name', 'unknown') if root_pack and root_pack.get('pack') else 'unknown'
@@ -1922,27 +1965,50 @@ def build_mdl(input_path: str, output_path: str, verbose: bool = False, pack_for
     If pack_format_override is provided, force the output to use that pack format.
     Wrapper, if provided, controls the produced zip file name (non-breaking for directory layout).
     """
-    input_dir = Path(input_path)
-    output_dir = Path(output_path)
+    error_collector = MDLErrorCollector()
     
-    # Clean output directory
-    if output_dir.exists():
-        shutil.rmtree(output_dir)
-    output_dir.mkdir(parents=True)
-    
-    # Find MDL files
-    if input_dir.is_file() and input_dir.suffix == '.mdl':
-        mdl_files = [input_dir]
-    else:
-        mdl_files = _find_mdl_files(input_dir)
-    
-    if not mdl_files:
-        raise SystemExit("No .mdl files found")
-    
-    # Parse and merge MDL files
-    ast = _merge_mdl_files(mdl_files, verbose)
-    if not ast:
-        raise SystemExit("Failed to parse MDL files")
+    try:
+        input_dir = Path(input_path)
+        output_dir = Path(output_path)
+        
+        # Validate input path
+        if not input_dir.exists():
+            error_collector.add_error(create_error(
+                "file", f"Input path does not exist: {input_path}",
+                file_path=str(input_path)
+            ))
+            error_collector.raise_if_errors()
+        
+        # Clean output directory
+        if output_dir.exists():
+            shutil.rmtree(output_dir)
+        output_dir.mkdir(parents=True)
+        
+        # Find MDL files
+        if input_dir.is_file() and input_dir.suffix == '.mdl':
+            mdl_files = [input_dir]
+        else:
+            mdl_files = _find_mdl_files(input_dir)
+        
+        if not mdl_files:
+            error_collector.add_error(create_error(
+                "file", f"No .mdl files found in {input_path}",
+                file_path=str(input_path)
+            ))
+            error_collector.raise_if_errors()
+        
+        # Parse and merge MDL files
+        try:
+            ast = _merge_mdl_files(mdl_files, verbose, error_collector)
+            if not ast:
+                error_collector.add_error(create_error(
+                    "compilation", "Failed to parse MDL files",
+                    file_path=str(input_path)
+                ))
+                error_collector.raise_if_errors()
+        except (MDLLexerError, MDLParserError, MDLSyntaxError) as e:
+            error_collector.add_error(e)
+            error_collector.raise_if_errors()
     
     # Debug: Check pack information after merging
     print(f"DEBUG: build_mdl: ast.get('pack') = {ast.get('pack')}")
@@ -2059,10 +2125,24 @@ def build_mdl(input_path: str, output_path: str, verbose: bool = False, pack_for
             zip_target = output_dir.parent / f"{safe_wrapper}.zip"
     _create_zip_file(output_dir, zip_target)
     
-    print(f"Successfully built datapack: {output_dir}")
-    print(f"Created zip file: {output_dir.parent / f'{output_dir.name}.zip'}")
-    if verbose:
-        print(f"Supported registry types: functions, tags, recipes, loot_tables, advancements, predicates, item_modifiers, structures")
+        print(f"✅ Successfully built datapack: {output_dir}")
+        print(f"📦 Created zip file: {zip_target}")
+        if verbose:
+            print(f"📋 Supported registry types: functions, tags, recipes, loot_tables, advancements, predicates, item_modifiers, structures")
+    
+    except (MDLLexerError, MDLParserError, MDLSyntaxError, MDLBuildError, MDLFileError, MDLCompilationError) as e:
+        # These errors already have proper formatting, just add them to the collector
+        error_collector.add_error(e)
+        error_collector.print_errors(verbose=True)
+        error_collector.raise_if_errors()
+    except Exception as e:
+        # Catch any other unexpected errors
+        error_collector.add_error(create_error(
+            "build", f"Unexpected error during build: {str(e)}",
+            file_path=str(input_path)
+        ))
+        error_collector.print_errors(verbose=True)
+        error_collector.raise_if_errors()
 
 
 def _slugify(name: str) -> str:
@@ -2520,63 +2600,82 @@ def lint_mdl_file(file_path: str, verbose: bool = False):
     from .mdl_linter import lint_mdl_file as lint_file, lint_mdl_directory as lint_dir
     from pathlib import Path
     
-    path = Path(file_path)
+    error_collector = MDLErrorCollector()
     
-    if path.is_dir():
-        print(f"Linting directory {file_path}...")
-        results = lint_dir(file_path)
+    try:
+        path = Path(file_path)
         
-        total_issues = 0
-        files_with_issues = 0
+        if not path.exists():
+            error_collector.add_error(create_error(
+                "file", f"Path does not exist: {file_path}",
+                file_path=str(file_path)
+            ))
+            error_collector.print_errors(verbose=True)
+            error_collector.raise_if_errors()
         
-        for file_path, issues in results.items():
-            if issues:
-                files_with_issues += 1
-                total_issues += len(issues)
-                print(f"\n📁 {file_path}:")
-                for issue in issues:
-                    severity_icon = {
-                        'error': '❌',
-                        'warning': '⚠️',
-                        'info': 'ℹ️'
-                    }.get(issue.severity, '❓')
-                    
-                    print(f"  {severity_icon} Line {issue.line_number}: {issue.severity.upper()}")
-                    print(f"     {issue.message}")
-                    if issue.suggestion:
-                        print(f"     💡 {issue.suggestion}")
-                    if verbose and hasattr(issue, 'code') and issue.code:
-                        print(f"     📝 {issue.code.strip()}")
-        
-        if total_issues == 0:
-            print("✅ No issues found in any files!")
-        else:
-            print(f"\n📊 Summary: {total_issues} issue(s) found in {files_with_issues} file(s)")
-    else:
-        print(f"Linting {file_path}...")
-        issues = lint_file(file_path)
-        
-        if not issues:
-            print("✅ No issues found!")
-            return
-        
-        print(f"\nFound {len(issues)} issue(s):")
-        print()
-        
-        for issue in issues:
-            severity_icon = {
-                'error': '❌',
-                'warning': '⚠️',
-                'info': 'ℹ️'
-            }.get(issue.severity, '❓')
+        if path.is_dir():
+            print(f"🔍 Linting directory {file_path}...")
+            results = lint_dir(file_path)
             
-            print(f"{severity_icon} Line {issue.line_number}: {issue.severity.upper()}")
-            print(f"   {issue.message}")
-            if issue.suggestion:
-                print(f"   💡 {issue.suggestion}")
-            if verbose and hasattr(issue, 'code') and issue.code:
-                print(f"   📝 {issue.code.strip()}")
+            total_issues = 0
+            files_with_issues = 0
+            
+            for file_path, issues in results.items():
+                if issues:
+                    files_with_issues += 1
+                    total_issues += len(issues)
+                    print(f"\n📁 {file_path}:")
+                    for issue in issues:
+                        severity_icon = {
+                            'error': '❌',
+                            'warning': '⚠️',
+                            'info': 'ℹ️'
+                        }.get(issue.severity, '❓')
+                        
+                        print(f"  {severity_icon} Line {issue.line_number}: {issue.severity.upper()}")
+                        print(f"     {issue.message}")
+                        if issue.suggestion:
+                            print(f"     💡 {issue.suggestion}")
+                        if verbose and hasattr(issue, 'code') and issue.code:
+                            print(f"     📝 {issue.code.strip()}")
+            
+            if total_issues == 0:
+                print("✅ No issues found in any files!")
+            else:
+                print(f"\n📊 Summary: {total_issues} issue(s) found in {files_with_issues} file(s)")
+        else:
+            print(f"🔍 Linting {file_path}...")
+            issues = lint_file(file_path)
+            
+            if not issues:
+                print("✅ No issues found!")
+                return
+            
+            print(f"\nFound {len(issues)} issue(s):")
             print()
+            
+            for issue in issues:
+                severity_icon = {
+                    'error': '❌',
+                    'warning': '⚠️',
+                    'info': 'ℹ️'
+                }.get(issue.severity, '❓')
+                
+                print(f"{severity_icon} Line {issue.line_number}: {issue.severity.upper()}")
+                print(f"   {issue.message}")
+                if issue.suggestion:
+                    print(f"   💡 {issue.suggestion}")
+                if verbose and hasattr(issue, 'code') and issue.code:
+                    print(f"   📝 {issue.code.strip()}")
+                print()
+    
+    except Exception as e:
+        error_collector.add_error(create_error(
+            "file", f"Error during linting: {str(e)}",
+            file_path=str(file_path)
+        ))
+        error_collector.print_errors(verbose=True)
+        error_collector.raise_if_errors()
 
 
 def show_main_help():
@@ -2819,19 +2918,22 @@ def main():
     import sys
     from . import __version__
     
-    # Top-level flags
-    if len(sys.argv) >= 2 and sys.argv[1] in ("--help", "-h"):
-        show_main_help()
-        return
-    if len(sys.argv) >= 2 and sys.argv[1] in ("--version", "-V", "-v"):
-        print(__version__)
-        return
-
-    if len(sys.argv) < 2:
-        show_main_help()
-        sys.exit(1)
+    error_collector = MDLErrorCollector()
     
-    command = sys.argv[1]
+    try:
+        # Top-level flags
+        if len(sys.argv) >= 2 and sys.argv[1] in ("--help", "-h"):
+            show_main_help()
+            return
+        if len(sys.argv) >= 2 and sys.argv[1] in ("--version", "-V", "-v"):
+            print(__version__)
+            return
+
+        if len(sys.argv) < 2:
+            show_main_help()
+            sys.exit(1)
+        
+        command = sys.argv[1]
     
     if command == "build":
         # Check for help request first
@@ -2855,6 +2957,12 @@ def main():
         except SystemExit:
             show_build_help()
             return
+        except Exception as e:
+            error_collector.add_error(create_error(
+                "build", f"Build command error: {str(e)}"
+            ))
+            error_collector.print_errors(verbose=True)
+            error_collector.raise_if_errors()
         
     elif command == "check":
         # Check for help request first
@@ -2875,6 +2983,12 @@ def main():
         except SystemExit:
             show_check_help()
             return
+        except Exception as e:
+            error_collector.add_error(create_error(
+                "check", f"Check command error: {str(e)}"
+            ))
+            error_collector.print_errors(verbose=True)
+            error_collector.raise_if_errors()
         
     elif command == "new":
         # Check for help request first
@@ -2896,11 +3010,27 @@ def main():
         except SystemExit:
             show_new_help()
             return
+        except Exception as e:
+            error_collector.add_error(create_error(
+                "new", f"New project command error: {str(e)}"
+            ))
+            error_collector.print_errors(verbose=True)
+            error_collector.raise_if_errors()
         
-    else:
-        print(f"Unknown command: {command}")
-        print("Available commands: build, check, new")
-        sys.exit(1)
+        else:
+            error_collector.add_error(create_error(
+                "configuration", f"Unknown command: {command}",
+                suggestion="Available commands: build, check, new"
+            ))
+            error_collector.print_errors(verbose=True)
+            error_collector.raise_if_errors()
+    
+    except Exception as e:
+        error_collector.add_error(create_error(
+            "system", f"Unexpected error: {str(e)}"
+        ))
+        error_collector.print_errors(verbose=True)
+        error_collector.raise_if_errors()
 
 
 if __name__ == "__main__":
