@@ -1,0 +1,2 @@
+execute score $globalTimer$ @s < 10 || $teamScore$ < 50 @s run function test:test_complex_while_while_body_6
+execute score $globalTimer$ @s < 10 || $teamScore$ < 50 @s run function test:test_complex_while_while_6

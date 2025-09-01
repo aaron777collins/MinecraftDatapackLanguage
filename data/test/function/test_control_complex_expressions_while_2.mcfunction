@@ -1,0 +1,2 @@
+execute score ($globalTimer$ * 2) @s matches ..49 run function test:test_control_complex_expressions_while_body_2
+execute score ($globalTimer$ * 2) @s matches ..49 run function test:test_control_complex_expressions_while_2

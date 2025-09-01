@@ -1,0 +1,1 @@
+tellraw @ a {"text":"Keep trying!","color":"red"}

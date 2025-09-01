@@ -1,0 +1,1 @@
+say "All conditions perfect!"

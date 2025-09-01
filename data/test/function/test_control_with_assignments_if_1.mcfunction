@@ -1,0 +1,2 @@
+# Complex assignment: playerScore = BinaryExpression(left=VariableExpression(name='playerScore'), operator='PLUS', right=LiteralExpression(value='25', type='number'))
+say "Score increased to: ${playerScore}"

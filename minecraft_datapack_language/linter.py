@@ -373,13 +373,13 @@ def lint_mcfunction_directory(directory_path: str) -> Dict[str, List[LintIssue]]
 def format_lint_report(issues: List[LintIssue], file_path: str = None) -> str:
     """Format lint issues into a readable report"""
     if not issues:
-        return "✅ No linting issues found!"
+        return "[OK] No linting issues found!"
     
     report = []
     if file_path:
-        report.append(f"📁 Linting Report for: {file_path}")
+        report.append(f"[DIR] Linting Report for: {file_path}")
     else:
-        report.append("📁 Linting Report")
+        report.append("[DIR] Linting Report")
     
     report.append("=" * 50)
     

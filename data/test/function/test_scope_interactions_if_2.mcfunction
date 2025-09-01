@@ -1,0 +1,2 @@
+# Complex assignment: playerLevel = BinaryExpression(left=VariableExpression(name='playerLevel'), operator='PLUS', right=LiteralExpression(value='1', type='number'))
+say "Global phase is 2, leveling up player"

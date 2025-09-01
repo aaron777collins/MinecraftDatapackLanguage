@@ -1,0 +1,2 @@
+# Complex assignment: allPlayersScore = BinaryExpression(left=VariableExpression(name='allPlayersScore'), operator='PLUS', right=LiteralExpression(value='10', type='number'))
+say "Red team is winning, giving bonus to all players"

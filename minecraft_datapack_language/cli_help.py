@@ -12,21 +12,21 @@ def show_main_help():
         version = "unknown"
     
     print(f"""
-🎮 MDL (Minecraft Datapack Language) CLI - v{version}
+[GAME] MDL (Minecraft Datapack Language) CLI - v{version}
 ====================================================
 
 MDL is a simplified language for creating Minecraft datapacks with variables, 
 control structures, and easy syntax. This CLI tool compiles MDL files into 
 standard Minecraft datapacks.
 
-📋 Available Commands:
+[CMD] Available Commands:
 =====================
 
-🔨 build    - Compile MDL files into a Minecraft datapack
-🔍 check    - Validate MDL files for syntax and semantic errors  
-🆕 new      - Create a new MDL project with template files
+[BUILD] build    - Compile MDL files into a Minecraft datapack
+[CHECK] check    - Validate MDL files for syntax and semantic errors  
+[NEW] new      - Create a new MDL project with template files
 
-📖 Detailed Help:
+[DOC] Detailed Help:
 ================
 
 For detailed information about any command, use:
@@ -37,7 +37,7 @@ Examples:
   mdl check --help    - Show check command options
   mdl new --help      - Show new project options
 
-🚀 Quick Start:
+[NEXT] Quick Start:
 ==============
 
 1. Create a new project:
@@ -49,7 +49,7 @@ Examples:
 3. Check for errors:
    mdl check my_project.mdl
 
-📚 Documentation:
+[INFO] Documentation:
 ================
 
 • Language Reference: https://www.mcmdl.com/docs/language-reference
@@ -72,18 +72,18 @@ For support and bug reports, visit: https://github.com/aaron777collins/Minecraft
 def show_build_help():
     """Display detailed help for the build command."""
     print("""
-🔨 MDL Build Command - Compile MDL Files to Minecraft Datapacks
+[BUILD] MDL Build Command - Compile MDL Files to Minecraft Datapacks
 ===============================================================
 
 The build command compiles MDL files into standard Minecraft datapacks that can 
 be loaded directly into Minecraft.
 
-📋 Usage:
+[CMD] Usage:
 ========
 
   mdl build --mdl <input> -o <output> [options]
 
-📁 Arguments:
+[DIR] Arguments:
 ============
 
   --mdl, -m <input>     Input MDL file or directory containing .mdl files
@@ -92,7 +92,7 @@ be loaded directly into Minecraft.
   -o, --output <output> Output directory for the generated datapack
                         Example: -o dist, -o build/my_pack
 
-🔧 Options:
+[OPT] Options:
 ==========
 
   --verbose, -v         Enable verbose output with detailed build information
@@ -108,7 +108,7 @@ be loaded directly into Minecraft.
   --ignore-warnings     Suppress warning messages during build
                         Only show errors, hide all warnings
 
-📝 Examples:
+[EX] Examples:
 ===========
 
 1. Build a single MDL file:
@@ -126,7 +126,7 @@ be loaded directly into Minecraft.
 5. Build multiple files in a directory:
    mdl build --mdl examples/ -o output --verbose
 
-📂 Output Structure:
+[OUT] Output Structure:
 ===================
 
 The build command creates a standard Minecraft datapack structure:
@@ -144,7 +144,7 @@ The build command creates a standard Minecraft datapack structure:
                   ├── load.json
                   └── tick.json
 
-🎯 Features:
+[FEAT] Features:
 ===========
 
 • Multi-file compilation - Merge multiple .mdl files into one datapack
@@ -155,7 +155,7 @@ The build command creates a standard Minecraft datapack structure:
 • Error handling - Detailed error reporting with suggestions
 • Progress tracking - Verbose mode shows build progress
 
-🔍 Error Handling:
+[CHECK] Error Handling:
 =================
 
 The build command provides comprehensive error reporting:
@@ -171,24 +171,24 @@ For more information, visit: https://www.mcmdl.com/docs/cli-reference#build
 def show_check_help():
     """Display detailed help for the check command."""
     print("""
-🔍 MDL Check Command - Validate MDL Files for Errors
+[CHECK] MDL Check Command - Validate MDL Files for Errors
 ====================================================
 
 The check command validates MDL files for syntax errors, semantic issues, and 
 potential problems without generating any output files.
 
-📋 Usage:
+[CMD] Usage:
 ========
 
   mdl check <input> [options]
 
-📁 Arguments:
+[DIR] Arguments:
 ============
 
   <input>               Input MDL file or directory containing .mdl files
                         Examples: project.mdl, src/, .
 
-🔧 Options:
+[OPT] Options:
 ==========
 
   --verbose, -v         Enable verbose output with detailed validation information
@@ -197,7 +197,7 @@ potential problems without generating any output files.
   --ignore-warnings     Suppress warning messages during check
                         Only show errors, hide all warnings
 
-📝 Examples:
+[EX] Examples:
 ===========
 
 1. Check a single MDL file:
@@ -212,23 +212,23 @@ potential problems without generating any output files.
 4. Check multiple files:
    mdl check examples/ --verbose
 
-🔍 Validation Types:
+[CHECK] Validation Types:
 ===================
 
 The check command performs comprehensive validation:
 
-📝 Syntax Validation:
+[EX] Syntax Validation:
 • Lexical analysis - Token recognition and validation
 • Parsing - AST construction and syntax structure
 • Grammar validation - Language rule compliance
 
-🔧 Semantic Validation:
+[OPT] Semantic Validation:
 • Variable declarations - Proper variable naming and scope
 • Function definitions - Valid function signatures
 • Control structures - Proper if/else and while loop syntax
 • Command validation - Minecraft command syntax checking
 
-⚠️  Error Detection:
+[WARN] Error Detection:
 • Missing semicolons and braces
 • Invalid variable names or references
 • Unclosed strings and comments
@@ -236,25 +236,25 @@ The check command performs comprehensive validation:
 • Invalid selector syntax
 • Undefined function calls
 
-📊 Error Reporting:
+[REP] Error Reporting:
 ==================
 
 The check command provides detailed error information:
 
-🎯 Error Details:
+[FEAT] Error Details:
 • File path and exact location (line, column)
 • Error type and description
 • Context lines showing the problematic code
 • Helpful suggestions for fixing issues
 
-📋 Error Types:
+[CMD] Error Types:
 • MDLSyntaxError - Basic syntax violations
 • MDLLexerError - Token recognition issues
 • MDLParserError - Parsing and structure problems
 • MDLValidationError - Semantic validation failures
 • MDLFileError - File access and I/O issues
 
-💡 Example Error Output:
+[TIP] Example Error Output:
 ========================
 
   Error 1: MDLSyntaxError in test.mdl:15:8
@@ -267,7 +267,7 @@ The check command provides detailed error information:
   
   Suggestion: Add closing brace '}' after line 15
 
-🔍 Advanced Features:
+[CHECK] Advanced Features:
 ====================
 
 • Multi-file validation - Check entire projects at once
@@ -276,7 +276,7 @@ The check command provides detailed error information:
 • Context preservation - Show surrounding code for better debugging
 • Suggestion system - Provide helpful fix recommendations
 
-🚀 Integration:
+[NEXT] Integration:
 ==============
 
 The check command is perfect for:
@@ -292,25 +292,25 @@ For more information, visit: https://www.mcmdl.com/docs/cli-reference#check
 def show_new_help():
     """Display detailed help for the new command."""
     print("""
-🆕 MDL New Command - Create New MDL Projects
+[NEW] MDL New Command - Create New MDL Projects
 ============================================
 
 The new command creates a new MDL project with template files and proper 
 structure to get you started quickly.
 
-📋 Usage:
+[CMD] Usage:
 ========
 
   mdl new <project_name> [options]
 
-📁 Arguments:
+[DIR] Arguments:
 ============
 
   <project_name>        Name for your new MDL project
                         This will be used for the project directory and pack name
                         Example: my_awesome_pack, hello_world, magic_system
 
-🔧 Options:
+[OPT] Options:
 ==========
 
   --pack-name <name>    Custom name for the datapack (defaults to project name)
@@ -321,7 +321,7 @@ structure to get you started quickly.
                         Default: 82 (Minecraft 1.20+)
                         Example: --pack-format 15 (for older versions)
 
-📝 Examples:
+[EX] Examples:
 ===========
 
 1. Create a basic project:
@@ -336,7 +336,7 @@ structure to get you started quickly.
 4. Create project with all custom options:
    mdl new my_project --pack-name "My Project" --pack-format 82
 
-📂 Generated Structure:
+[OUT] Generated Structure:
 ======================
 
 The new command creates a complete project structure:
@@ -345,12 +345,12 @@ The new command creates a complete project structure:
   ├── README.md                    # Project documentation
   └── <project_name>.mdl          # Main MDL file with template code
 
-📄 Template Content:
+[FILE] Template Content:
 ===================
 
 The generated MDL file includes:
 
-📋 Pack Declaration:
+[CMD] Pack Declaration:
 ```mdl
 pack {
   name: "project_name"
@@ -359,7 +359,7 @@ pack {
 }
 ```
 
-🔧 Example Functions:
+[OPT] Example Functions:
 ```mdl
 function main {
   say "Hello from MDL!"
@@ -382,7 +382,7 @@ function load {
 }
 ```
 
-🎯 Features:
+[FEAT] Features:
 ===========
 
 • Complete project setup - Ready-to-use structure
@@ -391,7 +391,7 @@ function load {
 • Documentation - README with usage instructions
 • Best practices - Follows MDL conventions
 
-🚀 Getting Started:
+[NEXT] Getting Started:
 ==================
 
 After creating a new project:
@@ -411,7 +411,7 @@ After creating a new project:
 5. Load in Minecraft:
    # Copy the dist folder to your world's datapacks directory
 
-💡 Tips:
+[TIP] Tips:
 ========
 
 • Use descriptive project names - They become your namespace
@@ -420,7 +420,7 @@ After creating a new project:
 • Use version control - Git is great for tracking changes
 • Read the documentation - Learn about all available features
 
-📚 Next Steps:
+[INFO] Next Steps:
 =============
 
 • Language Reference: https://www.mcmdl.com/docs/language-reference

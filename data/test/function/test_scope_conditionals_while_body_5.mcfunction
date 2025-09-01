@@ -1,0 +1,2 @@
+# Complex assignment: globalCounter = BinaryExpression(left=VariableExpression(name='globalCounter'), operator='PLUS', right=LiteralExpression(value='5', type='number'))
+say "Global counter: ${globalCounter}"

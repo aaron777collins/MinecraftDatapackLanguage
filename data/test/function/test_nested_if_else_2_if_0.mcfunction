@@ -1,0 +1,1 @@
+say "Only flag is set"

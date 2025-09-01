@@ -1,0 +1,2 @@
+execute score $counter$ @s < 5 && $playerScore$ < 100 @s run function test:test_complex_while_while_body_3
+execute score $counter$ @s < 5 && $playerScore$ < 100 @s run function test:test_complex_while_while_3

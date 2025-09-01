@@ -1,0 +1,2 @@
+# Complex assignment: globalCounter = BinaryExpression(left=VariableExpression(name='globalCounter'), operator='PLUS', right=LiteralExpression(value='1', type='number'))
+say "Player score is high, incrementing global counter"

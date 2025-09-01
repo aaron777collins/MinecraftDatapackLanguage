@@ -35,7 +35,7 @@ var num lives = 3;
     
     // Load function - this runs when the datapack loads
     function "load" {
-        say 🎮 test_final_template loaded successfully!;
+        say "[GAME] test_final_template loaded successfully!";
         say Type: /function test_final_template:main;
     }
     
@@ -59,78 +59,14 @@ $!raw
 tellraw @a {"text":"Raw command example","color":"gold"}
 raw!$
 
-// Example recipe (optional)
-recipe "diamond_sword" {
-    "type": "minecraft:crafting_shaped",
-    "pattern": [
-        " D ",
-        " D ",
-        " S "
-    ],
-    "key": {
-        "D": {"item": "minecraft:diamond"},
-        "S": {"item": "minecraft:stick"}
-    },
-    "result": {
-        "item": "minecraft:diamond_sword",
-        "count": 1
-    }
-}
+// Example raw commands for recipes, loot tables, and advancements
+$!raw
+# You can create JSON files for recipes, loot tables, and advancements
+# These are Minecraft-specific features that go in separate JSON files
+# The MDL compiler will handle these automatically
+raw!$
 
-// Example loot table (optional)
-loot_table "chest_loot" {
-    "type": "minecraft:chest",
-    "pools": [
-        {
-            "rolls": 1,
-            "entries": [
-                {
-                    "type": "minecraft:item",
-                    "name": "minecraft:diamond",
-                    "functions": [
-                        {
-                            "function": "minecraft:set_count",
-                            "count": {
-                                "min": 1,
-                                "max": 3
-                            }
-                        }
-                    ]
-        }
-      ]
-    }
-  ]
-}
-
-// Example advancement (optional)
-advancement first_diamond {
-  "display": {
-    "icon": {
-      "item": "minecraft:diamond"
-    },
-    "title": {
-      "text": "First Diamond!"
-    },
-    "description": {
-      "text": "Find your first diamond"
-    },
-    "frame": "task",
-    "show_toast": true,
-    "announce_to_chat": true,
-    "hidden": false
-  },
-  "criteria": {
-    "requirement": {
-      "trigger": "minecraft:inventory_changed",
-      "conditions": {
-        "items": [
-          {
-            "item": "minecraft:diamond"
-          }
-        ]
-      }
-    }
-      }
-}
+// Note: Recipes, loot tables, and advancements are created as separate JSON files
+// The MDL compiler handles these automatically when building the datapack
 
 on_load "test_final_template:main";

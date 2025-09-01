@@ -96,11 +96,24 @@ class TestCLIComprehensive(unittest.TestCase):
             # Test build command
             try:
                 result = subprocess.run([
-                    "mdl", "build", "--mdl", str(mdl_file), "-o", str(output_dir)
+                    "mdl", "build", "--mdl", str(mdl_file), "-o", str(output_dir), "--verbose"
                 ], capture_output=True, text=True, check=True)
                 
                 # Check that output was created
                 self.assertTrue(output_dir.exists())
+                
+                # Debug: Show actual output structure
+                print(f"\nOutput directory: {output_dir}")
+                if output_dir.exists():
+                    import os
+                    for root, dirs, files in os.walk(output_dir):
+                        level = root.replace(str(output_dir), '').count(os.sep)
+                        indent = ' ' * 2 * level
+                        print(f"{indent}{os.path.basename(root)}/")
+                        subindent = ' ' * 2 * (level + 1)
+                        for file in files:
+                            print(f"{subindent}{file}")
+                
                 main_func = output_dir / "data" / "test" / "function" / "main.mcfunction"
                 self.assertTrue(main_func.exists())
                 

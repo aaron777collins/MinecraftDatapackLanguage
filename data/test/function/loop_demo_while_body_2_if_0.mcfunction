@@ -1,0 +1,2 @@
+tellraw @ s {"text":"Even iteration: "+ i}
+# Complex assignment: global_counter = BinaryExpression(left=VariableExpression(name='global_counter'), operator='PLUS', right=LiteralExpression(value='1', type='number'))

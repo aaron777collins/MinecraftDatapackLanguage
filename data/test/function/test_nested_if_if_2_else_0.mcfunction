@@ -1,0 +1,1 @@
+say "Only counter is set"

@@ -54,18 +54,18 @@ def create_new_project(project_name: str, pack_name: str = None, pack_format: in
         with open(readme_file, 'w', encoding='utf-8') as f:
             f.write(readme_content)
         
-        print(f"✅ Successfully created new MDL project: {clean_name}")
-        print(f"📁 Project directory: {project_dir.absolute()}")
-        print(f"📄 Main file: {mdl_file}")
-        print(f"📖 Documentation: {readme_file}")
+        print(f"[OK] Successfully created new MDL project: {clean_name}")
+        print(f"[DIR] Project directory: {project_dir.absolute()}")
+        print(f"[FILE] Main file: {mdl_file}")
+        print(f"[DOC] Documentation: {readme_file}")
         print()
-        print("🚀 Next steps:")
+        print("[NEXT] Next steps:")
         print(f"  1. cd {clean_name}")
         print(f"  2. Edit {clean_name}.mdl with your code")
         print(f"  3. mdl build --mdl {clean_name}.mdl -o dist")
         print(f"  4. mdl check {clean_name}.mdl")
         print()
-        print("📚 Learn more:")
+        print("[INFO] Learn more:")
         print("   • Language Reference: https://www.mcmdl.com/docs/language-reference")
         print("   • Examples: https://www.mcmdl.com/docs/examples")
         print("   • CLI Reference: https://www.mcmdl.com/docs/cli-reference")
@@ -116,7 +116,7 @@ var num lives = 3;
     
     // Load function - this runs when the datapack loads
     function "load" {{
-        say 🎮 {pack_name} loaded successfully!;
+        say [GAME] {pack_name} loaded successfully!;
         say Type: /function {project_name}:main;
     }}
     
@@ -159,11 +159,11 @@ def _generate_readme_template(project_name: str, pack_name: str) -> str:
 
 A Minecraft datapack created with MDL (Minecraft Datapack Language).
 
-## 🎮 About
+## [GAME] About
 
 This datapack was generated using the MDL CLI tool. MDL is a simplified language for creating Minecraft datapacks with variables, control structures, and easy syntax.
 
-## 📁 Project Structure
+## [DIR] Project Structure
 
 ```
 {project_name}/
@@ -171,7 +171,7 @@ This datapack was generated using the MDL CLI tool. MDL is a simplified language
 └── {project_name}.mdl    # Main MDL source file
 ```
 
-## 🚀 Getting Started
+## [NEXT] Getting Started
 
 ### Prerequisites
 
@@ -203,7 +203,7 @@ This datapack was generated using the MDL CLI tool. MDL is a simplified language
 2. The datapack will automatically load
 3. Run the main function: `/function {project_name}:main`
 
-## 🔧 Development
+## [OPT] Development
 
 ### Editing the Code
 
@@ -240,7 +240,7 @@ if (score > 5) {{
 }}
 ```
 
-## 📚 Resources
+## [INFO] Resources
 
 - **Language Reference**: https://www.mcmdl.com/docs/language-reference
 - **CLI Reference**: https://www.mcmdl.com/docs/cli-reference
@@ -270,11 +270,11 @@ if (score > 5) {{
 - Visit the documentation: https://www.mcmdl.com/docs
 - Report bugs: https://github.com/aaron777collins/MinecraftDatapackLanguage/issues
 
-## 📄 License
+## [FILE] License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
 ---
 
-Happy coding! 🎮
+Happy coding! [GAME]
 '''

@@ -1,0 +1,1 @@
+function test:control_test:test_complex_if<@a[team=red]>

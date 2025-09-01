@@ -1,0 +1,2 @@
+tellraw @ s {"text":"Odd iteration: "+ i}
+# Complex assignment: global_timer = BinaryExpression(left=VariableExpression(name='global_timer'), operator='PLUS', right=LiteralExpression(value='1', type='number'))

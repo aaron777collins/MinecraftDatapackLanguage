@@ -43,8 +43,8 @@ def lint_mdl_file_wrapper(file_path: str, verbose: bool = False, ignore_warnings
         # Perform linting
         try:
             lint_mdl_file(str(path))
-            print(f"🔍 Successfully checked: {file_path}")
-            print("✅ No errors found!")
+            print(f"[CHECK] Successfully checked: {file_path}")
+            print("[OK] No errors found!")
         
         except Exception as e:
             error_collector.add_error(create_error(
@@ -101,8 +101,8 @@ def lint_mdl_directory_wrapper(directory_path: str, verbose: bool = False, ignor
         # Perform directory linting
         try:
             lint_mdl_directory(str(directory), verbose)
-            print(f"🔍 Successfully checked directory: {directory_path}")
-            print("✅ No errors found!")
+            print(f"[CHECK] Successfully checked directory: {directory_path}")
+            print("[OK] No errors found!")
         
         except Exception as e:
             error_collector.add_error(create_error(

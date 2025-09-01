@@ -35,7 +35,7 @@ var num lives = 3;
     
     // Load function - this runs when the datapack loads
     function "load" {
-        say 🎮 test_final_template_fixed loaded successfully!;
+        say "[GAME] test_final_template_fixed loaded successfully!";
         say Type: /function test_final_template_fixed:main;
     }
     

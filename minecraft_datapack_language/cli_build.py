@@ -709,9 +709,15 @@ def build_mdl(input_path: str, output_path: str, verbose: bool = False, pack_for
         # Generate pack.mcmeta
         _generate_pack_mcmeta(ast, output_dir)
         
-        # Get namespace from pack name or use default
-        namespace = ast.get('pack', {}).get('name', 'mdl_pack')
+        # Get namespace from AST or fall back to pack name
+        namespace = ast.get('namespace', {}).get('name', ast.get('pack', {}).get('name', 'mdl_pack'))
         namespace = _slugify(namespace)
+        
+        # Debug: Show what namespace we're using
+        if verbose:
+            print(f"DEBUG: AST namespace: {ast.get('namespace', {})}")
+            print(f"DEBUG: AST pack: {ast.get('pack', {})}")
+            print(f"DEBUG: Using namespace: {namespace}")
         
         # Generate functions
         build_context = BuildContext()
@@ -728,12 +734,12 @@ def build_mdl(input_path: str, output_path: str, verbose: bool = False, pack_for
             zip_path = output_dir.parent / f"{wrapper}.zip"
             _create_zip_file(output_dir, zip_path)
             if verbose:
-                print(f"📦 Created zip file: {zip_path}")
+                print(f"[ZIP] Created zip file: {zip_path}")
         
-        print(f"✅ Successfully built datapack: {output_path}")
+        print(f"[OK] Successfully built datapack: {output_path}")
         if verbose:
-            print(f"📁 Output directory: {output_dir}")
-            print(f"🏷️  Namespace: {namespace}")
+            print(f"[DIR] Output directory: {output_dir}")
+            print(f"[NS] Namespace: {namespace}")
     
     except MDLLexerError as e:
         error_collector.add_error(e)

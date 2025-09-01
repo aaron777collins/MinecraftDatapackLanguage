@@ -1,0 +1,2 @@
+execute score $playerScore$ @s matches ..99 run function test:test_control_variable_substitution_while_body_2
+execute score $playerScore$ @s matches ..99 run function test:test_control_variable_substitution_while_2

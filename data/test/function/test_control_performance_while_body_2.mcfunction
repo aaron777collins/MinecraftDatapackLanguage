@@ -1,0 +1,2 @@
+# Complex assignment: counter = BinaryExpression(left=VariableExpression(name='counter'), operator='PLUS', right=LiteralExpression(value='1', type='number'))
+execute score $counter$ % 10 @s matches 0 run function test:test_control_performance_while_body_2_if_1

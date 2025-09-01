@@ -1,0 +1,1 @@
+say "Score is too low"
