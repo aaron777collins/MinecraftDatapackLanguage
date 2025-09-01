@@ -168,7 +168,7 @@ function "test:hello<@a>";
 ### Project Scaffolding (mdl new)
 - Generates main `.mdl` file and `README.md`
 - Now also generates `LANGUAGE_REFERENCE.md` in the project root
-- README includes a link to the website docs: https://aaron777collins.github.io/MinecraftDatapackLanguage/docs/
+- README includes a link to the website docs: https://www.mcmdl.com/docs/
 
 JSON registry handling:
 - Recipe, loot_table, advancement, predicate, item_modifier, structure declarations now resolve `"json_file"` paths relative to the MDL file where they are declared (multi-file safe).

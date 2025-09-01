@@ -88,6 +88,7 @@ if (score > 5) {
 - **Language Reference**: https://mdl-lang.com/docs/language-reference
 - **CLI Reference**: https://mdl-lang.com/docs/cli-reference
 - **Examples**: https://mdl-lang.com/docs/examples
+- **Website**: https://www.mcmdl.com
 - **GitHub**: https://github.com/aaron777collins/MinecraftDatapackLanguage
 
 ## 🐛 Troubleshooting

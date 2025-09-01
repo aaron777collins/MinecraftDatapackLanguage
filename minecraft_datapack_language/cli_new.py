@@ -245,6 +245,7 @@ if (score > 5) {{
 - **Language Reference**: https://mdl-lang.com/docs/language-reference
 - **CLI Reference**: https://mdl-lang.com/docs/cli-reference
 - **Examples**: https://mdl-lang.com/docs/examples
+- **Website**: https://www.mcmdl.com
 - **GitHub**: https://github.com/aaron777collins/MinecraftDatapackLanguage
 
 ## 🐛 Troubleshooting
@@ -267,7 +268,7 @@ if (score > 5) {{
 
 - Check the error messages - they include helpful suggestions
 - Visit the documentation: https://mdl-lang.com/docs
-- Report bugs: https://github.com/aaron777collins/MinecraftDatapackLanguage/issues
+- Report bugs: https://www.mcmdl.com
 
 ## 📄 License
 

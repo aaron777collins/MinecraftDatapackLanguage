@@ -65,7 +65,7 @@ MDL provides detailed error messages with:
 • Helpful suggestions for fixing issues
 • Multiple error collection and reporting
 
-For support and bug reports, visit: https://github.com/aaron777collins/MinecraftDatapackLanguage
+For support and bug reports, visit: https://www.mcmdl.com
 """)
 
 
