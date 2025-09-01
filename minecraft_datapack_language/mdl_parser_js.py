@@ -475,7 +475,9 @@ class MDLParser:
         self._match(TokenType.RAW_END)
         
         content = "".join(content_parts)
-        return {"type": "raw_text", "content": content}
+        # Split content into individual commands
+        commands = [cmd.strip() for cmd in content.split(';') if cmd.strip()]
+        return {"type": "raw_text", "commands": commands}
     
     def _parse_command(self) -> Command:
         """Parse a command."""
