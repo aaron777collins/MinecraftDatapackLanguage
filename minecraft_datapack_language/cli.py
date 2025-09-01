@@ -2590,9 +2590,7 @@ def main():
         print("Usage: mdl <command> [options]")
         print("Commands:")
         print("  build --mdl <file|dir> --output <dir> [--pack-format <N>] [--wrapper <name>]  Build MDL into datapack")
-        print("  lint <file>                             Lint MDL file")
-        print("  check <file|dir>                        Alias for lint")
-        print("  check-advanced <file|dir>               Advanced checks (alias to lint)")
+        print("  check <file|dir>                        Check MDL files for syntax issues")
         print("  new <project_name> [--name <pack_name>] [--pack-format <N>]  Create project")
         return
     if len(sys.argv) >= 2 and sys.argv[1] in ("--version", "-V", "-v"):
@@ -2604,9 +2602,7 @@ def main():
         print("Usage: mdl <command> [options]")
         print("Commands:")
         print("  build --mdl <file|dir> --output <dir> [--pack-format <N>] [--wrapper <name>]  Build MDL files into datapack")
-        print("  lint <file>  Lint MDL file for syntax issues")
-        print("  check <file|dir>  Alias for lint")
-        print("  check-advanced <file|dir>  Advanced checks (alias to lint)")
+        print("  check <file|dir>  Check MDL files for syntax issues")
         print("  new <project_name> [--name <pack_name>] [--pack-format <N>]  Create new MDL project")
         sys.exit(1)
     
@@ -2623,9 +2619,9 @@ def main():
         args = parser.parse_args(sys.argv[2:])
         build_mdl(args.mdl, args.output, args.verbose, args.pack_format, args.wrapper)
         
-    elif command == "lint" or command == "check" or command == "check-advanced":
-        parser = argparse.ArgumentParser(description="MDL - Lint MDL file for syntax issues")
-        parser.add_argument("file", help="MDL file or directory to lint")
+    elif command == "check":
+        parser = argparse.ArgumentParser(description="MDL - Check MDL files for syntax issues")
+        parser.add_argument("file", help="MDL file or directory to check")
         parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose output")
         
         args = parser.parse_args(sys.argv[2:])
@@ -2642,7 +2638,7 @@ def main():
         
     else:
         print(f"Unknown command: {command}")
-        print("Available commands: build, lint, check, check-advanced, new")
+        print("Available commands: build, check, new")
         sys.exit(1)
 
 
