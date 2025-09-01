@@ -26,16 +26,15 @@ def _process_variable_substitutions(command: str, selector: str = "@s") -> str:
     # Check if this is a tellraw command with JSON
     if command.strip().startswith('tellraw'):
         # Special handling for tellraw commands with variable substitutions
-        try:
-            # Find the JSON part of the tellraw command
-            json_start = command.find('[')
-            if json_start == -1:
-                json_start = command.find('{')
-            json_end = command.rfind(']') + 1
-            if json_end == 0:
-                json_end = command.rfind('}') + 1
-            
-            if json_start != -1 and json_end != -1:
+        # Find the JSON part of the tellraw command
+        json_start = command.find('[')
+        if json_start == -1:
+            json_start = command.find('{')
+        json_end = command.rfind(']') + 1
+        if json_end == 0:
+            json_end = command.rfind('}') + 1
+        
+        if json_start != -1 and json_end != -1:
                 prefix = command[:json_start]
                 json_part = command[json_start:json_end]
                 suffix = command[json_end:]
