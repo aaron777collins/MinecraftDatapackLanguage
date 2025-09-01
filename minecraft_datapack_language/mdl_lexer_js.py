@@ -502,36 +502,6 @@ class MDLLexer:
         content = ''.join(content_parts).strip()
         full_command = f"say {content};"
         self.tokens.append(Token(TokenType.SAY, full_command, say_start_line, say_start_column))
-        
-        # Scan content until we find a semicolon
-        while self.current < len(source):
-            char = source[self.current]
-            
-            if char == ';':
-                # Found the end of the say command
-                break
-            
-            # Handle variable substitution within say command
-            if char == '$':
-                # Check if this is a variable substitution
-                if (self.current + 1 < len(source) and 
-                    source[self.current + 1].isalnum()):
-                    self._scan_variable_substitution(source)
-                    continue
-            
-            # Add character to content
-            self.current += 1
-            self.column += 1
-        
-        if self.current >= len(source):
-            # Unterminated say command
-            raise create_lexer_error(
-                message="Unterminated say command - missing semicolon",
-                file_path=self.source_file,
-                line=say_start_line,
-                column=say_start_column,
-                suggestion="Add a semicolon (;) at the end of the say command"
-            )
     
     def _scan_operator_or_delimiter(self, source: str):
         """Scan operators and delimiters."""
