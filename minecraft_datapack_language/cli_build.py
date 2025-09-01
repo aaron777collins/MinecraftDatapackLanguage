@@ -616,22 +616,19 @@ def _process_while_loop_recursion(while_statement, namespace: str, function_name
     condition = while_statement['condition']
     body = while_statement['body']
     
-    print(f"DEBUG: _process_while_loop_recursion called with namespace={namespace}, function_name={function_name}, statement_index={statement_index}")
-    
-    # Generate unique function names
+    # Generate unique function names - they should be the same according to the test
     loop_func_name = f"test_{function_name}_while_{statement_index}"
-    loop_body_func_name = f"test_{function_name}_while_{statement_index}"
-    
-    print(f"DEBUG: Generated function names: loop_func_name={loop_func_name}, loop_body_func_name={loop_body_func_name}")
     
     # Process loop body
     body_commands = []
     for i, stmt in enumerate(body):
-        body_commands.extend(_process_statement(stmt, namespace, loop_body_func_name, i, is_tag_function, selector, variable_scopes, build_context))
+        body_commands.extend(_process_statement(stmt, namespace, loop_func_name, i, is_tag_function, selector, variable_scopes, build_context))
     
-    print(f"DEBUG: Generated body_commands: {body_commands}")
+    # Add the recursive call to the loop body
+    minecraft_condition = _convert_condition_to_minecraft_syntax(condition, selector)
+    body_commands.append(f"execute if {minecraft_condition} run function {namespace}:{loop_func_name}")
     
-    # Write loop body function
+    # Write the single loop function
     if body_commands:
         # Use the output directory from build context
         if hasattr(build_context, 'output_dir'):
@@ -639,23 +636,8 @@ def _process_while_loop_recursion(while_statement, namespace: str, function_name
         else:
             func_dir = Path(f"data/{namespace}/function")
         ensure_dir(str(func_dir))
-        print(f"DEBUG: Writing loop body function to: {func_dir / f'{loop_body_func_name}.mcfunction'}")
-        with open(func_dir / f"{loop_body_func_name}.mcfunction", 'w', encoding='utf-8') as f:
+        with open(func_dir / f"{loop_func_name}.mcfunction", 'w', encoding='utf-8') as f:
             f.write('\n'.join(body_commands))
-    
-    # Create the main loop function
-    minecraft_condition = _convert_condition_to_minecraft_syntax(condition, selector)
-    loop_commands = [
-        f"execute if {minecraft_condition} run function {namespace}:{loop_body_func_name}",
-        f"execute if {minecraft_condition} run function {namespace}:{loop_func_name}"
-    ]
-    
-    print(f"DEBUG: Generated loop_commands: {loop_commands}")
-    
-    # Write loop function
-    print(f"DEBUG: Writing loop function to: {func_dir / f'{loop_func_name}.mcfunction'}")
-    with open(func_dir / f"{loop_func_name}.mcfunction", 'w', encoding='utf-8') as f:
-        f.write('\n'.join(loop_commands))
     
     # Return the command to start the loop with conditional execution
     return [f"execute if {minecraft_condition} run function {namespace}:{loop_func_name}"]
