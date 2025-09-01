@@ -176,8 +176,15 @@ class MDLLexer:
         
         # Handle identifiers and keywords
         if char.isalpha() or char == '_':
-            self._scan_identifier(source)
-            return
+            # Special handling for 'say' command
+            if (char == 's' and 
+                self.current + 2 < len(source) and 
+                source[self.current:self.current + 3] == 'say'):
+                self._scan_say_command(source)
+                return
+            else:
+                self._scan_identifier(source)
+                return
         
         # Handle operators and delimiters
         self._scan_operator_or_delimiter(source)
@@ -293,7 +300,6 @@ class MDLLexer:
             'add': TokenType.ADD,
             'raw': TokenType.RAW,
             'execute': TokenType.EXECUTE,
-            'say': TokenType.SAY,  # Add say as a keyword
             'recipe': TokenType.RECIPE,
             'loot_table': TokenType.LOOT_TABLE,
             'advancement': TokenType.ADVANCEMENT,
@@ -440,7 +446,10 @@ class MDLLexer:
     
     def _scan_say_command(self, source: str):
         """Scan a say command and its content until semicolon."""
-        # We've already consumed 'say', now scan the content
+        # Consume 'say'
+        self.current += 3
+        self.column += 3
+        
         say_start_line = self.line
         say_start_column = self.column
         
@@ -453,6 +462,46 @@ class MDLLexer:
             else:
                 self.column += 1
             self.current += 1
+        
+        # Scan content until we find a semicolon
+        content_parts = []
+        while self.current < len(source):
+            char = source[self.current]
+            
+            if char == ';':
+                # Found the end of the say command
+                break
+            
+            # Add character to content
+            content_parts.append(char)
+            
+            # Update position
+            if char == '\n':
+                self.line += 1
+                self.column = 1
+            else:
+                self.column += 1
+            self.current += 1
+        
+        if self.current >= len(source):
+            # Unterminated say command - report error
+            raise create_lexer_error(
+                message="Unterminated say command - missing semicolon",
+                file_path=self.source_file,
+                line=say_start_line,
+                column=say_start_column,
+                line_content=source[say_start_line-1:say_start_line] if say_start_line <= len(source.split('\n')) else "",
+                suggestion="Add a semicolon (;) to terminate the say command"
+            )
+        
+        # Consume the semicolon
+        self.current += 1
+        self.column += 1
+        
+        # Create the say command token with full content
+        content = ''.join(content_parts).strip()
+        full_command = f"say {content};"
+        self.tokens.append(Token(TokenType.SAY, full_command, say_start_line, say_start_column))
         
         # Scan content until we find a semicolon
         while self.current < len(source):
