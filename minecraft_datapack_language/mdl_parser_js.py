@@ -405,29 +405,137 @@ class MDLParser:
         
         self._match(TokenType.RBRACE)
         
-        # Check for else
+        # Check for else or else if
         else_body = None
         if not self._is_at_end() and self._peek().type == TokenType.ELSE:
             self._match(TokenType.ELSE)
-            self._match(TokenType.LBRACE)
             
-            else_body = []
-            while not self._is_at_end() and self._peek().type != TokenType.RBRACE:
-                else_body.append(self._parse_statement())
-            
-            if self._is_at_end():
-                raise create_parser_error(
-                    message="Missing closing brace for else statement",
-                    file_path=self.source_file,
-                    line=self._peek().line,
-                    column=self._peek().column,
-                    line_content=self._peek().value,
-                    suggestion="Add a closing brace (}) to match the opening brace"
-                )
-            
-            self._match(TokenType.RBRACE)
+            # Check if this is an else if statement
+            if not self._is_at_end() and self._peek().type == TokenType.IF:
+                # This is an else if statement - parse it as a nested if
+                self._match(TokenType.IF)
+                
+                # Parse the else if condition
+                condition_token = self._match(TokenType.STRING)
+                condition = condition_token.value.strip('"').strip("'")
+                
+                self._match(TokenType.LBRACE)
+                
+                # Parse the else if body
+                else_body = []
+                while not self._is_at_end() and self._peek().type != TokenType.RBRACE:
+                    else_body.append(self._parse_statement())
+                
+                if self._is_at_end():
+                    raise create_parser_error(
+                        message="Missing closing brace for else if statement",
+                        file_path=self.source_file,
+                        line=self._peek().line,
+                        column=self._peek().column,
+                        line_content=self._peek().value,
+                        suggestion="Add a closing brace (}) to match the opening brace"
+                    )
+                
+                self._match(TokenType.RBRACE)
+                
+                # Recursively check for more else if or else statements
+                if not self._is_at_end() and self._peek().type == TokenType.ELSE:
+                    # Parse the remaining else/else if chain
+                    remaining_else = self._parse_else_chain()
+                    if remaining_else:
+                        # Combine the else if body with the remaining else chain
+                        else_body.extend(remaining_else)
+            else:
+                # This is a regular else statement
+                self._match(TokenType.LBRACE)
+                
+                else_body = []
+                while not self._is_at_end() and self._peek().type != TokenType.RBRACE:
+                    else_body.append(self._parse_statement())
+                
+                if self._is_at_end():
+                    raise create_parser_error(
+                        message="Missing closing brace for else statement",
+                        file_path=self.source_file,
+                        line=self._peek().line,
+                        column=self._peek().column,
+                        line_content=self._peek().value,
+                        suggestion="Add a closing brace (}) to match the opening brace"
+                    )
+                
+                self._match(TokenType.RBRACE)
         
         return {"type": "if_statement", "condition": condition, "then_body": then_body, "else_body": else_body}
+    
+    def _parse_else_chain(self) -> List[Any]:
+        """Parse a chain of else if statements and final else statement."""
+        statements = []
+        
+        while not self._is_at_end() and self._peek().type == TokenType.ELSE:
+            self._match(TokenType.ELSE)
+            
+            # Check if this is an else if statement
+            if not self._is_at_end() and self._peek().type == TokenType.IF:
+                # This is an else if statement
+                self._match(TokenType.IF)
+                
+                # Parse the else if condition
+                condition_token = self._match(TokenType.STRING)
+                condition = condition_token.value.strip('"').strip("'")
+                
+                self._match(TokenType.LBRACE)
+                
+                # Parse the else if body
+                else_if_body = []
+                while not self._is_at_end() and self._peek().type != TokenType.RBRACE:
+                    else_if_body.append(self._parse_statement())
+                
+                if self._is_at_end():
+                    raise create_parser_error(
+                        message="Missing closing brace for else if statement",
+                        file_path=self.source_file,
+                        line=self._peek().line,
+                        column=self._peek().column,
+                        line_content=self._peek().value,
+                        suggestion="Add a closing brace (}) to match the opening brace"
+                    )
+                
+                self._match(TokenType.RBRACE)
+                
+                # Add the else if statement to the chain
+                statements.append({
+                    "type": "else_if_statement",
+                    "condition": condition,
+                    "body": else_if_body
+                })
+            else:
+                # This is a final else statement
+                self._match(TokenType.LBRACE)
+                
+                else_body = []
+                while not self._is_at_end() and self._peek().type != TokenType.RBRACE:
+                    else_body.append(self._parse_statement())
+                
+                if self._is_at_end():
+                    raise create_parser_error(
+                        message="Missing closing brace for else statement",
+                        file_path=self.source_file,
+                        line=self._peek().line,
+                        column=self._peek().column,
+                        line_content=self._peek().value,
+                        suggestion="Add a closing brace (}) to match the opening brace"
+                    )
+                
+                self._match(TokenType.RBRACE)
+                
+                # Add the final else statement to the chain
+                statements.append({
+                    "type": "else_statement",
+                    "body": else_body
+                })
+                break  # Final else statement ends the chain
+        
+        return statements
     
     def _parse_while_loop(self) -> WhileLoop:
         """Parse while loop."""
@@ -674,7 +782,7 @@ class MDLParser:
                     return VariableSubstitutionExpression(var_name, scope_selector)
             
             # Regular variable substitution without scope
-            return VariableSubstitutionExpression(variable_name)
+            return VariableSubstitutionExpression(variable_name, None)
         elif token.type == TokenType.IDENTIFIER:
             identifier_name = token.value
             self._advance()  # consume the identifier

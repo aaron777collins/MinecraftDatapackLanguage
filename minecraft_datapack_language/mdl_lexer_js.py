@@ -387,6 +387,17 @@ class MDLLexer:
     
     def _scan_raw_start(self, source: str):
         """Scan raw block start marker ($!raw)."""
+        # Check if we're already in raw mode (nested raw blocks are not allowed)
+        if self.in_raw_mode:
+            raise create_lexer_error(
+                message="Nested raw blocks are not allowed",
+                file_path=self.source_file,
+                line=self.line,
+                column=self.column,
+                line_content=source[self.line-1:self.line] if self.line <= len(source.split('\n')) else "",
+                suggestion="Close the current raw block with 'raw!$' before starting a new one"
+            )
+        
         # Consume the $!raw
         self.current += 5
         self.column += 5
@@ -436,6 +447,18 @@ class MDLLexer:
             else:
                 self.column += 1
             self.current += 1
+        
+        # Check if we reached the end of source without finding the end marker
+        if self.current >= len(source):
+            # Unterminated raw block - report error
+            raise create_lexer_error(
+                message="Unterminated raw block - missing 'raw!$' end marker",
+                file_path=self.source_file,
+                line=raw_start_line,
+                column=raw_start_column,
+                line_content=source[raw_start_line-1:raw_start_line] if raw_start_line <= len(source.split('\n')) else "",
+                suggestion="Add 'raw!$' to terminate the raw block"
+            )
         
         # Add the raw content as a single RAW token
         content = ''.join(content_parts)

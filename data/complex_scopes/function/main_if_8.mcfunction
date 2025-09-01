@@ -1,0 +1,1 @@
+say say "Red team is winning!";
