@@ -103,7 +103,7 @@ A **modern JavaScript-style compiler** that lets you write Minecraft datapacks w
   </div>
   <div class="feature">
     <h3>🔧 VS Code Support</h3>
-    <p>Syntax highlighting, linting, and quick compile with our VS Code extension</p>
+    <p>Syntax highlighting, error checking, and quick compile with our VS Code extension</p>
   </div>
   <div class="feature">
     <h3>📁 Multi-file Support</h3>
@@ -186,7 +186,7 @@ if "$counter$ > 5" {
 - **🔢 Variables**: Number variables with expressions and arithmetic
 - **📁 Organization**: Multi-file projects with proper namespace separation
 - **⚡ Performance**: Efficient compilation to optimized Minecraft commands
-- **🔧 Tooling**: VS Code extension with syntax highlighting and linting
+- **🔧 Tooling**: VS Code extension with syntax highlighting and error checking
 - **📚 Documentation**: Comprehensive guides and working examples
 
 ## Features

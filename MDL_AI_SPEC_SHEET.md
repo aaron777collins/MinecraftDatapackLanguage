@@ -215,7 +215,7 @@ JSON registry handling:
 - Removed root-level MDL test files: `test.mdl`, `test_linter_errors.mdl`, `test_old_format.mdl`, `test_very_old_format.mdl`, and stray `other.mdl`. CI uses `test_examples/**` instead.
 - Trimmed `test_new_pack/dist_test_new` and related zip artifacts. Kept the actual example sources.
 - Fixed dead code in `minecraft_datapack_language/pack.py`: removed unused import `ns_path` and dropped unused parameter `cmd_index` from `_process_list_access_in_condition`; updated callsite accordingly. Recompiled; static scan clean.
-- Verified functionality: dev build installed `mdlbeta`; `mdlbeta check` and `check-advanced` on `test_examples/hello_world.mdl` passed; `mdlbeta build` produced a valid `dist/`.
+- Verified functionality: dev build installed `mdlbeta`; `mdlbeta check` on `test_examples/hello_world.mdl` passed; `mdlbeta build` produced a valid `dist/`.
 
 ## Current Version Status
 

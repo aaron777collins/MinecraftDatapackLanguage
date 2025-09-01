@@ -62,24 +62,24 @@ mdl check .
 mdl check myproject/
 ```
 
-### Lint Command
+### Check Command
 
 Check MDL files for style and potential issues:
 
 ```bash
-mdl lint <files>
+mdl check <files>
 ```
 
 **Examples:**
 ```bash
-# Lint single file
-mdl lint hello.mdl
+# Check single file
+mdl check hello.mdl
 
-# Lint multiple files
-mdl lint myproject/
+# Check multiple files
+mdl check myproject/
 
-# Lint multiple files
-mdl lint .
+# Check multiple files
+mdl check .
 ```
 
 ## Command Options
@@ -265,5 +265,5 @@ jobs:
       - run: pip install minecraft-datapack-language
       - run: mdl check .
       - run: mdl build --mdl . -o dist
-      - run: mdl lint .
+      - run: mdl check .
 ```

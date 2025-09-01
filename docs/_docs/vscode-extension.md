@@ -4,12 +4,12 @@ title: VS Code Extension
 permalink: /docs/vscode-extension/
 ---
 
-The MDL VS Code extension provides syntax highlighting, linting, and build commands for `.mdl` files in VS Code, Cursor, and other VS Code-based editors.
+The MDL VS Code extension provides syntax highlighting, error checking, and build commands for `.mdl` files in VS Code, Cursor, and other VS Code-based editors.
 
 ## Features
 
 - **Syntax Highlighting**: Color-coded MDL syntax including raw text blocks
-- **Linting**: Real-time error checking and validation
+- **Error Checking**: Real-time error checking and validation
 - **Build Commands**: Quick datapack compilation
 - **Workspace Validation**: Check entire projects at once
 - **Raw Text Support**: Special highlighting and snippets for `$!raw` blocks
@@ -151,14 +151,14 @@ The extension provides completion for raw text syntax:
 - `raw!$` completion for ending blocks
 - Helpful documentation explaining what raw text does
 
-#### Linting
+#### Error Checking
 
 Raw text blocks are validated for:
 - Proper opening and closing delimiters
 - Basic syntax checking
-- Integration with the MDL linter
+- Integration with the MDL error checker
 
-### Linting
+### Error Checking
 
 The extension provides real-time validation:
 
@@ -231,10 +231,10 @@ The extension can be configured through VS Code settings:
 3. Configure the following options:
 
 **`mdl.enableLinting`** (default: `true`)
-- Enable or disable real-time linting
+- Enable or disable real-time error checking
 
 **`mdl.lintingMode`** (default: `"onSave"`)
-- When to run linting: `"onSave"`, `"onType"`, or `"manual"`
+- When to run error checking: `"onSave"`, `"onType"`, or `"manual"`
 
 **`mdl.buildOutputDirectory`** (default: `"dist"`)
 - Default output directory for builds
@@ -268,7 +268,7 @@ You can configure MDL settings per workspace by creating a `.vscode/settings.jso
 2. **Restart VS Code**: Sometimes a restart is needed after installation
 3. **Check command palette**: Commands should appear when typing "MDL"
 
-### Linting Issues
+### Error Checking Issues
 
 1. **Check MDL installation**: Run `mdl --version` in terminal to verify installation
 2. **Verify file syntax**: Use `mdl check filename.mdl` to test manually
@@ -293,7 +293,7 @@ vscode-extension/
 
 **`src/extension.ts`**: Main extension logic
 - Command registration
-- Linting integration
+- Error checking integration
 - Build command handling
 
 **`syntaxes/mdl.tmLanguage.json`**: Syntax highlighting rules
@@ -345,7 +345,7 @@ To add new features to the extension:
 Before submitting changes, test:
 
 - [ ] Syntax highlighting works correctly
-- [ ] Linting catches errors
+- [ ] Error checking catches errors
 - [ ] Build commands work
 - [ ] Workspace validation functions
 - [ ] Error messages are clear

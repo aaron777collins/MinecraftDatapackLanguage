@@ -31,7 +31,7 @@ Get the latest version of Minecraft Datapack Language (MDL) and the VS Code exte
     
     <div class="download-card">
       <h3>🔧 VS Code Extension</h3>
-      <p>Syntax highlighting, linting, and build commands for VS Code/Cursor</p>
+      <p>Syntax highlighting, error checking, and build commands for VS Code/Cursor</p>
       <div class="download-buttons">
         <a href="https://github.com/aaron777collins/MinecraftDatapackLanguage/releases/latest" class="btn btn-primary" target="_blank">
           📥 Download VSIX
@@ -120,14 +120,14 @@ git pull origin main
 
 ### Command Line Tool
 - **Build datapacks**: `mdl build --mdl file.mdl -o dist`
-- **Lint code**: `mdl lint file.mdl`
+- **Check code**: `mdl check file.mdl`
 - **Create projects**: `mdl new project_name`
 - **Multi-file support**: Build entire directories
 - **Pack format support**: Modern and legacy formats
 
 ### VS Code Extension
 - **Syntax highlighting**: MDL files with proper colors
-- **Error detection**: Real-time linting and validation
+- **Error detection**: Real-time error checking and validation
 - **Build commands**: Quick compile with Ctrl+Shift+P
 - **IntelliSense**: Auto-completion and suggestions
 - **Integrated terminal**: Run MDL commands directly

@@ -88,7 +88,7 @@ mdl build --mdl my_pack/mypack.mdl -o dist --wrapper mypack
 mdl check my_pack/mypack.mdl
 
 # Validate generated mcfunction files
-mdl check-advanced my_pack/mypack.mdl
+mdl check my_pack/mypack.mdl
 
 # Multi-file projects
 mdl build --mdl my_pack/ -o dist      # Build entire directory
@@ -1085,7 +1085,7 @@ For more details, see [DEVELOPMENT.md](DEVELOPMENT.md).
 
 ## 🔧 VS Code Extension
 
-Get syntax highlighting, linting, and build commands for `.mdl` files in VS Code, Cursor, and other VS Code-based editors.
+Get syntax highlighting, error checking, and build commands for `.mdl` files in VS Code, Cursor, and other VS Code-based editors.
 
 ### Quick Install
 
@@ -1098,7 +1098,7 @@ Get syntax highlighting, linting, and build commands for `.mdl` files in VS Code
 
 ### Features
 - **Syntax highlighting** for `.mdl` files
-- **Real-time linting** with error detection
+- **Real-time error checking** with error detection
 - **Build commands**: `MDL: Build current file` and `MDL: Check Workspace`
 - **Workspace validation** for multi-file projects
 - **Server function support**: Proper `@a` selector usage for tag-called functions
