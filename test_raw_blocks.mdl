@@ -6,5 +6,5 @@ function "test_raw_blocks" {
     execute as @a run say More raw content
     raw!$
     
-    var myVar = 42;
+    var num myVar = 42;
 }

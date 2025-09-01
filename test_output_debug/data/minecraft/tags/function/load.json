@@ -1,1 +1,5 @@
-{"values": ["main:hello", "other:load"]}
+{
+  "values": [
+    "my_test_pack:load"
+  ]
+}

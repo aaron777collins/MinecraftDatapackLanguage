@@ -20,6 +20,7 @@ from minecraft_datapack_language.mdl_parser_js import parse_mdl_js
 from minecraft_datapack_language.mdl_linter import MDLLinter
 from minecraft_datapack_language.expression_processor import ExpressionProcessor
 from minecraft_datapack_language.cli_build import build_mdl, _merge_mdl_files, _ast_to_pack
+from minecraft_datapack_language.mdl_errors import MDLParserError, MDLLexerError, MDLSyntaxError
 
 
 class TestBasicSyntaxFeatures(unittest.TestCase):
@@ -597,7 +598,7 @@ class TestCLIFeatures(unittest.TestCase):
             mdl_file = Path(temp_dir) / "test_raw.mdl"
             with open(mdl_file, 'w') as f:
                 f.write('''
-                pack "test_raw" "Test pack with raw blocks" 82;
+                pack "test" "Test pack with raw blocks" 82;
                 namespace "test";
                 function "main" {
                     say "MDL command";
@@ -637,7 +638,7 @@ class TestCLIFeatures(unittest.TestCase):
             mdl_file = Path(temp_dir) / "test_scopes.mdl"
             with open(mdl_file, 'w') as f:
                 f.write('''
-                pack "test_scopes" "Test pack with scopes" 82;
+                pack "test" "Test pack with scopes" 82;
                 namespace "test";
                 
                 var num playerScore = 0;  // Player-specific scope
@@ -685,9 +686,8 @@ class TestErrorHandlingFeatures(unittest.TestCase):
         ]
         
         for code in invalid_codes:
-            with self.subTest(code=code):
-                with self.assertRaises(Exception):
-                    parse_mdl_js(code)
+            with self.assertRaises((MDLParserError, MDLLexerError, MDLSyntaxError)):
+                parse_mdl_js(code)
     
     def test_undefined_variable_handling(self):
         """Test handling of undefined variables"""
