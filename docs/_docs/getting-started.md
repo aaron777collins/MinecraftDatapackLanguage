@@ -4,8 +4,6 @@ title: Getting Started
 permalink: /docs/getting-started/
 ---
 
-# Getting Started with MDL
-
 MDL (Minecraft Datapack Language) is a simple language that compiles to Minecraft datapack `.mcfunction` files.
 
 ## Installation

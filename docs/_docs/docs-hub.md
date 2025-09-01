@@ -5,8 +5,6 @@ permalink: /docs/docs-hub/
 description: Search and browse all MDL documentation
 ---
 
-# Documentation Hub
-
 Search and browse all available documentation for the Minecraft Datapack Language (MDL).
 
 <div class="search-container">

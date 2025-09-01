@@ -1,10 +1,8 @@
 ---
 layout: page
-title: Multi-file Projects
+title: Multi File Projects
 permalink: /docs/multi-file-projects/
 ---
-
-# Multi-File Projects
 
 MDL supports organizing code across multiple files for better project structure.
 

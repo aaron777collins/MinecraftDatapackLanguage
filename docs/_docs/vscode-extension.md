@@ -4,8 +4,6 @@ title: VS Code Extension
 permalink: /docs/vscode-extension/
 ---
 
-# VS Code Extension
-
 The MDL VS Code extension provides syntax highlighting, linting, and build commands for `.mdl` files in VS Code, Cursor, and other VS Code-based editors.
 
 ## Features

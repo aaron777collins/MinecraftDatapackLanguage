@@ -4,8 +4,6 @@ title: Downloads
 permalink: /downloads/
 ---
 
-# Downloads
-
 Get the latest version of Minecraft Datapack Language (MDL) and the VS Code extension.
 
 ## Latest Release

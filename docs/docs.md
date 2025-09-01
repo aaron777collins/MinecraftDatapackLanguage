@@ -4,8 +4,6 @@ title: Documentation
 description: Complete documentation for the Minecraft Datapack Language (MDL)
 ---
 
-# Documentation
-
 Welcome to the complete documentation for the Minecraft Datapack Language (MDL). This guide will help you get started and master all aspects of MDL development.
 
 ## Getting Started

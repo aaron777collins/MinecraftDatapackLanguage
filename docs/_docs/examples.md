@@ -1,10 +1,8 @@
 ---
 layout: page
-title: Examples
+title: MDL Examples
 permalink: /docs/examples/
 ---
-
-# MDL Examples
 
 This page contains working examples of MDL features.
 

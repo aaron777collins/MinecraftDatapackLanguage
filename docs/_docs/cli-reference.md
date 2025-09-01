@@ -4,8 +4,6 @@ title: CLI Reference
 permalink: /docs/cli-reference/
 ---
 
-# CLI Reference
-
 The MDL command-line interface provides tools for building and managing Minecraft datapacks.
 
 ## Installation

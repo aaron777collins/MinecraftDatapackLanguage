@@ -4,8 +4,6 @@ title: Language Reference
 permalink: /docs/language-reference/
 ---
 
-# MDL Language Reference
-
 MDL (Minecraft Datapack Language) is a simple language that compiles to Minecraft datapack `.mcfunction` files.
 
 ## Basic Syntax

@@ -4,8 +4,6 @@ title: Python API
 permalink: /docs/python-api/
 ---
 
-# Python API
-
 The MDL Python API provides a clean, programmatic way to create Minecraft datapacks. It's fully compatible with the new JavaScript-style MDL language and supports all advanced features including variables, control flow, and complex nesting.
 
 ## Quick Start
