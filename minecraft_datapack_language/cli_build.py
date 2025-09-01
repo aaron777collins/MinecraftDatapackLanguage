@@ -234,29 +234,37 @@ def _process_say_command_with_variables(content: str, selector: str) -> str:
         word_matches = re.findall(word_pattern, content)
         
         if word_matches:
-            # Found potential variables, convert to score components
+            # Process the content by replacing each variable with a score component
             components = []
-            remaining_content = content
+            processed_content = content
             
-            for var_name in word_matches:
-                # Find the position of this variable in the remaining content
-                var_pos = remaining_content.find(var_name)
-                if var_pos >= 0:
-                    # Add text before variable
-                    if var_pos > 0:
-                        text_before = remaining_content[:var_pos]
-                        if text_before:
-                            components.append(f'{{"text":"{text_before}"}}')
-                    
-                    # Add score component for variable
-                    components.append(f'{{"score":{{"name":"@e[type=armor_stand,tag=mdl_server,limit=1]","objective":"{var_name}"}}}}')
-                    
-                    # Continue with remaining content after this variable
-                    remaining_content = remaining_content[var_pos + len(var_name):]
+            # Sort variables by their position in the content to process them in order
+            var_positions = []
+            for var_name in set(word_matches):  # Remove duplicates
+                pos = processed_content.find(var_name)
+                if pos >= 0:
+                    var_positions.append((pos, var_name))
             
-            # Add remaining text
-            if remaining_content:
-                components.append(f'{{"text":"{remaining_content}"}}')
+            var_positions.sort()  # Sort by position
+            
+            last_pos = 0
+            for pos, var_name in var_positions:
+                # Add text before this variable
+                if pos > last_pos:
+                    text_before = processed_content[last_pos:pos]
+                    if text_before:
+                        components.append(f'{{"text":"{text_before}"}}')
+                
+                # Add score component for variable
+                components.append(f'{{"score":{{"name":"@e[type=armor_stand,tag=mdl_server,limit=1]","objective":"{var_name}"}}}}')
+                
+                last_pos = pos + len(var_name)
+            
+            # Add remaining text after last variable
+            if last_pos < len(processed_content):
+                remaining_text = processed_content[last_pos:]
+                if remaining_text:
+                    components.append(f'{{"text":"{remaining_text}"}}')
             
             # Combine all components
             components_str = ','.join(components)
@@ -490,9 +498,15 @@ def _generate_function_file(ast: Dict[str, Any], output_dir: Path, namespace: st
         
         # Write function file
         if function_commands:
-            # Add armor stand setup to the beginning of each function
+            # Only add armor stand setup to main functions that need it
+            # Don't add to helper functions or functions in the "other" namespace
+            should_add_armor_stand = (namespace != "other" and 
+                                    func_name in ["main", "init", "load"] or 
+                                    any(cmd for cmd in function_commands if "scoreboard" in cmd or "tellraw" in cmd))
+            
             final_commands = []
-            final_commands.append("execute unless entity @e[type=armor_stand,tag=mdl_server,limit=1] run summon armor_stand ~ 320 ~ {Tags:[\"mdl_server\"],Invisible:1b,Marker:1b,NoGravity:1b,Invulnerable:1b}")
+            if should_add_armor_stand:
+                final_commands.append("execute unless entity @e[type=armor_stand,tag=mdl_server,limit=1] run summon armor_stand ~ 320 ~ {Tags:[\"mdl_server\"],Invisible:1b,Marker:1b,NoGravity:1b,Invulnerable:1b}")
             final_commands.extend(function_commands)
             
             if verbose:
@@ -648,16 +662,16 @@ def _process_while_loop_recursion(while_statement, namespace: str, function_name
     # Create the main loop function
     minecraft_condition = _convert_condition_to_minecraft_syntax(condition, selector)
     loop_commands = [
-        f"execute {minecraft_condition} run function {namespace}:{loop_body_func_name}",
-        f"execute {minecraft_condition} run function {namespace}:{loop_func_name}"
+        f"execute if {minecraft_condition} run function {namespace}:{loop_body_func_name}",
+        f"execute if {minecraft_condition} run function {namespace}:{loop_func_name}"
     ]
     
     # Write loop function
     with open(func_dir / f"{loop_func_name}.mcfunction", 'w', encoding='utf-8') as f:
         f.write('\n'.join(loop_commands))
     
-    # Return the command to start the loop
-    return [f"function {namespace}:{loop_func_name}"]
+    # Return the command to start the loop with conditional execution
+    return [f"execute if {minecraft_condition} run function {namespace}:{loop_func_name}"]
 
 
 def _process_while_loop_schedule(while_statement, namespace: str, function_name: str, statement_index: int, is_tag_function: bool = False, selector: str = "@s", variable_scopes: Dict[str, str] = None, build_context: BuildContext = None) -> List[str]:
