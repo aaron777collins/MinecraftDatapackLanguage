@@ -1,1 +1,5 @@
-{"values": ["pipes:hello", "pipes:load"]}
+{
+  "values": [
+    "hello_world:load"
+  ]
+}

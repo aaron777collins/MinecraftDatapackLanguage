@@ -450,7 +450,7 @@ class MDLParser:
         self._match(TokenType.SEMICOLON)
         
         command = _smart_join_command_parts(command_parts)
-        return {"command": command}
+        return {"type": "command", "command": command}
     
     def _parse_raw_text(self) -> RawText:
         """Parse raw text block."""
@@ -475,7 +475,7 @@ class MDLParser:
         self._match(TokenType.RAW_END)
         
         content = "".join(content_parts)
-        return {"content": content}
+        return {"type": "raw_text", "content": content}
     
     def _parse_command(self) -> Command:
         """Parse a command."""
@@ -497,7 +497,7 @@ class MDLParser:
         self._match(TokenType.SEMICOLON)
         
         command = _smart_join_command_parts(command_parts)
-        return {"command": command}
+        return {"type": "command", "command": command}
     
     def _parse_hook_declaration(self) -> HookDeclaration:
         """Parse hook declaration."""
