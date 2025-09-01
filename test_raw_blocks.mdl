@@ -1,0 +1,10 @@
+pack "my_test_pack" "Test pack for raw blocks" 15
+
+function test_raw_blocks {
+    $!raw
+    say Hello, this is raw content!
+    execute as @a run say More raw content
+    raw!$
+    
+    var myVar = 42
+}

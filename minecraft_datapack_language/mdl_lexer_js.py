@@ -165,8 +165,6 @@ class MDLLexer:
                 self._scan_variable_substitution(source)
                 return
         
-
-        
         # Handle identifiers and keywords
         if char.isalpha() or char == '_':
             self._scan_identifier(source)
@@ -235,7 +233,7 @@ class MDLLexer:
         self.column += 1
         
         text = source[self.start:self.current]
-        self.tokens.append(Token(TokenType.STRING, text, self.line, self.start - self.column + 1))
+        self.tokens.append(Token(TokenType.STRING, text, start_line, start_column))
     
     def _scan_number(self, source: str):
         """Scan a number literal."""
@@ -258,7 +256,7 @@ class MDLLexer:
                 self.column += 1
         
         text = source[self.start:self.current]
-        self.tokens.append(Token(TokenType.NUMBER, text, self.line, self.start - self.column + 1))
+        self.tokens.append(Token(TokenType.NUMBER, text, self.line, self.column - len(text)))
     
     def _scan_identifier(self, source: str):
         """Scan an identifier or keyword."""
@@ -295,7 +293,7 @@ class MDLLexer:
         }
         
         token_type = keyword_map.get(text.lower(), TokenType.IDENTIFIER)
-        self.tokens.append(Token(token_type, text, self.line, self.start - self.column + 1))
+        self.tokens.append(Token(token_type, text, self.line, self.column - len(text)))
     
     def _scan_variable_substitution(self, source: str):
         """Scan variable substitution ($variable$)."""
@@ -331,7 +329,7 @@ class MDLLexer:
                     message="Unterminated scope selector in variable substitution",
                     file_path=self.source_file,
                     line=self.line,
-                    column=self.start - self.column + 1,
+                    column=self.column - (self.current - self.start),
                     line_content=source[self.line-1:self.line] if self.line <= len(source.split('\n')) else "",
                     suggestion="Add a closing '>' to terminate the scope selector"
                 )
@@ -349,14 +347,14 @@ class MDLLexer:
             if scope_selector:
                 variable_name = f"{variable_name}<{scope_selector}>"
             
-            self.tokens.append(Token(TokenType.VARIABLE_SUB, variable_name, self.line, self.start - self.column + 1))
+            self.tokens.append(Token(TokenType.VARIABLE_SUB, variable_name, self.line, self.column - len(text)))
         else:
             # Not a valid variable substitution - report error
             raise create_lexer_error(
                 message="Invalid variable substitution - missing closing '$'",
                 file_path=self.source_file,
                 line=self.line,
-                column=self.start - self.column + 1,
+                column=self.column - (self.current - self.start),
                 line_content=source[self.line-1:self.line] if self.line <= len(source.split('\n')) else "",
                 suggestion="Add a closing '$' to complete the variable substitution"
             )
@@ -368,16 +366,16 @@ class MDLLexer:
         self.column += 5
         
         text = source[self.start:self.current]
-        self.tokens.append(Token(TokenType.RAW_START, text, self.line, self.start - self.column + 1))
+        self.tokens.append(Token(TokenType.RAW_START, text, self.line, self.column - len(text)))
         
         # Enter raw mode
         self.in_raw_mode = True
     
-
-    
     def _scan_raw_text(self, source: str):
         """Scan raw text content between $!raw and raw!$."""
         content_parts = []
+        raw_start_line = self.line
+        raw_start_column = self.column
         
         while self.current < len(source):
             char = source[self.current]
@@ -387,7 +385,7 @@ class MDLLexer:
                 self.current + 4 < len(source) and 
                 source[self.current:self.current + 5] == 'raw!$'):
                 # Add raw end token and exit raw mode
-                self.tokens.append(Token(TokenType.RAW_END, "raw!$", self.line, self.start - self.column + 1))
+                self.tokens.append(Token(TokenType.RAW_END, "raw!$", self.line, self.column))
                 self.current += 5
                 self.column += 5
                 self.in_raw_mode = False
@@ -407,7 +405,9 @@ class MDLLexer:
         # Add the raw content as a single RAW token
         content = ''.join(content_parts)
         if content.strip():  # Only add non-empty content
-            self.tokens.append(Token(TokenType.RAW, content, self.line, self.start - self.column + 1))
+            # Remove leading and trailing whitespace for cleaner content
+            clean_content = content.strip()
+            self.tokens.append(Token(TokenType.RAW, clean_content, raw_start_line, raw_start_column))
     
     def _scan_operator_or_delimiter(self, source: str):
         """Scan operators and delimiters."""
@@ -430,7 +430,7 @@ class MDLLexer:
                     '||': TokenType.OR,
                 }
                 
-                self.tokens.append(Token(operator_map[two_char], two_char, self.line, self.start - self.column + 1))
+                self.tokens.append(Token(operator_map[two_char], two_char, self.line, self.column - 2))
                 return
         
         # Single-character operators and delimiters
@@ -459,14 +459,14 @@ class MDLLexer:
         }
         
         if char in operator_map:
-            self.tokens.append(Token(operator_map[char], char, self.line, self.start - self.column + 1))
+            self.tokens.append(Token(operator_map[char], char, self.line, self.column - 1))
         else:
             # Unknown character - report error
             raise create_lexer_error(
                 message=f"Unexpected character '{char}'",
                 file_path=self.source_file,
                 line=self.line,
-                column=self.start - self.column + 1,
+                column=self.column - 1,
                 line_content=source[self.line-1:self.line] if self.line <= len(source.split('\n')) else "",
                 suggestion=f"Remove or replace the unexpected character '{char}'"
             )
