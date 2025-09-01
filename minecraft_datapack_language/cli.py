@@ -2935,7 +2935,7 @@ def main():
         
         command = sys.argv[1]
     
-    if command == "build":
+        if command == "build":
         # Check for help request first
         if len(sys.argv) >= 3 and sys.argv[2] in ("--help", "-h"):
             show_build_help()
