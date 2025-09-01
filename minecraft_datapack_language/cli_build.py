@@ -209,6 +209,51 @@ def _generate_load_function(scoreboard_commands: List[str], output_dir: Path, na
         f.write('\n'.join(load_content))
 
 
+def _process_say_command_with_variables(content: str, selector: str) -> str:
+    """Process say command content with variable substitution, converting to tellraw with score components."""
+    import re
+    
+    # Find all variable references like $variable$ or $variable<selector>$
+    var_pattern = r'\$([^$]+)\$'
+    matches = re.findall(var_pattern, content)
+    
+    if not matches:
+        # No variables, return simple tellraw
+        return f'tellraw @a [{{"text":{content}}}]'
+    
+    # Split content by variable references
+    parts = re.split(var_pattern, content)
+    
+    # Build tellraw components
+    components = []
+    var_index = 0
+    
+    for i, part in enumerate(parts):
+        if part:  # Add text component if not empty
+            components.append(f'{{"text":"{part}"}}')
+        
+        # Add score component if this is followed by a variable
+        if i < len(parts) - 1 and var_index < len(matches):
+            var_name = matches[var_index]
+            
+            # Check if variable has scope selector
+            if '<' in var_name and var_name.endswith('>'):
+                # Scoped variable: $variable<selector>$
+                var_parts = var_name.split('<', 1)
+                base_var = var_parts[0]
+                var_selector = var_parts[1][:-1]  # Remove trailing >
+                components.append(f'{{"score":{{"name":"{var_selector}","objective":"{base_var}"}}}}')
+            else:
+                # Simple variable: $variable$
+                components.append(f'{{"score":{{"name":"{selector}","objective":"{var_name}"}}}}')
+            
+            var_index += 1
+    
+    # Combine all components
+    components_str = ','.join(components)
+    return f'tellraw @a [{components_str}]'
+
+
 def _process_statement(statement: Any, namespace: str, function_name: str, statement_index: int = 0, is_tag_function: bool = False, selector: str = "@s", variable_scopes: Dict[str, str] = None, build_context: BuildContext = None) -> List[str]:
     """Process a single statement and return Minecraft commands."""
     if variable_scopes is None:
@@ -227,8 +272,7 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
             # Convert say command to tellraw command
             content = command[4:]  # Remove "say " prefix
             # Convert to Minecraft tellraw format
-            tellraw_command = f'tellraw @a [{{"text":{content}}}]'
-            processed_command = _process_variable_substitutions(tellraw_command, selector)
+            processed_command = _process_say_command_with_variables(content, selector)
             commands.append(processed_command)
         else:
             # Process other commands normally

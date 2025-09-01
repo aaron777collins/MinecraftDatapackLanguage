@@ -1,2 +1,2 @@
 # Complex assignment: counter = BinaryExpression(left=VariableExpression(name='counter'), operator='PLUS', right=LiteralExpression(value='1', type='number'))
-say "Counter: ${counter}"
+tellraw @a [{"text": "Counter: $counter$"}]

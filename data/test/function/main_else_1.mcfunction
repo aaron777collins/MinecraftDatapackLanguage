@@ -1,1 +1,1 @@
-say "Value is 3 or less"
+tellraw @a [{"text": "Value is 3 or less"}]
