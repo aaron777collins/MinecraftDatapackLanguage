@@ -165,8 +165,8 @@ class MDLLexer:
                 self._scan_variable_substitution(source)
                 return
         
-        # Handle raw block end markers
-        if (char == 'r' and 
+        # Handle raw block end markers (only when not in raw mode)
+        if not self.in_raw_mode and (char == 'r' and 
             self.current + 4 < len(source) and 
             source[self.current:self.current + 5] == 'raw!$'):
             self._scan_raw_end(source)
