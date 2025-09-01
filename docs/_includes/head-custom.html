@@ -145,6 +145,33 @@
   color: #c9d1d9 !important;
 }
 
+[data-theme="dark"] .post {
+  background-color: #0d1117 !important;
+  color: #c9d1d9 !important;
+}
+
+[data-theme="dark"] .post h1,
+[data-theme="dark"] .post h2,
+[data-theme="dark"] .post h3,
+[data-theme="dark"] .post h4,
+[data-theme="dark"] .post h5,
+[data-theme="dark"] .post h6 {
+  color: #e6edf3 !important;
+}
+
+[data-theme="dark"] .post p,
+[data-theme="dark"] .post li {
+  color: #c9d1d9 !important;
+}
+
+[data-theme="dark"] .post a {
+  color: #58a6ff !important;
+}
+
+[data-theme="dark"] .post a:hover {
+  color: #79c0ff !important;
+}
+
 [data-theme="dark"] h1,
 [data-theme="dark"] h2,
 [data-theme="dark"] h3,
@@ -232,129 +259,6 @@
 
 [data-theme="dark"] .site-footer a:hover {
   color: #79c0ff !important;
-}
-
-/* Breadcrumb styles */
-.breadcrumb-nav {
-  margin: 1rem 0 2rem 0;
-  padding: 0 1rem;
-  max-width: 1200px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.breadcrumb {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  font-size: 0.9rem;
-}
-
-.breadcrumb-item {
-  display: flex;
-  align-items: center;
-}
-
-.breadcrumb-item:not(:last-child)::after {
-  content: "›";
-  margin-left: 0.5rem;
-  color: #586069;
-}
-
-[data-theme="dark"] .breadcrumb-item:not(:last-child)::after {
-  color: #8b949e;
-}
-
-.breadcrumb-link {
-  color: #0366d6;
-  text-decoration: none;
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  transition: background-color 0.2s;
-}
-
-[data-theme="dark"] .breadcrumb-link {
-  color: #58a6ff;
-}
-
-.breadcrumb-link:hover {
-  background: #e1f5fe;
-  text-decoration: none;
-}
-
-[data-theme="dark"] .breadcrumb-link:hover {
-  background: #21262d;
-}
-
-.breadcrumb-icon {
-  width: 16px;
-  height: 16px;
-}
-
-.breadcrumb-item.active {
-  color: #586069;
-  font-weight: 500;
-}
-
-[data-theme="dark"] .breadcrumb-item.active {
-  color: #8b949e;
-}
-
-/* Quick navigation styles */
-.quick-nav {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 1.5rem;
-  margin: 2rem 0;
-}
-
-.quick-nav .nav-link {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, #0366d6 0%, #0256b3 100%);
-  color: #ffffff !important;
-  text-decoration: none;
-  font-weight: 600;
-  border-radius: 8px;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(3, 102, 214, 0.25);
-  position: relative;
-  overflow: hidden;
-}
-
-.quick-nav .nav-link::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  transition: left 0.5s;
-}
-
-.quick-nav .nav-link:hover {
-  color: #ffffff !important;
-  text-decoration: none;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(3, 102, 214, 0.4);
-}
-
-.quick-nav .nav-link:hover::before {
-  left: 100%;
-}
-
-.quick-nav .nav-link:active {
-  transform: translateY(0);
-  box-shadow: 0 4px 12px rgba(3, 102, 214, 0.25);
 }
 
 /* MDL Syntax Highlighting - Light Mode */
@@ -579,18 +483,8 @@
 /* Responsive design */
 @media (max-width: 768px) {
   .features,
-  .docs-grid,
-  .quick-nav {
+  .docs-grid {
     grid-template-columns: 1fr;
-  }
-  
-  .quick-nav .nav-link {
-    padding: 0.875rem 1.25rem;
-    font-size: 0.95rem;
-  }
-  
-  .breadcrumb {
-    font-size: 0.8rem;
   }
 }
 </style>
