@@ -2010,121 +2010,121 @@ def build_mdl(input_path: str, output_path: str, verbose: bool = False, pack_for
             error_collector.add_error(e)
             error_collector.raise_if_errors()
     
-    # Debug: Check pack information after merging
-    print(f"DEBUG: build_mdl: ast.get('pack') = {ast.get('pack')}")
-    print(f"DEBUG: build_mdl: 'pack' in ast = {'pack' in ast}")
-    
-    # Ensure pack info exists - this makes the code more resilient to race conditions
-    # Only add fallback if pack is completely missing, not if it's None or empty
-    if 'pack' not in ast:
-        print(f"DEBUG: build_mdl: Adding fallback pack info")
-        ast['pack'] = {'name': 'mdl_pack', 'description': 'Generated MDL pack', 'pack_format': 82}
-    
-    # Optionally override pack format (ensures pack.mcmeta and directory layout align with requested version)
-    if pack_format_override is not None:
-        if not ast.get('pack'):
-            ast['pack'] = {'name': 'mdl_pack', 'description': 'Generated MDL pack', 'pack_format': int(pack_format_override)}
-        else:
-            ast['pack']['pack_format'] = int(pack_format_override)
-    
-    # Get namespace
-    namespace = ast.get('namespace', {}).get('name', 'mdl') if ast.get('namespace') else 'mdl'
-    
-    # Generate scoreboard objectives
-    scoreboard_commands = _generate_scoreboard_objectives(ast, output_dir)
-    if verbose:
-        print(f"Generated {len(scoreboard_commands)} scoreboard commands: {scoreboard_commands}")
-    
-    # Write scoreboard objectives to a load function
-    if scoreboard_commands:
+        # Debug: Check pack information after merging
+        print(f"DEBUG: build_mdl: ast.get('pack') = {ast.get('pack')}")
+        print(f"DEBUG: build_mdl: 'pack' in ast = {'pack' in ast}")
+        
+        # Ensure pack info exists - this makes the code more resilient to race conditions
+        # Only add fallback if pack is completely missing, not if it's None or empty
+        if 'pack' not in ast:
+            print(f"DEBUG: build_mdl: Adding fallback pack info")
+            ast['pack'] = {'name': 'mdl_pack', 'description': 'Generated MDL pack', 'pack_format': 82}
+        
+        # Optionally override pack format (ensures pack.mcmeta and directory layout align with requested version)
+        if pack_format_override is not None:
+            if not ast.get('pack'):
+                ast['pack'] = {'name': 'mdl_pack', 'description': 'Generated MDL pack', 'pack_format': int(pack_format_override)}
+            else:
+                ast['pack']['pack_format'] = int(pack_format_override)
+        
+        # Get namespace
+        namespace = ast.get('namespace', {}).get('name', 'mdl') if ast.get('namespace') else 'mdl'
+        
+        # Generate scoreboard objectives
+        scoreboard_commands = _generate_scoreboard_objectives(ast, output_dir)
         if verbose:
-            print(f"Generating load function with {len(scoreboard_commands)} scoreboard commands")
-        _generate_load_function(scoreboard_commands, output_dir, namespace, ast)
-    
-    # Generate function files with build context for thread safety
-    build_context = BuildContext()
-    _generate_function_file(ast, output_dir, namespace, verbose, build_context)
-    
-    # Generate hook files
-    _generate_hook_files(ast, output_dir, namespace, build_context)
-    
-    # Generate tag files
-    _generate_tag_files(ast, output_dir, namespace)
-    
-    # Generate pack.mcmeta
-    print("DEBUG: About to generate pack.mcmeta")
-    _generate_pack_mcmeta(ast, output_dir)
-    print("DEBUG: pack.mcmeta generated")
-    
-    print("DEBUG: About to call _ast_to_pack")
-    # Use Pack class to generate additional registry types (recipes, loot tables, etc.)
-    # This ensures all registry types are supported
-    pack = _ast_to_pack(ast, mdl_files)
-    print("DEBUG: _ast_to_pack completed")
-    print("DEBUG: About to call pack.build()")
-    
-    # Build using Pack class to generate all registry types (but skip function generation since CLI handles it)
-    # pack.build(str(output_dir))  # Commented out to prevent overwriting CLI-generated functions
-    
-    # Generate registry files (recipes, loot tables, etc.) without overwriting functions
-    print("DEBUG: Generating registry files...")
-    dm = get_dir_map(pack.pack_format)
-    data_root = os.path.join(str(output_dir), "data")
-    
-    # Generate recipes, advancements, etc. for each namespace
-    for ns_name, ns in pack.namespaces.items():
-        ns_root = os.path.join(data_root, ns_name)
+            print(f"Generated {len(scoreboard_commands)} scoreboard commands: {scoreboard_commands}")
         
-        # Recipes
-        for name, r in ns.recipes.items():
-            recipe_dir = os.path.join(ns_root, dm.recipe)
-            ensure_dir(recipe_dir)
-            write_json(os.path.join(recipe_dir, f"{name}.json"), r.data)
-            print(f"DEBUG: Generated recipe: {ns_name}:{name}")
+        # Write scoreboard objectives to a load function
+        if scoreboard_commands:
+            if verbose:
+                print(f"Generating load function with {len(scoreboard_commands)} scoreboard commands")
+            _generate_load_function(scoreboard_commands, output_dir, namespace, ast)
         
-        # Loot tables
-        for name, lt in ns.loot_tables.items():
-            loot_table_dir = os.path.join(ns_root, dm.loot_table)
-            ensure_dir(loot_table_dir)
-            write_json(os.path.join(loot_table_dir, f"{name}.json"), lt.data)
-            print(f"DEBUG: Generated loot table: {ns_name}:{name}")
+        # Generate function files with build context for thread safety
+        build_context = BuildContext()
+        _generate_function_file(ast, output_dir, namespace, verbose, build_context)
         
-        # Advancements
-        for name, a in ns.advancements.items():
-            advancement_dir = os.path.join(ns_root, dm.advancement)
-            ensure_dir(advancement_dir)
-            write_json(os.path.join(advancement_dir, f"{name}.json"), a.data)
-            print(f"DEBUG: Generated advancement: {ns_name}:{name}")
+        # Generate hook files
+        _generate_hook_files(ast, output_dir, namespace, build_context)
         
-        # Predicates
-        for name, p in ns.predicates.items():
-            predicate_dir = os.path.join(ns_root, dm.predicate)
-            ensure_dir(predicate_dir)
-            write_json(os.path.join(predicate_dir, f"{name}.json"), p.data)
-            print(f"DEBUG: Generated predicate: {ns_name}:{name}")
+        # Generate tag files
+        _generate_tag_files(ast, output_dir, namespace)
         
-        # Item modifiers
-        for name, im in ns.item_modifiers.items():
-            item_modifier_dir = os.path.join(ns_root, dm.item_modifier)
-            ensure_dir(item_modifier_dir)
-            write_json(os.path.join(item_modifier_dir, f"{name}.json"), im.data)
-            print(f"DEBUG: Generated item modifier: {ns_name}:{name}")
+        # Generate pack.mcmeta
+        print("DEBUG: About to generate pack.mcmeta")
+        _generate_pack_mcmeta(ast, output_dir)
+        print("DEBUG: pack.mcmeta generated")
         
-        # Structures
-        for name, s in ns.structures.items():
-            structure_dir = os.path.join(ns_root, dm.structure)
-            ensure_dir(structure_dir)
-            write_json(os.path.join(structure_dir, f"{name}.json"), s.data)
-            print(f"DEBUG: Generated structure: {ns_name}:{name}")
-    
-    # Create zip file (allow optional wrapper name for zip without changing output folder layout)
-    zip_target = output_dir.parent / f"{output_dir.name}.zip"
-    if wrapper:
-        safe_wrapper = _slugify(wrapper)
-        if safe_wrapper:
-            zip_target = output_dir.parent / f"{safe_wrapper}.zip"
-    _create_zip_file(output_dir, zip_target)
-    
+        print("DEBUG: About to call _ast_to_pack")
+        # Use Pack class to generate additional registry types (recipes, loot tables, etc.)
+        # This ensures all registry types are supported
+        pack = _ast_to_pack(ast, mdl_files)
+        print("DEBUG: _ast_to_pack completed")
+        print("DEBUG: About to call pack.build()")
+        
+        # Build using Pack class to generate all registry types (but skip function generation since CLI handles it)
+        # pack.build(str(output_dir))  # Commented out to prevent overwriting CLI-generated functions
+        
+        # Generate registry files (recipes, loot tables, etc.) without overwriting functions
+        print("DEBUG: Generating registry files...")
+        dm = get_dir_map(pack.pack_format)
+        data_root = os.path.join(str(output_dir), "data")
+        
+        # Generate recipes, advancements, etc. for each namespace
+        for ns_name, ns in pack.namespaces.items():
+            ns_root = os.path.join(data_root, ns_name)
+            
+            # Recipes
+            for name, r in ns.recipes.items():
+                recipe_dir = os.path.join(ns_root, dm.recipe)
+                ensure_dir(recipe_dir)
+                write_json(os.path.join(recipe_dir, f"{name}.json"), r.data)
+                print(f"DEBUG: Generated recipe: {ns_name}:{name}")
+            
+            # Loot tables
+            for name, lt in ns.loot_tables.items():
+                loot_table_dir = os.path.join(ns_root, dm.loot_table)
+                ensure_dir(loot_table_dir)
+                write_json(os.path.join(loot_table_dir, f"{name}.json"), lt.data)
+                print(f"DEBUG: Generated loot table: {ns_name}:{name}")
+            
+            # Advancements
+            for name, a in ns.advancements.items():
+                advancement_dir = os.path.join(ns_root, dm.advancement)
+                ensure_dir(advancement_dir)
+                write_json(os.path.join(advancement_dir, f"{name}.json"), a.data)
+                print(f"DEBUG: Generated advancement: {ns_name}:{name}")
+            
+            # Predicates
+            for name, p in ns.predicates.items():
+                predicate_dir = os.path.join(ns_root, dm.predicate)
+                ensure_dir(predicate_dir)
+                write_json(os.path.join(predicate_dir, f"{name}.json"), p.data)
+                print(f"DEBUG: Generated predicate: {ns_name}:{name}")
+            
+            # Item modifiers
+            for name, im in ns.item_modifiers.items():
+                item_modifier_dir = os.path.join(ns_root, dm.item_modifier)
+                ensure_dir(item_modifier_dir)
+                write_json(os.path.join(item_modifier_dir, f"{name}.json"), im.data)
+                print(f"DEBUG: Generated item modifier: {ns_name}:{name}")
+            
+            # Structures
+            for name, s in ns.structures.items():
+                structure_dir = os.path.join(ns_root, dm.structure)
+                ensure_dir(structure_dir)
+                write_json(os.path.join(structure_dir, f"{name}.json"), s.data)
+                print(f"DEBUG: Generated structure: {ns_name}:{name}")
+        
+        # Create zip file (allow optional wrapper name for zip without changing output folder layout)
+        zip_target = output_dir.parent / f"{output_dir.name}.zip"
+        if wrapper:
+            safe_wrapper = _slugify(wrapper)
+            if safe_wrapper:
+                zip_target = output_dir.parent / f"{safe_wrapper}.zip"
+        _create_zip_file(output_dir, zip_target)
+        
         print(f"✅ Successfully built datapack: {output_dir}")
         print(f"📦 Created zip file: {zip_target}")
         if verbose:
