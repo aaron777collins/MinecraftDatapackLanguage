@@ -23,6 +23,10 @@ def write_json(path: str, data: Any) -> None:
 def _process_variable_substitutions(command: str, selector: str = "@s") -> str:
     """Process $variable$ and $variable<selector>$ substitutions in commands."""
     
+    # Skip say commands - they have their own variable substitution logic
+    if command.strip().startswith('say '):
+        return command
+    
     # Check if this is a tellraw command with JSON
     if command.strip().startswith('tellraw'):
         # Special handling for tellraw commands with variable substitutions
