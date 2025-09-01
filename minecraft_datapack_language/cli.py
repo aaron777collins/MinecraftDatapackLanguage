@@ -129,11 +129,15 @@ def main():
                     suggestion="Check your arguments and try again."
                 ))
         
+        elif args.command is None:
+            # No command specified - show help
+            show_main_help()
+            return
         else:
-            # No command specified or unknown command
+            # Unknown command
             error_collector.add_error(create_error(
                 MDLConfigurationError,
-                "No command specified or unknown command",
+                f"Unknown command: {args.command}",
                 suggestion="Use 'mdl --help' to see available commands."
             ))
         

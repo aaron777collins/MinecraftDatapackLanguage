@@ -5,8 +5,14 @@ CLI Help System - Comprehensive help documentation for MDL CLI
 
 def show_main_help():
     """Display the main help message for the MDL CLI."""
-    print("""
-🎮 MDL (Minecraft Datapack Language) CLI - v15.0.0
+    try:
+        from . import __version__
+        version = __version__
+    except ImportError:
+        version = "unknown"
+    
+    print(f"""
+🎮 MDL (Minecraft Datapack Language) CLI - v{version}
 ====================================================
 
 MDL is a simplified language for creating Minecraft datapacks with variables, 
