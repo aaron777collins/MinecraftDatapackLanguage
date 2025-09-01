@@ -5,6 +5,11 @@ namespace "hello_world";
 
 function "main" {
     say "Hello, World!";
+    
+    // Raw block with simple tellraw
+    $!raw
+    tellraw @a "Welcome to MDL!";
+    raw!$
 }
 
 on_load "hello_world:main";

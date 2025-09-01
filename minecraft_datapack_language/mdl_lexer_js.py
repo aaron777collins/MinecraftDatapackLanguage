@@ -386,7 +386,8 @@ class MDLLexer:
             if (char == 'r' and 
                 self.current + 4 < len(source) and 
                 source[self.current:self.current + 5] == 'raw!$'):
-                # Consume the raw!$ and exit raw mode
+                # Add raw end token and exit raw mode
+                self.tokens.append(Token(TokenType.RAW_END, "raw!$", self.line, self.start - self.column + 1))
                 self.current += 5
                 self.column += 5
                 self.in_raw_mode = False
