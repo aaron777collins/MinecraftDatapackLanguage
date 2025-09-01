@@ -119,6 +119,24 @@ def _convert_condition_to_minecraft_syntax(condition: str, selector: str = "@s")
     # Remove extra whitespace and normalize
     condition = condition.strip()
     
+    # Handle variable substitution in conditions (e.g., "$value$ > 3")
+    import re
+    var_pattern = r'\$([^$]+)\$'
+    
+    # Replace variable references with proper scoreboard syntax
+    def replace_var(match):
+        var_name = match.group(1)
+        # Remove scope selector if present
+        if '<' in var_name and var_name.endswith('>'):
+            var_parts = var_name.split('<', 1)
+            base_var = var_parts[0]
+            return f"@e[type=armor_stand,tag=mdl_server,limit=1] {base_var}"
+        else:
+            return f"@e[type=armor_stand,tag=mdl_server,limit=1] {var_name}"
+    
+    # Apply variable substitution
+    condition = re.sub(var_pattern, replace_var)
+    
     # Handle common patterns
     if '==' in condition:
         var1, var2 = condition.split('==', 1)
@@ -128,10 +146,10 @@ def _convert_condition_to_minecraft_syntax(condition: str, selector: str = "@s")
         # Check if var2 is a number
         try:
             value = int(var2)
-            return f"score {var1} {selector} matches {value}"
+            return f"score {var1} matches {value}"
         except ValueError:
             # Both are variables, compare them
-            return f"score {var1} {selector} = {var2} {selector}"
+            return f"score {var1} = {var2}"
     
     elif '!=' in condition:
         var1, var2 = condition.split('!=', 1)
@@ -140,9 +158,9 @@ def _convert_condition_to_minecraft_syntax(condition: str, selector: str = "@s")
         
         try:
             value = int(var2)
-            return f"score {var1} {selector} matches ..{value-1} {value+1}.."
+            return f"score {var1} matches ..{value-1} {value+1}.."
         except ValueError:
-            return f"score {var1} {selector} != {var2} {selector}"
+            return f"score {var1} != {var2}"
     
     elif '>' in condition:
         var1, var2 = condition.split('>', 1)
@@ -151,9 +169,9 @@ def _convert_condition_to_minecraft_syntax(condition: str, selector: str = "@s")
         
         try:
             value = int(var2)
-            return f"score {var1} {selector} matches {value+1}.."
+            return f"score {var1} matches {value+1}.."
         except ValueError:
-            return f"score {var1} {selector} > {var2} {selector}"
+            return f"score {var1} > {var2}"
     
     elif '<' in condition:
         var1, var2 = condition.split('<', 1)
@@ -162,9 +180,9 @@ def _convert_condition_to_minecraft_syntax(condition: str, selector: str = "@s")
         
         try:
             value = int(var2)
-            return f"score {var1} {selector} matches ..{value-1}"
+            return f"score {var1} matches ..{value-1}"
         except ValueError:
-            return f"score {var1} {selector} < {var2} {selector}"
+            return f"score {var1} < {var2}"
     
     elif '>=' in condition:
         var1, var2 = condition.split('>=', 1)
@@ -173,9 +191,9 @@ def _convert_condition_to_minecraft_syntax(condition: str, selector: str = "@s")
         
         try:
             value = int(var2)
-            return f"score {var1} {selector} matches {value}.."
+            return f"score {var1} matches {value}.."
         except ValueError:
-            return f"score {var1} {selector} >= {var2} {selector}"
+            return f"score {var1} >= {var2}"
     
     elif '<=' in condition:
         var1, var2 = condition.split('<=', 1)
@@ -184,12 +202,12 @@ def _convert_condition_to_minecraft_syntax(condition: str, selector: str = "@s")
         
         try:
             value = int(var2)
-            return f"score {var1} {selector} matches ..{value}"
+            return f"score {var1} matches ..{value}"
         except ValueError:
-            return f"score {var1} {selector} <= {var2} {selector}"
+            return f"score {var1} <= {var2}"
     
     # Default: treat as a variable that should be non-zero
-    return f"score {condition} {selector} matches 1.."
+    return f"score {condition} matches 1.."
 
 
 def _find_mdl_files(directory: Path) -> List[Path]:

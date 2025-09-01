@@ -193,6 +193,10 @@ def _generate_load_function(scoreboard_commands: List[str], output_dir: Path, na
     """Generate the load function with scoreboard setup."""
     load_content = []
     
+    # Add armor stand setup for server-side operations
+    load_content.append("execute unless entity @e[type=armor_stand,tag=mdl_server,limit=1] run summon armor_stand ~ 320 ~ {Tags:[\"mdl_server\"],Invisible:1b,Marker:1b,NoGravity:1b,Invulnerable:1b}")
+    load_content.append("")
+    
     # Add scoreboard objectives
     load_content.extend(scoreboard_commands)
     
@@ -213,15 +217,20 @@ def _process_say_command_with_variables(content: str, selector: str) -> str:
     """Process say command content with variable substitution, converting to tellraw with score components."""
     import re
     
+    # Clean up the content - remove quotes if present
+    content = content.strip()
+    if content.startswith('"') and content.endswith('"'):
+        content = content[1:-1]  # Remove surrounding quotes
+    
     # Find all variable references like $variable$ or $variable<selector>$
     var_pattern = r'\$([^$]+)\$'
     matches = re.findall(var_pattern, content)
     
     if not matches:
         # No variables, return simple tellraw
-        return f'tellraw @a [{{"text":{content}}}]'
+        return f'tellraw @a [{{"text":"{content}"}}]'
     
-    # Split content by variable references
+    # Split content by variable references while preserving the structure
     parts = re.split(var_pattern, content)
     
     # Build tellraw components
@@ -244,8 +253,8 @@ def _process_say_command_with_variables(content: str, selector: str) -> str:
                 var_selector = var_parts[1][:-1]  # Remove trailing >
                 components.append(f'{{"score":{{"name":"{var_selector}","objective":"{base_var}"}}}}')
             else:
-                # Simple variable: $variable$
-                components.append(f'{{"score":{{"name":"{selector}","objective":"{var_name}"}}}}')
+                # Simple variable: $variable$ - use server armor stand
+                components.append(f'{{"score":{{"name":"@e[type=armor_stand,tag=mdl_server,limit=1]","objective":"{var_name}"}}}}')
             
             var_index += 1
     
@@ -292,8 +301,32 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
             commands.append(f"scoreboard players operation {var_name} {selector} = {ref_var} {selector}")
         elif hasattr(value, '__class__') and 'BinaryExpression' in str(value.__class__):
             # Handle complex expressions (BinaryExpression, etc.)
-            # For now, add a placeholder command
-            commands.append(f"# Complex assignment: {var_name} = {value}")
+            # Convert to proper Minecraft scoreboard commands
+            if hasattr(value, 'left') and hasattr(value, 'right') and hasattr(value, 'operator'):
+                left = value.left
+                right = value.right
+                operator = value.operator
+                
+                # Handle different operators
+                if operator == 'PLUS':
+                    if hasattr(left, 'name') and hasattr(right, 'value'):
+                        # counter = counter + 1
+                        commands.append(f"scoreboard players add {var_name} {selector} {right.value}")
+                    else:
+                        # Complex case - use operation
+                        commands.append(f"# Complex addition: {var_name} = {left} + {right}")
+                elif operator == 'MINUS':
+                    if hasattr(left, 'name') and hasattr(right, 'value'):
+                        # health = health - 10
+                        commands.append(f"scoreboard players remove {var_name} {selector} {right.value}")
+                    else:
+                        # Complex case - use operation
+                        commands.append(f"# Complex subtraction: {var_name} = {left} - {right}")
+                else:
+                    # Other operators - use operation
+                    commands.append(f"# Complex operation: {var_name} = {left} {operator} {right}")
+            else:
+                commands.append(f"# Complex assignment: {var_name} = {value}")
         else:
             # Handle LiteralExpression and other value types
             try:
@@ -328,7 +361,11 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
         
         # Write conditional function
         if if_commands:
-            if_dir = Path(f"data/{namespace}/function")
+            # Use the output directory from build context
+            if hasattr(build_context, 'output_dir'):
+                if_dir = build_context.output_dir / "data" / namespace / "function"
+            else:
+                if_dir = Path(f"data/{namespace}/function")
             ensure_dir(str(if_dir))
             with open(if_dir / f"{if_func_name}.mcfunction", 'w', encoding='utf-8') as f:
                 f.write('\n'.join(if_commands))
@@ -442,6 +479,11 @@ def _generate_hook_files(ast: Dict[str, Any], output_dir: Path, namespace: str, 
             if hook['hook_type'] == 'load':
                 load_values.append(hook['function_name'])
     
+    # Add pack-specific load function if pack name is available
+    if 'pack' in ast and 'name' in ast['pack']:
+        pack_name = ast['pack']['name']
+        load_values.append(f"{pack_name}:load")
+    
     load_tag_content = {
         "values": load_values
     }
@@ -540,7 +582,11 @@ def _process_while_loop_recursion(while_statement, namespace: str, function_name
     
     # Write loop body function
     if body_commands:
-        func_dir = Path(f"data/{namespace}/function")
+        # Use the output directory from build context
+        if hasattr(build_context, 'output_dir'):
+            func_dir = build_context.output_dir / "data" / namespace / "function"
+        else:
+            func_dir = Path(f"data/{namespace}/function")
         ensure_dir(str(func_dir))
         with open(func_dir / f"{loop_body_func_name}.mcfunction", 'w', encoding='utf-8') as f:
             f.write('\n'.join(body_commands))
@@ -586,7 +632,11 @@ def _process_while_loop_schedule(while_statement, namespace: str, function_name:
     
     # Write loop body function
     if body_commands:
-        func_dir = Path(f"data/{namespace}/function")
+        # Use the output directory from build context
+        if hasattr(build_context, 'output_dir'):
+            func_dir = build_context.output_dir / "data" / namespace / "function"
+        else:
+            func_dir = Path(f"data/{namespace}/function")
         ensure_dir(str(func_dir))
         with open(func_dir / f"{loop_body_func_name}.mcfunction", 'w', encoding='utf-8') as f:
             f.write('\n'.join(body_commands))
