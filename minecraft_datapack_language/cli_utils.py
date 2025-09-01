@@ -139,7 +139,7 @@ def _convert_condition_to_minecraft_syntax(condition: str, selector: str = "@s")
             return f"@e[type=armor_stand,tag=mdl_server,limit=1] {var_name}"
     
     # Apply variable substitution
-    condition = re.sub(var_pattern, replace_var)
+    condition = re.sub(var_pattern, replace_var, condition)
     
     # Handle common patterns
     if '==' in condition:
