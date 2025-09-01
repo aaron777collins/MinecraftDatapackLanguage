@@ -40,20 +40,20 @@
       {
         pattern: /"([^"\\]|\\.)*"/,
         greedy: true
-      },
-      {
-        pattern: /\$!raw[\s\S]*?raw!\$/,
-        greedy: true,
-        inside: {
-          'keyword': /\$!raw|raw!\$/
-        }
       }
     ],
+    'raw-block': {
+      pattern: /\$!raw[\s\S]*?raw!\$/,
+      greedy: true,
+      inside: {
+        'raw-keyword': /\$!raw|raw!\$/
+      }
+    },
     'keyword': {
       pattern: /\b(pack|namespace|function|on_tick|on_load|tag|add|if|else if|else|while|for|in|var|let|const|num|str|list|try|catch|throw|switch|case|default|break|continue|return|import|from|as|recipe|loot_table|advancement|predicate|item_modifier|structure|scope|global)\b/
     },
     'builtin': {
-      pattern: /\b(say|tellraw|effect|particle|execute|scoreboard|data|function|tag|tp|kill|summon|give|clear|enchant|gamemode|weather|time|difficulty|gamerule|title|playsound|stopsound|kick|ban|ban-ip|pardon|pardon-ip|whitelist|op|deop|save-all|save-off|save-on|list|me|msg|team|trigger|advancement|recipe|loot|schedule|return|run)\b/
+      pattern: /\b(say|tellraw|effect|particle|execute|scoreboard|data|function|tag|tp|kill|summon|give|clear|enchant|gamemode|weather|time|difficulty|gamerule|title|playsound|stopsound|kick|ban|ban-ip|pardon|pardon-ip|whitelist|op|deop|save-all|save-off|save-on|list|me|msg|team|trigger|advancement|recipe|loot|schedule|return|run|fill|setblock|clone|teleport|spreadplayers|worldborder|xp|experience|replaceitem|clear|testfor|testforblock|testforblocks|stats|blockdata|entitydata|setworldspawn|setidletimeout|stop|save|save-all|save-off|save-on|whitelist|ban|ban-ip|pardon|pardon-ip|kick|op|deop|list|me|msg|tell|w|say|broadcast|help|version|reload|debug|seed|defaultgamemode|difficulty|gamemode|gamerule|publish|spawnpoint|setworldspawn|time|toggledownfall|weather|xp|experience|achievement|advancement|bossbar|clear|clone|data|datapack|debug|defaultgamemode|difficulty|effect|enchant|execute|experience|fill|forceload|function|gamemode|gamerule|give|help|item|kick|kill|list|locate|me|msg|op|pardon|particle|playsound|publish|recipe|reload|replaceitem|save|save-all|save-off|save-on|say|schedule|scoreboard|seed|setblock|setidletimeout|setworldspawn|spawnpoint|spreadplayers|stop|summon|tag|team|teleport|tell|tellraw|time|title|toggledownfall|tp|trigger|weather|whitelist|worldborder|xp)\b/
     },
     'selector': {
       pattern: /\b(@p|@r|@a|@e|@s)\b/
@@ -407,6 +407,37 @@ code.language-mdl .token.punctuation,
 
 [data-theme="dark"] .language-mdl .token {
   color: #c9d1d9 !important;
+}
+
+/* Raw Block Highlighting */
+pre code.language-mdl .token.raw-block,
+code.language-mdl .token.raw-block,
+.language-mdl .token.raw-block {
+  background-color: #f6f8fa !important;
+  border: 1px solid #e1e4e8 !important;
+  border-radius: 4px !important;
+  padding: 0.5rem !important;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace !important;
+}
+
+[data-theme="dark"] pre code.language-mdl .token.raw-block,
+[data-theme="dark"] code.language-mdl .token.raw-block,
+[data-theme="dark"] .language-mdl .token.raw-block {
+  background-color: #21262d !important;
+  border-color: #30363d !important;
+}
+
+pre code.language-mdl .token.raw-keyword,
+code.language-mdl .token.raw-keyword,
+.language-mdl .token.raw-keyword {
+  color: #d73a49 !important;
+  font-weight: 600 !important;
+}
+
+[data-theme="dark"] pre code.language-mdl .token.raw-keyword,
+[data-theme="dark"] code.language-mdl .token.raw-keyword,
+[data-theme="dark"] .language-mdl .token.raw-keyword {
+  color: #ff7b72 !important;
 }
 
 

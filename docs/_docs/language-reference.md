@@ -79,6 +79,30 @@ while "$counter$ < 10" {
 }
 ```
 
+### Raw Command Blocks
+```mdl
+// Raw blocks allow direct Minecraft commands without MDL processing
+$!raw
+scoreboard players set @s player_timer_enabled 1
+execute as @a run function mypack:increase_tick_per_player
+say "Raw commands bypass MDL syntax checking"
+raw!$
+
+// Single-line raw commands
+$!raw scoreboard players add @s player_tick_counter 1 raw!$
+
+// Mix MDL and raw commands
+say "This is MDL syntax";
+$!raw scoreboard players set @s player_timer_enabled 1 raw!$
+say "Back to MDL syntax";
+```
+
+**Use cases for raw blocks:**
+- Complex `execute` commands that MDL doesn't support
+- Direct scoreboard operations
+- Commands with special syntax that conflicts with MDL
+- Legacy Minecraft commands not yet supported by MDL
+
 ### Hooks
 ```mdl
 on_load "namespace:function_name";    // Runs when datapack loads
@@ -163,6 +187,20 @@ function "custom" {
     effect give @s minecraft:speed 10 1;
     particle minecraft:explosion ~ ~ ~ 1 1 1 0 10;
     playsound minecraft:entity.player.levelup player @s ~ ~ ~ 1 1;
+}
+
+function "raw_example" {
+    // Raw blocks allow direct Minecraft commands without MDL processing
+    $!raw
+    scoreboard players set @s player_timer_enabled 1
+    execute as @a run function raw:increase_tick_per_player
+    say "Raw commands bypass MDL syntax checking"
+    raw!$
+    
+    // You can mix MDL and raw commands
+    say "This is MDL syntax";
+    $!raw scoreboard players add @s player_tick_counter 1 raw!$
+    say "Back to MDL syntax";
 }
 ```
 
