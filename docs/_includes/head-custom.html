@@ -24,6 +24,7 @@
   Prism.plugins.autoloader.languages_path = 'https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/';
 
   // Custom MDL language definition
+  console.log('Defining MDL language patterns...');
   Prism.languages.mdl = {
     'comment': [
       {
@@ -74,6 +75,8 @@
     },
     'punctuation': /[{}();[\]]/
   };
+  
+  console.log('MDL language patterns defined:', Object.keys(Prism.languages.mdl));
 
   // mcfunction fallback
   Prism.languages.mcfunction = Prism.languages.none;
@@ -109,6 +112,18 @@
       mdlBlocks.forEach(function(block, index) {
         console.log('Highlighting MDL block', index, ':', block.textContent.substring(0, 50));
         Prism.highlightElement(block);
+        
+        // Debug: Analyze the highlighted tokens
+        console.log('=== MDL Block', index, 'Token Analysis ===');
+        const tokens = block.querySelectorAll('.token');
+        console.log('Total tokens found:', tokens.length);
+        
+        tokens.forEach(function(token, tokenIndex) {
+          const classes = Array.from(token.classList);
+          const tokenTypes = classes.filter(cls => cls.startsWith('token-')).map(cls => cls.replace('token-', ''));
+          console.log(`Token ${tokenIndex}: "${token.textContent}" -> Types: [${tokenTypes.join(', ')}] -> Classes: [${classes.join(', ')}]`);
+        });
+        console.log('=== End Block', index, '===');
       });
     } else {
       console.log('Prism not found!');
