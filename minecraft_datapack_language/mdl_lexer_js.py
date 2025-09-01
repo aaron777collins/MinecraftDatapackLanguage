@@ -150,12 +150,7 @@ class MDLLexer:
             self._scan_string(source, char)
             return
         
-        # Handle numbers
-        if char.isdigit():
-            self._scan_number(source)
-            return
-        
-        # Handle raw block markers and variable substitutions
+        # Handle raw block markers and variable substitutions (before numbers to avoid conflicts)
         if char == '$':
             # Check if this is a raw block start marker
             if (self.current + 4 < len(source) and 
@@ -166,13 +161,18 @@ class MDLLexer:
                 self._scan_variable_substitution(source)
                 return
         
-        # Handle raw block end marker
-        if char == 'r':
+        # Handle raw block end marker (only if not in raw mode)
+        if char == 'r' and not self.in_raw_mode:
             # Check if this is a raw block end marker
             if (self.current + 4 < len(source) and 
                 source[self.current:self.current + 5] == 'raw!$'):
                 self._scan_raw_end(source)
                 return
+        
+        # Handle numbers
+        if char.isdigit():
+            self._scan_number(source)
+            return
         
         # Handle identifiers and keywords
         if char.isalpha() or char == '_':
@@ -441,9 +441,21 @@ class MDLLexer:
             if (char == 'r' and 
                 self.current + 4 < len(source) and 
                 source[self.current:self.current + 5] == 'raw!$'):
-                # Exit raw mode and let the main scanner handle the end marker
+                # Consume the end marker and exit raw mode
+                self.current += 5
+                self.column += 5
                 self.in_raw_mode = False
-                break
+                
+                # Add the raw content as a single RAW token
+                content = ''.join(content_parts)
+                if content.strip():  # Only add non-empty content
+                    # Remove leading and trailing whitespace for cleaner content
+                    clean_content = content.strip()
+                    self.tokens.append(Token(TokenType.RAW, clean_content, raw_start_line, raw_start_column))
+                
+                # Add the end marker token
+                self.tokens.append(Token(TokenType.RAW_END, 'raw!$', self.line, self.column - 5))
+                return
             
             # Add character to content
             content_parts.append(char)
@@ -467,13 +479,6 @@ class MDLLexer:
                 line_content=source[raw_start_line-1:raw_start_line] if raw_start_line <= len(source.split('\n')) else "",
                 suggestion="Add 'raw!$' to terminate the raw block"
             )
-        
-        # Add the raw content as a single RAW token
-        content = ''.join(content_parts)
-        if content.strip():  # Only add non-empty content
-            # Remove leading and trailing whitespace for cleaner content
-            clean_content = content.strip()
-            self.tokens.append(Token(TokenType.RAW, clean_content, raw_start_line, raw_start_column))
     
     def _scan_say_command(self, source: str):
         """Scan a say command and its content until semicolon."""
