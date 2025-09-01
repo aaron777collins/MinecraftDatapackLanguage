@@ -1,0 +1,8 @@
+pack "simple_test2" "Simple test" 82;
+namespace "simple_test2";
+
+function "main" {
+    say Hello;
+}
+
+on_load "simple_test2:main";
