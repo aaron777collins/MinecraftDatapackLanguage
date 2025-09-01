@@ -420,15 +420,10 @@ code.language-mdl .token.punctuation,
 
 /* Breadcrumb Navigation Styles */
 .breadcrumb-nav {
-  background: #f6f8fa;
-  border-bottom: 1px solid #e1e4e8;
-  padding: 0.75rem 0;
-  margin-bottom: 2rem;
-}
-
-[data-theme="dark"] .breadcrumb-nav {
-  background: #161b22;
-  border-bottom-color: #30363d;
+  background: transparent;
+  border-bottom: none;
+  padding: 1rem 0 0.5rem 0;
+  margin-bottom: 1rem;
 }
 
 .breadcrumb {
@@ -441,6 +436,7 @@ code.language-mdl .token.punctuation,
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 1rem;
+  font-size: 0.9rem;
 }
 
 .breadcrumb-item {
@@ -449,10 +445,11 @@ code.language-mdl .token.punctuation,
 }
 
 .breadcrumb-item:not(:last-child)::after {
-  content: '/';
+  content: '›';
   color: #586069;
   margin-left: 0.5rem;
   font-weight: 400;
+  font-size: 1.1rem;
 }
 
 [data-theme="dark"] .breadcrumb-item:not(:last-child)::after {
@@ -463,23 +460,23 @@ code.language-mdl .token.punctuation,
   display: flex;
   align-items: center;
   gap: 0.25rem;
-  color: #0366d6;
+  color: #586069;
   text-decoration: none;
-  font-weight: 500;
+  font-weight: 400;
   transition: color 0.2s;
 }
 
 [data-theme="dark"] .breadcrumb-link {
-  color: #58a6ff;
+  color: #8b949e;
 }
 
 .breadcrumb-link:hover {
-  color: #0256cc;
+  color: #0366d6;
   text-decoration: none;
 }
 
 [data-theme="dark"] .breadcrumb-link:hover {
-  color: #79c0ff;
+  color: #58a6ff;
 }
 
 .breadcrumb-icon {
@@ -489,12 +486,12 @@ code.language-mdl .token.punctuation,
 }
 
 .breadcrumb-item.active {
-  color: #586069;
+  color: #24292e;
   font-weight: 500;
 }
 
 [data-theme="dark"] .breadcrumb-item.active {
-  color: #8b949e;
+  color: #e6edf3;
 }
 
 /* Quick Navigation Styles */
