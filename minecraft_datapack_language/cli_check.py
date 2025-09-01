@@ -2,6 +2,7 @@
 CLI Check Functions - Validation and error checking for MDL files
 """
 
+import sys
 from pathlib import Path
 from typing import Optional
 

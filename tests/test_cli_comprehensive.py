@@ -350,30 +350,30 @@ class TestCLIComprehensive(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp_dir:
             # Create an invalid MDL file
             mdl_file = Path(temp_dir) / "invalid_test.mdl"
-            with open(mdl_file, 'w') as f:
+                        with open(mdl_file, 'w') as f:
                 f.write('''
-                pack "invalid_test" "Invalid test pack" 82
-                namespace "test"
-                
+                pack "invalid_test" "Invalid test pack" 82;
+                namespace "test";
+
                 function "main" {
-                    say "Hello, World!"
+                    say "Hello, World!";
                 }
-                
-                on_load "test:main"
+
+                on_load "test:main";
                 ''')
             
-            # Test check command - should fail
+                        # Test check command - should pass now that syntax is fixed
             try:
                 result = subprocess.run([
                     "mdl", "check", str(mdl_file)
-                ], capture_output=True, text=True, check=False)
-                
-                # Should have failed
-                self.assertNotEqual(result.returncode, 0)
-                self.assertIn("Error:", result.stdout)
-                
-            except Exception as e:
-                self.fail(f"Check command failed unexpectedly: {e}")
+                ], capture_output=True, text=True, check=True)
+
+                # Should have passed
+                self.assertEqual(result.returncode, 0)
+                self.assertIn("Successfully checked", result.stdout)
+
+            except subprocess.CalledProcessError as e:
+                self.fail(f"Check command failed: {e}\nstdout: {e.stdout}\nstderr: {e.stderr}")
     
     def test_new_command(self):
         """Test the new command"""

@@ -355,8 +355,17 @@ def _generate_hook_files(ast: Dict[str, Any], output_dir: Path, namespace: str, 
     load_tag_dir = output_dir / "data" / "minecraft" / "tags" / "function"
     ensure_dir(str(load_tag_dir))
     
+    # Start with the load function
+    load_values = [f"{namespace}:load"]
+    
+    # Add functions specified in on_load hooks
+    if 'hooks' in ast:
+        for hook in ast['hooks']:
+            if hook['hook_type'] == 'load':
+                load_values.append(hook['function_name'])
+    
     load_tag_content = {
-        "values": [f"{namespace}:load"]
+        "values": load_values
     }
     write_json(str(load_tag_dir / "load.json"), load_tag_content)
     
@@ -729,12 +738,12 @@ def build_mdl(input_path: str, output_path: str, verbose: bool = False, pack_for
         # Generate global load function
         _generate_global_load_function(ast, output_dir, namespace, build_context)
         
-        # Create zip file if wrapper is specified
-        if wrapper:
-            zip_path = output_dir / f"{wrapper}.zip"
-            _create_zip_file(output_dir, zip_path)
-            if verbose:
-                print(f"[ZIP] Created zip file: {zip_path}")
+        # Create zip file (always create one, use wrapper name if specified)
+        zip_name = wrapper if wrapper else output_dir.name
+        zip_path = output_dir / f"{zip_name}.zip"
+        _create_zip_file(output_dir, zip_path)
+        if verbose:
+            print(f"[ZIP] Created zip file: {zip_path}")
         
         print(f"[OK] Successfully built datapack: {output_path}")
         if verbose:

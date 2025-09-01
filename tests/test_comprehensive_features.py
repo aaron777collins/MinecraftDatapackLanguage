@@ -522,7 +522,7 @@ class TestComplexIntegrationFeatures(unittest.TestCase):
         
         function "main_start" {
             globalCounter = 0;
-            say Starting multi-namespace test;
+            say "Starting multi-namespace test";
             function "ui:show_welcome<@a>";
         }
         
