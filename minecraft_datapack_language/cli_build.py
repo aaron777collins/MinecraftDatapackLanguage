@@ -424,10 +424,12 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
         
         # Add the conditional execution command
         if else_body:
-            commands.append(f"execute {minecraft_condition} run function {namespace}:{if_func_name}")
+            commands.append(f"execute if {minecraft_condition} run function {namespace}:{if_func_name}")
             commands.append(f"execute unless {minecraft_condition} run function {namespace}:{else_func_name}")
+            # Add if_end function call for cleanup
+            commands.append(f"function {namespace}:{function_name}_if_end_{statement_index}")
         else:
-            commands.append(f"execute {minecraft_condition} run function {namespace}:{if_func_name}")
+            commands.append(f"execute if {minecraft_condition} run function {namespace}:{if_func_name}")
     
     elif statement['type'] == 'while_loop' or statement['type'] == 'while_statement':
         # Handle while loops using recursion
