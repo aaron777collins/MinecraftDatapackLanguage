@@ -162,13 +162,16 @@ class MDLLexer:
                 source[self.current:self.current + 5] == '$!raw'):
                 self._scan_raw_start(source)
                 return
-            # Check if this is a raw block end marker
-            elif (self.current + 4 < len(source) and 
-                  source[self.current:self.current + 5] == 'raw!$'):
-                self._scan_raw_end(source)
-                return
             else:
                 self._scan_variable_substitution(source)
+                return
+        
+        # Handle raw block end marker
+        if char == 'r':
+            # Check if this is a raw block end marker
+            if (self.current + 4 < len(source) and 
+                source[self.current:self.current + 5] == 'raw!$'):
+                self._scan_raw_end(source)
                 return
         
         # Handle identifiers and keywords
