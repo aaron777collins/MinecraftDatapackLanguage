@@ -40,8 +40,7 @@ def _merge_mdl_files(files: List[Path], verbose: bool = False, error_collector: 
         with open(files[0], 'r', encoding='utf-8') as f:
             content = f.read()
         
-        tokens = lex_mdl_js(content, str(files[0]))
-        ast = parse_mdl_js(tokens, str(files[0]))
+        ast = parse_mdl_js(content, str(files[0]))
         
         if verbose:
             print(f"DEBUG: Successfully parsed {files[0]}")
@@ -85,8 +84,7 @@ def _merge_mdl_files(files: List[Path], verbose: bool = False, error_collector: 
             with open(file_path, 'r', encoding='utf-8') as f:
                 content = f.read()
             
-            tokens = lex_mdl_js(content, str(file_path))
-            additional_ast = parse_mdl_js(tokens, str(file_path))
+            additional_ast = parse_mdl_js(content, str(file_path))
             
             if verbose:
                 print(f"DEBUG: Successfully parsed {file_path}")
