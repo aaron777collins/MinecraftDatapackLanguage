@@ -731,7 +731,7 @@ def build_mdl(input_path: str, output_path: str, verbose: bool = False, pack_for
         
         # Create zip file if wrapper is specified
         if wrapper:
-            zip_path = output_dir.parent / f"{wrapper}.zip"
+            zip_path = output_dir / f"{wrapper}.zip"
             _create_zip_file(output_dir, zip_path)
             if verbose:
                 print(f"[ZIP] Created zip file: {zip_path}")

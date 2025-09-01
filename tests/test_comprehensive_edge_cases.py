@@ -793,8 +793,8 @@ class TestCLIEdgeCases(unittest.TestCase):
                 
                 # Check that output was created
                 self.assertTrue(output_dir.exists())
-                # The function should be in the namespace "complex_scopes" (pack name used as namespace)
-                main_func = output_dir / "data" / "complex_scopes" / "function" / "main.mcfunction"
+                # The function should be in the namespace "test" (from namespace declaration)
+                main_func = output_dir / "data" / "test" / "function" / "main.mcfunction"
                 self.assertTrue(main_func.exists())
                 
                 # Check that the function has content

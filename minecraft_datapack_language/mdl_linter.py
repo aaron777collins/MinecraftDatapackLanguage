@@ -42,6 +42,47 @@ class MDLLinter:
             return self.issues
         
         try:
+            # First, try to parse the file with the actual parser to catch syntax errors
+            try:
+                from .mdl_parser_js import parse_mdl_js
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    source = f.read()
+                
+                # Parse the file - this will catch syntax errors like missing semicolons
+                parse_mdl_js(source, file_path)
+                
+            except Exception as parse_error:
+                # If parsing fails, add the error to our issues
+                error_message = str(parse_error)
+                if "Expected SEMICOLON" in error_message:
+                    # Extract line and column from the error message
+                    import re
+                    line_match = re.search(r'Line: (\d+)', error_message)
+                    column_match = re.search(r'Column: (\d+)', error_message)
+                    line_num = int(line_match.group(1)) if line_match else 1
+                    column_num = int(column_match.group(1)) if column_match else 1
+                    
+                    self.issues.append(MDLLintIssue(
+                        line_number=line_num,
+                        severity='error',
+                        category='syntax',
+                        message="Missing semicolon",
+                        suggestion="Add a semicolon (;) at the end of the statement",
+                        code=source.split('\n')[line_num - 1] if line_num <= len(source.split('\n')) else ""
+                    ))
+                else:
+                    # For other parsing errors, add them as well
+                    self.issues.append(MDLLintIssue(
+                        line_number=1,
+                        severity='error',
+                        category='syntax',
+                        message=f"Parsing error: {error_message}",
+                        suggestion="Check the syntax and fix the reported error",
+                        code=""
+                    ))
+                    return self.issues
+            
+            # If parsing succeeds, do additional linting checks
             with open(file_path, 'r', encoding='utf-8') as f:
                 lines = f.readlines()
             

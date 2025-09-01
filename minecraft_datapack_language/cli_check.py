@@ -42,7 +42,36 @@ def lint_mdl_file_wrapper(file_path: str, verbose: bool = False, ignore_warnings
         
         # Perform linting
         try:
-            lint_mdl_file(str(path))
+            issues = lint_mdl_file(str(path))
+            
+            # Check if there are any errors
+            errors = [issue for issue in issues if issue.severity == 'error']
+            warnings = [issue for issue in issues if issue.severity == 'warning']
+            
+            if errors:
+                # Report errors
+                print(f"[CHECK] Found {len(errors)} error(s) in: {file_path}")
+                for i, issue in enumerate(errors, 1):
+                    print(f"Error {i}: {issue.message}")
+                    if issue.suggestion:
+                        print(f"  Suggestion: {issue.suggestion}")
+                    if issue.code:
+                        print(f"  Code: {issue.code}")
+                    print()
+                
+                # Exit with error code
+                sys.exit(1)
+            elif warnings and not ignore_warnings:
+                # Report warnings
+                print(f"[CHECK] Found {len(warnings)} warning(s) in: {file_path}")
+                for i, issue in enumerate(warnings, 1):
+                    print(f"Warning {i}: {issue.message}")
+                    if issue.suggestion:
+                        print(f"  Suggestion: {issue.suggestion}")
+                    if issue.code:
+                        print(f"  Code: {issue.code}")
+                    print()
+            
             print(f"[CHECK] Successfully checked: {file_path}")
             print("[OK] No errors found!")
         
