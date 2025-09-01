@@ -2938,8 +2938,8 @@ def main():
         if command == "build":
             # Check for help request first
             if len(sys.argv) >= 3 and sys.argv[2] in ("--help", "-h"):
-            show_build_help()
-            return
+                show_build_help()
+                return
             
         # Remove help arguments to prevent argparse from showing its own help
         build_args = [arg for arg in sys.argv[2:] if arg not in ("--help", "-h")]
