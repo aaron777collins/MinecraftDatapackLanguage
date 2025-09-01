@@ -544,6 +544,9 @@ def _ast_to_pack(ast: Dict[str, Any], mdl_files: List[Path]) -> Pack:
                 for statement in func['body']:
                     if statement.get('type') == 'command':
                         function.commands.append(statement['command'])
+                    elif statement.get('type') == 'function_call':
+                        # Convert function call to command
+                        function.commands.append(f"function {statement['name']}")
     
     # Add variables
     if 'variables' in ast:
@@ -558,6 +561,19 @@ def _ast_to_pack(ast: Dict[str, Any], mdl_files: List[Path]) -> Pack:
                 pack.on_load(hook['function_name'])
             elif hook['hook_type'] == 'tick':
                 pack.on_tick(hook['function_name'])
+    
+    # Add recipes
+    if 'recipes' in ast:
+        namespace_name = ast.get('namespace', {}).get('name', pack_name)
+        namespace = pack.namespace(namespace_name)
+        
+        for recipe in ast['recipes']:
+            recipe_name = recipe['name']
+            recipe_data = recipe['data']
+            # Create recipe object
+            from .pack import Recipe
+            recipe_obj = Recipe(recipe_name, recipe_data)
+            namespace.recipes[recipe_name] = recipe_obj
     
     return pack
 

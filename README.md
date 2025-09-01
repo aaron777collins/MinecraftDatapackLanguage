@@ -2,7 +2,7 @@
 
 A **modern JavaScript-style compiler** that lets you write Minecraft datapacks with **real control structures, variables, and expressions** that actually work.
 
-📖 **[View Full Documentation](https://aaron777collins.github.io/MinecraftDatapackLanguage/)** - Complete guides, examples, and API reference  
+📖 **[View Full Documentation](https://www.mcmdl.com/)** - Complete guides, examples, and API reference  
 📦 **[View on PyPI](https://pypi.org/project/minecraft-datapack-language/)** - Download and install from PyPI  
 🔧 **[VS Code Extension](https://marketplace.visualstudio.com/items?itemName=mdl.minecraft-datapack-language)** - Syntax highlighting, IntelliSense, and snippets
 

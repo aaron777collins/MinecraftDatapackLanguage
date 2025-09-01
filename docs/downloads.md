@@ -176,6 +176,7 @@ mdl build --mdl my_first_pack.mdl -o dist
 - **Documentation**: [Getting Started]({{ site.baseurl }}/docs/getting-started/)
 - **Examples**: [Working Examples]({{ site.baseurl }}/docs/examples/)
 - **Language Reference**: [Complete Syntax]({{ site.baseurl }}/docs/language-reference/)
+- **Website**: [www.mcmdl.com](https://www.mcmdl.com)
 - **GitHub Issues**: [Report Bugs](https://github.com/aaron777collins/MinecraftDatapackLanguage/issues)
 - **Discussions**: [Ask Questions](https://github.com/aaron777collins/MinecraftDatapackLanguage/discussions)
 

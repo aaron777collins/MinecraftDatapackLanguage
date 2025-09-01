@@ -583,7 +583,7 @@ class MDLParser:
         
         self._match(TokenType.SEMICOLON)
         
-        return {"type": "namespace_declaration", "name": name}
+        return {"type": "function_call", "name": name}
     
     def _parse_execute_statement(self) -> ExecuteStatement:
         """Parse execute statement."""
