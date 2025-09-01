@@ -902,19 +902,25 @@ def _smart_join_command_parts(parts: List[str]) -> str:
         prev_part = parts[i - 1]
         curr_part = parts[i]
         
-        # Add space if needed
-        if (prev_part and curr_part and 
-            not prev_part.endswith('[') and not prev_part.endswith('{') and
-            not curr_part.startswith(']') and not curr_part.startswith('}') and
-            not curr_part.startswith(',') and not curr_part.startswith(':') and
-            not prev_part.endswith('"') and not curr_part.startswith('"')):
-            result += " "
-        
-        # Special case: add space after 'say' before quoted string
-        if prev_part == 'say' and curr_part.startswith('"'):
-            result += " "
-        
-        result += curr_part
+        # Special case: don't add space when previous part ends with a namespace (like minecraft)
+        # and current part starts with a colon (like :iron_ingot)
+        if curr_part.startswith(':'):
+            # Don't add space for namespace:item patterns
+            result += curr_part
+        else:
+            # Add space if needed
+            if (prev_part and curr_part and 
+                not prev_part.endswith('[') and not prev_part.endswith('{') and
+                not curr_part.startswith(']') and not curr_part.startswith('}') and
+                not curr_part.startswith(',') and not curr_part.startswith(':') and
+                not prev_part.endswith('"') and not curr_part.startswith('"')):
+                result += " "
+            
+            # Special case: add space after 'say' before quoted string
+            if prev_part == 'say' and curr_part.startswith('"'):
+                result += " "
+            
+            result += curr_part
     
     return result
 

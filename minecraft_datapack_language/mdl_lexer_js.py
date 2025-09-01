@@ -201,6 +201,19 @@ class MDLLexer:
                    (source[self.current].isalnum() or source[self.current] == '_')):
                 self.current += 1
                 self.column += 1
+            
+            # Special handling for Minecraft namespaced IDs (like minecraft:iron_ingot)
+            if (self.current < len(source) and 
+                source[self.current] == ':' and 
+                self.current + 1 < len(source) and 
+                (source[self.current + 1].isalnum() or source[self.current + 1] == '_')):
+                # Include the colon and continue scanning
+                self.current += 1
+                self.column += 1
+                while (self.current < len(source) and 
+                       (source[self.current].isalnum() or source[self.current] == '_')):
+                    self.current += 1
+                    self.column += 1
         
         text = source[self.start:self.current]
         

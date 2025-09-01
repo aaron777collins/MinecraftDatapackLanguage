@@ -1,0 +1,9 @@
+pack "test_colon" "Test colon spacing" 82;
+
+namespace "test";
+
+function "test" {
+    give @s minecraft:iron_ingot 1;
+    give @s minecraft:diamond_sword 1;
+    setblock ~ ~ ~ minecraft:stone replace;
+}
