@@ -41,11 +41,13 @@ def main():
         build_parser.add_argument('--verbose', '-v', action='store_true', help='Verbose output')
         build_parser.add_argument('--pack-format', type=int, help='Pack format override')
         build_parser.add_argument('--wrapper', help='Create zip file with specified name')
+        build_parser.add_argument('--ignore-warnings', action='store_true', help='Suppress warning messages during build')
         
         # Check command
         check_parser = subparsers.add_parser('check', add_help=False)
         check_parser.add_argument('input', help='Input MDL file or directory')
         check_parser.add_argument('--verbose', '-v', action='store_true', help='Verbose output')
+        check_parser.add_argument('--ignore-warnings', action='store_true', help='Suppress warning messages during check')
         
         # New command
         new_parser = subparsers.add_parser('new', add_help=False)
@@ -82,7 +84,8 @@ def main():
                     args.output, 
                     verbose=args.verbose,
                     pack_format_override=args.pack_format,
-                    wrapper=args.wrapper
+                    wrapper=args.wrapper,
+                    ignore_warnings=args.ignore_warnings
                 )
             except Exception as e:
                 error_collector.add_error(create_error(
@@ -95,9 +98,9 @@ def main():
             try:
                 input_path = Path(args.input)
                 if input_path.is_file():
-                    lint_mdl_file_wrapper(args.input, args.verbose)
+                    lint_mdl_file_wrapper(args.input, args.verbose, args.ignore_warnings)
                 else:
-                    lint_mdl_directory_wrapper(args.input, args.verbose)
+                    lint_mdl_directory_wrapper(args.input, args.verbose, args.ignore_warnings)
             except Exception as e:
                 error_collector.add_error(create_error(
                     MDLConfigurationError,
@@ -128,7 +131,7 @@ def main():
             ))
         
         # Print any errors and exit
-        error_collector.print_errors(verbose=True)
+        error_collector.print_errors(verbose=True, ignore_warnings=False)
         error_collector.raise_if_errors()
     
     except Exception as e:
@@ -137,7 +140,7 @@ def main():
             f"Unexpected error: {str(e)}",
             suggestion="If this error persists, please report it as a bug."
         ))
-        error_collector.print_errors(verbose=True)
+        error_collector.print_errors(verbose=True, ignore_warnings=False)
         error_collector.raise_if_errors()
 
 

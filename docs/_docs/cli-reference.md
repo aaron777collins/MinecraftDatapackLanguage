@@ -34,6 +34,9 @@ mdl build --mdl myproject/ -o dist
 
 # Build current directory
 mdl build --mdl . -o dist
+
+# Build with warnings suppressed
+mdl build --mdl . -o dist --ignore-warnings
 ```
 
 **Options:**
@@ -60,6 +63,9 @@ mdl check .
 
 # Check entire directory
 mdl check myproject/
+
+# Check with warnings suppressed
+mdl check myproject/ --ignore-warnings
 ```
 
 ### Check Command
@@ -80,6 +86,9 @@ mdl check .
 
 # Check entire directory
 mdl check myproject/
+
+# Check with warnings suppressed
+mdl check myproject/ --ignore-warnings
 ```
 
 **Error Reporting:**
@@ -121,12 +130,14 @@ Suggestion: Add closing quote '"' at the end of line 20
 | `-o <dir>` | Output directory | `-o dist` |
 | `--verbose` | Show detailed output | `--verbose` |
 | `--wrapper <name>` | Custom wrapper name | `--wrapper mypack` |
+| `--ignore-warnings` | Suppress warning messages | `--ignore-warnings` |
 
 ### Check Options
 
 | Option | Description | Example |
 |--------|-------------|---------|
 | `--verbose` | Show detailed validation information | `--verbose` |
+| `--ignore-warnings` | Suppress warning messages | `--ignore-warnings` |
 
 ## Error Handling
 
@@ -151,6 +162,7 @@ MDL provides comprehensive error handling and reporting:
 - **Multiple Error Collection**: Reports all errors, not just the first one
 - **Error Summaries**: Shows total error and warning counts
 - **Verbose Mode**: Detailed error information with additional context
+- **Warning Suppression**: Use `--ignore-warnings` to hide warning messages and show only errors
 
 ### Example Error Output
 

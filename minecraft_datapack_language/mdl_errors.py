@@ -168,7 +168,7 @@ class MDLErrorCollector:
         """Get all errors and warnings."""
         return self.errors + self.warnings
     
-    def print_errors(self, verbose: bool = False) -> None:
+    def print_errors(self, verbose: bool = False, ignore_warnings: bool = False) -> None:
         """Print all errors and warnings."""
         if not self.errors and not self.warnings:
             return
@@ -178,7 +178,7 @@ class MDLErrorCollector:
             for i, error in enumerate(self.errors, 1):
                 print(f"\n{i}. {error}")
         
-        if self.warnings:
+        if self.warnings and not ignore_warnings:
             print(f"\n⚠️  Found {len(self.warnings)} warning(s):")
             for i, warning in enumerate(self.warnings, 1):
                 print(f"\n{i}. {warning}")

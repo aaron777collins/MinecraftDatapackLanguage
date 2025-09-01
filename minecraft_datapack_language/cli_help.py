@@ -99,6 +99,9 @@ be loaded directly into Minecraft.
   --wrapper <name>      Create a zip file with the specified name
                         Example: --wrapper my_awesome_pack
 
+  --ignore-warnings     Suppress warning messages during build
+                        Only show errors, hide all warnings
+
 📝 Examples:
 ===========
 
@@ -184,6 +187,9 @@ potential problems without generating any output files.
 
   --verbose, -v         Enable verbose output with detailed validation information
                         Shows parsing steps, token analysis, and detailed error context
+
+  --ignore-warnings     Suppress warning messages during check
+                        Only show errors, hide all warnings
 
 📝 Examples:
 ===========

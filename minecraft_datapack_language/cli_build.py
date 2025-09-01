@@ -543,7 +543,7 @@ def _ast_to_pack(ast: Dict[str, Any], mdl_files: List[Path]) -> Pack:
     return pack
 
 
-def build_mdl(input_path: str, output_path: str, verbose: bool = False, pack_format_override: Optional[int] = None, wrapper: Optional[str] = None) -> None:
+def build_mdl(input_path: str, output_path: str, verbose: bool = False, pack_format_override: Optional[int] = None, wrapper: Optional[str] = None, ignore_warnings: bool = False) -> None:
     """Build MDL files into a Minecraft datapack."""
     error_collector = MDLErrorCollector()
     
@@ -559,7 +559,7 @@ def build_mdl(input_path: str, output_path: str, verbose: bool = False, pack_for
                 file_path=input_path,
                 suggestion="Check the path and ensure the file or directory exists."
             ))
-            error_collector.print_errors(verbose=True)
+            error_collector.print_errors(verbose=True, ignore_warnings=ignore_warnings)
             error_collector.raise_if_errors()
             return
         
@@ -573,7 +573,7 @@ def build_mdl(input_path: str, output_path: str, verbose: bool = False, pack_for
                 file_path=input_path,
                 suggestion="Ensure the directory contains .mdl files or specify a single .mdl file."
             ))
-            error_collector.print_errors(verbose=True)
+            error_collector.print_errors(verbose=True, ignore_warnings=ignore_warnings)
             error_collector.raise_if_errors()
             return
         
@@ -586,7 +586,7 @@ def build_mdl(input_path: str, output_path: str, verbose: bool = False, pack_for
         ast = _merge_mdl_files(mdl_files, verbose, error_collector)
         
         if ast is None:
-            error_collector.print_errors(verbose=True)
+            error_collector.print_errors(verbose=True, ignore_warnings=ignore_warnings)
             error_collector.raise_if_errors()
             return
         
@@ -631,27 +631,27 @@ def build_mdl(input_path: str, output_path: str, verbose: bool = False, pack_for
     
     except MDLLexerError as e:
         error_collector.add_error(e)
-        error_collector.print_errors(verbose=True)
+        error_collector.print_errors(verbose=True, ignore_warnings=ignore_warnings)
         error_collector.raise_if_errors()
     except MDLParserError as e:
         error_collector.add_error(e)
-        error_collector.print_errors(verbose=True)
+        error_collector.print_errors(verbose=True, ignore_warnings=ignore_warnings)
         error_collector.raise_if_errors()
     except MDLSyntaxError as e:
         error_collector.add_error(e)
-        error_collector.print_errors(verbose=True)
+        error_collector.print_errors(verbose=True, ignore_warnings=ignore_warnings)
         error_collector.raise_if_errors()
     except MDLBuildError as e:
         error_collector.add_error(e)
-        error_collector.print_errors(verbose=True)
+        error_collector.print_errors(verbose=True, ignore_warnings=ignore_warnings)
         error_collector.raise_if_errors()
     except MDLFileError as e:
         error_collector.add_error(e)
-        error_collector.print_errors(verbose=True)
+        error_collector.print_errors(verbose=True, ignore_warnings=ignore_warnings)
         error_collector.raise_if_errors()
     except MDLCompilationError as e:
         error_collector.add_error(e)
-        error_collector.print_errors(verbose=True)
+        error_collector.print_errors(verbose=True, ignore_warnings=ignore_warnings)
         error_collector.raise_if_errors()
     except Exception as e:
         error_collector.add_error(create_error(
@@ -659,5 +659,5 @@ def build_mdl(input_path: str, output_path: str, verbose: bool = False, pack_for
             f"Unexpected error during build: {str(e)}",
             suggestion="Check the input files and try again. If the problem persists, report this as a bug."
         ))
-        error_collector.print_errors(verbose=True)
+        error_collector.print_errors(verbose=True, ignore_warnings=ignore_warnings)
         error_collector.raise_if_errors()
