@@ -352,7 +352,7 @@ class TestCLIComprehensive(unittest.TestCase):
             mdl_file = Path(temp_dir) / "invalid_test.mdl"
             with open(mdl_file, 'w') as f:
                 f.write('''
-                pack "invalid_test" "Invalid test pack" 82
+                pack "invalid_test" "Invalid test pack" 82;
                 namespace "test";
 
                 function "main" {

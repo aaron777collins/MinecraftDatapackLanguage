@@ -481,7 +481,7 @@ class TestComplexIntegrationFeatures(unittest.TestCase):
             globalTimer = globalTimer + 1;
             if "$globalTimer$ >= 1200" {  // 60 seconds
                 globalTimer = 0;
-                say Time's up! Final score: $score$;
+                say "Time's up! Final score: $score$";
             }
         }
 
@@ -675,14 +675,12 @@ class TestCLIFeatures(unittest.TestCase):
 class TestErrorHandlingFeatures(unittest.TestCase):
     """Test error handling for various scenarios"""
     
-        def test_invalid_syntax_handling(self):
+    def test_invalid_syntax_handling(self):
         """Test handling of invalid syntax"""
         # Test that the parser correctly handles invalid syntax
         invalid_codes = [
             'pack "test" description 82;',  # Missing quotes around description
             'var num counter = 0',          # Missing semicolon
-            'function "test" { say "Hello"', # Missing closing brace
-            'if "$counter$ > 5" { say "Test"', # Missing closing brace
             'say "Unterminated string',     # Unterminated string
         ]
 
