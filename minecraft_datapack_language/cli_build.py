@@ -477,9 +477,9 @@ def _generate_function_file(ast: Dict[str, Any], output_dir: Path, namespace: st
         if function_commands:
             # Only add armor stand setup to main functions that need it
             # Don't add to helper functions or functions in the "other" namespace
-            should_add_armor_stand = (namespace != "other" and 
-                                    func_name in ["main", "init", "load"] or 
-                                    any(cmd for cmd in function_commands if "scoreboard" in cmd or "tellraw" in cmd))
+                        should_add_armor_stand = (namespace != "other" and 
+                                     (func_name in ["main", "init", "load"] or 
+                                      any(cmd for cmd in function_commands if "scoreboard" in cmd or "tellraw" in cmd)))
             
             final_commands = []
             if should_add_armor_stand:
@@ -618,7 +618,7 @@ def _process_while_loop_recursion(while_statement, namespace: str, function_name
     
     # Generate unique function names
     loop_func_name = f"{namespace}_{function_name}_while_{statement_index}"
-    loop_body_func_name = f"{namespace}_{function_name}_while_{statement_index}"
+    loop_body_func_name = f"{namespace}_{function_name}_while_body_{statement_index}"
     
     # Process loop body
     body_commands = []
