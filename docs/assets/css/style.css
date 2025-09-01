@@ -1,0 +1,225 @@
+/* Cayman theme styles */
+@import url('https://fonts.googleapis.com/css?family=Cabin+Sketch:400,700|Open+Sans:400,700');
+
+:root {
+  --main-color: #159957;
+  --main-color-dark: #155799;
+  --main-color-light: #159957;
+  --text-color: #24292e;
+  --text-color-light: #586069;
+  --border-color: #e1e4e8;
+  --background-color: #ffffff;
+  --background-color-light: #f6f8fa;
+  --link-color: #0366d6;
+  --link-color-hover: #0366d6;
+  --code-background: #f6f8fa;
+  --code-border: #e1e4e8;
+}
+
+/* Dark theme variables */
+[data-theme="dark"] {
+  --text-color: #e1e4e8;
+  --text-color-light: #8b949e;
+  --border-color: #30363d;
+  --background-color: #0d1117;
+  --background-color-light: #161b22;
+  --link-color: #58a6ff;
+  --link-color-hover: #79c0ff;
+  --code-background: #161b22;
+  --code-border: #30363d;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--text-color);
+  background-color: var(--background-color);
+  transition: color 0.3s ease, background-color 0.3s ease;
+}
+
+/* Main content area */
+.main-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Cabin Sketch', cursive;
+  font-weight: 700;
+  color: var(--text-color);
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+h1 {
+  font-size: 2.5rem;
+  border-bottom: 2px solid var(--border-color);
+  padding-bottom: 0.5rem;
+}
+
+h2 {
+  font-size: 2rem;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.3rem;
+}
+
+h3 {
+  font-size: 1.5rem;
+}
+
+h4 {
+  font-size: 1.25rem;
+}
+
+/* Links */
+a {
+  color: var(--link-color);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: var(--link-color-hover);
+  text-decoration: underline;
+}
+
+/* Code blocks */
+code {
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 0.875rem;
+  background-color: var(--code-background);
+  border: 1px solid var(--code-border);
+  border-radius: 3px;
+  padding: 0.2rem 0.4rem;
+  color: var(--text-color);
+}
+
+pre {
+  background-color: var(--code-background);
+  border: 1px solid var(--code-border);
+  border-radius: 6px;
+  padding: 1rem;
+  overflow-x: auto;
+  margin: 1rem 0;
+}
+
+pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--text-color);
+}
+
+/* Buttons */
+.btn {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background-color: var(--main-color);
+  color: white;
+  border-color: var(--main-color);
+}
+
+.btn-primary:hover {
+  background-color: var(--main-color-dark);
+  border-color: var(--main-color-dark);
+  color: white;
+  text-decoration: none;
+}
+
+.btn-secondary {
+  background-color: var(--background-color);
+  color: var(--text-color);
+  border-color: var(--border-color);
+}
+
+.btn-secondary:hover {
+  background-color: var(--background-color-light);
+  color: var(--text-color);
+  text-decoration: none;
+}
+
+/* Site footer */
+.site-footer {
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border-color);
+  color: var(--text-color-light);
+  font-size: 0.875rem;
+}
+
+.site-footer a {
+  color: var(--link-color);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .main-content {
+    padding: 1rem;
+  }
+  
+  h1 {
+    font-size: 2rem;
+  }
+  
+  h2 {
+    font-size: 1.5rem;
+  }
+}
+
+/* Skip to content link */
+#skip-to-content {
+  position: absolute;
+  top: -40px;
+  left: 6px;
+  background: var(--main-color);
+  color: white;
+  padding: 8px;
+  text-decoration: none;
+  border-radius: 4px;
+  z-index: 1001;
+}
+
+#skip-to-content:focus {
+  top: 6px;
+}
+
+/* Back to top button */
+.back-to-top {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  background: var(--main-color);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 1000;
+}
+
+.back-to-top.visible {
+  opacity: 1;
+}
+
+.back-to-top:hover {
+  background: var(--main-color-dark);
+}
