@@ -228,8 +228,40 @@ def _process_say_command_with_variables(content: str, selector: str) -> str:
     matches = re.findall(var_pattern, content)
     
     if not matches:
-        # No variables, return simple tellraw
-        return f'tellraw @a [{{"text":"{content}"}}]'
+        # Check for common variable names that might have been processed
+        # This handles the case where $counter$ was converted to just "counter"
+        word_pattern = r'\b(counter|health|score|value|num|count|timer|level)\b'
+        word_matches = re.findall(word_pattern, content)
+        
+        if word_matches:
+            # Found potential variables, convert to score components
+            components = []
+            remaining_content = content
+            
+            for var_name in word_matches:
+                # Split content around the variable name
+                parts = remaining_content.split(var_name, 1)
+                if len(parts) == 2:
+                    # Add text before variable
+                    if parts[0]:
+                        components.append(f'{{"text":"{parts[0]}"}}')
+                    
+                    # Add score component for variable
+                    components.append(f'{{"score":{{"name":"@e[type=armor_stand,tag=mdl_server,limit=1]","objective":"{var_name}"}}}}')
+                    
+                    # Continue with remaining content
+                    remaining_content = parts[1]
+            
+            # Add remaining text
+            if remaining_content:
+                components.append(f'{{"text":"{remaining_content}"}}')
+            
+            # Combine all components
+            components_str = ','.join(components)
+            return f'tellraw @a [{components_str}]'
+        else:
+            # No variables, return simple tellraw
+            return f'tellraw @a [{{"text":"{content}"}}]'
     
     # Split content by variable references while preserving the structure
     parts = re.split(var_pattern, content)
