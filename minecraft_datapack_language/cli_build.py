@@ -458,6 +458,9 @@ def _generate_function_file(ast: Dict[str, Any], output_dir: Path, namespace: st
             final_commands.append("")
             final_commands.extend(function_commands)
             
+            if verbose:
+                print(f"DEBUG: Final commands for {func_name}: {final_commands}")
+            
             func_dir = output_dir / "data" / namespace / "function"
             ensure_dir(str(func_dir))
             
