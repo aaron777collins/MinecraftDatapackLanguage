@@ -1,0 +1,10 @@
+pack "While Test" "Testing while loops" 82;
+namespace "test";
+var num counter = 0;
+function "main" {
+    while "$counter$ < 3" {
+        say "Counter: $counter$";
+        counter = $counter$ + 1;
+    }
+}
+on_load "test:main";

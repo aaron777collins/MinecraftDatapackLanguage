@@ -237,20 +237,35 @@ def _process_say_command_with_variables(content: str, selector: str) -> str:
         # No variables, return simple tellraw
         return f'tellraw @a [{{"text":"{content}"}}]'
     
-    # Split content by variable references while preserving the structure
-    parts = re.split(var_pattern, content)
+    # Use re.sub to replace variables with placeholders, then split by placeholders
+    # This avoids the issue with re.split including captured groups
+    placeholder_content = content
+    var_placeholders = []
+    
+    for i, match in enumerate(matches):
+        placeholder = f"__VAR_{i}__"
+        var_placeholders.append((placeholder, match))
+        placeholder_content = placeholder_content.replace(f"${match}$", placeholder, 1)
+    
+    # Split by placeholders to get text parts
+    text_parts = placeholder_content
+    for placeholder, var_name in var_placeholders:
+        text_parts = text_parts.replace(placeholder, f"|{var_name}|")
+    
+    # Now split by the pipe delimiters
+    parts = text_parts.split('|')
     
     # Build tellraw components
     components = []
-    var_index = 0
     
     for i, part in enumerate(parts):
-        if part:  # Add text component if not empty
-            components.append(f'{{"text":"{part}"}}')
-        
-        # Add score component if this is followed by a variable
-        if i < len(parts) - 1 and var_index < len(matches):
-            var_name = matches[var_index]
+        if i % 2 == 0:
+            # Text part
+            if part:  # Add text component if not empty
+                components.append(f'{{"text":"{part}"}}')
+        else:
+            # Variable part
+            var_name = part
             
             # Check if variable has scope selector
             if '<' in var_name and var_name.endswith('>'):
@@ -262,8 +277,6 @@ def _process_say_command_with_variables(content: str, selector: str) -> str:
             else:
                 # Simple variable: $variable$ - use server armor stand
                 components.append(f'{{"score":{{"name":"@e[type=armor_stand,tag=mdl_server,limit=1]","objective":"{var_name}"}}}}')
-            
-            var_index += 1
     
     # Combine all components
     components_str = ','.join(components)
@@ -604,8 +617,8 @@ def _process_while_loop_recursion(while_statement, namespace: str, function_name
     body = while_statement['body']
     
     # Generate unique function names
-    loop_func_name = f"{function_name}_while_{statement_index}"
-    loop_body_func_name = f"{function_name}_while_body_{statement_index}"
+    loop_func_name = f"{namespace}_{function_name}_while_{statement_index}"
+    loop_body_func_name = f"{namespace}_{function_name}_while_{statement_index}"
     
     # Process loop body
     body_commands = []
