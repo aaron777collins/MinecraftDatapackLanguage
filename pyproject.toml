@@ -14,6 +14,13 @@ classifiers = [
   "Operating System :: OS Independent",
 ]
 
+[project.urls]
+Homepage = "https://www.mcmdl.com"
+Documentation = "https://www.mcmdl.com/docs"
+Repository = "https://github.com/aaron777collins/MinecraftDatapackLanguage"
+"Bug Tracker" = "https://github.com/aaron777collins/MinecraftDatapackLanguage/issues"
+"VS Code Extension" = "https://marketplace.visualstudio.com/items?itemName=mdl.minecraft-datapack-language"
+
 [project.optional-dependencies]
 dev = [
     "pytest>=7.0.0",
