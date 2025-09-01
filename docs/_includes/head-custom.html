@@ -274,6 +274,63 @@
   color: #79c0ff !important;
 }
 
+/* Navigation styles - KEEP NAVIGATION WHITE, don't apply theme colors */
+.nav-menu {
+  background: var(--nav-bg) !important;
+  color: #ffffff !important;
+}
+
+/* Navigation links should stay white, not use theme colors */
+.nav-menu .nav-link,
+.nav-menu .nav-link:visited,
+.nav-menu .nav-link:hover,
+.nav-menu .nav-link:active {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+
+.nav-menu .nav-link:hover {
+  color: #ffffff !important;
+}
+
+.nav-menu .nav-link.active {
+  color: #ffffff !important;
+}
+
+/* Ensure navigation links stay white in dark mode too */
+[data-theme="dark"] .nav-menu .nav-link,
+[data-theme="dark"] .nav-menu .nav-link:visited,
+[data-theme="dark"] .nav-menu .nav-link:hover,
+[data-theme="dark"] .nav-menu .nav-link:active {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+
+[data-theme="dark"] .nav-menu .nav-link:hover {
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .nav-menu .nav-link.active {
+  color: #ffffff !important;
+}
+
+/* Ensure all navigation buttons and icons stay white in dark mode */
+[data-theme="dark"] .nav-menu .nav-icon-link,
+[data-theme="dark"] .nav-menu .nav-icon-link:hover,
+[data-theme="dark"] .nav-menu .nav-icon-link:active {
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .nav-menu .theme-toggle,
+[data-theme="dark"] .nav-menu .theme-toggle:hover,
+[data-theme="dark"] .nav-menu .theme-toggle:active {
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .nav-menu .nav-toggle,
+[data-theme="dark"] .nav-menu .nav-toggle:hover,
+[data-theme="dark"] .nav-menu .nav-toggle:active {
+  color: #ffffff !important;
+}
+
 /* MDL Syntax Highlighting - Light Mode */
 pre code.language-mdl .token.keyword,
 code.language-mdl .token.keyword,
