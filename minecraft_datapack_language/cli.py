@@ -2941,30 +2941,30 @@ def main():
                 show_build_help()
                 return
             
-        # Remove help arguments to prevent argparse from showing its own help
-        build_args = [arg for arg in sys.argv[2:] if arg not in ("--help", "-h")]
+            # Remove help arguments to prevent argparse from showing its own help
+            build_args = [arg for arg in sys.argv[2:] if arg not in ("--help", "-h")]
+            
+            parser = argparse.ArgumentParser(description="MDL - Build MDL files into datapack", add_help=False)
+            parser.add_argument("--mdl", "-m", required=True, help="Input MDL file or directory")
+            parser.add_argument("--output", "-o", required=True, help="Output directory")
+            parser.add_argument("--pack-format", type=int, default=None, help="Override pack format for output (e.g., 48, 82)")
+            parser.add_argument("--wrapper", type=str, default=None, help="Optional zip name override (does not change folder layout)")
+            parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose output")
+            
+            try:
+                args = parser.parse_args(build_args)
+                build_mdl(args.mdl, args.output, args.verbose, args.pack_format, args.wrapper)
+            except SystemExit:
+                show_build_help()
+                return
+            except Exception as e:
+                error_collector.add_error(create_error(
+                    "build", f"Build command error: {str(e)}"
+                ))
+                error_collector.print_errors(verbose=True)
+                error_collector.raise_if_errors()
         
-        parser = argparse.ArgumentParser(description="MDL - Build MDL files into datapack", add_help=False)
-        parser.add_argument("--mdl", "-m", required=True, help="Input MDL file or directory")
-        parser.add_argument("--output", "-o", required=True, help="Output directory")
-        parser.add_argument("--pack-format", type=int, default=None, help="Override pack format for output (e.g., 48, 82)")
-        parser.add_argument("--wrapper", type=str, default=None, help="Optional zip name override (does not change folder layout)")
-        parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose output")
-        
-        try:
-            args = parser.parse_args(build_args)
-            build_mdl(args.mdl, args.output, args.verbose, args.pack_format, args.wrapper)
-        except SystemExit:
-            show_build_help()
-            return
-        except Exception as e:
-            error_collector.add_error(create_error(
-                "build", f"Build command error: {str(e)}"
-            ))
-            error_collector.print_errors(verbose=True)
-            error_collector.raise_if_errors()
-        
-    elif command == "check":
+        elif command == "check":
         # Check for help request first
         if len(sys.argv) >= 3 and sys.argv[2] in ("--help", "-h"):
             show_check_help()
