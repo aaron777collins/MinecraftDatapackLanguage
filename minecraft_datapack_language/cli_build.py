@@ -261,8 +261,8 @@ def _process_say_command_with_variables(content: str, selector: str) -> str:
     for i, part in enumerate(parts):
         if i % 2 == 0:
             # Text part
-            if part:  # Add text component if not empty
-                components.append(f'{{"text":"{part}"}}')
+            if part.strip():  # Only add non-empty text parts
+                components.append(f'{{"text": "{part.strip()}"}}')
         else:
             # Variable part
             var_name = part
@@ -278,8 +278,12 @@ def _process_say_command_with_variables(content: str, selector: str) -> str:
                 # Simple variable: $variable$ - use server armor stand
                 components.append(f'{{"score":{{"name":"@e[type=armor_stand,tag=mdl_server,limit=1]","objective":"{var_name}"}}}}')
     
-    # Combine all components
-    components_str = ','.join(components)
+    for var_name in matches:
+        # Add score component for each variable
+        components.append(f'{{"score": {{"name": "@e[type=armor_stand,tag=mdl_server,limit=1]", "objective": "{var_name}"}}}}')
+    
+    # Join components and create tellraw command
+    components_str = ', '.join(components)
     return f'tellraw @a [{components_str}]'
 
 
@@ -643,7 +647,7 @@ def _process_while_loop_recursion(while_statement, namespace: str, function_name
     return [f"execute if {minecraft_condition} run function {namespace}:{loop_func_name}"]
 
 
-def _process_while_loop_schedule(while_statement, namespace: str, function_name: str, statement_index: int, is_tag_function: bool = False, selector: str = "@s", variable_scopes: Dict[str, str] = None, build_context: BuildContext = None, output_dir: Path = None) -> List[str]:
+def _process_while_loop_schedule(while_statement, namespace: str, function_name: str, statement_index: int, is_tag_function: bool = False, selector: str = "@s", variable_scopes: Dict[str, str] = None, build_context: BuildContext = None) -> List[str]:
     """Process while loops using scheduled functions."""
     if variable_scopes is None:
         variable_scopes = {}
@@ -661,7 +665,7 @@ def _process_while_loop_schedule(while_statement, namespace: str, function_name:
     # Process loop body
     body_commands = []
     for i, stmt in enumerate(body):
-        body_commands.extend(_process_statement(stmt, namespace, loop_body_func_name, i, is_tag_function, selector, variable_scopes, build_context, output_dir))
+        body_commands.extend(_process_statement(stmt, namespace, loop_body_func_name, i, is_tag_function, selector, variable_scopes, build_context))
     
     # Add the loop continuation command
     minecraft_condition = _convert_condition_to_minecraft_syntax(condition, selector)
@@ -669,9 +673,9 @@ def _process_while_loop_schedule(while_statement, namespace: str, function_name:
     
     # Write loop body function
     if body_commands:
-        # Use the output directory parameter
-        if output_dir:
-            func_dir = output_dir / "data" / namespace / "function"
+        # Use the output directory from build context
+        if hasattr(build_context, 'output_dir'):
+            func_dir = build_context.output_dir / "data" / namespace / "function"
         else:
             func_dir = Path(f"data/{namespace}/function")
         ensure_dir(str(func_dir))
@@ -736,7 +740,7 @@ def _ast_to_pack(ast: Dict[str, Any], mdl_files: List[Path]) -> Pack:
                 for i, statement in enumerate(func['body']):
                     try:
                         # Use the same processing logic as the build system
-                        commands = _process_statement(statement, namespace_name, function_name, i, False, "@s", {}, BuildContext(), None)
+                        commands = _process_statement(statement, namespace_name, function_name, i, False, "@s", {}, BuildContext())
                         function.commands.extend(commands)
                     except Exception as e:
                         # If processing fails, try to add as simple command
