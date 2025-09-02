@@ -290,11 +290,11 @@ def show_new_help():
     
     print_info("The new command creates:")
     print_bullet("project_name/ directory")
-    print_bullet("project_name.mdl - Main MDL source file")
+    print_bullet("main.mdl - Main MDL source file with basic hello world example")
     print_bullet("README.md - Project documentation template")
     print_bullet("Proper pack.mcmeta configuration")
-    print_bullet("Basic function structure (load, main, tick)")
-    print_bullet("Example variable and command usage")
+    print_bullet("Simple function structure (main function with on_load hook)")
+    print_bullet("Clean, working example that demonstrates basic MDL syntax")
     print()
     
     print_section("Examples")
@@ -316,11 +316,10 @@ def show_new_help():
     print()
     
     print_info("New projects include:")
-    print_bullet("load function - Runs when datapack is loaded")
-    print_bullet("main function - Main game logic")
-    print_bullet("tick function - Runs every game tick")
-    print_bullet("Example variables and scoreboard setup")
-    print_bullet("Basic command structure")
+    print_bullet("main function - Simple hello world example")
+    print_bullet("on_load hook - Automatically runs the main function when loaded")
+    print_bullet("Clean, minimal code that compiles and works immediately")
+    print_bullet("Proper pack declaration and namespace setup")
     print()
     
     print_success("Project created! Start editing the .mdl file and use 'mdl build' to compile.")
