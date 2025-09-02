@@ -5,7 +5,7 @@ CLI Help System - Comprehensive help documentation for MDL CLI
 from .cli_colors import (
     print_header, print_title, print_section, print_separator,
     print_success, print_warning, print_info, print_bullet,
-    print_code, print_command, print_option, color
+    print_code, color
 )
 
 
@@ -27,15 +27,15 @@ def show_main_help():
     print_section("Available Commands")
     print()
     
-    print_command("build")
+    print_code("build")
     print_info("    - Compile MDL files into a Minecraft datapack")
     print()
     
-    print_command("check")
+    print_code("check")
     print_info("    - Validate MDL files for syntax and semantic errors")
     print()
     
-    print_command("new")
+    print_code("new")
     print_info("    - Create a new MDL project with template files")
     print()
     
@@ -110,12 +110,12 @@ def show_build_help():
     print_section("Arguments")
     print()
     
-    print_option("--mdl, -m <input>")
+    print_code("--mdl, -m <input>")
     print_info("     Input MDL file or directory containing .mdl files")
     print_info("     Examples: --mdl project.mdl, --mdl src/, --mdl .")
     print()
     
-    print_option("-o, --output <output>")
+    print_code("-o, --output <output>")
     print_info("     Output directory for the generated datapack")
     print_info("     Example: -o dist, -o build/my_pack")
     print()
@@ -123,22 +123,22 @@ def show_build_help():
     print_section("Options")
     print()
     
-    print_option("--verbose, -v")
+    print_code("--verbose, -v")
     print_info("     Enable verbose output with detailed build information")
     print_info("     Shows file parsing, function generation, and progress")
     print()
     
-    print_option("--pack-format <number>")
+    print_code("--pack-format <number>")
     print_info("     Override the pack format number (default: 82)")
     print_info("     Higher numbers support newer Minecraft versions")
     print()
     
-    print_option("--wrapper <name>")
+    print_code("--wrapper <name>")
     print_info("     Create a zip file with the specified name")
     print_info("     Example: --wrapper my_pack.zip")
     print()
     
-    print_option("--ignore-warnings")
+    print_code("--ignore-warnings")
     print_info("     Suppress warning messages during build")
     print_info("     Only errors will be shown")
     print()
@@ -189,7 +189,7 @@ def show_check_help():
     print_section("Arguments")
     print()
     
-    print_option("<input>")
+    print_code("<input>")
     print_info("     Input MDL file or directory to check")
     print_info("     Examples: project.mdl, src/, .")
     print()
@@ -197,12 +197,12 @@ def show_check_help():
     print_section("Options")
     print()
     
-    print_option("--verbose, -v")
+    print_code("--verbose, -v")
     print_info("     Enable verbose output with detailed validation information")
     print_info("     Shows parsing steps, variable analysis, and scope checking")
     print()
     
-    print_option("--ignore-warnings")
+    print_code("--ignore-warnings")
     print_info("     Suppress warning messages during check")
     print_info("     Only errors will be shown")
     print()
@@ -266,7 +266,7 @@ def show_new_help():
     print_section("Arguments")
     print()
     
-    print_option("<project_name>")
+    print_code("<project_name>")
     print_info("     Name for the new project (will create project_name/ directory)")
     print_info("     Examples: my_datapack, adventure_pack, minigame")
     print()
@@ -274,12 +274,12 @@ def show_new_help():
     print_section("Options")
     print()
     
-    print_option("--pack-name <name>")
+    print_code("--pack-name <name>")
     print_info("     Custom pack name (default: same as project name)")
     print_info("     This appears in the pack.mcmeta file")
     print()
     
-    print_option("--pack-format <number>")
+    print_code("--pack-format <number>")
     print_info("     Pack format number (default: 82)")
     print_info("     Higher numbers support newer Minecraft versions")
     print_info("     Common values: 15 (1.17+), 26 (1.18+), 82 (1.20+)")

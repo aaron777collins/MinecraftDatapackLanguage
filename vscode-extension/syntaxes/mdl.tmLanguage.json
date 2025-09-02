@@ -72,10 +72,6 @@
       "match": "\\b(say|tellraw|effect|particle|execute|scoreboard|data|function|tag|tp|kill|summon|give|clear|enchant|gamemode|weather|time|difficulty|gamerule|title|playsound|stopsound|kick|ban|ban-ip|pardon|pardon-ip|whitelist|op|deop|save-all|save-off|save-on|list|me|msg|team|trigger|advancement|recipe|loot|schedule|return|run)\\b"
     },
     {
-      "name": "entity.name.selector.mdl",
-      "match": "(@p|@r|@a|@e|@s|@initiator|@c|@v|@d|@w)"
-    },
-    {
       "name": "entity.name.selector.scoped.mdl",
       "begin": "(@p|@r|@a|@e|@s|@initiator|@c|@v|@d|@w)",
       "end": "(?=>)",
@@ -106,6 +102,10 @@
           "match": "\\[([^\\]]*)\\]"
         }
       ]
+    },
+    {
+      "name": "entity.name.selector.mdl",
+      "match": "(@p|@r|@a|@e|@s|@initiator|@c|@v|@d|@w)"
     },
     {
       "name": "string.raw.mdl",
