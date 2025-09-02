@@ -487,9 +487,41 @@ class TestErrorHandlingEdgeCases(unittest.TestCase):
     
     def test_malformed_raw_blocks(self):
         """Test malformed raw blocks"""
-        # Skip this test for now due to raw block scanning issues
-        # TODO: Fix raw block scanning and re-enable this test
-        self.skipTest("Raw block scanning has known issues - skipping for now")
+        # Test unterminated raw block
+        code1 = '''pack "test" "Test" 82;
+namespace "test";
+function "main" {
+    $!raw
+    say hello
+}'''
+        
+        with self.assertRaises((MDLLexerError, MDLParserError)):
+            parse_mdl_js(code1)
+        
+        # Test missing opening $!raw
+        code2 = '''pack "test" "Test" 82;
+namespace "test";
+function "main" {
+    say hello
+    raw!$
+}'''
+        
+        with self.assertRaises((MDLLexerError, MDLParserError)):
+            parse_mdl_js(code2)
+        
+        # Test nested raw blocks
+        code3 = '''pack "test" "Test" 82;
+namespace "test";
+function "main" {
+    $!raw
+    say hello
+    $!raw
+    say world
+    raw!$
+}'''
+        
+        with self.assertRaises((MDLLexerError, MDLParserError)):
+            parse_mdl_js(code3)
     
     def test_malformed_control_structures(self):
         """Test malformed control structures"""
@@ -750,9 +782,56 @@ class TestCLIEdgeCases(unittest.TestCase):
     
     def test_build_with_complex_raw_blocks(self):
         """Test building with very complex raw blocks"""
-        # Skip this test for now due to raw block scanning issues
-        # TODO: Fix raw block scanning and re-enable this test
-        self.skipTest("Raw block scanning has known issues - skipping for now")
+        with tempfile.TemporaryDirectory() as temp_dir:
+            # Create MDL file with complex raw blocks
+            mdl_file = Path(temp_dir) / "complex_raw_blocks.mdl"
+            with open(mdl_file, 'w') as f:
+                f.write('''
+                pack "complex_raw_blocks" "Test pack with complex raw blocks" 82;
+                namespace "test";
+                
+                function "main" {
+                    say "Testing complex raw blocks";
+                    
+                    $!raw
+                    scoreboard objectives add test_score dummy "Test Score"
+                    scoreboard players set @a test_score 0
+                    scoreboard players add @a test_score 10
+                    scoreboard players operation @a total_score += @a test_score
+                    raw!$
+                    
+                    $!raw
+                    effect give @a minecraft:speed 10 1
+                    effect give @a minecraft:glowing 5 1 true
+                    playsound minecraft:entity.player.levelup player @a ~ ~ ~ 1 1
+                    raw!$
+                    
+                    say "Raw blocks completed";
+                }
+                
+                on_load "test:main";
+                ''')
+            
+            output_dir = Path(temp_dir) / "output"
+            
+            # Test build command
+            try:
+                build_mdl(str(mdl_file), str(output_dir), verbose=False)
+                
+                # Check that output was created
+                self.assertTrue(output_dir.exists())
+                main_func = output_dir / "data" / "test" / "function" / "main.mcfunction"
+                self.assertTrue(main_func.exists())
+                
+                # Check that the function has content from raw blocks
+                with open(main_func, 'r') as f:
+                    content = f.read()
+                    self.assertIn("scoreboard objectives add", content)
+                    self.assertIn("effect give", content)
+                    self.assertIn("playsound", content)
+                
+            except Exception as e:
+                self.fail(f"Build command with complex raw blocks failed: {e}")
     
     def test_build_with_complex_scopes(self):
         """Test building with complex variable scopes"""
