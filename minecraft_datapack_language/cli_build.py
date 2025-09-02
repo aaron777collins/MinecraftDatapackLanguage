@@ -319,13 +319,23 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
         var_name = statement['name']
         value = statement['value']
         
+        # Determine the correct selector for this variable based on its declared scope
+        var_selector = selector  # Default to current selector
+        if variable_scopes and var_name in variable_scopes:
+            declared_scope = variable_scopes[var_name]
+            if declared_scope == 'global':
+                var_selector = "@e[type=armor_stand,tag=mdl_server,limit=1]"
+            else:
+                var_selector = declared_scope
+        print(f"DEBUG: Variable {var_name} assignment using selector: {var_selector} (declared scope: {variable_scopes.get(var_name, 'none')})")
+        
         # Handle different value types
         if isinstance(value, int):
-            commands.append(f"scoreboard players set {selector} {var_name} {value}")
+            commands.append(f"scoreboard players set {var_selector} {var_name} {value}")
         elif isinstance(value, str) and value.startswith('$') and value.endswith('$'):
             # Variable reference
             ref_var = value[1:-1]  # Remove $ symbols
-            commands.append(f"scoreboard players operation {selector} {var_name} = {selector} {ref_var}")
+            commands.append(f"scoreboard players operation {var_selector} {var_name} = {var_selector} {ref_var}")
         elif hasattr(value, '__class__') and 'BinaryExpression' in str(value.__class__):
             # Handle complex expressions (BinaryExpression, etc.)
             # Convert to proper Minecraft scoreboard commands
@@ -338,17 +348,17 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
                 if operator == 'PLUS':
                     if hasattr(left, 'name') and hasattr(right, 'value'):
                         # counter = counter + 1
-                        commands.append(f"scoreboard players add {selector} {var_name} {right.value}")
+                        commands.append(f"scoreboard players add {var_selector} {var_name} {right.value}")
                     else:
                         # Complex case - use operation
                         commands.append(f"# Complex addition: {var_name} = {left} + {right}")
                 elif operator == 'MINUS':
                     if hasattr(left, 'name') and hasattr(right, 'value'):
                         # health = health - 10
-                        commands.append(f"scoreboard players remove {selector} {var_name} {right.value}")
+                        commands.append(f"scoreboard players remove {var_selector} {var_name} {right.value}")
                     else:
                         # Complex case - use operation
-                        commands.append(f"# Complex subtraction: {var_name} = {left} - {right}")
+                        commands.append(f"# Complex operation: {var_name} = {left} - {right}")
                 else:
                     # Other operators - use operation
                     commands.append(f"# Complex operation: {var_name} = {left} {operator} {right}")
@@ -360,11 +370,11 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
                 if hasattr(value, 'value'):
                     # LiteralExpression case
                     num_value = int(value.value)
-                    commands.append(f"scoreboard players set {selector} {var_name} {num_value}")
+                    commands.append(f"scoreboard players set {var_selector} {var_name} {num_value}")
                 else:
                     # Direct value case
                     num_value = int(value)
-                    commands.append(f"scoreboard players set {selector} {var_name} {num_value}")
+                    commands.append(f"scoreboard players set {var_selector} {var_name} {num_value}")
             except (ValueError, TypeError):
                 # If we can't convert to int, add a placeholder
                 commands.append(f"# Assignment: {var_name} = {value}")
@@ -795,16 +805,29 @@ def _ast_to_pack(ast: Dict[str, Any], mdl_files: List[Path]) -> Pack:
                             else:
                                 # Simple function call without scope
                                 function.commands.append(f"function {func_namespace}:{func_name}")
-                        elif statement.get('type') == 'variable_assignment':
-                            # Handle variable assignments
-                            var_name = statement['name']
-                            value = statement['value']
-                            if hasattr(value, 'value'):
-                                # Simple literal value
-                                function.commands.append(f"scoreboard players set {var_name} @s {value.value}")
-                            else:
-                                # Complex expression - add a placeholder
-                                function.commands.append(f"# Variable assignment: {var_name} = {value}")
+                                                 elif statement.get('type') == 'variable_assignment':
+                             # Handle variable assignments
+                             var_name = statement['name']
+                             value = statement['value']
+                             
+                             # Determine selector based on variable scope
+                             var_selector = "@s"  # Default
+                             if 'variables' in ast:
+                                 for var_decl in ast['variables']:
+                                     if var_decl.get('name') == var_name:
+                                         var_scope = var_decl.get('scope')
+                                         if var_scope == 'global':
+                                             var_selector = "@e[type=armor_stand,tag=mdl_server,limit=1]"
+                                         elif var_scope:
+                                             var_selector = var_scope
+                                         break
+                             
+                             if hasattr(value, 'value'):
+                                 # Simple literal value
+                                 function.commands.append(f"scoreboard players set {var_name} {var_selector} {value.value}")
+                             else:
+                                 # Complex expression - add a placeholder
+                                 function.commands.append(f"# Variable assignment: {var_name} = {value}")
                         else:
                             # Add a placeholder for other statement types
                             function.commands.append(f"# Statement: {statement.get('type', 'unknown')}")
