@@ -449,8 +449,8 @@ class MDLLexer:
                 # Add the raw content as a single RAW token
                 content = ''.join(content_parts)
                 if content.strip():  # Only add non-empty content
-                    # Remove leading and trailing whitespace for cleaner content
-                    clean_content = content.strip()
+                    # Keep newlines for proper command splitting, but trim leading/trailing whitespace
+                    clean_content = content.rstrip().lstrip()
                     self.tokens.append(Token(TokenType.RAW, clean_content, raw_start_line, raw_start_column))
                 
                 # Add the end marker token

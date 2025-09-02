@@ -646,8 +646,9 @@ class MDLParser:
         self._match(TokenType.RAW_END)
         
         content = "".join(content_parts)
-        # Split content into individual commands
-        commands = [cmd.strip() for cmd in content.split(';') if cmd.strip()]
+        # Split content into individual commands by newlines
+        # Raw blocks contain raw Minecraft commands, not MDL commands with semicolons
+        commands = [cmd.strip() for cmd in content.split('\n') if cmd.strip()]
         return {"type": "raw_text", "commands": commands}
     
     def _parse_command(self) -> Command:

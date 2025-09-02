@@ -1,0 +1,13 @@
+pack "raw_test" "Test raw blocks" 82;
+namespace "raw_test";
+
+function "main" {
+    say "Testing raw blocks";
+    
+    $!raw
+    scoreboard objectives add test_score dummy "Test Score"
+    scoreboard players set @a test_score 0
+    raw!$
+    
+    say "Raw block completed";
+}

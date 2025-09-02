@@ -1,0 +1,8 @@
+pack "raw_simple" "Test simple raw block" 82;
+namespace "raw_simple";
+
+function "main" {
+    $!raw
+    say hello
+    raw!$
+}
