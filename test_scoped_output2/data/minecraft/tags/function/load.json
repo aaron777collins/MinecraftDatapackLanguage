@@ -1,7 +1,0 @@
-{
-  "values": [
-    "test:load",
-    "test:main",
-    "test_scoped:load"
-  ]
-}

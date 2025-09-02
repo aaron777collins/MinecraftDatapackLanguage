@@ -1,1 +1,0 @@
-tellraw @a [{"text":"Player score is high!"}]

@@ -1,1 +1,0 @@
-tellraw @a [{"text":"Global counter is high!"}]

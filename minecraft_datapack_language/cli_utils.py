@@ -130,19 +130,15 @@ def _convert_condition_to_minecraft_syntax(condition: str, selector: str = "@s",
     # Replace variable references with proper scoreboard syntax
     def replace_var(match):
         var_name = match.group(1)
-        print(f"DEBUG: Processing variable in condition: '{var_name}'")
         # Check if variable has explicit scope selector
         if '<' in var_name and var_name.endswith('>'):
             var_parts = var_name.split('<', 1)
             base_var = var_parts[0]
             scope_selector = var_parts[1][:-1]  # Remove trailing >
-            print(f"DEBUG: Found explicit scope: base_var='{base_var}', scope_selector='{scope_selector}'")
             # Resolve special selectors
             if scope_selector == "global":
                 scope_selector = "@e[type=armor_stand,tag=mdl_server,limit=1]"
-            result = f"{scope_selector} {base_var}"
-            print(f"DEBUG: Returning scoped result: '{result}'")
-            return result
+            return f"{scope_selector} {base_var}"
         else:
             # Use declared scope if available, otherwise default to current selector
             if variable_scopes and var_name in variable_scopes:

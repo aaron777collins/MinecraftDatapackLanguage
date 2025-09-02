@@ -172,6 +172,21 @@ The explicit scope system ensures that every variable access is clear and unambi
    say Global: $globalVar$, Player: $playerVar$;  // Automatic scope resolution
    ```
 
+4. **Explicit Scopes in Conditions**: Override declared scopes in if/while conditions
+   ```mdl
+   if "$playerVar<@s>$ > 10" {              // Explicit scope in condition
+       say "Player score is high!";
+   }
+   
+   if "$globalVar<global>$ > 100" {         // Global scope in condition
+       say "Global counter reached!";
+   }
+   
+   if "$teamVar<@a[team=red]>$ > 50" {      // Team scope in condition
+       say "Red team is winning!";
+   }
+   ```
+
 ### Scope Mapping
 
 MDL maps scopes to Minecraft selectors:
