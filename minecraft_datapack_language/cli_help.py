@@ -324,7 +324,7 @@ def show_check_help():
     print()
     
     # More Info
-    print(color.info(f"For more information, visit: {color.file_path('https://www.mcmdl.com/docs/cli-reference#check')}"))
+    print(color.info(f"For more information, visit: {color.file_path('https://www.mcmdl.com/docs/cli-reference#check-command')}"))
     print()
 
 def show_new_help():
@@ -478,5 +478,5 @@ def show_new_help():
     print()
     
     # More Info
-    print(color.info(f"For more information, visit: {color.file_path('https://www.mcmdl.com/docs/cli-reference#new')}"))
+    print(color.info(f"For more information, visit: {color.file_path('https://www.mcmdl.com/docs/cli-reference#new-command')}"))
     print()

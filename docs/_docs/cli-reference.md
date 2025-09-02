@@ -120,6 +120,47 @@ Context:
 Suggestion: Add closing quote '"' at the end of line 20
 ```
 
+### New Command
+
+Create a new MDL project with template files:
+
+```bash
+mdl new <project_name>
+```
+
+**Examples:**
+```bash
+# Create a new project in current directory
+mdl new my_awesome_pack
+
+# Create a project with specific name
+mdl new adventure_map
+
+# Create a project in a subdirectory
+mdl new projects/survival_plus
+```
+
+**What it creates:**
+The new command generates a complete project structure with:
+- `README.md` - Project documentation and setup instructions
+- `main.mdl` - Main MDL file with basic template structure
+- Proper pack declaration and namespace setup
+- Example functions and basic syntax
+
+**Generated project structure:**
+```
+my_awesome_pack/
+├── README.md
+└── main.mdl
+```
+
+**Template content includes:**
+- Pack metadata (name, description, format)
+- Namespace declaration
+- Sample function definitions
+- Basic MDL syntax examples
+- Load function setup
+
 ## Command Options
 
 ### Build Options
@@ -138,6 +179,12 @@ Suggestion: Add closing quote '"' at the end of line 20
 |--------|-------------|---------|
 | `--verbose` | Show detailed validation information | `--verbose` |
 | `--ignore-warnings` | Suppress warning messages | `--ignore-warnings` |
+
+### New Options
+
+| Option | Description | Example |
+|--------|-------------|---------|
+| `<project_name>` | Name of the new project to create | `mdl new my_pack` |
 
 ## Error Handling
 
@@ -206,7 +253,27 @@ Summary: 3 errors found
 
 ### Basic Workflow
 
-1. **Create MDL file:**
+1. **Create a new project:**
+```bash
+mdl new hello_world
+```
+
+2. **Check the generated file:**
+```bash
+mdl check hello_world/main.mdl
+```
+
+3. **Build the datapack:**
+```bash
+mdl build --mdl hello_world/main.mdl -o dist
+```
+
+4. **Install in Minecraft:**
+- Copy `dist/hello_world/` to your world's `datapacks/` folder
+- Run `/reload` in-game
+
+**Alternative: Manual file creation**
+If you prefer to create files manually, you can start with:
 ```mdl
 // hello.mdl
 pack "hello" "My first datapack" 82;
