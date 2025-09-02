@@ -250,9 +250,9 @@ def show_build_help():
         print_bullet("Multiple error collection (won't stop on first error)")
         print()
         
-        # More Info
-        print(color.info(f"For more information, visit: {color.file_path('https://www.mcmdl.com/docs/cli-reference#build')}"))
-        print()
+                         # More Info
+                 print(color.info(f"For more information, visit: {color.file_path('https://www.mcmdl.com/docs/cli-reference/#basic-commands')}"))
+                 print()
         
     except ImportError:
         # Fallback if colors aren't available
@@ -349,7 +349,7 @@ The build command provides comprehensive error reporting:
 • Helpful suggestions for fixing issues
 • Multiple error collection (won't stop on first error)
 
-For more information, visit: https://www.mcmdl.com/docs/cli-reference#build
+   For more information, visit: https://www.mcmdl.com/docs/cli-reference/#basic-commands
 """)
 
 
