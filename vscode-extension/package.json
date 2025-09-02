@@ -1,7 +1,7 @@
 {
   "name": "minecraft-datapack-language",
   "displayName": "Minecraft Datapack Language (MDL) - JavaScript Style",
-  "description": "Syntax highlighting, snippets, and build tasks for JavaScript-style MDL language with variables, control flow, and advanced features",
+  "description": "Syntax highlighting, snippets, and build tasks for JavaScript-style MDL language with variables, control flow, explicit scopes, and advanced features",
   "version": "0.2.0",
   "icon": "icons/icon-128.png",
   "publisher": "mdl",
@@ -22,7 +22,9 @@
     "mdl",
     "javascript",
     "syntax",
-    "highlighting"
+    "highlighting",
+    "scopes",
+    "variables"
   ],
   "activationEvents": [
     "onLanguage:mdl",

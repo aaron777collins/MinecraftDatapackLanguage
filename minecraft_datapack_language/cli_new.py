@@ -86,51 +86,51 @@ namespace "{pack_name}";
 var num score = 0;
 var num lives = 3;
 
-    // Main function - this runs when called
-    function "main" {{
-        say Hello from {project_name}!;
-        
-        // Set initial values
-        score = 10;
-        lives = 3;
-        
-        // Display current values
-        say Score: $score$;
-        say Lives: $lives$;
-        
-        // Example conditional statement
-        if "$score$ > 5" {{
-            say Great score!;
-        }} else {{
-            say Keep trying!;
-        }};
-        
-        // Example while loop
-        while "$lives$ > 0" {{
-            say You have $lives$ lives remaining;
-            lives = lives - 1;
-        }};
-        
-        say Game over!;
-    }}
+// Main function - this runs when called
+function "main" {{
+    say Hello from {project_name}!;
     
-    // Load function - this runs when the datapack loads
-    function "load" {{
-        say [GAME] {pack_name} loaded successfully!;
-        say Type: /function {project_name}:main;
-    }}
+    // Set initial values
+    score = 10;
+    lives = 3;
     
-    // Tick function - this runs every tick (20 times per second)
-    function "tick" {{
-        // Add your tick logic here
-        // Be careful with performance!
-    }}
+    // Display current values
+    say Score: $score$;
+    say Lives: $lives$;
     
-    // Example function with parameters
-    function "greet_player" {{
-        say Welcome to {pack_name}!;
-        say Have fun playing!;
-    }}
+    // Example conditional statement
+    if "$score$ > 5" {{
+        say Great score!;
+    }} else {{
+        say Keep trying!;
+    }};
+    
+    // Example while loop
+    while "$lives$ > 0" {{
+        say You have $lives$ lives remaining;
+        lives = lives - 1;
+    }};
+    
+    say Game over!;
+}}
+
+// Load function - this runs when the datapack loads
+function "load" {{
+    say [GAME] {pack_name} loaded successfully!;
+    say Type: /function {project_name}:main;
+}}
+
+// Tick function - this runs every tick (20 times per second)
+function "tick" {{
+    // Add your tick logic here
+    // Be careful with performance!
+}}
+
+// Example function with parameters
+function "greet_player" {{
+    say Welcome to {pack_name}!;
+    say Have fun playing!;
+}}
 
 // Raw Minecraft commands example
 $!raw

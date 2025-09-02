@@ -29,6 +29,13 @@
     ],
     "description": "Function declaration"
   },
+  "Function Call with Scope": {
+    "prefix": "funcscope",
+    "body": [
+      "function \"${1:namespace:function_name}<${2:@s|global|@a}>\""
+    ],
+    "description": "Function call with explicit scope"
+  },
   "Variable Declaration": {
     "prefix": "var",
     "body": [
@@ -36,12 +43,26 @@
     ],
     "description": "Variable declaration"
   },
+  "Variable Declaration with Scope": {
+    "prefix": "varscope",
+    "body": [
+      "var ${1:num|str|list} ${2:variable_name} scope<${3:@s|global|@a}> = ${4:value};"
+    ],
+    "description": "Variable declaration with explicit scope"
+  },
   "Number Variable": {
     "prefix": "varnum",
     "body": [
       "var num ${1:variable_name} = ${2:0};"
     ],
     "description": "Number variable declaration"
+  },
+  "Number Variable with Scope": {
+    "prefix": "varnumscope",
+    "body": [
+      "var num ${1:variable_name} scope<${2:@s|global|@a}> = ${3:0};"
+    ],
+    "description": "Number variable declaration with explicit scope"
   },
   "String Variable": {
     "prefix": "varstr",
@@ -313,6 +334,34 @@
       "raw!$"
     ],
     "description": "Raw text block - content is inserted directly without MDL parsing"
+  },
+  "Variable Access with Scope": {
+    "prefix": "varaccess",
+    "body": [
+      "${1:variable_name}<${2:@s|global|@a}>"
+    ],
+    "description": "Access variable with explicit scope"
+  },
+  "Variable Assignment with Scope": {
+    "prefix": "varassign",
+    "body": [
+      "${1:variable_name}<${2:@s|global|@a}> = ${3:value};"
+    ],
+    "description": "Assign value to variable with explicit scope"
+  },
+  "Team Variable Declaration": {
+    "prefix": "teamvar",
+    "body": [
+      "var num ${1:variable_name} scope<@a[team=${2:red|blue|green}]> = ${3:0};"
+    ],
+    "description": "Team-specific variable declaration"
+  },
+  "Team Variable Access": {
+    "prefix": "teamaccess",
+    "body": [
+      "${1:variable_name}<@a[team=${2:red|blue|green}]>"
+    ],
+    "description": "Access team-specific variable"
   },
   "Raw Text with Function Example": {
     "prefix": "rawfunction",

@@ -14,6 +14,7 @@ A comprehensive VSCode extension for the JavaScript-style MDL language, providin
 ### 💡 IntelliSense & Auto-completion
 - Smart completion for all MDL keywords
 - Variable type suggestions (`num`, `str`, `list`)
+- **Explicit scope system support** - Complete scope syntax for variables and functions
 - Control flow keywords (`if`, `else`, `while`, `for`, `switch`, `try`, `catch`)
 - Minecraft command suggestions
 - Entity selector completion
@@ -32,6 +33,12 @@ Comprehensive snippets for all MDL features:
 - `varnum` - Number variable
 - `varstr` - String variable
 - `varlist` - List variable
+- `varscope` - Variable declaration with explicit scope
+- `varnumscope` - Number variable with explicit scope
+- `varaccess` - Variable access with explicit scope
+- `varassign` - Variable assignment with explicit scope
+- `teamvar` - Team-specific variable declaration
+- `teamaccess` - Team variable access
 
 #### Control Flow
 - `if` - If statement
@@ -56,6 +63,7 @@ Comprehensive snippets for all MDL features:
 - `execute` - Execute command
 - `scoreboard` - Scoreboard command
 - `function` - Function call
+- `funcscope` - Function call with explicit scope
 
 #### Lifecycle Hooks
 - `ontick` - On tick hook
@@ -75,6 +83,15 @@ Comprehensive snippets for all MDL features:
 - Code folding support
 - Bracket matching
 - Comment toggling
+
+### 🎯 Explicit Scope System
+The extension provides comprehensive support for MDL's explicit scope system:
+
+- **Variable Declaration Scopes**: `scope<global>`, `scope<@s>`, `scope<@a>`
+- **Variable Access Scopes**: `variable<@s>`, `counter<global>`, `score<@a[team=red]>`
+- **Function Call Scopes**: `function "namespace:func<@a>"`
+- **Team Scopes**: `scope<@a[team=red]>`, `scope<@a[team=blue]>`
+- **Smart Completions**: Context-aware scope suggestions based on current code position
 
 ## Installation
 

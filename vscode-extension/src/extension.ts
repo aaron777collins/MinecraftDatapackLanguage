@@ -50,6 +50,47 @@ export function activate(context: vscode.ExtensionContext) {
         listItem.documentation = 'Declares a list variable stored in multiple scoreboard objectives';
         listItem.insertText = 'list';
         completionItems.push(listItem);
+        
+        // Scope completions for variable declarations
+        const scopeItem = new vscode.CompletionItem('scope<global>', vscode.CompletionItemKind.Keyword);
+        scopeItem.detail = 'Global scope';
+        scopeItem.documentation = 'Declare variable with global scope (server-wide storage)';
+        scopeItem.insertText = 'scope<global>';
+        completionItems.push(scopeItem);
+        
+        const playerScopeItem = new vscode.CompletionItem('scope<@s>', vscode.CompletionItemKind.Keyword);
+        playerScopeItem.detail = 'Player scope';
+        playerScopeItem.documentation = 'Declare variable with player scope (default for most variables)';
+        playerScopeItem.insertText = 'scope<@s>';
+        completionItems.push(playerScopeItem);
+        
+        const allPlayersScopeItem = new vscode.CompletionItem('scope<@a>', vscode.CompletionItemKind.Keyword);
+        allPlayersScopeItem.detail = 'All players scope';
+        allPlayersScopeItem.documentation = 'Declare variable with all players scope';
+        allPlayersScopeItem.insertText = 'scope<@a>';
+        completionItems.push(allPlayersScopeItem);
+      }
+      
+      // Variable access with scope completions
+      if (linePrefix.includes('=') || linePrefix.includes('+') || linePrefix.includes('-') || linePrefix.includes('*') || linePrefix.includes('/')) {
+        // Suggest scope syntax for variable access
+        const globalScopeItem = new vscode.CompletionItem('<global>', vscode.CompletionItemKind.Keyword);
+        globalScopeItem.detail = 'Global scope access';
+        globalScopeItem.documentation = 'Access variable with global scope';
+        globalScopeItem.insertText = '<global>';
+        completionItems.push(globalScopeItem);
+        
+        const playerScopeItem = new vscode.CompletionItem('<@s>', vscode.CompletionItemKind.Keyword);
+        playerScopeItem.detail = 'Player scope access';
+        playerScopeItem.documentation = 'Access variable with player scope';
+        playerScopeItem.insertText = '<@s>';
+        completionItems.push(playerScopeItem);
+        
+        const allPlayersScopeItem = new vscode.CompletionItem('<@a>', vscode.CompletionItemKind.Keyword);
+        allPlayersScopeItem.detail = 'All players scope access';
+        allPlayersScopeItem.documentation = 'Access variable with all players scope';
+        allPlayersScopeItem.insertText = '<@a>';
+        completionItems.push(allPlayersScopeItem);
       }
       
       // Control flow keywords
@@ -143,6 +184,27 @@ export function activate(context: vscode.ExtensionContext) {
         item.insertText = cmd.name;
         completionItems.push(item);
       });
+      
+      // Function call scope completions
+      if (linePrefix.includes('function') && linePrefix.includes('"')) {
+        const functionGlobalScopeItem = new vscode.CompletionItem('<global>', vscode.CompletionItemKind.Keyword);
+        functionGlobalScopeItem.detail = 'Global scope function call';
+        functionGlobalScopeItem.documentation = 'Execute function as global scope (server)';
+        functionGlobalScopeItem.insertText = '<global>';
+        completionItems.push(functionGlobalScopeItem);
+        
+        const functionPlayerScopeItem = new vscode.CompletionItem('<@s>', vscode.CompletionItemKind.Keyword);
+        functionPlayerScopeItem.detail = 'Player scope function call';
+        functionPlayerScopeItem.documentation = 'Execute function as current player';
+        functionPlayerScopeItem.insertText = '<@s>';
+        completionItems.push(functionPlayerScopeItem);
+        
+        const functionAllPlayersScopeItem = new vscode.CompletionItem('<@a>', vscode.CompletionItemKind.Keyword);
+        functionAllPlayersScopeItem.detail = 'All players scope function call';
+        functionAllPlayersScopeItem.documentation = 'Execute function as all players';
+        functionAllPlayersScopeItem.insertText = '<@a>';
+        completionItems.push(functionAllPlayersScopeItem);
+      }
       
       // Entity selectors
       const selectors = [
