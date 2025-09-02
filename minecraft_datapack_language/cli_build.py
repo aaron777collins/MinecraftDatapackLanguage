@@ -13,7 +13,7 @@ from .mdl_parser_js import parse_mdl_js
 from .expression_processor import ExpressionProcessor
 from .dir_map import get_dir_map
 from .pack import Pack, Namespace, Function, Tag, Recipe, Advancement, LootTable, Predicate, ItemModifier, Structure
-from .mdl_errors import MDLErrorCollector, create_error, MDLFileError, MDLSyntaxError, MDLParserError, MDLLexerError
+from .mdl_errors import MDLErrorCollector, create_error, MDLBuildError, MDLFileError, MDLCompilationError, MDLSyntaxError, MDLParserError, MDLLexerError
 from .cli_utils import ensure_dir, write_json, _process_variable_substitutions, _convert_condition_to_minecraft_syntax, _find_mdl_files, _validate_selector, _resolve_selector, _extract_base_variable_name, _slugify
 from .cli_colors import (
     print_success, print_warning, print_error, print_info,
@@ -70,7 +70,7 @@ def _merge_mdl_files(files: List[Path], verbose: bool = False, error_collector: 
     except Exception as e:
         if error_collector:
             error_collector.add_error(create_error(
-                MDLSyntaxError,
+                MDLCompilationError,
                 f"Failed to parse {files[0]}: {str(e)}",
                 file_path=str(files[0]),
                 suggestion="Check the file syntax and ensure it's a valid MDL file."
@@ -142,12 +142,12 @@ def _merge_mdl_files(files: List[Path], verbose: bool = False, error_collector: 
             return None
         except Exception as e:
             if error_collector:
-                            error_collector.add_error(create_error(
-                MDLSyntaxError,
-                f"Failed to parse {file_path}: {str(e)}",
-                file_path=str(file_path),
-                suggestion="Check the file syntax and ensure it's a valid MDL file."
-            ))
+                error_collector.add_error(create_error(
+                    MDLCompilationError,
+                    f"Failed to parse {file_path}: {str(e)}",
+                    file_path=str(file_path),
+                    suggestion="Check the file syntax and ensure it's a valid MDL file."
+                ))
             else:
                 raise
             return None
@@ -1058,7 +1058,7 @@ def build_mdl(input_path: str, output_path: str, verbose: bool = False, pack_for
         error_collector.add_error(e)
         error_collector.print_errors(verbose=True, ignore_warnings=ignore_warnings)
         error_collector.raise_if_errors()
-    except MDLFileError as e:
+    except MDLBuildError as e:
         error_collector.add_error(e)
         error_collector.print_errors(verbose=True, ignore_warnings=ignore_warnings)
         error_collector.raise_if_errors()
@@ -1066,13 +1066,13 @@ def build_mdl(input_path: str, output_path: str, verbose: bool = False, pack_for
         error_collector.add_error(e)
         error_collector.print_errors(verbose=True, ignore_warnings=ignore_warnings)
         error_collector.raise_if_errors()
-    except MDLSyntaxError as e:
+    except MDLCompilationError as e:
         error_collector.add_error(e)
         error_collector.print_errors(verbose=True, ignore_warnings=ignore_warnings)
         error_collector.raise_if_errors()
     except Exception as e:
         error_collector.add_error(create_error(
-            MDLFileError,
+            MDLBuildError,
             f"Unexpected error during build: {str(e)}",
             suggestion="Check the input files and try again. If the problem persists, report this as a bug."
         ))
