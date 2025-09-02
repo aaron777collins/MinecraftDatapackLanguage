@@ -176,11 +176,10 @@ class MDLLexer:
         
         # Handle identifiers and keywords
         if char.isalpha() or char == '_':
-            # Special handling for 'say' command - but be more careful about context
+            # Special handling for 'say' command
             if (char == 's' and 
                 self.current + 2 < len(source) and 
-                source[self.current:self.current + 3] == 'say' and
-                not self._is_inside_control_structure(source)):
+                source[self.current:self.current + 3] == 'say'):
                 self._scan_say_command(source)
                 return
             else:
