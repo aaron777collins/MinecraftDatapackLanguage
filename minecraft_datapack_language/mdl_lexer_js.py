@@ -482,6 +482,8 @@ class MDLLexer:
     
     def _scan_say_command(self, source: str):
         """Scan a say command and its content until semicolon."""
+        print(f"DEBUG: _scan_say_command called at position {self.current}, char: {source[self.current:self.current+10]}")
+        
         # Consume 'say'
         self.current += 3
         self.column += 3
@@ -499,6 +501,8 @@ class MDLLexer:
                 self.column += 1
             self.current += 1
         
+        print(f"DEBUG: After whitespace, position {self.current}, char: {source[self.current:self.current+20]}")
+        
         # Scan content until we find a semicolon, but preserve $variable$ syntax
         content_parts = []
         while self.current < len(source):
@@ -510,6 +514,7 @@ class MDLLexer:
             
             # Check for variable substitution syntax
             if char == '$':
+                print(f"DEBUG: Found $ at position {self.current}")
                 # This might be the start of a variable substitution
                 # Look ahead to see if it's a valid variable name
                 temp_current = self.current + 1
@@ -522,11 +527,14 @@ class MDLLexer:
                     variable_name += source[temp_current]
                     temp_current += 1
                 
+                print(f"DEBUG: Variable name: '{variable_name}', next char: '{source[temp_current] if temp_current < len(source) else 'EOF'}'")
+                
                 # Check if we have a valid variable substitution
                 if (variable_name and 
                     temp_current < len(source) and 
                     source[temp_current] == '$' and
                     (not variable_name[0].isdigit())):
+                    print(f"DEBUG: Valid variable substitution: ${variable_name}$")
                     # This is a valid variable substitution, preserve the $variable$ syntax
                     content_parts.append(char)
                     content_parts.append(variable_name)
@@ -566,6 +574,7 @@ class MDLLexer:
         # Create the say command token with full content
         content = ''.join(content_parts).strip()
         full_command = f"say {content};"
+        print(f"DEBUG: Final say command: '{full_command}'")
         self.tokens.append(Token(TokenType.SAY, full_command, say_start_line, say_start_column))
     
     def _scan_execute_command(self, source: str):
