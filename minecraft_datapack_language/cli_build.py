@@ -401,6 +401,8 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
         then_body = statement['then_body']
         else_body = statement.get('else_body', [])
         
+        print(f"DEBUG: If statement condition from AST: {repr(condition)}")
+        
         # Convert condition to Minecraft syntax
         minecraft_condition = _convert_condition_to_minecraft_syntax(condition, selector, variable_scopes)
         
