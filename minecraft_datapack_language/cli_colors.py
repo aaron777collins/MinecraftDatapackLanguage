@@ -163,7 +163,7 @@ class ColorFormatter:
     
     def code(self, text: str) -> str:
         """Format code or technical text."""
-        return self._format(text, Colors.BRIGHT_WHITE, Colors.BG_BRIGHT_BLACK)
+        return self._format(text, Colors.BRIGHT_YELLOW, Colors.BG_BLACK)
     
     def file_path(self, text: str) -> str:
         """Format file paths."""
