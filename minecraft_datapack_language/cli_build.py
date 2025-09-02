@@ -482,6 +482,11 @@ def _generate_function_file(ast: Dict[str, Any], output_dir: Path, namespace: st
                 var_scope = var_decl.get('scope')
                 if var_scope:
                     variable_scopes[var_name] = var_scope
+                    print(f"DEBUG: Variable {var_name} has scope {var_scope}")
+                else:
+                    print(f"DEBUG: Variable {var_name} has no scope (defaults to @s)")
+        
+        print(f"DEBUG: Collected variable scopes: {variable_scopes}")
         
         # Generate function content
         function_commands = []
