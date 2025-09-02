@@ -610,6 +610,15 @@ class MDLParser:
                     suggestion="Use format: function \"namespace:function_name<@selector>\""
                 )
         
+        # Extract function name from namespace:function_name format
+        if ':' in name:
+            namespace_parts = name.split(':', 1)
+            if len(namespace_parts) == 2:
+                namespace_name = namespace_parts[0]
+                function_name = namespace_parts[1]
+                # Store both namespace and function name
+                return {"type": "function_call", "name": function_name, "scope": scope, "namespace": namespace_name}
+        
         self._match(TokenType.SEMICOLON)
         
         return {"type": "function_call", "name": name, "scope": scope}
