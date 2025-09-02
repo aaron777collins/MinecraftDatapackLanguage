@@ -570,11 +570,10 @@ class MDLLexer:
         self.current += 1
         self.column += 1
         
-        # Create the say command token with full content
+        # Create the say command token with content (without semicolon)
         content = ''.join(content_parts).strip()
-        full_command = f"say {content};"
-        print(f"DEBUG: Final say command: '{full_command}'")
-        self.tokens.append(Token(TokenType.SAY, full_command, say_start_line, say_start_column))
+        print(f"DEBUG: Final say command content: '{content}'")
+        self.tokens.append(Token(TokenType.SAY, content, say_start_line, say_start_column))
     
     def _scan_execute_command(self, source: str):
         """Scan an execute command and its content until semicolon."""
