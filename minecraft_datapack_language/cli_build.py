@@ -176,7 +176,7 @@ def _generate_scoreboard_objectives(ast: Dict[str, Any], output_dir: Path) -> Li
             if 'body' in func:
                 for statement in func['body']:
                     # Look for variable assignments and usage
-                    if statement['type'] == 'variable_assignment':
+                    if statement['type'] in ['variable_assignment', 'explicit_scope_assignment']:
                         if statement['name'] not in seen_variables:
                             variables.append(statement['name'])
                             seen_variables.add(statement['name'])
@@ -280,8 +280,7 @@ def _process_say_command_with_variables(content: str, selector: str, variable_sc
                 var_selector = var_parts[1][:-1]  # Remove trailing >
                 components.append(f'{{"score":{{"name":"{var_selector}","objective":"{base_var}"}}}}')
             else:
-                # Simple variable: $variable$ - determine selector based on declared scope
-                var_selector = "@e[type=armor_stand,tag=mdl_server,limit=1]"  # Default to global
+                # Simple variable: $variable$ - use declared scope if available, otherwise default to current selector
                 if variable_scopes and var_name in variable_scopes:
                     declared_scope = variable_scopes[var_name]
                     if declared_scope == 'global':
@@ -290,7 +289,8 @@ def _process_say_command_with_variables(content: str, selector: str, variable_sc
                         var_selector = declared_scope
                     print(f"DEBUG: Variable {var_name} using declared scope {declared_scope} -> selector {var_selector}")
                 else:
-                    print(f"DEBUG: Variable {var_name} has no declared scope, using default global selector")
+                    var_selector = selector  # Use current selector (@s)
+                    print(f"DEBUG: Variable {var_name} has no declared scope, using default selector {var_selector}")
                 
                 components.append(f'{{"score":{{"name":"{var_selector}","objective":"{var_name}"}}}}')
     
@@ -336,16 +336,25 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
         var_name = statement['name']
         value = statement['value']
         
-        # Determine the correct selector for this variable based on its declared scope
-        var_selector = selector  # Default to current selector
-        if variable_scopes and var_name in variable_scopes:
-            declared_scope = variable_scopes[var_name]
-            if declared_scope == 'global':
-                var_selector = "@e[type=armor_stand,tag=mdl_server,limit=1]"
-            else:
-                var_selector = declared_scope
-        print(f"DEBUG: Variable {var_name} assignment using selector: {var_selector} (declared scope: {variable_scopes.get(var_name, 'none')})")
+        # For implicit assignments, always default to @s (current entity)
+        # Declared scopes only affect variable substitutions, not assignments
+        var_selector = selector  # Default to current selector (@s)
+        print(f"DEBUG: Variable {var_name} assignment using selector: {var_selector} (implicit scope, ignoring declared scope: {variable_scopes.get(var_name, 'none')})")
+    
+    elif statement['type'] == 'explicit_scope_assignment':
+        var_name = statement['name']
+        value = statement['value']
+        explicit_scope = statement['scope']
         
+        # For explicit scope assignments, use the specified scope
+        if explicit_scope == 'global':
+            var_selector = "@e[type=armor_stand,tag=mdl_server,limit=1]"
+        else:
+            var_selector = explicit_scope
+        print(f"DEBUG: Variable {var_name} assignment using explicit selector: {var_selector}")
+    
+    # Handle assignment value processing for both types
+    if statement['type'] in ['variable_assignment', 'explicit_scope_assignment']:
         # Handle different value types
         if isinstance(value, int):
             commands.append(f"scoreboard players set {var_selector} {var_name} {value}")
@@ -841,22 +850,22 @@ def _ast_to_pack(ast: Dict[str, Any], mdl_files: List[Path]) -> Pack:
                             else:
                                 # Simple function call without scope
                                 function.commands.append(f"function {func_namespace}:{func_name}")
-                        elif statement.get('type') == 'variable_assignment':
+                        elif statement.get('type') in ['variable_assignment', 'explicit_scope_assignment']:
                             # Handle variable assignments
                             var_name = statement['name']
                             value = statement['value']
                             
-                            # Determine selector based on variable scope
-                            var_selector = "@s"  # Default
-                            if 'variables' in ast:
-                                for var_decl in ast['variables']:
-                                    if var_decl.get('name') == var_name:
-                                        var_scope = var_decl.get('scope')
-                                        if var_scope == 'global':
-                                            var_selector = "@e[type=armor_stand,tag=mdl_server,limit=1]"
-                                        elif var_scope:
-                                            var_selector = var_scope
-                                        break
+                            # Determine selector based on assignment type
+                            if statement.get('type') == 'explicit_scope_assignment':
+                                # Explicit scope assignment - use specified scope
+                                explicit_scope = statement['scope']
+                                if explicit_scope == 'global':
+                                    var_selector = "@e[type=armor_stand,tag=mdl_server,limit=1]"
+                                else:
+                                    var_selector = explicit_scope
+                            else:
+                                # Implicit assignment - always default to @s
+                                var_selector = "@s"
                             
                             if hasattr(value, 'value'):
                                 # Simple literal value
