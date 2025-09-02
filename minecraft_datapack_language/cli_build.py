@@ -805,29 +805,29 @@ def _ast_to_pack(ast: Dict[str, Any], mdl_files: List[Path]) -> Pack:
                             else:
                                 # Simple function call without scope
                                 function.commands.append(f"function {func_namespace}:{func_name}")
-                                                 elif statement.get('type') == 'variable_assignment':
-                             # Handle variable assignments
-                             var_name = statement['name']
-                             value = statement['value']
-                             
-                             # Determine selector based on variable scope
-                             var_selector = "@s"  # Default
-                             if 'variables' in ast:
-                                 for var_decl in ast['variables']:
-                                     if var_decl.get('name') == var_name:
-                                         var_scope = var_decl.get('scope')
-                                         if var_scope == 'global':
-                                             var_selector = "@e[type=armor_stand,tag=mdl_server,limit=1]"
-                                         elif var_scope:
-                                             var_selector = var_scope
-                                         break
-                             
-                             if hasattr(value, 'value'):
-                                 # Simple literal value
-                                 function.commands.append(f"scoreboard players set {var_name} {var_selector} {value.value}")
-                             else:
-                                 # Complex expression - add a placeholder
-                                 function.commands.append(f"# Variable assignment: {var_name} = {value}")
+                        elif statement.get('type') == 'variable_assignment':
+                            # Handle variable assignments
+                            var_name = statement['name']
+                            value = statement['value']
+                            
+                            # Determine selector based on variable scope
+                            var_selector = "@s"  # Default
+                            if 'variables' in ast:
+                                for var_decl in ast['variables']:
+                                    if var_decl.get('name') == var_name:
+                                        var_scope = var_decl.get('scope')
+                                        if var_scope == 'global':
+                                            var_selector = "@e[type=armor_stand,tag=mdl_server,limit=1]"
+                                        elif var_scope:
+                                            var_selector = var_scope
+                                        break
+                            
+                            if hasattr(value, 'value'):
+                                # Simple literal value
+                                function.commands.append(f"scoreboard players set {var_name} {var_selector} {value.value}")
+                            else:
+                                # Complex expression - add a placeholder
+                                function.commands.append(f"# Variable assignment: {var_name} = {value}")
                         else:
                             # Add a placeholder for other statement types
                             function.commands.append(f"# Statement: {statement.get('type', 'unknown')}")
