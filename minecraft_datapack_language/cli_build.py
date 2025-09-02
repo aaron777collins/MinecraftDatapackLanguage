@@ -314,6 +314,7 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
             # Convert say command to tellraw command
             content = command[4:]  # Remove "say " prefix
             print(f"DEBUG: Say command content: {repr(content)}")
+            print(f"DEBUG: Raw command from AST: {repr(statement['command'])}")
             # Convert to Minecraft tellraw format
             processed_command = _process_say_command_with_variables(content, selector, variable_scopes)
             print(f"DEBUG: Processed say command: {repr(processed_command)}")
