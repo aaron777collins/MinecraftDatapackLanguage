@@ -499,7 +499,7 @@ class MDLLexer:
                 self.column += 1
             self.current += 1
         
-        # Scan content until we find a semicolon
+        # Scan content until we find a semicolon, but preserve $variable$ syntax
         content_parts = []
         while self.current < len(source):
             char = source[self.current]
@@ -507,6 +507,35 @@ class MDLLexer:
             if char == ';':
                 # Found the end of the say command
                 break
+            
+            # Check for variable substitution syntax
+            if char == '$':
+                # This might be the start of a variable substitution
+                # Look ahead to see if it's a valid variable name
+                temp_current = self.current + 1
+                temp_column = self.column + 1
+                variable_name = ""
+                
+                # Scan potential variable name
+                while (temp_current < len(source) and 
+                       (source[temp_current].isalnum() or source[temp_current] == '_')):
+                    variable_name += source[temp_current]
+                    temp_current += 1
+                
+                # Check if we have a valid variable substitution
+                if (variable_name and 
+                    temp_current < len(source) and 
+                    source[temp_current] == '$' and
+                    (not variable_name[0].isdigit())):
+                    # This is a valid variable substitution, preserve the $variable$ syntax
+                    content_parts.append(char)
+                    content_parts.append(variable_name)
+                    content_parts.append('$')
+                    
+                    # Update position
+                    self.current = temp_current + 1
+                    self.column = temp_current + 1
+                    continue
             
             # Add character to content
             content_parts.append(char)
