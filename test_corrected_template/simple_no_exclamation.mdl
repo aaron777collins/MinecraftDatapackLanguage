@@ -1,9 +1,0 @@
-pack "simple_no_exclamation" "Simple test without exclamation" 82;
-namespace "simple_no_exclamation";
-
-function "main" {
-    say Hello from simple test;
-    say This should work;
-}
-
-on_load "simple_no_exclamation:main";

@@ -1,1 +1,0 @@
-tellraw @a [{"text":"Hello from execute test !"}]
