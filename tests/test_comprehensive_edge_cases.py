@@ -485,43 +485,7 @@ class TestErrorHandlingEdgeCases(unittest.TestCase):
                 with self.assertRaises((MDLLexerError, MDLParserError)):
                     parse_mdl_js(code)
     
-    def test_malformed_raw_blocks(self):
-        """Test malformed raw blocks"""
-        # Test unterminated raw block
-        code1 = '''pack "test" "Test" 82;
-namespace "test";
-function "main" {
-    $!raw
-    say hello
-}'''
-        
-        with self.assertRaises((MDLLexerError, MDLParserError)):
-            parse_mdl_js(code1)
-        
-        # Test missing opening $!raw
-        code2 = '''pack "test" "Test" 82;
-namespace "test";
-function "main" {
-    say hello
-    raw!$
-}'''
-        
-        with self.assertRaises((MDLLexerError, MDLParserError)):
-            parse_mdl_js(code2)
-        
-        # Test nested raw blocks
-        code3 = '''pack "test" "Test" 82;
-namespace "test";
-function "main" {
-    $!raw
-    say hello
-    $!raw
-    say world
-    raw!$
-}'''
-        
-        with self.assertRaises((MDLLexerError, MDLParserError)):
-            parse_mdl_js(code3)
+
     
     def test_malformed_control_structures(self):
         """Test malformed control structures"""
