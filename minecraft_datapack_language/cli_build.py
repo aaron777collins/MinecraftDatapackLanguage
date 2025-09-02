@@ -218,7 +218,7 @@ def _generate_load_function(scoreboard_commands: List[str], output_dir: Path, na
         f.write('\n'.join(load_content))
 
 
-def _process_say_command_with_variables(content: str, selector: str) -> str:
+def _process_say_command_with_variables(content: str, selector: str, variable_scopes: Dict[str, str] = None) -> str:
     """Process say command content with variable substitution, converting to tellraw with score components."""
     import re
     
@@ -229,7 +229,33 @@ def _process_say_command_with_variables(content: str, selector: str) -> str:
     if content.startswith('"') and content.endswith('"'):
         content = content[1:-1]  # Remove surrounding quotes
     
-    # Find all variable references like $variable$ or $variable<selector>$
+    # First, check for MDL-style variable references (no $ symbols)
+    # Look for common variable names that might be in the content
+    if variable_scopes:
+        for var_name, var_scope in variable_scopes.items():
+            if var_name in content:
+                # Found a variable reference, convert to score component
+                if var_scope == 'global':
+                    var_selector = "@e[type=armor_stand,tag=mdl_server,limit=1]"
+                else:
+                    var_selector = var_scope
+                
+                # Split content around the variable
+                parts = content.split(var_name)
+                if len(parts) == 2:
+                    # Build tellraw components
+                    components = []
+                    if parts[0]:  # Text before variable
+                        components.append(f'{{"text":"{parts[0]}"}}')
+                    # Variable as score component
+                    components.append(f'{{"score":{{"name":"{var_selector}","objective":"{var_name}"}}}}')
+                    if parts[1]:  # Text after variable
+                        components.append(f'{{"text":"{parts[1]}"}}')
+                    
+                    components_str = ','.join(components)
+                    return f'tellraw @a [{components_str}]'
+    
+    # Fallback: Look for traditional $variable$ syntax
     var_pattern = r'\$([^$]+)\$'
     matches = re.findall(var_pattern, content)
     
@@ -303,7 +329,7 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
             content = command[4:]  # Remove "say " prefix
             print(f"DEBUG: Say command content: {repr(content)}")
             # Convert to Minecraft tellraw format
-            processed_command = _process_say_command_with_variables(content, selector)
+            processed_command = _process_say_command_with_variables(content, selector, variable_scopes)
             print(f"DEBUG: Processed say command: {repr(processed_command)}")
             commands.append(processed_command)
         elif command.startswith('tellraw @a ') or command.startswith('tellraw @ a '):
