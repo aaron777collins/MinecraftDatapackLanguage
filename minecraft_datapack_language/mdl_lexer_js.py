@@ -566,7 +566,7 @@ class MDLLexer:
                 suggestion="Add a semicolon (;) to terminate the say command"
             )
         
-        # Consume the semicolon
+        # Consume the semicolon and add it as a separate token
         self.current += 1
         self.column += 1
         
@@ -574,6 +574,9 @@ class MDLLexer:
         content = ''.join(content_parts).strip()
         print(f"DEBUG: Final say command content: '{content}'")
         self.tokens.append(Token(TokenType.SAY, content, say_start_line, say_start_column))
+        
+        # Add the semicolon as a separate token
+        self.tokens.append(Token(TokenType.SEMICOLON, ';', self.line, self.column))
     
     def _scan_execute_command(self, source: str):
         """Scan an execute command and its content until semicolon."""
