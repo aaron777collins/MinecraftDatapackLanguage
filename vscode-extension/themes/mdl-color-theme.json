@@ -111,6 +111,39 @@
       }
     },
     {
+      "name": "Scoped Selectors",
+      "scope": [
+        "entity.name.selector.scoped",
+        "entity.name.selector.scoped.mdl"
+      ],
+      "settings": {
+        "foreground": "#ffa657",
+        "fontStyle": "bold"
+      }
+    },
+    {
+      "name": "Selector Arguments",
+      "scope": [
+        "entity.name.selector.arguments",
+        "entity.name.selector.arguments.mdl"
+      ],
+      "settings": {
+        "foreground": "#ffa657",
+        "fontStyle": "italic"
+      }
+    },
+    {
+      "name": "Function Selectors",
+      "scope": [
+        "entity.name.selector.function",
+        "entity.name.selector.function.mdl"
+      ],
+      "settings": {
+        "foreground": "#ffa657",
+        "fontStyle": "bold"
+      }
+    },
+    {
       "name": "Section Names",
       "scope": [
         "entity.name.section",

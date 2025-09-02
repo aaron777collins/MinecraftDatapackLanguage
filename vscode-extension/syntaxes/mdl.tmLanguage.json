@@ -73,7 +73,39 @@
     },
     {
       "name": "entity.name.selector.mdl",
-      "match": "\\b(@p|@r|@a|@e|@s)\\b"
+      "match": "(@p|@r|@a|@e|@s|@initiator|@c|@v|@d|@w)"
+    },
+    {
+      "name": "entity.name.selector.scoped.mdl",
+      "begin": "(@p|@r|@a|@e|@s|@initiator|@c|@v|@d|@w)",
+      "end": "(?=>)",
+      "beginCaptures": {
+        "1": {
+          "name": "entity.name.selector.mdl"
+        }
+      },
+      "patterns": [
+        {
+          "name": "entity.name.selector.arguments.mdl",
+          "match": "\\[([^\\]]*)\\]"
+        }
+      ]
+    },
+    {
+      "name": "entity.name.selector.function.mdl",
+      "begin": "function\\s+\"[^\"]*<(@p|@r|@a|@e|@s|@initiator|@c|@v|@d|@w)",
+      "end": "(?=>)",
+      "beginCaptures": {
+        "1": {
+          "name": "entity.name.selector.mdl"
+        }
+      },
+      "patterns": [
+        {
+          "name": "entity.name.selector.arguments.mdl",
+          "match": "\\[([^\\]]*)\\]"
+        }
+      ]
     },
     {
       "name": "string.raw.mdl",
