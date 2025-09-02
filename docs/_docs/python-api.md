@@ -4,7 +4,7 @@ title: Python API
 permalink: /docs/python-api/
 ---
 
-The MDL Python API provides a clean, programmatic way to create Minecraft datapacks. It's fully compatible with the new JavaScript-style MDL language and supports all advanced features including variables, control flow, and complex nesting.
+The MDL Python API provides a clean, programmatic way to create Minecraft datapacks. It's fully compatible with the new JavaScript-style MDL language and supports all advanced features including variables, control flow, complex nesting, and the explicit scope system.
 
 ## Quick Start
 
@@ -121,7 +121,7 @@ def create_particle_pack():
 
 ### Variables and Control Flow
 
-The Python API supports all the advanced features of the JavaScript-style MDL language:
+The Python API supports all the advanced features of the JavaScript-style MDL language including the explicit scope system:
 
 ```python
 from minecraft_datapack_language import Pack
@@ -131,36 +131,35 @@ def create_advanced_pack():
     
     ns = p.namespace("advanced")
     
-    # Functions with variables and control flow
+    # Functions with variables and control flow using explicit scopes
     ns.function("variable_demo",
-        "scoreboard players set @s counter 10",
-        "scoreboard players add @s counter 5",
-        "execute if score @s counter matches 15 run say Counter is 15!",
-        "execute if score @s counter matches 15 run scoreboard players remove @s counter 5"
+        "var num counter scope<global> = 0",
+        "counter<global> = 10",
+        "counter<global> = counter<global> + 5",
+        "if \"$counter$ >= 15\" {",
+        "    say Counter is 15!",
+        "    counter<global> = counter<global> - 5",
+        "}",
+        "say Counter is 15!"
     )
     
     ns.function("control_flow_demo",
-        "execute if entity @s[type=minecraft:player] run say Player detected",
-        "execute if entity @s[type=minecraft:player] run effect give @s minecraft:glowing 5 1",
-        "execute unless entity @s[type=minecraft:player] run say No player found"
+        "var num playerHealth = 20",
+        "if \"$playerHealth$ < 10\" {",
+        "    say Health is low!",
+        "    playerHealth<@s> = playerHealth<@s> + 5",
+        "} else {",
+        "    say Health is good",
+        "}"
     )
     
     ns.function("loop_demo",
-        "scoreboard players set @s countdown 5",
-        "execute if score @s countdown matches 1.. run function advanced:loop_body",
-        "execute if score @s countdown matches 1.. run function advanced:loop_control"
-    )
-    
-    # Loop body function
-    ns.function("loop_body",
-        "say Countdown: @s countdown",
-        "scoreboard players remove @s countdown 1"
-    )
-    
-    # Loop control function
-    ns.function("loop_control",
-        "execute if score @s countdown matches 1.. run function advanced:loop_body",
-        "execute if score @s countdown matches 1.. run function advanced:loop_control"
+        "var num countdown scope<global> = 5",
+        "while \"$countdown$ > 0\" {",
+        "    say Countdown: $countdown$",
+        "    countdown<global> = countdown<global> - 1",
+        "}",
+        "say Blast off!"
     )
     
     p.on_tick("advanced:variable_demo")
@@ -420,7 +419,7 @@ def create_robust_pack():
 
 ## Complete Example
 
-Here's a complete example that demonstrates all features:
+Here's a complete example that demonstrates all features including the new explicit scope system:
 
 ```python
 from minecraft_datapack_language import Pack
@@ -434,13 +433,18 @@ def create_complete_pack():
     # Core namespace
     core = p.namespace("core")
     core.function("init",
+        "var num gameState scope<global> = 0",
+        "var num playerLevel = 1",
+        "gameState<global> = 0",
+        "playerLevel<@s> = 1",
         "say [core:init] Initializing Complete Example...",
         "tellraw @a {\"text\":\"Complete Example loaded!\",\"color\":\"green\"}",
         "scoreboard objectives add example_counter dummy \"Example Counter\""
     )
     
     core.function("tick",
-        "say [core:tick] Core systems running...",
+        "gameState<global> = gameState<global> + 1",
+        "say [core:tick] Core systems running... Game state: $gameState$",
         "execute as @a run particle minecraft:end_rod ~ ~ ~ 0.1 0.1 0.1 0.01 1"
     )
     
@@ -459,7 +463,7 @@ def create_complete_pack():
     # UI namespace
     ui = p.namespace("ui")
     ui.function("hud",
-        "title @a actionbar {\"text\":\"Complete Example Active\",\"color\":\"gold\"}"
+        "title @a actionbar {\"text\":\"Complete Example Active - Level: $playerLevel$\",\"color\":\"gold\"}"
     )
     
     ui.function("update_ui",
@@ -501,4 +505,4 @@ if __name__ == "__main__":
     print("Complete example pack built successfully!")
 ```
 
-The Python API provides a powerful, flexible way to create Minecraft datapacks with full support for the JavaScript-style MDL language features.
+The Python API provides a powerful, flexible way to create Minecraft datapacks with full support for the JavaScript-style MDL language features including the new explicit scope system.

@@ -1,0 +1,6 @@
+{
+  "values": [
+    "basic_hello:load",
+    "basic_hello:main"
+  ]
+}

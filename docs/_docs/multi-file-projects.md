@@ -20,7 +20,7 @@ namespace "core";
 var num playerCount scope<global> = 0;
 
 function "init" {
-    playerCount = 0;
+    playerCount<global> = 0;
     say Core system initialized!;
 }
 
@@ -97,7 +97,7 @@ var num mana = 100;  // Defaults to player-specific scope
 
 function "cast_spell" {
     if "$mana$ >= 20" {
-        mana = mana - 20;
+        mana<@s> = mana<@s> - 20;
         say Spell cast! Mana: $mana$;
     }
 }
@@ -133,8 +133,8 @@ var num gameState scope<global> = 0;
 var num playerLevel = 1;  // Defaults to player-specific scope
 
 function "init" {
-    gameState = 0;
-    playerLevel = 1;
+    gameState<global> = 0;
+    playerLevel<@s> = 1;
     say Adventure game initialized!;
 }
 
@@ -153,7 +153,7 @@ function "attack" {
 
 function "heal" {
     if "$playerHealth$ < 20" {
-        playerHealth = playerHealth + 5;
+        playerHealth<@s> = playerHealth<@s> + 5;
         say Healed! Health: $playerHealth$;
     }
 }
@@ -177,14 +177,14 @@ function "update_ui" {
 namespace "game";
 
 function "start" {
-    gameState = 1;
+    gameState<global> = 1;
     say Game started!;
     function "ui:update_ui";
 }
 
 function "level_up" {
     if "$playerLevel$ < 10" {
-        playerLevel = playerLevel + 1;
+        playerLevel<@s> = playerLevel<@s> + 1;
         say Level up! New level: $playerLevel$;
     }
 }
@@ -203,6 +203,7 @@ mdl build --mdl "main.mdl combat.mdl ui.mdl game.mdl" -o dist
 4. **Shared variables**: Declare shared variables in the main file
 5. **Function organization**: Group related functions in the same file
 6. **Proper scoping**: Use `scope<global>` for server-wide variables, no scope for player-specific variables
+7. **Explicit scope access**: Always access variables with their scope like `variable<scope>`
 
 ## File Structure Example
 

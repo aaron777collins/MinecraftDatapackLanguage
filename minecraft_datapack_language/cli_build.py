@@ -585,17 +585,9 @@ def _generate_hook_files(ast: Dict[str, Any], output_dir: Path, namespace: str, 
     if 'pack' in ast and 'name' in ast['pack']:
         pack_name = ast['pack']['name']
         pack_load_function = f"{pack_name}:load"
-        # Debug: Show what we're checking
-        print(f"DEBUG: Pack name: {pack_name}, pack_load_function: {pack_load_function}")
-        print(f"DEBUG: Current load_values: {load_values}")
-        print(f"DEBUG: Is pack_load_function in load_values? {pack_load_function in load_values}")
         # Only add if it's not already in the list (avoids duplicates when pack name == namespace)
         if pack_load_function not in load_values:
             load_values.append(pack_load_function)
-            print(f"DEBUG: Added pack load function: {pack_load_function}")
-        else:
-            # Debug: This should prevent duplicates
-            print(f"DEBUG: Skipping duplicate pack load function: {pack_load_function}")
     
     # Remove duplicates while preserving order
     seen = set()
