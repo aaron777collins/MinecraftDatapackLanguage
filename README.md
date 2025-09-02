@@ -456,6 +456,90 @@ This will create a datapack with:
 
 ---
 
+## 🎯 **Explicit Scope System**
+
+MDL features a powerful **explicit scope system** that makes variable access clear and unambiguous. Each variable access must specify its scope, eliminating hidden state and making code more readable.
+
+### **Variable Declaration Scopes**
+
+```mdl
+// Player-specific variable (defaults to @s in execution context)
+var num playerScore = 0;
+
+// Server-wide variable (stored on server armor stand)
+var num globalCounter scope<global> = 0;
+
+// Team-specific variable
+var num teamScore scope<@a[team=red]> = 0;
+
+// Custom entity variable
+var num entityData scope<@e[type=armor_stand,tag=special,limit=1]> = 0;
+```
+
+### **Variable Access with Explicit Scopes**
+
+```mdl
+// Each variable access must specify the scope
+playerScore<@s> = 42;                    // Player scope
+globalCounter<global> = 100;             // Global scope
+teamScore<@a[team=red]> = 5;            // Team scope
+entityData<@e[type=armor_stand,tag=special,limit=1]> = 10; // Custom entity
+```
+
+### **Explicit Scopes in Conditions**
+
+**NEW!** MDL now supports explicit scope selectors in if/while conditions, allowing you to override declared variable scopes:
+
+```mdl
+function "check_scores" {
+    // Check current player's score
+    if "$playerScore<@s>$ > 10" {
+        say "Your score is high!";
+    }
+    
+    // Check global counter
+    if "$globalCounter<global>$ > 100" {
+        say "Global milestone reached!";
+    }
+    
+    // Check another player's score
+    if "$playerScore<@p[name=Steve]>$ > 20" {
+        say "Steve has a good score!";
+    }
+    
+    // Check team score
+    if "$teamScore<@a[team=red]>$ > 50" {
+        say "Red team is winning!";
+    }
+    
+    // Use explicit scopes in while loops too
+    while "$globalCounter<global>$ < 10" {
+        globalCounter<global> = globalCounter<global> + 1;
+        say "Counter: $globalCounter$";
+    }
+}
+```
+
+**Benefits:**
+- **Override declared scopes**: Use different scopes than what was declared
+- **Check other entities**: Compare scores across different players/teams
+- **Flexible conditions**: Mix and match scopes as needed
+- **Clear intent**: Explicit scope makes code more readable and debuggable
+
+### **Scope Mapping**
+
+MDL maps scopes to Minecraft selectors:
+
+| MDL Scope | Minecraft Selector | Description |
+|-----------|-------------------|-------------|
+| `scope<global>` | `@e[type=armor_stand,tag=mdl_server,limit=1]` | Server-wide storage |
+| `scope<@s>` | `@s` | Current player |
+| `scope<@a>` | `@a` | All players |
+| `scope<@a[team=red]>` | `@a[team=red]` | Red team players |
+| `scope<@e[type=armor_stand,tag=something,limit=1]>` | `@e[type=armor_stand,tag=something,limit=1]` | Custom entity |
+
+---
+
 ## 🎯 **Advanced Multi-File Examples with Namespaces**
 
 ### **Modern Namespace System**

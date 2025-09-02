@@ -110,6 +110,34 @@ while "$counter$ < 5" {
 }
 ```
 
+### Explicit Scopes in Conditions
+
+You can override variable scopes in conditions using explicit scope selectors:
+
+```mdl
+// Check current player's score
+if "$playerScore<@s>$ > 50" {
+    say "Your score is high!";
+}
+
+// Check global counter
+if "$globalCounter<global>$ > 100" {
+    say "Global milestone reached!";
+}
+
+// Check another player's score
+if "$playerScore<@p[name=Steve]>$ > 20" {
+    say "Steve has a good score!";
+}
+
+// Check team score
+if "$teamScore<@a[team=red]>$ > 50" {
+    say "Red team is winning!";
+}
+```
+
+This allows you to check variables across different scopes without changing their declared scope.
+
 ### Hooks
 
 Automatically run functions:

@@ -240,4 +240,78 @@ Build all files together:
 mdl build --mdl "main.mdl ui.mdl game.mdl" -o dist
 ```
 
+## Explicit Scopes in Conditions
+
+Demonstrates how to use explicit scope selectors in if/while conditions to override declared variable scopes:
+
+```mdl
+pack "scopes" "Explicit scope conditions example" 82;
+namespace "scopes";
+
+// Variables with different scopes
+var num playerScore = 0;                    // Defaults to @s
+var num globalCounter scope<global> = 0;    // Global scope
+var num teamScore scope<@a[team=red]> = 0;  // Team scope
+
+function "main" {
+    // Test explicit scope overrides in if conditions
+    if "$playerScore<@s>$ > 10" {
+        say "Current player score is high!";
+    }
+    
+    if "$globalCounter<global>$ > 100" {
+        say "Global counter reached milestone!";
+    }
+    
+    if "$teamScore<@a[team=red]>$ > 50" {
+        say "Red team is winning!";
+    }
+    
+    // Check another player's score
+    if "$playerScore<@p[name=Steve]>$ > 5" {
+        say "Steve has a good score!";
+    }
+    
+    // Check if any player has a high score
+    if "$playerScore<@a>$ > 20" {
+        say "Someone has a very high score!";
+    }
+    
+    // Use explicit scopes in while loops too
+    while "$globalCounter<global>$ < 10" {
+        globalCounter<global> = globalCounter<global> + 1;
+        say "Counter: $globalCounter$";
+    }
+}
+
+// Function to test different scopes
+function "test_scopes" {
+    // Set different values for different scopes
+    playerScore<@s> = 15;                    // Current player
+    globalCounter<global> = 150;             // Global
+    teamScore<@a[team=red]> = 75;           // Red team
+    
+    // Test conditions with explicit scopes
+    if "$playerScore<@s>$ > 10" {
+        say "Player score check passed!";
+    }
+    
+    if "$globalCounter<global>$ > 100" {
+        say "Global counter check passed!";
+    }
+    
+    if "$teamScore<@a[team=red]>$ > 50" {
+        say "Team score check passed!";
+    }
+}
+
+on_load "scopes:main";
+```
+
+**Key Features:**
+- **Override declared scopes**: Use `<@s>`, `<global>`, `<@a[team=red]>` in conditions
+- **Check other entities**: Compare scores across different players/teams
+- **Flexible conditions**: Mix and match scopes as needed
+- **Clear intent**: Explicit scope makes code more readable and debuggable
+
 

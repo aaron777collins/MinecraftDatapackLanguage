@@ -315,6 +315,43 @@ my_project/
 mdl build --mdl . -o dist
 ```
 
+### Explicit Scopes in Conditions
+
+MDL supports explicit scope selectors in if/while conditions, allowing you to override declared variable scopes:
+
+```mdl
+// Variables with different scopes
+var num playerScore = 0;                    // Defaults to @s
+var num globalCounter scope<global> = 0;    // Global scope
+var num teamScore scope<@a[team=red]> = 0;  // Team scope
+
+function "main" {
+    // Use explicit scope in conditions
+    if "$playerScore<@s>$ > 10" {
+        say "Current player score is high!";
+    }
+    
+    if "$globalCounter<global>$ > 100" {
+        say "Global counter reached milestone!";
+    }
+    
+    if "$teamScore<@a[team=red]>$ > 50" {
+        say "Red team is winning!";
+    }
+    
+    // Check another player's score
+    if "$playerScore<@p[name=Steve]>$ > 5" {
+        say "Steve has a good score!";
+    }
+}
+```
+
+**Benefits:**
+- **Override declared scopes**: Use different scopes than what was declared
+- **Check other entities**: Compare scores across different players/teams
+- **Flexible conditions**: Mix and match scopes as needed
+- **Clear intent**: Explicit scope makes code more readable
+
 ### Verbose Build
 
 Get detailed information about the build process:

@@ -91,6 +91,7 @@ The extension provides comprehensive support for MDL's explicit scope system:
 - **Variable Access Scopes**: `variable<@s>`, `counter<global>`, `score<@a[team=red]>`
 - **Function Call Scopes**: `function "namespace:func<@a>"`
 - **Team Scopes**: `scope<@a[team=red]>`, `scope<@a[team=blue]>`
+- **Explicit Scopes in Conditions**: `if "$score<@s>$ > 10"`, `while "$counter<global>$ < 100"`
 - **Smart Completions**: Context-aware scope suggestions based on current code position
 
 ## Installation
@@ -191,6 +192,37 @@ switch (counter) {
         break;
 }
 ```
+
+### Explicit Scopes in Conditions
+
+MDL supports explicit scope selectors in if/while conditions to override declared variable scopes:
+
+```mdl
+// Variables with different scopes
+var num playerScore = 0;                    // Defaults to @s
+var num globalCounter scope<global> = 0;    // Global scope
+var num teamScore scope<@a[team=red]> = 0;  // Team scope
+
+// Use explicit scopes in conditions
+if "$playerScore<@s>$ > 10" {
+    say "Current player score is high!";
+}
+
+if "$globalCounter<global>$ > 100" {
+    say "Global counter reached milestone!";
+}
+
+if "$teamScore<@a[team=red]>$ > 50" {
+    say "Red team is winning!";
+}
+
+// Check another player's score
+if "$playerScore<@p[name=Steve]>$ > 5" {
+    say "Steve has a good score!";
+}
+```
+
+This feature allows you to check variables across different scopes without changing their declared scope.
 
 ### Error Handling
 

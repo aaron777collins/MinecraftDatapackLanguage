@@ -120,6 +120,47 @@ function "show_stats" {
 }
 ```
 
+## Explicit Scopes in Conditions
+
+When working with multiple files, you can use explicit scope selectors in conditions to check variables across different scopes:
+
+```mdl
+// core.mdl
+var num globalTimer scope<global> = 0;
+var num playerScore = 0;  // Defaults to player-specific scope
+
+function "check_status" {
+    // Check global timer
+    if "$globalTimer<global>$ > 1000" {
+        say "Game has been running for a while!";
+    }
+    
+    // Check current player's score
+    if "$playerScore<@s>$ > 50" {
+        say "You have a high score!";
+    }
+    
+    // Check if any player has a very high score
+    if "$playerScore<@a>$ > 100" {
+        say "Someone has an amazing score!";
+    }
+}
+```
+
+```mdl
+// ui.mdl
+function "show_leaderboard" {
+    // Compare scores across different players
+    if "$playerScore<@p[name=Alice]>$ > $playerScore<@p[name=Bob]>$" {
+        tellraw @a {"text":"Alice is winning!","color":"green"};
+    } else {
+        tellraw @a {"text":"Bob is winning!","color":"blue"};
+    }
+}
+```
+
+This feature is especially useful in multi-file projects where you need to check variables across different scopes without changing their declared scope.
+
 ## Complete Multi-File Example
 
 Here's a complete example with multiple files:
