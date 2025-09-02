@@ -1,1 +1,7 @@
-{"values": ["variables:main", "variables:load"]}
+{
+  "values": [
+    "variables:load",
+    "variables:main",
+    "variables:load"
+  ]
+}

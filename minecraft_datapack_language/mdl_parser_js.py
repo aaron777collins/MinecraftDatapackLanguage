@@ -589,9 +589,30 @@ class MDLParser:
         name_token = self._match(TokenType.STRING)
         name = name_token.value.strip('"').strip("'")
         
+        # Check for scope selector after function name
+        scope = None
+        if '<' in name and name.endswith('>'):
+            # Extract scope selector from function name
+            parts = name.split('<', 1)
+            if len(parts) == 2:
+                function_name = parts[0]
+                scope_selector = parts[1][:-1]  # Remove closing >
+                scope = scope_selector
+                name = function_name
+            else:
+                # Malformed scope selector
+                raise create_parser_error(
+                    message="Malformed scope selector in function call",
+                    file_path=self.source_file,
+                    line=self._peek().line,
+                    column=self._peek().column,
+                    line_content=name,
+                    suggestion="Use format: function \"namespace:function_name<@selector>\""
+                )
+        
         self._match(TokenType.SEMICOLON)
         
-        return {"type": "function_call", "name": name}
+        return {"type": "function_call", "name": name, "scope": scope}
     
     def _parse_execute_statement(self) -> ExecuteStatement:
         """Parse execute statement."""

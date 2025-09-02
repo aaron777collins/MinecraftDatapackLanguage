@@ -423,8 +423,22 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
     
     elif statement['type'] == 'function_call':
         func_name = statement['name']
-        # Simple function call
-        commands.append(f"function {namespace}:{func_name}")
+        scope = statement.get('scope')
+        
+        if scope:
+            # Handle scoped function call
+            if scope == 'global':
+                # Global scope uses the server armor stand
+                selector = "@e[type=armor_stand,tag=mdl_server,limit=1]"
+            else:
+                # Use the specified scope selector
+                selector = scope
+            
+            # Generate execute as command
+            commands.append(f"execute as {selector} run function {namespace}:{func_name}")
+        else:
+            # Simple function call without scope
+            commands.append(f"function {namespace}:{func_name}")
     
     elif statement['type'] == 'raw_text':
         # Raw Minecraft commands
@@ -748,7 +762,23 @@ def _ast_to_pack(ast: Dict[str, Any], mdl_files: List[Path]) -> Pack:
                         if statement.get('type') == 'command':
                             function.commands.append(statement['command'])
                         elif statement.get('type') == 'function_call':
-                            function.commands.append(f"function {statement['name']}")
+                            func_name = statement['name']
+                            scope = statement.get('scope')
+                            
+                            if scope:
+                                # Handle scoped function call
+                                if scope == 'global':
+                                    # Global scope uses the server armor stand
+                                    selector = "@e[type=armor_stand,tag=mdl_server,limit=1]"
+                                else:
+                                    # Use the specified scope selector
+                                    selector = scope
+                                
+                                # Generate execute as command
+                                function.commands.append(f"execute as {selector} run function {namespace_name}:{func_name}")
+                            else:
+                                # Simple function call without scope
+                                function.commands.append(f"function {namespace_name}:{func_name}")
                         elif statement.get('type') == 'variable_assignment':
                             # Handle variable assignments
                             var_name = statement['name']

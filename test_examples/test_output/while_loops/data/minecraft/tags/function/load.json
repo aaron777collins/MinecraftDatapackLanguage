@@ -1,1 +1,7 @@
-{"values": ["while_loops:main", "while_loops:load"]}
+{
+  "values": [
+    "while_loops:load",
+    "while_loops:main",
+    "while_loops:load"
+  ]
+}

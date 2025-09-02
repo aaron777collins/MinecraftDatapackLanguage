@@ -1,1 +1,7 @@
-{"values": ["scoped_calls:main", "scoped_calls:load"]}
+{
+  "values": [
+    "scoped_calls:load",
+    "scoped_calls:main",
+    "scoped_calls:load"
+  ]
+}

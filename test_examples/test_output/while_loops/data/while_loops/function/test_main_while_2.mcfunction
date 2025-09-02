@@ -1,0 +1,3 @@
+scoreboard players add @s counter 1
+tellraw @a [{"text":"Loop iteration: counter"}]
+execute if score @e[type=armor_stand,tag=mdl_server,limit=1] counter < @e[type=armor_stand,tag=mdl_server,limit=1] maxCount run function while_loops:test_main_while_2

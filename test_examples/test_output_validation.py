@@ -14,10 +14,10 @@ from typing import Dict, List, Any
 
 class MDLOutputTester:
     def __init__(self):
-        self.test_dir = Path("test_examples")
+        self.test_dir = Path(".")
         # Use unique output directory from environment variable if available (for CI)
         # This prevents race conditions when multiple jobs run in parallel
-        test_output_dir = os.environ.get('TEST_OUTPUT_DIR', 'test_examples/test_output')
+        test_output_dir = os.environ.get('TEST_OUTPUT_DIR', 'test_output')
         self.output_dir = Path(test_output_dir)
         self.output_dir.mkdir(exist_ok=True)
         

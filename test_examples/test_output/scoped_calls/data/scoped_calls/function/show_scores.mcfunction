@@ -1,2 +1,3 @@
-tellraw @a [{"text":"Player score: "},{"score":{"name":"@s","objective":"playerScore"}}]
-tellraw @a [{"text":"Global timer: "},{"score":{"name":"@s","objective":"globalTimer"}}]
+execute unless entity @e[type=armor_stand,tag=mdl_server,limit=1] run summon armor_stand ~ 320 ~ {Tags:["mdl_server"],Invisible:1b,Marker:1b,NoGravity:1b,Invulnerable:1b}
+tellraw @a [{"text":"Player score: playerScore"}]
+tellraw @a [{"text":"Global timer: globalTimer"}]
