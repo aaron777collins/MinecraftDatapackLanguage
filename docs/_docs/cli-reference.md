@@ -219,9 +219,9 @@ MDL provides comprehensive error handling and reporting:
 Error 1: MDLSyntaxError in test.mdl:15:8
 Missing closing brace for if statement
 Context:
-  13:   if (score > 10) {
+  13:   if "$score<@s>$ > 10" {
   14:     say "High score!"
-  15:     score = 0
+  15:     score<@s> = 0
   16:   }
 
 Suggestion: Add closing brace '}' after line 15

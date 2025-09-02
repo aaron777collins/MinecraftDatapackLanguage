@@ -402,7 +402,7 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
         else_body = statement.get('else_body', [])
         
         # Convert condition to Minecraft syntax
-        minecraft_condition = _convert_condition_to_minecraft_syntax(condition, selector)
+        minecraft_condition = _convert_condition_to_minecraft_syntax(condition, selector, variable_scopes)
         
         # Generate unique function names for conditional blocks
         if_func_name = f"{function_name}_if_{statement_index}"
@@ -705,7 +705,7 @@ def _process_while_loop_recursion(while_statement, namespace: str, function_name
         body_commands.extend(_process_statement(stmt, namespace, loop_func_name, i, is_tag_function, selector, variable_scopes, build_context, output_dir))
     
     # Add the recursive call to the loop body
-    minecraft_condition = _convert_condition_to_minecraft_syntax(condition, selector)
+    minecraft_condition = _convert_condition_to_minecraft_syntax(condition, selector, variable_scopes)
     body_commands.append(f"execute if {minecraft_condition} run function {namespace}:{loop_func_name}")
     
     # Write the single loop function
@@ -744,7 +744,7 @@ def _process_while_loop_schedule(while_statement, namespace: str, function_name:
         body_commands.extend(_process_statement(stmt, namespace, loop_body_func_name, i, is_tag_function, selector, variable_scopes, build_context))
     
     # Add the loop continuation command
-    minecraft_condition = _convert_condition_to_minecraft_syntax(condition, selector)
+    minecraft_condition = _convert_condition_to_minecraft_syntax(condition, selector, variable_scopes)
     body_commands.append(f"execute {minecraft_condition} run schedule function {namespace}:{loop_body_func_name} 1t")
     
     # Write loop body function

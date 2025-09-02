@@ -1,0 +1,1 @@
+tellraw @a [{"text":"Red team score is high!"}]

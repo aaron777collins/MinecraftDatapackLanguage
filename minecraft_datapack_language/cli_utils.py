@@ -118,7 +118,7 @@ def _process_variable_substitutions(command: str, selector: str = "@s") -> str:
     return command
 
 
-def _convert_condition_to_minecraft_syntax(condition: str, selector: str = "@s") -> str:
+def _convert_condition_to_minecraft_syntax(condition: str, selector: str = "@s", variable_scopes: dict = None) -> str:
     """Convert MDL condition syntax to Minecraft scoreboard syntax."""
     # Remove extra whitespace and normalize
     condition = condition.strip()
@@ -130,13 +130,30 @@ def _convert_condition_to_minecraft_syntax(condition: str, selector: str = "@s")
     # Replace variable references with proper scoreboard syntax
     def replace_var(match):
         var_name = match.group(1)
-        # Remove scope selector if present
+        print(f"DEBUG: Processing variable in condition: '{var_name}'")
+        # Check if variable has explicit scope selector
         if '<' in var_name and var_name.endswith('>'):
             var_parts = var_name.split('<', 1)
             base_var = var_parts[0]
-            return f"@e[type=armor_stand,tag=mdl_server,limit=1] {base_var}"
+            scope_selector = var_parts[1][:-1]  # Remove trailing >
+            print(f"DEBUG: Found explicit scope: base_var='{base_var}', scope_selector='{scope_selector}'")
+            # Resolve special selectors
+            if scope_selector == "global":
+                scope_selector = "@e[type=armor_stand,tag=mdl_server,limit=1]"
+            result = f"{scope_selector} {base_var}"
+            print(f"DEBUG: Returning scoped result: '{result}'")
+            return result
         else:
-            return f"@e[type=armor_stand,tag=mdl_server,limit=1] {var_name}"
+            # Use declared scope if available, otherwise default to current selector
+            if variable_scopes and var_name in variable_scopes:
+                declared_scope = variable_scopes[var_name]
+                if declared_scope == 'global':
+                    return f"@e[type=armor_stand,tag=mdl_server,limit=1] {var_name}"
+                else:
+                    return f"{declared_scope} {var_name}"
+            else:
+                # Default to current selector
+                return f"{selector} {var_name}"
     
     # Apply variable substitution
     condition = re.sub(var_pattern, replace_var, condition)
