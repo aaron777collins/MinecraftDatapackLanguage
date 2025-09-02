@@ -581,13 +581,32 @@ def _generate_hook_files(ast: Dict[str, Any], output_dir: Path, namespace: str, 
             if hook['hook_type'] == 'load':
                 load_values.append(hook['function_name'])
     
-    # Add pack-specific load function if pack name is available
+    # Add pack-specific load function if pack name is available and different from namespace
     if 'pack' in ast and 'name' in ast['pack']:
         pack_name = ast['pack']['name']
-        load_values.append(f"{pack_name}:load")
+        pack_load_function = f"{pack_name}:load"
+        # Debug: Show what we're checking
+        print(f"DEBUG: Pack name: {pack_name}, pack_load_function: {pack_load_function}")
+        print(f"DEBUG: Current load_values: {load_values}")
+        print(f"DEBUG: Is pack_load_function in load_values? {pack_load_function in load_values}")
+        # Only add if it's not already in the list (avoids duplicates when pack name == namespace)
+        if pack_load_function not in load_values:
+            load_values.append(pack_load_function)
+            print(f"DEBUG: Added pack load function: {pack_load_function}")
+        else:
+            # Debug: This should prevent duplicates
+            print(f"DEBUG: Skipping duplicate pack load function: {pack_load_function}")
+    
+    # Remove duplicates while preserving order
+    seen = set()
+    unique_load_values = []
+    for value in load_values:
+        if value not in seen:
+            seen.add(value)
+            unique_load_values.append(value)
     
     load_tag_content = {
-        "values": load_values
+        "values": unique_load_values
     }
     write_json(str(load_tag_dir / "load.json"), load_tag_content)
     
@@ -599,8 +618,16 @@ def _generate_hook_files(ast: Dict[str, Any], output_dir: Path, namespace: str, 
                 tick_functions.append(f"{namespace}:{func['name']}")
     
     if tick_functions:
+        # Remove duplicates while preserving order
+        seen = set()
+        unique_tick_functions = []
+        for value in tick_functions:
+            if value not in seen:
+                seen.add(value)
+                unique_tick_functions.append(value)
+        
         tick_tag_content = {
-            "values": tick_functions
+            "values": unique_tick_functions
         }
         write_json(str(load_tag_dir / "tick.json"), tick_tag_content)
 

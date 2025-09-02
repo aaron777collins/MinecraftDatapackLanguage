@@ -114,8 +114,8 @@ function "main" {{
     say Game over!;
 }}
 
-// Load function - this runs when the datapack loads
-function "load" {{
+// Init function - this runs when the datapack loads
+function "init" {{
     say [GAME] {pack_name} loaded successfully!;
     say Type: /function {project_name}:main;
 }}
@@ -149,7 +149,8 @@ raw!$
 // Example advancement (optional)
 // advancement "first_diamond" "first_diamond.json";
 
-on_load "{project_name}:main";
+// Hook the init function to run when the datapack loads
+on_load "{project_name}:init";
 '''
 
 
