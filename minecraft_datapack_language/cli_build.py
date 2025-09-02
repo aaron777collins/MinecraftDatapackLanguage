@@ -474,12 +474,21 @@ def _generate_function_file(ast: Dict[str, Any], output_dir: Path, namespace: st
         func_name = func['name']
         func_body = func.get('body', [])
         
+        # Collect variable scopes from the AST
+        variable_scopes = {}
+        if 'variables' in ast:
+            for var_decl in ast['variables']:
+                var_name = var_decl['name']
+                var_scope = var_decl.get('scope')
+                if var_scope:
+                    variable_scopes[var_name] = var_scope
+        
         # Generate function content
         function_commands = []
         for i, statement in enumerate(func_body):
             try:
                 print(f"DEBUG: Processing statement {i} of type {statement.get('type', 'unknown')}: {statement}")
-                commands = _process_statement(statement, namespace, func_name, i, False, "@s", {}, build_context, output_dir)
+                commands = _process_statement(statement, namespace, func_name, i, False, "@s", variable_scopes, build_context, output_dir)
                 function_commands.extend(commands)
                 print(f"Generated {len(commands)} commands for statement {i} in function {func_name}: {commands}")
             except Exception as e:
