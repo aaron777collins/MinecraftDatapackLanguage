@@ -708,10 +708,10 @@ class MDLParser:
         say_token = self._match(TokenType.SAY)
         content = say_token.value
         
-        # Always consume the semicolon
-        self._match(TokenType.SEMICOLON)
+        # The semicolon is already included in the token value from the lexer
+        # No need to consume another semicolon
         
-        return {"type": "command", "command": f"say {content}"}
+        return {"type": "command", "command": content}
     
     def _parse_execute_command(self) -> Command:
         """Parse an execute command."""
