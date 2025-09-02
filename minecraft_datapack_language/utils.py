@@ -21,18 +21,3 @@ def ns_path(namespace: str, path: str) -> str:
     if path.startswith("/"):
         path = path[1:]
     return f"{namespace}/{path}"
-
-def find_mdl_files(directory: Path) -> list[Path]:
-    """Find all .mdl files in a directory recursively.
-    
-    Args:
-        directory: Directory to search in
-        
-    Returns:
-        List of Path objects for .mdl files
-    """
-    mdl_files = []
-    for item in directory.rglob("*.mdl"):
-        if item.is_file():
-            mdl_files.append(item)
-    return sorted(mdl_files)
