@@ -3,4 +3,4 @@ execute unless entity @e[type=armor_stand,tag=mdl_server,limit=1] run summon arm
 gamemode creative @a
 weather clear
 time set day
-tellraw @a [{"text":"Custom commands executed!;"}]
+tellraw @a [{"text":"Custom commands executed!"}]

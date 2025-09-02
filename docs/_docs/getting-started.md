@@ -43,7 +43,7 @@ The compiled datapack will be in the `dist` folder. Copy it to your Minecraft wo
 
 ### Variables
 
-Variables store numbers and can be scoped to different entities:
+Variables store numbers and can be scoped to different entities. MDL uses an **explicit scope system** where you must specify the scope each time you access a variable:
 
 ```mdl
 // Player-specific variable (default)
@@ -54,11 +54,16 @@ var num globalCounter scope<global> = 0;
 
 // Team-specific variable
 var num teamScore scope<@a[team=red]> = 0;
+
+// Access variables with explicit scopes
+playerScore<@s> = 42;                    // Player scope
+globalCounter<global> = 100;             // Global scope
+teamScore<@a[team=red]> = 5;            // Team scope
 ```
 
 ### Variable Substitution
 
-Use `$variable$` to read variable values:
+Use `$variable$` to read variable values. Variables automatically resolve to their declared scopes:
 
 ```mdl
 say Your score: $playerScore$;
@@ -128,14 +133,14 @@ var num globalTimer scope<global> = 0;
 
 // Initialize function
 function "init" {
-    playerScore = 0;
-    globalTimer = 0;
+    playerScore<@s> = 0;
+    globalTimer<global> = 0;
     say Game initialized!;
 }
 
 // Update function
 function "update" {
-    globalTimer = globalTimer + 1;
+    globalTimer<global> = globalTimer<global> + 1;
     
     if "$playerScore$ > 100" {
         say High score!;
@@ -143,14 +148,14 @@ function "update" {
     }
     
     if "$globalTimer$ >= 1200" {  // 60 seconds
-        globalTimer = 0;
+        globalTimer<global> = 0;
         say Time's up!;
     }
 }
 
 // Score function
 function "add_score" {
-    playerScore = playerScore + 10;
+    playerScore<@s> = playerScore<@s> + 10;
     say Score: $playerScore$;
 }
 

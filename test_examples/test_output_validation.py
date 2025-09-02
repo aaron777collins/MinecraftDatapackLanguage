@@ -14,11 +14,13 @@ from typing import Dict, List, Any
 
 class MDLOutputTester:
     def __init__(self):
-        self.test_dir = Path(".")
+        # Find the test_examples directory relative to this script
+        script_dir = Path(__file__).parent
+        self.test_dir = script_dir
         # Use unique output directory from environment variable if available (for CI)
         # This prevents race conditions when multiple jobs run in parallel
         test_output_dir = os.environ.get('TEST_OUTPUT_DIR', 'test_output')
-        self.output_dir = Path(test_output_dir)
+        self.output_dir = script_dir / test_output_dir
         self.output_dir.mkdir(exist_ok=True)
         
     def run_mdl_build(self, mdl_file: Path, output_dir: Path) -> bool:
@@ -71,7 +73,7 @@ class MDLOutputTester:
             content = f.read().strip()
             expected_commands = [
                 "execute unless entity @e[type=armor_stand,tag=mdl_server,limit=1] run summon armor_stand ~ 320 ~ {Tags:[\"mdl_server\"],Invisible:1b,Marker:1b,NoGravity:1b,Invulnerable:1b}",
-                "tellraw @a [{\"text\":\"Hello, Minecraft !\"}]",
+                "tellraw @a [{\"text\":\"Hello, Minecraft!\"}]",
                 "tellraw @a {\"text\":\"Welcome to my datapack!\",\"color\":\"green\"}"
             ]
             for cmd in expected_commands:
@@ -161,7 +163,7 @@ class MDLOutputTester:
             expected_tellraw = [
                 "tellraw @a [{\"text\":\"Global counter: \"},{\"score\":{\"name\":\"@e[type=armor_stand,tag=mdl_server,limit=1]\",\"objective\":\"globalCounter\"}}]",
                 "tellraw @a [{\"text\":\"Player counter: \"},{\"score\":{\"name\":\"@e[type=armor_stand,tag=mdl_server,limit=1]\",\"objective\":\"playerCounter\"}}]",
-                "tellraw @a [{\"text\":\"Team counter: \"},{\"score\":{\"name\":\"@e[type=armor_stand,tag=mdl_server,limit=1]\",\"objective\":\"teamCounter\"}}]"
+                "tellraw @a [{\"text\":\"Team counter: \"},{\"score\":{\"name\":\"@a[team=red]\",\"objective\":\"teamCounter\"}}]"
             ]
             
             for tellraw in expected_tellraw:
@@ -188,12 +190,12 @@ class MDLOutputTester:
             content = f.read().strip()
             
             # Should contain conditional function calls for while loop
-            if "function while_loops:while_loops_main_while_2" not in content:
+            if "function while_loops:test_main_while_2" not in content:
                 print("❌ Missing while loop function call")
                 return False
         
         # Check that while loop function exists
-        while_func = output_dir / "data/while_loops/function/while_loops_main_while_2.mcfunction"
+        while_func = output_dir / "data/while_loops/function/test_main_while_2.mcfunction"
         if not while_func.exists():
             print("❌ Missing while loop function file")
             return False
@@ -204,7 +206,7 @@ class MDLOutputTester:
             # Should contain the loop body and recursive call
             expected_commands = [
                 "scoreboard players add @e[type=armor_stand,tag=mdl_server,limit=1] counter 1",
-                "tellraw @a [{\"text\": \"Loop iteration: \"}, {\"score\": {\"name\": \"@e[type=armor_stand,tag=mdl_server,limit=1]\", \"objective\": \"counter\"}}]"
+                "tellraw @a [{\"text\":\"Loop iteration: \"},{\"score\":{\"name\":\"@e[type=armor_stand,tag=mdl_server,limit=1]\",\"objective\":\"counter\"}}]"
             ]
             
             for cmd in expected_commands:

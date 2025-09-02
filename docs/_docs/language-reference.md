@@ -25,14 +25,15 @@ var num counter scope<global> = 0;
 var num playerScore = 0;  // Defaults to player-specific scope
 var num teamScore scope<@a[team=red]> = 0;
 
-// Assignment
-counter = 42;
-playerScore = playerScore + 10;
+// Assignment with explicit scope
+counter<global> = 42;
+playerScore<@s> = playerScore<@s> + 10;
+teamScore<@a[team=red]> = 5;
 ```
 
 ### Variable Substitution
 ```mdl
-// In strings and commands
+// In strings and commands - variables are automatically resolved to their declared scopes
 say Counter: $counter$;
 tellraw @a {"text":"Score: $playerScore$","color":"gold"};
 
@@ -111,12 +112,32 @@ on_tick "namespace:function_name";    // Runs every tick
 
 ## Scope System
 
-### Variable Scopes
+MDL uses an **explicit scope system** where each variable access must specify its scope. This makes code more readable and eliminates hidden state.
+
+**Benefits of Explicit Scopes:**
+- **No hidden state** - You always see exactly what scope you're using
+- **No scope tracking bugs** - Each access is self-contained
+- **More readable** - `variable<@s>` is clear and explicit
+- **Easier to debug** - No need to trace back where a variable was declared
+- **Consistent behavior** - Variables always behave the same way regardless of context
+
+### Variable Declaration Scopes
 - **No scope specified** - Player-specific (defaults to `@s` in execution context)
 - `scope<global>` - Server-wide (stored on server armor stand)
 - `scope<@a>` - All players
 - `scope<@a[team=red]>` - Team-specific
 - `scope<@e[type=armor_stand,tag=something,limit=1]>` - Custom entity
+
+### Variable Access with Explicit Scopes
+```mdl
+// Each variable access must specify the scope
+counter<global> = 42;                    // Access global counter
+playerScore<@s> = playerScore<@s> + 10;  // Access player-specific score
+teamScore<@a[team=red]> = 5;            // Access team-specific score
+
+// Variables in strings automatically use their declared scopes
+say Global: $counter$, Player: $playerScore$, Team: $teamScore$;
+```
 
 ### Function Call Scopes
 ```mdl
@@ -125,6 +146,50 @@ function "namespace:function_name<@a>";           // All players
 function "namespace:function_name<@s>";           // Current player
 function "namespace:function_name<@a[team=red]>"; // Red team players
 ```
+
+## Explicit Scope System Details
+
+### How It Works
+
+The explicit scope system ensures that every variable access is clear and unambiguous:
+
+1. **Declaration**: Variables declare their scope when defined
+   ```mdl
+   var num globalVar scope<global> = 0;           // Global scope
+   var num playerVar = 0;                         // Player scope (defaults to @s)
+   var num teamVar scope<@a[team=red]> = 0;      // Team scope
+   ```
+
+2. **Access**: Every variable access must specify the scope
+   ```mdl
+   globalVar<global> = 42;                        // Access global variable
+   playerVar<@s> = playerVar<@s> + 10;           // Access player variable
+   teamVar<@a[team=red]> = 5;                    // Access team variable
+   ```
+
+3. **String Substitution**: Variables in strings automatically use their declared scopes
+   ```mdl
+   say Global: $globalVar$, Player: $playerVar$;  // Automatic scope resolution
+   ```
+
+### Scope Mapping
+
+MDL maps scopes to Minecraft selectors:
+
+| MDL Scope | Minecraft Selector | Description |
+|-----------|-------------------|-------------|
+| `scope<global>` | `@e[type=armor_stand,tag=mdl_server,limit=1]` | Server-wide storage |
+| `scope<@s>` | `@s` | Current player |
+| `scope<@a>` | `@a` | All players |
+| `scope<@a[team=red]>` | `@a[team=red]` | Red team players |
+| `scope<@e[type=armor_stand,tag=something,limit=1]>` | `@e[type=armor_stand,tag=something,limit=1]` | Custom entity |
+
+### Best Practices
+
+- **Be explicit**: Always specify the scope when accessing variables
+- **Use meaningful names**: `playerScore<@s>` is clearer than `score<@s>`
+- **Group related variables**: Use consistent scopes for related data
+- **Document complex scopes**: Add comments for non-standard selectors
 
 ## Examples
 
@@ -141,7 +206,7 @@ function "main" {
 on_load "hello:main";
 ```
 
-### Counter with Scoped Variables
+### Counter with Explicit Scoped Variables
 ```mdl
 pack "counter" "Counter example" 82;
 namespace "counter";
@@ -150,8 +215,8 @@ var num globalCounter scope<global> = 0;
 var num playerCounter = 0;  // Defaults to player-specific scope
 
 function "increment" {
-    globalCounter = globalCounter + 1;
-    playerCounter = playerCounter + 1;
+    globalCounter<global> = globalCounter<global> + 1;
+    playerCounter<@s> = playerCounter<@s> + 1;
     say Global: $globalCounter$, Player: $playerCounter$;
 }
 
@@ -168,10 +233,10 @@ namespace "loops";
 var num counter scope<global> = 0;
 
 function "countdown" {
-    counter = 5;
+    counter<global> = 5;
     while "$counter$ > 0" {
         say Countdown: $counter$;
-        counter = counter - 1;
+        counter<global> = counter<global> - 1;
     }
     say Blast off!;
 }
@@ -216,16 +281,16 @@ var num globalTimer scope<global> = 0;
 
 // Main game function
 function "start_game" {
-    score = 0;
-    level = 1;
+    score<@s> = 0;
+    level<@s> = 1;
     say Game started! Level: $level$, Score: $score$;
 }
 
 // Level up function
 function "level_up" {
     if "$score$ >= 100" {
-        level = level + 1;
-        score = score - 100;
+        level<@s> = level<@s> + 1;
+        score<@s> = score<@s> - 100;
         say Level up! New level: $level$;
         tellraw @a {"text":"Player leveled up!","color":"gold"};
     }
@@ -233,9 +298,9 @@ function "level_up" {
 
 // Timer function
 function "update_timer" {
-    globalTimer = globalTimer + 1;
+    globalTimer<global> = globalTimer<global> + 1;
     if "$globalTimer$ >= 1200" {  // 60 seconds
-        globalTimer = 0;
+        globalTimer<global> = 0;
         say Time's up! Final score: $score$;
     }
 }

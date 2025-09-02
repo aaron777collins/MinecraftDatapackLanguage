@@ -34,8 +34,8 @@ var num globalCounter scope<global> = 0;
 var num playerCounter = 0;  // Defaults to player-specific scope
 
 function "increment" {
-    globalCounter = globalCounter + 1;
-    playerCounter = playerCounter + 1;
+    globalCounter<global> = globalCounter<global> + 1;
+    playerCounter<@s> = playerCounter<@s> + 1;
     say Global: $globalCounter$, Player: $playerCounter$;
 }
 
@@ -57,10 +57,10 @@ namespace "loops";
 var num counter scope<global> = 0;
 
 function "countdown" {
-    counter = 5;
+    counter<global> = 5;
     while "$counter$ > 0" {
         say Countdown: $counter$;
-        counter = counter - 1;
+        counter<global> = counter<global> - 1;
     }
     say Blast off!;
 }
@@ -101,16 +101,16 @@ var num globalTimer scope<global> = 0;
 
 // Main game function
 function "start_game" {
-    score = 0;
-    level = 1;
+    score<@s> = 0;
+    level<@s> = 1;
     say Game started! Level: $level$, Score: $score$;
 }
 
 // Level up function
 function "level_up" {
     if "$score$ >= 100" {
-        level = level + 1;
-        score = score - 100;
+        level<@s> = level<@s> + 1;
+        score<@s> = score<@s> - 100;
         say Level up! New level: $level$;
         tellraw @a {"text":"Player leveled up!","color":"gold"};
     }
@@ -118,16 +118,16 @@ function "level_up" {
 
 // Timer function
 function "update_timer" {
-    globalTimer = globalTimer + 1;
+    globalTimer<global> = globalTimer<global> + 1;
     if "$globalTimer$ >= 1200" {  // 60 seconds
-        globalTimer = 0;
+        globalTimer<global> = 0;
         say Time's up! Final score: $score$;
     }
 }
 
 // Add score function
 function "add_score" {
-    score = score + 10;
+    score<@s> = score<@s> + 10;
     say Score: $score$;
     function "game:level_up";
 }
@@ -152,18 +152,18 @@ var num gameTimer scope<global> = 0;
 
 // Initialize teams
 function "init" {
-    redScore = 0;
-    blueScore = 0;
-    gameTimer = 0;
+    redScore<@a[team=red]> = 0;
+    blueScore<@a[team=blue]> = 0;
+    gameTimer<global> = 0;
     say Team game initialized!;
 }
 
 // Update game
 function "update" {
-    gameTimer = gameTimer + 1;
+    gameTimer<global> = gameTimer<global> + 1;
     
     if "$gameTimer$ >= 2400" {  // 2 minutes
-        gameTimer = 0;
+        gameTimer<global> = 0;
         say Game over! Red: $redScore$, Blue: $blueScore$;
         
         if "$redScore$ > $blueScore$" {
@@ -178,13 +178,13 @@ function "update" {
 
 // Add points to red team
 function "red_point" {
-    redScore = redScore + 1;
+    redScore<@a[team=red]> = redScore<@a[team=red]> + 1;
     say Red team score: $redScore$;
 }
 
 // Add points to blue team
 function "blue_point" {
-    blueScore = blueScore + 1;
+    blueScore<@a[team=blue]> = blueScore<@a[team=blue]> + 1;
     say Blue team score: $blueScore$;
 }
 
