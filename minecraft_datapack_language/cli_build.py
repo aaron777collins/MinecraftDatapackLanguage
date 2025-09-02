@@ -223,39 +223,14 @@ def _process_say_command_with_variables(content: str, selector: str, variable_sc
     import re
     
     print(f"DEBUG: _process_say_command_with_variables called with content: {repr(content)}, selector: {selector}")
+    print(f"DEBUG: Variable scopes available: {variable_scopes}")
     
     # Clean up the content - remove quotes if present
     content = content.strip()
     if content.startswith('"') and content.endswith('"'):
         content = content[1:-1]  # Remove surrounding quotes
     
-    # First, check for MDL-style variable references (no $ symbols)
-    # Look for common variable names that might be in the content
-    if variable_scopes:
-        for var_name, var_scope in variable_scopes.items():
-            if var_name in content:
-                # Found a variable reference, convert to score component
-                if var_scope == 'global':
-                    var_selector = "@e[type=armor_stand,tag=mdl_server,limit=1]"
-                else:
-                    var_selector = var_scope
-                
-                # Split content around the variable
-                parts = content.split(var_name)
-                if len(parts) == 2:
-                    # Build tellraw components
-                    components = []
-                    if parts[0]:  # Text before variable
-                        components.append(f'{{"text":"{parts[0]}"}}')
-                    # Variable as score component
-                    components.append(f'{{"score":{{"name":"{var_selector}","objective":"{var_name}"}}}}')
-                    if parts[1]:  # Text after variable
-                        components.append(f'{{"text":"{parts[1]}"}}')
-                    
-                    components_str = ','.join(components)
-                    return f'tellraw @a [{components_str}]'
-    
-    # Fallback: Look for traditional $variable$ syntax
+    # Look for traditional $variable$ syntax
     var_pattern = r'\$([^$]+)\$'
     matches = re.findall(var_pattern, content)
     
@@ -301,8 +276,19 @@ def _process_say_command_with_variables(content: str, selector: str, variable_sc
                 var_selector = var_parts[1][:-1]  # Remove trailing >
                 components.append(f'{{"score":{{"name":"{var_selector}","objective":"{base_var}"}}}}')
             else:
-                # Simple variable: $variable$ - use server armor stand
-                components.append(f'{{"score":{{"name":"@e[type=armor_stand,tag=mdl_server,limit=1]","objective":"{var_name}"}}}}')
+                # Simple variable: $variable$ - determine selector based on declared scope
+                var_selector = "@e[type=armor_stand,tag=mdl_server,limit=1]"  # Default to global
+                if variable_scopes and var_name in variable_scopes:
+                    declared_scope = variable_scopes[var_name]
+                    if declared_scope == 'global':
+                        var_selector = "@e[type=armor_stand,tag=mdl_server,limit=1]"
+                    else:
+                        var_selector = declared_scope
+                    print(f"DEBUG: Variable {var_name} using declared scope {declared_scope} -> selector {var_selector}")
+                else:
+                    print(f"DEBUG: Variable {var_name} has no declared scope, using default global selector")
+                
+                components.append(f'{{"score":{{"name":"{var_selector}","objective":"{var_name}"}}}}')
     
     # Join components and create tellraw command
     components_str = ','.join(components)
