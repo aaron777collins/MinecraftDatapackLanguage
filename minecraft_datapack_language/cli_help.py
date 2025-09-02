@@ -295,7 +295,7 @@ def show_check_help():
     print(color.info("  Error 1: MDLSyntaxError in test.mdl:15:8"))
     print(color.info("  Missing closing brace for if statement"))
     print(color.info("  Context:"))
-    print(f"     {color.line_number('13')}:   if \"$score<@s>$ > 10\" \{")
+    print(f"     {color.line_number('13')}:   if \"$score<@s>$ > 10\" {{")
     print(f"     {color.line_number('14')}:     say \"High score!\"")
     print(f"     {color.line_number('15')}:     score<@s> = 0")
     print(f"     {color.line_number('16')}:   ")
