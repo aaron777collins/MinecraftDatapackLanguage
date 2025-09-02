@@ -506,17 +506,22 @@ def _generate_function_file(ast: Dict[str, Any], output_dir: Path, namespace: st
                 print(f"Function body: {func_body}")
 
 
-def _generate_hook_files(ast: Dict[str, Any], output_dir: Path, namespace: str, build_context: BuildContext = None) -> None:
+def _generate_hook_files(ast: Dict[str, Any], output_dir: Path, namespace: str, build_context: BuildContext = None, all_namespaces: List[str] = None) -> None:
     """Generate load and tick tag files."""
     if build_context is None:
         build_context = BuildContext()
+    
+    if all_namespaces is None:
+        all_namespaces = [namespace]
     
     # Generate load tag
     load_tag_dir = output_dir / "data" / "minecraft" / "tags" / "function"
     ensure_dir(str(load_tag_dir))
     
-    # Start with the load function
-    load_values = [f"{namespace}:load"]
+    # Start with load functions for all namespaces
+    load_values = []
+    for ns in all_namespaces:
+        load_values.append(f"{ns}:load")
     
     # Add functions specified in on_load hooks
     if 'hooks' in ast:
@@ -910,12 +915,13 @@ def build_mdl(input_path: str, output_path: str, verbose: bool = False, pack_for
                 print(f"DEBUG: Processing namespace: {namespace}")
             _generate_function_file(ast, output_dir, namespace, verbose, build_context)
         
-        # Generate hook files (load/tick tags) - use first namespace for global functions
+        # Generate hook files (load/tick tags) - include all namespaces
         primary_namespace = namespaces[0] if namespaces else 'mdl_pack'
-        _generate_hook_files(ast, output_dir, primary_namespace, build_context)
+        _generate_hook_files(ast, output_dir, primary_namespace, build_context, all_namespaces=namespaces)
         
-        # Generate global load function - use first namespace for global functions
-        _generate_global_load_function(ast, output_dir, primary_namespace, build_context)
+        # Generate load functions for all namespaces
+        for namespace in namespaces:
+            _generate_global_load_function(ast, output_dir, namespace, build_context)
         
         # Create zip file (always create one, use wrapper name if specified)
         zip_name = wrapper if wrapper else output_dir.name

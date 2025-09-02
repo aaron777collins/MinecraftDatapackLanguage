@@ -800,7 +800,7 @@ class TestCLIEdgeCases(unittest.TestCase):
                 # Check that the function has content
                 with open(main_func, 'r') as f:
                     content = f.read()
-                    self.assertIn("say", content)
+                    self.assertIn("tellraw", content)
                 
             except Exception as e:
                 self.fail(f"Build command with complex scopes failed: {e}")
