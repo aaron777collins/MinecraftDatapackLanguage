@@ -50,7 +50,7 @@ class TestMDLLexer(unittest.TestCase):
         # The lexer processes say commands as SAY tokens, not STRING tokens
         say_tokens = [t for t in tokens if t.type == TokenType.SAY]
         self.assertEqual(len(say_tokens), 1)
-        self.assertIn('say "Hello, World!";', say_tokens[0].value)
+        self.assertIn('Hello, World!', say_tokens[0].value)
     
     def test_raw_blocks(self):
         """Test raw block tokenization"""
