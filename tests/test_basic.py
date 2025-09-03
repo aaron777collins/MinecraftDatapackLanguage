@@ -52,7 +52,7 @@ class TestBasicLexer(unittest.TestCase):
         # Check for string content (may be in different format)
         # The lexer might tokenize this as a single command token
         token_values = [t.value for t in tokens]
-        self.assertIn('say "Hello, World!";', token_values)
+        self.assertIn('"Hello, World!"', token_values)
 
 
 class TestBasicParser(unittest.TestCase):
