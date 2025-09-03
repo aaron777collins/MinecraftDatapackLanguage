@@ -386,6 +386,9 @@ class MDLLexer:
         # Generate LBRACKET token
         self.tokens.append(Token(TokenType.LBRACKET, "[", self.line, self.column - 1))
         
+        # Remember where the parameters start (after the opening [)
+        param_start = self.current
+        
         # Scan until we find the matching ]
         bracket_count = 1
         while (self.current < len(self.source) and bracket_count > 0):
@@ -405,7 +408,7 @@ class MDLLexer:
         if bracket_count == 0:
             # Successfully found closing ]
             # Generate IDENTIFIER token for the entire parameter content
-            param_content = self.source[self.start + 1:self.current]
+            param_content = self.source[param_start:self.current]
             self.tokens.append(Token(TokenType.IDENTIFIER, param_content, self.line, self.column - len(param_content)))
             
             # Generate RBRACKET token
