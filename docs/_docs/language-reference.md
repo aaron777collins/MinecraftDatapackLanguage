@@ -17,7 +17,7 @@ MDL is a simple, scope-aware language that compiles to Minecraft datapack `.mcfu
 - **Default scope**: When no scope is specified, always use `@s` (current player)
 - **No return values**: All functions are void - they execute commands and modify state
 - **No quotes needed**: Use `$variable<scope>$` syntax directly instead of string literals
-- **Scope execution**: Use `exec` keyword to execute functions with specific scopes
+- **Function execution**: Use `exec` keyword to execute all functions
 
 ## Basic Syntax
 
@@ -82,9 +82,6 @@ function game:reset_player {
 
 #### Function Calls
 ```mdl
-// Call function (runs at current scope)
-game:start_game;
-
 // Execute function with exec keyword (runs any function, with or without scope)
 exec game:reset_player;                          // Execute function
 exec game:start_game;                            // Execute any function
@@ -166,7 +163,6 @@ score<@s> = 5;                            // Write with scope
 if $score<@a>$ > 10 { ... }               // Read with scope
 
 // FUNCTIONS: Use exec keyword to run any function (with or without scope)
-game:start;                               // Call function
 exec game:start;                          // Execute function
 exec utils:helper;                        // Execute from different namespace
 exec game:start<@a>;                      // Execute function with scope
@@ -186,7 +182,6 @@ global_counter = 10;                            // Same as global_counter<@s> = 
 // Function calls
 exec game:increment;                            // Execute function
 exec game:increment<@s>;                        // Execute function with scope
-game:increment;                                 // Call function
 exec utils:helper;                              // Execute from different namespace
 ```
 
@@ -369,10 +364,9 @@ on_tick "game:update_timer";
 4. **Access**: Variables can be accessed at any scope, regardless of where they were declared
 
 ### Function Compilation
-1. **Function Calls**: `function` becomes `execute as @s run function namespace:function`
-2. **Exec Calls**: `exec function` becomes `execute as @s run function namespace:function`
-3. **Exec Calls with Scope**: `exec function<@s>` becomes `execute as @s run function namespace:function`
-4. **No Return Values**: Functions compile to a series of Minecraft commands
+1. **Exec Calls**: `exec function` becomes `execute as @s run function namespace:function`
+2. **Exec Calls with Scope**: `exec function<@s>` becomes `execute as @s run function namespace:function`
+3. **No Return Values**: Functions compile to a series of Minecraft commands
 
 ### Error Handling
 - **Undefined Variables**: Compilation error if variable not declared
@@ -529,16 +523,6 @@ Tokenized as:
 8. `LBRACE` (`{`)
 
 ### Function Call Tokenization
-
-#### **Basic Call**
-```
-game:start_game;
-```
-Tokenized as:
-1. `IDENTIFIER` (`game`)
-2. `COLON` (`:`)
-3. `IDENTIFIER` (`start_game`)
-4. `SEMICOLON` (`;`)
 
 #### **Call with Scope**
 ```
