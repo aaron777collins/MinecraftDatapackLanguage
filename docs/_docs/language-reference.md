@@ -19,6 +19,7 @@ MDL is a simple, scope-aware language that compiles to Minecraft datapack `.mcfu
 - **No quotes needed**: Use `$variable<scope>$` syntax directly instead of string literals
 - **Function execution**: Use `exec` keyword to execute all functions
 - **Tag-based resources**: Use tag syntax to reference datapack resources like recipes, loot tables, etc.
+- **User-friendly communication**: `say` commands automatically convert to `tellraw` with proper JSON formatting
 
 ## Basic Syntax
 
@@ -89,6 +90,19 @@ execute if score @s player_score matches 10.. run game:celebrate;
 if $player_score<@s>$ > 10 {
     player_score<@s> = 0;
 }
+```
+
+### Say Commands (Auto-converted to tellraw)
+```mdl
+// Simple say commands automatically convert to tellraw with JSON formatting
+say "Welcome to the game!";
+say "You have $player_score<@s>$ points!";
+say "Team score: $team_score<@a[team=red]>$";
+
+// These get converted to:
+// tellraw @a {"text":"Welcome to the game!"};
+// tellraw @a {"text":"You have ","extra":[{"score":{"name":"@s","objective":"player_score"}}," points!"]};
+// tellraw @a {"text":"Team score: ","extra":[{"score":{"name":"@s","objective":"team_score"}}]};
 ```
 
 ### Functions
@@ -303,7 +317,11 @@ function "increment" {
     global_counter<@a> = $global_counter<@a>$ + 1;
     player_counter<@s> = $player_counter<@s>$ + 1;
     
+    // Using tellraw for player-specific messages
     tellraw @s {"text":"Global: ","extra":[{"score":{"name":"@s","objective":"global_counter"}}," Player: ",{"score":{"name":"@s","objective":"player_counter"}}]};
+    
+    // Using say for broadcast messages (auto-converts to tellraw)
+    say "Player $player_counter<@s>$ just incremented the counter!";
 }
 
 function "reset_player" {
@@ -407,6 +425,12 @@ on_tick "game:update_timer";
 1. **Exec Calls**: `exec function` becomes `execute as @s run function namespace:function`
 2. **Exec Calls with Scope**: `exec function<@s>` becomes `execute as @s run function namespace:function`
 3. **No Return Values**: Functions compile to a series of Minecraft commands
+
+### Say Command Compilation
+1. **Simple Text**: `say "message"` becomes `tellraw @a {"text":"message"}`
+2. **With Variables**: `say "Score: $score<@s>$"` becomes `tellraw @a {"text":"Score: ","extra":[{"score":{"name":"@s","objective":"score"}}]}`
+3. **Multiple Variables**: Complex variable substitutions are automatically formatted into proper JSON structure
+4. **Default Target**: All say commands target `@a` (all players) for maximum visibility
 
 ### Tag Compilation
 1. **Recipe Tags**: `tag recipe "name" "path"` generates appropriate tag files
