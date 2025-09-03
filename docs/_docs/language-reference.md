@@ -18,6 +18,7 @@ MDL is a simple, scope-aware language that compiles to Minecraft datapack `.mcfu
 - **No return values**: All functions are void - they execute commands and modify state
 - **No quotes needed**: Use `$variable<scope>$` syntax directly instead of string literals
 - **Function execution**: Use `exec` keyword to execute all functions
+- **Tag-based resources**: Use tag syntax to reference datapack resources like recipes, loot tables, etc.
 
 ## Basic Syntax
 
@@ -29,6 +30,33 @@ pack "pack_name" "description" pack_format;
 ### Namespace Declaration
 ```mdl
 namespace "namespace_name";
+```
+
+### Tag Declarations
+```mdl
+// Recipe tags
+tag recipe "RecipeName" "path/to/recipe.json";
+tag recipe "diamond_sword" "recipes/diamond_sword.json";
+
+// Loot table tags
+tag loot_table "LootTableName" "path/to/loot_table.json";
+tag loot_table "epic_loot" "loot_tables/epic_loot.json";
+
+// Advancement tags
+tag advancement "AdvancementName" "path/to/advancement.json";
+tag advancement "first_spell" "advancements/first_spell.json";
+
+// Item modifier tags
+tag item_modifier "ItemModifierName" "path/to/item_modifier.json";
+tag item_modifier "enchant_tool" "item_modifiers/enchant_tool.json";
+
+// Predicate tags
+tag predicate "PredicateName" "path/to/predicate.json";
+tag predicate "has_mana" "predicates/has_mana.json";
+
+// Structure tags
+tag structure "StructureName" "path/to/structure.json";
+tag structure "custom_house" "structures/custom_house.json";
 ```
 
 ### Variable Declaration
@@ -54,7 +82,7 @@ player_score = 0;                                // Same as player_score<@s> = 0
 ### Variable Substitution
 ```mdl
 // Use $variable<scope>$ syntax anywhere in the code
-tellraw @s You have $player_score<@s>$ points;
+tellraw @s {"text":"You have ","extra":[{"score":{"name":"@s","objective":"player_score"}}," points"]};
 execute if score @s player_score matches 10.. run game:celebrate;
 
 // In conditions
@@ -212,7 +240,6 @@ exec utils:helper;                              // Execute from different namesp
 - (subtraction)
 * (multiplication)
 / (division)
-% (modulo)
 
 // Comparison
 == (equal)
@@ -221,11 +248,6 @@ exec utils:helper;                              // Execute from different namesp
 < (less than)
 >= (greater than or equal)
 <= (less than or equal)
-
-// Logical
-&& (and)
-|| (or)
-! (not)
 ```
 
 ### Expression Examples
@@ -236,8 +258,8 @@ player_score<@s> = $x<@a>$ + $y<@p>$ * $z<@r>$;
 // Parentheses for precedence
 player_score<@s> = ($x<@s>$ + $y<@s>$) * 2;
 
-// Logical expressions
-if $score<@s>$ > 10 && $health<@s>$ > 0 {
+// Simple comparisons (no logical operators)
+if $score<@s>$ > 10 {
     exec game:reward;
 }
 ```
@@ -264,10 +286,15 @@ function game:process { ... }
 
 ## Complete Examples
 
-### Basic Counter
+### Basic Counter with Tags
 ```mdl
 pack "counter" "Counter example" 82;
 namespace "counter";
+
+// Tag declarations
+tag recipe "diamond_sword" "recipes/diamond_sword.json";
+tag loot_table "sword_loot" "loot_tables/sword_loot.json";
+tag advancement "first_sword" "advancements/first_sword.json";
 
 var num global_counter<@a> = 0;
 var num player_counter<@s> = 0;
@@ -276,21 +303,27 @@ function "increment" {
     global_counter<@a> = $global_counter<@a>$ + 1;
     player_counter<@s> = $player_counter<@s>$ + 1;
     
-    tellraw @s Global: $global_counter<@a>$, Player: $player_counter<@s>$;
+    tellraw @s {"text":"Global: ","extra":[{"score":{"name":"@s","objective":"global_counter"}}," Player: ",{"score":{"name":"@s","objective":"player_counter"}}]};
 }
 
 function "reset_player" {
     player_counter<@s> = 0;
-    tellraw @s Counter reset!;
+    tellraw @s {"text":"Counter reset!"};
 }
 
 on_load "counter:increment";
 ```
 
-### Team Game
+### Team Game with Resources
 ```mdl
 pack "teamgame" "Team game example" 82;
 namespace "teamgame";
+
+// Tag declarations
+tag recipe "team_banner" "recipes/team_banner.json";
+tag loot_table "team_reward" "loot_tables/team_reward.json";
+tag advancement "team_win" "advancements/team_win.json";
+tag item_modifier "team_boost" "item_modifiers/team_boost.json";
 
 var num red_score<@a[team=red]> = 0;
 var num blue_score<@a[team=blue]> = 0;
@@ -301,20 +334,20 @@ function "award_points" {
     
     if $player<@s> has team red {
         red_score<@a[team=red]> = $red_score<@a[team=red]>$ + 5;
-        tellraw @s Red team score: $red_score<@a[team=red]>$;
+        tellraw @s {"text":"Red team score: ","extra":[{"score":{"name":"@s","objective":"red_score"}}]};
     } else if $player<@s> has team blue {
         blue_score<@a[team=blue]> = $blue_score<@a[team=blue]>$ + 5;
-        tellraw @s Blue team score: $blue_score<@a[team=blue]>$;
+        tellraw @s {"text":"Blue team score: ","extra":[{"score":{"name":"@s","objective":"blue_score"}}]};
     }
     
-    tellraw @s Your score: $player_score<@s>$;
+    tellraw @s {"text":"Your score: ","extra":[{"score":{"name":"@s","objective":"player_score"}}]};
 }
 
 function "show_leaderboard" {
-    tellraw @s === LEADERBOARD ===;
-    tellraw @s Red Team: $red_score<@a[team=red]>$;
-    tellraw @s Blue Team: $blue_score<@a[team=blue]>$;
-    tellraw @s Your Score: $player_score<@s>$;
+    tellraw @s {"text":"=== LEADERBOARD ==="};
+    tellraw @s {"text":"Red Team: ","extra":[{"score":{"name":"@s","objective":"red_score"}}]};
+    tellraw @s {"text":"Blue Team: ","extra":[{"score":{"name":"@s","objective":"blue_score"}}]};
+    tellraw @s {"text":"Your Score: ","extra":[{"score":{"name":"@s","objective":"player_score"}}]};
 }
 ```
 
@@ -322,6 +355,13 @@ function "show_leaderboard" {
 ```mdl
 pack "game" "Complex game example" 82;
 namespace "game";
+
+// Tag declarations
+tag recipe "magic_wand" "recipes/magic_wand.json";
+tag loot_table "magic_loot" "loot_tables/magic_loot.json";
+tag advancement "magic_master" "advancements/magic_master.json";
+tag predicate "has_mana" "predicates/has_mana.json";
+tag structure "magic_tower" "structures/magic_tower.json";
 
 var num player_level<@s> = 1;
 var num player_exp<@s> = 0;
@@ -334,11 +374,11 @@ function "gain_experience" {
     if $player_exp<@s>$ >= 100 {
         player_level<@s> = $player_level<@s>$ + 1;
         player_exp<@s> = 0;
-        tellraw @s Level up! New level: $player_level<@s>$;
+        tellraw @s {"text":"Level up! New level: ","extra":[{"score":{"name":"@s","objective":"player_level"}}]};
         
         if $player_level<@s>$ > $global_high_score<@a>$ {
             global_high_score<@a> = $player_level<@s>$;
-            tellraw @a New high level achieved: $global_high_score<@a>$;
+            tellraw @a {"text":"New high level achieved: ","extra":[{"score":{"name":"@s","objective":"global_high_score"}}]};
         }
     }
 }
@@ -348,7 +388,7 @@ function "update_timer" {
     
     if $game_timer<@a>$ >= 1200 {
         game_timer<@a> = 0;
-        tellraw @s Time's up! Final level: $player_level<@s>$;
+        tellraw @s {"text":"Time's up! Final level: ","extra":[{"score":{"name":"@s","objective":"player_level"}}]};
     }
 }
 
@@ -368,11 +408,20 @@ on_tick "game:update_timer";
 2. **Exec Calls with Scope**: `exec function<@s>` becomes `execute as @s run function namespace:function`
 3. **No Return Values**: Functions compile to a series of Minecraft commands
 
+### Tag Compilation
+1. **Recipe Tags**: `tag recipe "name" "path"` generates appropriate tag files
+2. **Loot Table Tags**: `tag loot_table "name" "path"` generates loot table tag files
+3. **Advancement Tags**: `tag advancement "name" "path"` generates advancement tag files
+4. **Item Modifier Tags**: `tag item_modifier "name" "path"` generates item modifier tag files
+5. **Predicate Tags**: `tag predicate "name" "path"` generates predicate tag files
+6. **Structure Tags**: `tag structure "name" "path"` generates structure tag files
+
 ### Error Handling
 - **Undefined Variables**: Compilation error if variable not declared
 - **Invalid Scopes**: Compilation error if scope selector is malformed
 - **Missing Semicolons**: Compilation error for incomplete statements
 - **Unterminated Blocks**: Compilation error for missing braces
+- **Invalid Tag Paths**: Compilation error if tag file path is malformed
 
 ## Best Practices
 
@@ -384,6 +433,8 @@ on_tick "game:update_timer";
 6. **Avoid reserved names** - Don't use `load`, `tick`, or other Minecraft keywords
 7. **Use consistent naming** - Pick a convention and stick to it
 8. **Test scope combinations** - Verify that your scope logic works as expected
+9. **Organize tag declarations** - Group related tags together at the top of files
+10. **Use descriptive tag names** - Make tag names clear and meaningful
 
 ## Tokenization Specification
 
@@ -393,7 +444,12 @@ This section defines exactly how MDL source code is broken down into tokens. Thi
 
 #### **Keywords** (Reserved Words)
 ```
-pack, namespace, function, var, num, if, else, while, on_load, on_tick, exec
+pack, namespace, function, var, num, if, else, while, on_load, on_tick, exec, tag
+```
+
+#### **Tag Types** (Resource Categories)
+```
+recipe, loot_table, advancement, item_modifier, predicate, structure
 ```
 
 #### **Identifiers**
@@ -411,13 +467,10 @@ Examples: `0`, `42`, `3.14`, `1000`
 #### **Operators**
 ```
 // Arithmetic
-+ (PLUS), - (MINUS), * (MULTIPLY), / (DIVIDE), % (MODULO)
++ (PLUS), - (MINUS), * (MULTIPLY), / (DIVIDE)
 
 // Comparison
 == (EQUAL), != (NOT_EQUAL), > (GREATER), < (LESS), >= (GREATER_EQUAL), <= (LESS_EQUAL)
-
-// Logical
-&& (AND), || (OR), ! (NOT)
 
 // Assignment
 = (ASSIGN)
@@ -444,6 +497,40 @@ exec (EXEC)
 #### **Special Tokens**
 ```
 $ (DOLLAR)        - Variable substitution delimiter
+" (QUOTE)         - String literal delimiter
+```
+
+### Tag Declaration Tokenization
+
+#### **Basic Tag Declaration**
+```
+tag recipe "RecipeName" "path/to/recipe.json";
+```
+Tokenized as:
+1. `TAG` (`tag`)
+2. `RECIPE` (`recipe`)
+3. `QUOTE` (`"`)
+4. `IDENTIFIER` (`RecipeName`)
+5. `QUOTE` (`"`)
+6. `QUOTE` (`"`)
+7. `IDENTIFIER` (`path/to/recipe.json`)
+8. `QUOTE` (`"`)
+9. `SEMICOLON` (`;`)
+
+#### **Tag Declaration with Complex Path**
+```
+tag loot_table "EpicLoot" "loot_tables/epic_loot.json";
+```
+Tokenized as:
+1. `TAG` (`tag`)
+2. `LOOT_TABLE` (`loot_table`)
+3. `QUOTE` (`"`)
+4. `IDENTIFIER` (`EpicLoot`)
+5. `QUOTE` (`"`)
+6. `QUOTE` (`"`)
+7. `IDENTIFIER` (`loot_tables/epic_loot.json`)
+8. `QUOTE` (`"`)
+9. `SEMICOLON` (`;`)
 ```
 
 ### Scope Selector Tokenization
@@ -683,24 +770,35 @@ Comments are completely ignored during tokenization and do not generate any toke
 3. **Scope Priority**: Scope selectors are always tokenized as complete `IDENTIFIER` tokens
 4. **No Context**: Tokenization is context-free - the same character sequence always produces the same tokens
 5. **Error Handling**: Invalid characters or unterminated sequences generate appropriate error tokens
+6. **String Handling**: Quoted strings are tokenized as complete units with their delimiters
 
 ### Example Complete Tokenization
 
 ```mdl
+tag recipe "diamond_sword" "recipes/diamond_sword.json";
 var num player_score<@s> = 0;
 ```
 
 **Tokens Generated:**
-1. `VAR` (`var`)
-2. `NUM` (`num`)
-3. `IDENTIFIER` (`player_score`)
-4. `LANGLE` (`<`)
-5. `IDENTIFIER` (`@s`)
-6. `RANGLE` (`>`)
-7. `ASSIGN` (`=`)
-8. `NUMBER` (`0`)
+1. `TAG` (`tag`)
+2. `RECIPE` (`recipe`)
+3. `QUOTE` (`"`)
+4. `IDENTIFIER` (`diamond_sword`)
+5. `QUOTE` (`"`)
+6. `QUOTE` (`"`)
+7. `IDENTIFIER` (`recipes/diamond_sword.json`)
+8. `QUOTE` (`"`)
 9. `SEMICOLON` (`;`)
-10. `EOF`
+10. `VAR` (`var`)
+11. `NUM` (`num`)
+12. `IDENTIFIER` (`player_score`)
+13. `LANGLE` (`<`)
+14. `IDENTIFIER` (`@s`)
+15. `RANGLE` (`>`)
+16. `ASSIGN` (`=`)
+17. `NUMBER` (`0`)
+18. `SEMICOLON` (`;`)
+19. `EOF`
 
 This tokenization specification ensures that the lexer, parser, and compiler all work with the same understanding of how MDL source code is structured.
 
@@ -762,6 +860,18 @@ player_score<@s> = 0;
 score<@s> = 5;
 ```
 
+#### **Invalid Tag Declarations**
+```mdl
+// ❌ Error: Missing quotes
+tag recipe RecipeName "path/to/recipe.json";
+
+// ❌ Error: Missing semicolon
+tag recipe "RecipeName" "path/to/recipe.json"
+
+// ✅ Correct
+tag recipe "RecipeName" "path/to/recipe.json";
+```
+
 ### Complex Edge Cases
 
 #### **Nested Scope Selectors in Raw Blocks**
@@ -793,6 +903,13 @@ function game:level_1_complete<@s> {
 }
 ```
 
+#### **Tag Paths with Special Characters**
+```mdl
+// Valid - paths can contain various characters
+tag recipe "complex_recipe" "recipes/complex/recipe_v1.2.json";
+tag loot_table "special_loot" "loot_tables/special/loot_#1.json";
+```
+
 ### Error Recovery
 
 The MDL compiler attempts to provide helpful error messages:
@@ -800,10 +917,11 @@ The MDL compiler attempts to provide helpful error messages:
 1. **Line and Column Information** - Shows exactly where the error occurred
 2. **Context** - Displays the problematic line with surrounding context
 3. **Suggestions** - Provides specific guidance on how to fix the error
-4. **Error Categories** - Groups errors by type (syntax, scope, undefined variables, etc.)
+4. **Error Categories** - Groups errors by type (syntax, scope, undefined variables, invalid tags, etc.)
 
 ### Performance Considerations
 
 - **Large Selectors**: Very long scope selectors may impact compilation time
 - **Deep Nesting**: Excessive nesting of control structures may affect parsing performance
 - **Raw Block Size**: Large raw blocks are processed efficiently as they're copied without parsing
+- **Tag Processing**: Tag declarations are processed efficiently as they're simple string operations
