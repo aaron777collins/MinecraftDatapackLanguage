@@ -16,6 +16,7 @@ MDL is a simple, scope-aware language that compiles to Minecraft datapack `.mcfu
 - **Default scope**: When no scope is specified, always use `@s` (current player)
 - **No return values**: All functions are void - they execute commands and modify state
 - **No quotes needed**: Use `$variable<scope>$` syntax directly instead of string literals
+- **Scope execution**: Use `exec` keyword to execute functions with specific scopes
 
 ## Basic Syntax
 
@@ -53,7 +54,7 @@ player_score = 0;                                // Same as player_score<@s> = 0
 ```mdl
 // Use $variable<scope>$ syntax anywhere in the code
 tellraw @s You have $player_score<@s>$ points;
-execute if score @s player_score matches 10.. run game:celebrate<@s>;
+execute if score @s player_score matches 10.. run game:celebrate;
 
 // In conditions
 if $player_score<@s>$ > 10 {
@@ -71,8 +72,8 @@ function game:start_game {
     player_health<@s> = 20;
 }
 
-// Function with scope parameter
-function game:reset_player<@s> {
+// Function declaration (no scope parameters)
+function game:reset_player {
     player_score<@s> = 0;
     player_health<@s> = 20;
 }
@@ -83,10 +84,10 @@ function game:reset_player<@s> {
 // Call function (runs at current scope)
 game:start_game;
 
-// Call function with specific scope
-game:reset_player<@s>;                           // Execute as @s
-game:reset_player<@a>;                           // Execute as @a
-game:reset_player<@e[type=armor_stand,tag=mdl_server,limit=1]>; // Execute as specific entity
+// Execute function with specific scope using 'exec' keyword
+exec game:reset_player<@s>;                      // Execute as @s
+exec game:reset_player<@a>;                      // Execute as @a
+exec game:reset_player<@e[type=armor_stand,tag=mdl_server,limit=1]>; // Execute as specific entity
 ```
 
 ### Control Structures
@@ -94,14 +95,14 @@ game:reset_player<@e[type=armor_stand,tag=mdl_server,limit=1]>; // Execute as sp
 #### If Statements
 ```mdl
 if $player_score<@s>$ > 10 {
-    game:celebrate<@s>;
+    exec game:celebrate<@s>;
     player_score<@s> = 0;
 }
 
 if $player_health<@s>$ < 5 {
-    game:heal<@s>;
+    exec game:heal<@s>;
 } else {
-    game:check_health<@s>;
+    exec game:check_health<@s>;
 }
 ```
 
@@ -109,7 +110,7 @@ if $player_health<@s>$ < 5 {
 ```mdl
 while $counter<@s>$ > 0 {
     counter<@s> = counter<@s> - 1;
-    game:countdown<@s>;
+    exec game:countdown<@s>;
 }
 ```
 
@@ -146,10 +147,25 @@ raw!$
 
 ### Core Scope Rules
 
-1. **Always Explicit**: Every variable operation must specify scope with `<>` brackets
-2. **No Inheritance**: Functions do not inherit scope from their caller
-3. **Default Scope**: When no scope specified, always use `@s` (current player)
-4. **No Memory**: The system does not remember a variable's declared scope for subsequent operations
+1. **Variable Scope**: Every variable operation must specify scope with `<>` brackets
+2. **Function Execution Scope**: Use `exec` keyword to execute functions with specific scopes
+3. **No Inheritance**: Functions do not inherit scope from their caller
+4. **Default Scope**: When no scope specified, always use `@s` (current player)
+5. **No Memory**: The system does not remember a variable's declared scope for subsequent operations
+
+### Scope Usage Examples
+
+```mdl
+// VARIABLES: Always use <scope> for reading/writing
+var num score<@a> = 0;                    // Declare with scope
+score<@s> = 5;                            // Write with scope
+if $score<@a>$ > 10 { ... }               // Read with scope
+
+// FUNCTIONS: Use exec keyword for scope execution
+game:start;                               // Execute at current scope (@s)
+exec game:start<@a>;                      // Execute as @a
+exec game:reset<@e[type=armor_stand]>;   // Execute as specific entity
+```
 
 ### Scope Examples
 
@@ -163,8 +179,8 @@ global_counter<@a> = global_counter<@a> + 1;    // Increment global counter
 global_counter = 10;                            // Same as global_counter<@s> = 10 (defaults to @s)
 
 // Function calls with different scopes
-game:increment<@s>;                             // Run increment function as @s
-game:increment<@a>;                             // Run increment function as @a
+exec game:increment<@s>;                        // Run increment function as @s
+exec game:increment<@a>;                        // Run increment function as @a
 game:increment;                                 // Same as game:increment<@s> (defaults to @s)
 ```
 
@@ -347,7 +363,7 @@ on_tick "game:update_timer";
 4. **Substitution**: `$variable<scope>$` gets converted to appropriate Minecraft scoreboard commands
 
 ### Function Compilation
-1. **Scope Execution**: `function<@s>` becomes `execute as @s run function namespace:function`
+1. **Scope Execution**: `exec function<@s>` becomes `execute as @s run function namespace:function`
 2. **Default Scope**: `function` becomes `execute as @s run function namespace:function`
 3. **No Return Values**: Functions compile to a series of Minecraft commands
 
@@ -375,7 +391,7 @@ This section defines exactly how MDL source code is broken down into tokens. Thi
 
 #### **Keywords** (Reserved Words)
 ```
-pack, namespace, function, var, num, if, else, while, on_load, on_tick
+pack, namespace, function, var, num, if, else, while, on_load, on_tick, exec
 ```
 
 #### **Identifiers**
@@ -403,6 +419,9 @@ Examples: `0`, `42`, `3.14`, `1000`
 
 // Assignment
 = (ASSIGN)
+
+// Execution
+exec (EXEC)
 ```
 
 #### **Delimiters**
@@ -515,16 +534,17 @@ Tokenized as:
 
 #### **Call with Scope**
 ```
-game:reset_player<@s>;
+exec game:reset_player<@s>;
 ```
 Tokenized as:
-1. `IDENTIFIER` (`game`)
-2. `COLON` (`:`)
-3. `IDENTIFIER` (`reset_player`)
-4. `LANGLE` (`<`)
-5. `IDENTIFIER` (`@s`)
-6. `RANGLE` (`>`)
-7. `SEMICOLON` (`;`)
+1. `EXEC` (`exec`)
+2. `IDENTIFIER` (`game`)
+3. `COLON` (`:`)
+4. `IDENTIFIER` (`reset_player`)
+5. `LANGLE` (`<`)
+6. `IDENTIFIER` (`@s`)
+7. `RANGLE` (`>`)
+8. `SEMICOLON` (`;`)
 
 ### Variable Declaration Tokenization
 
