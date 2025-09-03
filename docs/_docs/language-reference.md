@@ -12,6 +12,7 @@ MDL is a simple, scope-aware language that compiles to Minecraft datapack `.mcfu
 
 ### Philosophy
 - **Explicit scoping**: Every variable operation specifies its scope with `<>` brackets
+- **Clear reading vs writing**: Use `$variable<scope>$` for reading, `variable<scope>` for writing
 - **No scope inheritance**: Each operation uses its own explicitly defined scope
 - **Default scope**: When no scope is specified, always use `@s` (current player)
 - **No return values**: All functions are void - they execute commands and modify state
@@ -42,8 +43,8 @@ var num entity_data<@e[type=armor_stand,tag=mdl_server,limit=1]> = 0; // Custom 
 ### Variable Assignment
 ```mdl
 // Always specify scope for assignments
-player_score<@s> = player_score<@s> + 1;         // Add 1 to current player's score
-player_health<@a> = player_health<@s>;           // Read from @s, write to @a
+player_score<@s> = $player_score<@s>$ + 1;       // Add 1 to current player's score
+player_health<@a> = $player_health<@s>$;         // Read from @s, write to @a
 team_score<@a[team=red]> = 5;                   // Set red team score to 5
 
 // Default scope is @s when not specified
@@ -109,7 +110,7 @@ if $player_health<@s>$ < 5 {
 #### While Loops
 ```mdl
 while $counter<@s>$ > 0 {
-    counter<@s> = counter<@s> - 1;
+    counter<@s> = $counter<@s>$ - 1;
     exec game:countdown<@s>;
 }
 ```
@@ -147,16 +148,17 @@ raw!$
 
 ### Core Scope Rules
 
-1. **Variable Scope**: Every variable operation must specify scope with `<>` brackets
-2. **Function Execution Scope**: Use `exec` keyword to execute functions with specific scopes
-3. **No Inheritance**: Functions do not inherit scope from their caller
-4. **Default Scope**: When no scope specified, always use `@s` (current player)
-5. **No Memory**: The system does not remember a variable's declared scope for subsequent operations
+1. **Variable Writing**: Use `variable<scope>` for assignments and declarations
+2. **Variable Reading**: Use `$variable<scope>$` for reading values
+3. **Function Execution Scope**: Use `exec` keyword to execute functions with specific scopes
+4. **No Inheritance**: Functions do not inherit scope from their caller
+5. **Default Scope**: When no scope specified, always use `@s` (current player)
+6. **No Memory**: The system does not remember a variable's declared scope for subsequent operations
 
 ### Scope Usage Examples
 
 ```mdl
-// VARIABLES: Always use <scope> for reading/writing
+// VARIABLES: Clear distinction between reading and writing
 var num score<@a> = 0;                    // Declare with scope
 score<@s> = 5;                            // Write with scope
 if $score<@a>$ > 10 { ... }               // Read with scope
@@ -175,7 +177,7 @@ var num global_counter<@a> = 0;
 
 // Later operations - each specifies its own scope
 global_counter<@s> = 5;                         // Set current player's counter to 5
-global_counter<@a> = global_counter<@a> + 1;    // Increment global counter
+global_counter<@a> = $global_counter<@a>$ + 1;  // Increment global counter
 global_counter = 10;                            // Same as global_counter<@s> = 10 (defaults to @s)
 
 // Function calls with different scopes
@@ -237,7 +239,7 @@ player_score<@s> = ($x<@s>$ + $y<@s>$) * 2;
 
 // Logical expressions
 if $score<@s>$ > 10 && $health<@s>$ > 0 {
-    game:reward<@s>;
+    exec game:reward<@s>;
 }
 ```
 
@@ -272,8 +274,8 @@ var num global_counter<@a> = 0;
 var num player_counter<@s> = 0;
 
 function "increment" {
-    global_counter<@a> = global_counter<@a> + 1;
-    player_counter<@s> = player_counter<@s> + 1;
+    global_counter<@a> = $global_counter<@a>$ + 1;
+    player_counter<@s> = $player_counter<@s>$ + 1;
     
     tellraw @s Global: $global_counter<@a>$, Player: $player_counter<@s>$;
 }
@@ -296,13 +298,13 @@ var num blue_score<@a[team=blue]> = 0;
 var num player_score<@s> = 0;
 
 function "award_points" {
-    player_score<@s> = player_score<@s> + 10;
+    player_score<@s> = $player_score<@s>$ + 10;
     
     if $player<@s> has team red {
-        red_score<@a[team=red]> = red_score<@a[team=red]> + 5;
+        red_score<@a[team=red]> = $red_score<@a[team=red]>$ + 5;
         tellraw @s Red team score: $red_score<@a[team=red]>$;
     } else if $player<@s> has team blue {
-        blue_score<@a[team=blue]> = blue_score<@a[team=blue]> + 5;
+        blue_score<@a[team=blue]> = $blue_score<@a[team=blue]>$ + 5;
         tellraw @s Blue team score: $blue_score<@a[team=blue]>$;
     }
     
@@ -328,22 +330,22 @@ var num global_high_score<@a> = 0;
 var num game_timer<@a> = 0;
 
 function "gain_experience" {
-    player_exp<@s> = player_exp<@s> + 10;
+    player_exp<@s> = $player_exp<@s>$ + 10;
     
     if $player_exp<@s>$ >= 100 {
-        player_level<@s> = player_level<@s>$ + 1;
+        player_level<@s> = $player_level<@s>$ + 1;
         player_exp<@s> = 0;
         tellraw @s Level up! New level: $player_level<@s>$;
         
         if $player_level<@s>$ > $global_high_score<@a>$ {
-            global_high_score<@a> = player_level<@s>$;
+            global_high_score<@a> = $player_level<@s>$;
             tellraw @a New high level achieved: $global_high_score<@a>$;
         }
     }
 }
 
 function "update_timer" {
-    game_timer<@a> = game_timer<@a> + 1;
+    game_timer<@a> = $game_timer<@a>$ + 1;
     
     if $game_timer<@a>$ >= 1200 {
         game_timer<@a> = 0;
@@ -358,9 +360,9 @@ on_tick "game:update_timer";
 
 ### Variable Resolution
 1. **Declaration**: Variables declare their storage scope when defined
-2. **Access**: Variables can be accessed at any scope, regardless of where they were declared
-3. **Assignment**: Each assignment specifies its own scope
-4. **Substitution**: `$variable<scope>$` gets converted to appropriate Minecraft scoreboard commands
+2. **Reading**: `$variable<scope>$` gets converted to appropriate Minecraft scoreboard commands
+3. **Writing**: `variable<scope>` specifies the target scope for assignments
+4. **Access**: Variables can be accessed at any scope, regardless of where they were declared
 
 ### Function Compilation
 1. **Scope Execution**: `exec function<@s>` becomes `execute as @s run function namespace:function`
@@ -376,12 +378,13 @@ on_tick "game:update_timer";
 ## Best Practices
 
 1. **Always specify scopes explicitly** - Makes code clear and prevents bugs
-2. **Use meaningful variable names** - `player_score<@s>` is clearer than `score<@s>`
-3. **Group related variables** - Keep variables with similar purposes together
-4. **Comment complex scopes** - Explain non-standard selectors
-5. **Avoid reserved names** - Don't use `load`, `tick`, or other Minecraft keywords
-6. **Use consistent naming** - Pick a convention and stick to it
-7. **Test scope combinations** - Verify that your scope logic works as expected
+2. **Use consistent syntax** - `$variable<scope>$` for reading, `variable<scope>` for writing
+3. **Use meaningful variable names** - `player_score<@s>` is clearer than `score<@s>`
+4. **Group related variables** - Keep variables with similar purposes together
+5. **Comment complex scopes** - Explain non-standard selectors
+6. **Avoid reserved names** - Don't use `load`, `tick`, or other Minecraft keywords
+7. **Use consistent naming** - Pick a convention and stick to it
+8. **Test scope combinations** - Verify that your scope logic works as expected
 
 ## Tokenization Specification
 
@@ -580,7 +583,7 @@ Tokenized as:
 
 #### **Expression Assignment**
 ```
-player_score<@s> = player_score<@s> + 1;
+player_score<@s> = $player_score<@s>$ + 1;
 ```
 Tokenized as:
 1. `IDENTIFIER` (`player_score`)
@@ -588,13 +591,15 @@ Tokenized as:
 3. `IDENTIFIER` (`@s`)
 4. `RANGLE` (`>`)
 5. `ASSIGN` (`=`)
-6. `IDENTIFIER` (`player_score`)
-7. `LANGLE` (`<`)
-8. `IDENTIFIER` (`@s`)
-9. `RANGLE` (`>`)
-10. `PLUS` (`+`)
-11. `NUMBER` (`1`)
-12. `SEMICOLON` (`;`)
+6. `DOLLAR` (`$`)
+7. `IDENTIFIER` (`player_score`)
+8. `LANGLE` (`<`)
+9. `IDENTIFIER` (`@s`)
+10. `RANGLE` (`>`)
+11. `DOLLAR` (`$`)
+12. `PLUS` (`+`)
+13. `NUMBER` (`1`)
+14. `SEMICOLON` (`;`)
 
 ### Control Structure Tokenization
 
