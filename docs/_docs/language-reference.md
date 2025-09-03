@@ -85,10 +85,12 @@ function game:reset_player {
 // Call function (runs at current scope)
 game:start_game;
 
-// Execute function with specific scope using 'exec' keyword
-exec game:reset_player<@s>;                      // Execute as @s
-exec game:reset_player<@a>;                      // Execute as @a
-exec game:reset_player<@e[type=armor_stand,tag=mdl_server,limit=1]>; // Execute as specific entity
+// Execute function with exec keyword (runs any function, with or without scope)
+exec game:reset_player;                          // Execute function
+exec game:start_game;                            // Execute any function
+exec utils:calculator;                           // Execute from different namespace
+exec game:reset_player<@s>;                      // Execute function with scope
+exec game:reset_player<@a>;                      // Execute function with different scope
 ```
 
 ### Control Structures
@@ -96,14 +98,14 @@ exec game:reset_player<@e[type=armor_stand,tag=mdl_server,limit=1]>; // Execute 
 #### If Statements
 ```mdl
 if $player_score<@s>$ > 10 {
-    exec game:celebrate<@s>;
+    exec game:celebrate;
     player_score<@s> = 0;
 }
 
 if $player_health<@s>$ < 5 {
-    exec game:heal<@s>;
+    exec game:heal;
 } else {
-    exec game:check_health<@s>;
+    exec game:check_health;
 }
 ```
 
@@ -111,7 +113,7 @@ if $player_health<@s>$ < 5 {
 ```mdl
 while $counter<@s>$ > 0 {
     counter<@s> = $counter<@s>$ - 1;
-    exec game:countdown<@s>;
+    exec game:countdown;
 }
 ```
 
@@ -150,7 +152,7 @@ raw!$
 
 1. **Variable Writing**: Use `variable<scope>` for assignments and declarations
 2. **Variable Reading**: Use `$variable<scope>$` for reading values
-3. **Function Execution Scope**: Use `exec` keyword to execute functions with specific scopes
+3. **Function Execution**: Use `exec` keyword to run any function (with or without scope)
 4. **No Inheritance**: Functions do not inherit scope from their caller
 5. **Default Scope**: When no scope specified, always use `@s` (current player)
 6. **No Memory**: The system does not remember a variable's declared scope for subsequent operations
@@ -163,10 +165,11 @@ var num score<@a> = 0;                    // Declare with scope
 score<@s> = 5;                            // Write with scope
 if $score<@a>$ > 10 { ... }               // Read with scope
 
-// FUNCTIONS: Use exec keyword for scope execution
-game:start;                               // Execute at current scope (@s)
-exec game:start<@a>;                      // Execute as @a
-exec game:reset<@e[type=armor_stand]>;   // Execute as specific entity
+// FUNCTIONS: Use exec keyword to run any function (with or without scope)
+game:start;                               // Call function
+exec game:start;                          // Execute function
+exec utils:helper;                        // Execute from different namespace
+exec game:start<@a>;                      // Execute function with scope
 ```
 
 ### Scope Examples
@@ -180,10 +183,11 @@ global_counter<@s> = 5;                         // Set current player's counter 
 global_counter<@a> = $global_counter<@a>$ + 1;  // Increment global counter
 global_counter = 10;                            // Same as global_counter<@s> = 10 (defaults to @s)
 
-// Function calls with different scopes
-exec game:increment<@s>;                        // Run increment function as @s
-exec game:increment<@a>;                        // Run increment function as @a
-game:increment;                                 // Same as game:increment<@s> (defaults to @s)
+// Function calls
+exec game:increment;                            // Execute function
+exec game:increment<@s>;                        // Execute function with scope
+game:increment;                                 // Call function
+exec utils:helper;                              // Execute from different namespace
 ```
 
 ### Valid Scope Selectors
@@ -239,7 +243,7 @@ player_score<@s> = ($x<@s>$ + $y<@s>$) * 2;
 
 // Logical expressions
 if $score<@s>$ > 10 && $health<@s>$ > 0 {
-    exec game:reward<@s>;
+    exec game:reward;
 }
 ```
 
@@ -365,9 +369,10 @@ on_tick "game:update_timer";
 4. **Access**: Variables can be accessed at any scope, regardless of where they were declared
 
 ### Function Compilation
-1. **Scope Execution**: `exec function<@s>` becomes `execute as @s run function namespace:function`
-2. **Default Scope**: `function` becomes `execute as @s run function namespace:function`
-3. **No Return Values**: Functions compile to a series of Minecraft commands
+1. **Function Calls**: `function` becomes `execute as @s run function namespace:function`
+2. **Exec Calls**: `exec function` becomes `execute as @s run function namespace:function`
+3. **Exec Calls with Scope**: `exec function<@s>` becomes `execute as @s run function namespace:function`
+4. **No Return Values**: Functions compile to a series of Minecraft commands
 
 ### Error Handling
 - **Undefined Variables**: Compilation error if variable not declared
@@ -548,6 +553,18 @@ Tokenized as:
 6. `IDENTIFIER` (`@s`)
 7. `RANGLE` (`>`)
 8. `SEMICOLON` (`;`)
+
+#### **Exec Call without Scope**
+```
+exec game:reset_player;
+```
+Tokenized as:
+1. `EXEC` (`exec`)
+2. `IDENTIFIER` (`game`)
+3. `COLON` (`:`)
+4. `IDENTIFIER` (`reset_player`)
+5. `SEMICOLON` (`;`)
+```
 
 ### Variable Declaration Tokenization
 
