@@ -1,0 +1,4 @@
+// Test file for scoped variables
+var num player_score<@s> = 0;
+
+player_score<@s> = player_score<@s> + 1;

@@ -377,6 +377,32 @@ class MDLParser:
         name_token = self._match(TokenType.IDENTIFIER)
         name = name_token.value
         
+        # Check for scope selector after variable name
+        scope = None
+        if not self._is_at_end() and self._peek().type == TokenType.LANGLE:
+            self._match(TokenType.LANGLE)  # consume '<'
+            
+            # Parse scope selector content
+            scope_parts = []
+            while not self._is_at_end() and self._peek().type != TokenType.RANGLE:
+                scope_parts.append(self._peek().value)
+                self._advance()
+            
+            if self._is_at_end():
+                raise create_parser_error(
+                    message="Unterminated scope selector",
+                    file_path=self.source_file,
+                    line=self._peek().line,
+                    column=self._peek().column,
+                    line_content=self._peek().value,
+                    suggestion="Add a closing '>' to terminate the scope selector"
+                )
+            
+            self._match(TokenType.RANGLE)  # consume '>'
+            scope = ''.join(scope_parts)
+            # Update the name to include the scope selector
+            name = f"{name}<{scope}>"
+        
         self._match(TokenType.ASSIGN)
         
         # Parse the value (could be a number or expression)
@@ -384,7 +410,7 @@ class MDLParser:
         
         self._match(TokenType.SEMICOLON)
         
-        return {"type": "variable_assignment", "name": name, "value": value}
+        return {"type": "variable_assignment", "name": name, "scope": scope, "value": value}
     
     def _parse_if_statement(self) -> IfStatement:
         """Parse if statement."""
@@ -685,8 +711,47 @@ class MDLParser:
         """Parse a command."""
         command_parts = []
         while not self._is_at_end() and self._peek().type != TokenType.SEMICOLON:
-            command_parts.append(self._peek().value)
-            self._advance()
+            current_token = self._peek()
+            
+            # Check if this is an identifier that might be followed by a scope selector
+            if current_token.type == TokenType.IDENTIFIER:
+                identifier_name = current_token.value
+                command_parts.append(identifier_name)
+                self._advance()  # consume the identifier
+                
+                # Look ahead to see if there's a scope selector
+                if not self._is_at_end() and self._peek().type == TokenType.LANGLE:
+                    # This is a scoped variable - parse the scope selector
+                    self._match(TokenType.LANGLE)  # consume '<'
+                    
+                    # Parse scope selector content
+                    scope_parts = []
+                    while not self._is_at_end() and self._peek().type != TokenType.RANGLE:
+                        scope_parts.append(self._peek().value)
+                        self._advance()
+                    
+                    if self._is_at_end():
+                        raise create_parser_error(
+                            message="Unterminated scope selector in command",
+                            file_path=self.source_file,
+                            line=self._peek().line,
+                            column=self._peek().column,
+                            line_content=self._peek().value,
+                            suggestion="Add a closing '>' to terminate the scope selector"
+                        )
+                    
+                    self._match(TokenType.RANGLE)  # consume '>'
+                    scope_selector = ''.join(scope_parts)
+                    
+                    # Add the scope selector to the command parts
+                    command_parts.append(f"<{scope_selector}>")
+                else:
+                    # No scope selector, continue with next token
+                    continue
+            else:
+                # Regular token, just add it
+                command_parts.append(current_token.value)
+                self._advance()
         
         if self._is_at_end():
             raise create_parser_error(

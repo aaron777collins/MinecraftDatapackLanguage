@@ -40,6 +40,7 @@ class VariableDeclaration(ASTNode):
 @dataclass
 class VariableAssignment(ASTNode):
     name: str
+    scope: Optional[str]
     value: Any
 
 
