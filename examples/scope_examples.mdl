@@ -1,0 +1,122 @@
+// Scope Selector Examples - Demonstrating flexible scope system
+pack "scope_examples" "Examples of flexible scope selectors" 15;
+namespace "scope_examples";
+
+// Global variables accessible by all players
+var num serverTime<@a> = 0;
+var num totalPlayers<@a> = 0;
+var num gamePhase<@a> = 0;
+
+// Team-based variables
+var num redTeamScore<@a[team=red]> = 0;
+var num blueTeamScore<@a[team=blue]> = 0;
+
+// Player-specific variables
+var num playerScore<@s> = 0;
+var num playerLevel<@s> = 1;
+var num playerHealth<@s> = 20;
+
+// Entity-based variables
+var num bossHealth<@e[type=wither,tag=boss,limit=1]> = 300;
+
+function "initialize_game" {
+    // Set up global game state
+    gamePhase<@a> = 1;
+    serverTime<@a> = 0;
+    totalPlayers<@a> = 0;
+    
+    // Reset team scores
+    redTeamScore<@a[team=red]> = 0;
+    blueTeamScore<@a[team=blue]> = 0;
+    
+    say Game initialized! Phase: $gamePhase$;
+}
+
+function "player_join" {
+    // Increment global player count
+    totalPlayers<@a> = totalPlayers<@a> + 1;
+    
+    // Initialize player-specific data
+    playerScore<@s> = 0;
+    playerLevel<@s> = 1;
+    playerHealth<@s> = 20;
+    
+    say Welcome! Total players: $totalPlayers$;
+    say Your level: $playerLevel$, Score: $playerScore$;
+}
+
+function "update_game" {
+    // Update global server time
+    serverTime<@a> = serverTime<@a> + 1;
+    
+    // Check for phase transitions
+    if "$serverTime$ >= 1200" {  // 60 seconds
+        gamePhase<@a> = gamePhase<@a> + 1;
+        serverTime<@a> = 0;
+        say New game phase: $gamePhase$;
+    }
+}
+
+function "award_points" {
+    // Award points to player
+    playerScore<@s> = playerScore<@s> + 10;
+    
+    // Check team and award team points
+    if "$player<@s> has team red" {
+        redTeamScore<@a[team=red]> = redTeamScore<@a[team=red]> + 5;
+        say Red team score: $redTeamScore$;
+    } else if "$player<@s> has team blue" {
+        blueTeamScore<@a[team=blue]> = blueTeamScore<@a[team=blue]> + 5;
+        say Blue team score: $blueTeamScore$;
+    }
+    
+    // Check for level up
+    if "$playerScore$ >= 100" {
+        playerLevel<@s> = playerLevel<@s> + 1;
+        playerScore<@s> = playerScore<@s> - 100;
+        say Level up! New level: $playerLevel$;
+    }
+    
+    say Your score: $playerScore$, Level: $playerLevel$;
+}
+
+function "show_leaderboard" {
+    // Display all scores
+    say === LEADERBOARD ===;
+    say Server Time: $serverTime$;
+    say Game Phase: $gamePhase$;
+    say Total Players: $totalPlayers$;
+    say Red Team: $redTeamScore$;
+    say Blue Team: $blueTeamScore$;
+    say Your Score: $playerScore$;
+    say Your Level: $playerLevel$;
+}
+
+function "boss_fight" {
+    // Check boss health
+    if "$bossHealth$ > 0" {
+        say Boss health: $bossHealth$;
+        
+        // Damage boss
+        bossHealth<@e[type=wither,tag=boss,limit=1]> = bossHealth<@e[type=wither,tag=boss,limit=1]> - 10;
+        
+        if "$bossHealth$ <= 0" {
+            say Boss defeated! Awarding bonus points!;
+            playerScore<@s> = playerScore<@s> + 50;
+        }
+    }
+}
+
+function "reset_player" {
+    // Reset player data to global defaults
+    playerScore<@s> = 0;
+    playerLevel<@s> = 1;
+    playerHealth<@s> = 20;
+    
+    say Player data reset!;
+}
+
+// Hooks
+on_load "scope_examples:initialize_game";
+on_tick "scope_examples:update_game";
+on_tick "scope_examples:player_join<@a[gamemode=survival]";

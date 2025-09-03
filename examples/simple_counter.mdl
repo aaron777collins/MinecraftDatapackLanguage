@@ -1,0 +1,41 @@
+// Simple Counter Example - Basic scope selector usage
+pack "simple_counter" "A simple counter with scope selectors" 15;
+namespace "simple_counter";
+
+// Global counter accessible by all players
+var num globalCounter<@a> = 0;
+
+// Player-specific counter
+var num playerCounter<@s> = 0;
+
+function "increment_global" {
+    // Increment the global counter
+    globalCounter<@a> = globalCounter<@a> + 1;
+    say Global counter: $globalCounter$;
+}
+
+function "increment_player" {
+    // Increment the player-specific counter
+    playerCounter<@s> = playerCounter<@s> + 1;
+    say Your counter: $playerCounter$;
+}
+
+function "show_both" {
+    // Show both counters
+    say Global: $globalCounter$, Player: $playerCounter$;
+}
+
+function "reset_player" {
+    // Reset player counter to global value
+    playerCounter<@s> = globalCounter<@a>;
+    say Reset to global value: $playerCounter$;
+}
+
+function "run_for_all" {
+    // Run increment for all players
+    function "simple_counter:increment_player<@a>";
+}
+
+// Hooks
+on_load "simple_counter:increment_global";
+on_tick "simple_counter:show_both<@a[gamemode=survival]";

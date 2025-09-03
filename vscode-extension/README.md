@@ -10,11 +10,12 @@ A comprehensive VSCode extension for the JavaScript-style MDL language, providin
 - Support for comments (`//` and `/* */`)
 - Variable and function highlighting
 - Entity selector highlighting (`@p`, `@r`, `@a`, `@e`, `@s`)
+- **Scope selector syntax highlighting** - Angle brackets `<@s>`, `<@a>`, etc.
 
 ### 💡 IntelliSense & Auto-completion
 - Smart completion for all MDL keywords
 - Variable type suggestions (`num`, `str`, `list`)
-- **Explicit scope system support** - Complete scope syntax for variables and functions
+- **Flexible scope selector system support** - Complete scope syntax for variables and functions
 - Control flow keywords (`if`, `else`, `while`, `for`, `switch`, `try`, `catch`)
 - Minecraft command suggestions
 - Entity selector completion
@@ -33,10 +34,10 @@ Comprehensive snippets for all MDL features:
 - `varnum` - Number variable
 - `varstr` - String variable
 - `varlist` - List variable
-- `varscope` - Variable declaration with explicit scope
-- `varnumscope` - Number variable with explicit scope
-- `varaccess` - Variable access with explicit scope
-- `varassign` - Variable assignment with explicit scope
+- `varscope` - Variable declaration with scope selector
+- `varnumscope` - Number variable with scope selector
+- `varaccess` - Variable access with scope selector
+- `varassign` - Variable assignment with scope selector
 - `teamvar` - Team-specific variable declaration
 - `teamaccess` - Team variable access
 
@@ -63,7 +64,7 @@ Comprehensive snippets for all MDL features:
 - `execute` - Execute command
 - `scoreboard` - Scoreboard command
 - `function` - Function call
-- `funcscope` - Function call with explicit scope
+- `funcscope` - Function call with scope selector
 
 #### Lifecycle Hooks
 - `ontick` - On tick hook
@@ -78,27 +79,27 @@ Comprehensive snippets for all MDL features:
 - **MDL: Create new project** - Create a new MDL project
 
 ### 🔧 Language Features
-- Auto-closing brackets and quotes
+- Auto-closing brackets, quotes, and angle brackets
 - Smart indentation for blocks
 - Code folding support
 - Bracket matching
 - Comment toggling
 
-### 🎯 Explicit Scope System
-The extension provides comprehensive support for MDL's explicit scope system:
+### 🎯 Flexible Scope Selector System
+The extension provides comprehensive support for MDL's flexible scope selector system:
 
-- **Variable Declaration Scopes**: `scope<global>`, `scope<@s>`, `scope<@a>`
-- **Variable Access Scopes**: `variable<@s>`, `counter<global>`, `score<@a[team=red]>`
+- **Variable Declaration Scopes**: `<@a>`, `<@s>`, `<@a[team=red]>`
+- **Variable Access Scopes**: `variable<@s>`, `counter<@a>`, `score<@a[team=red]>`
 - **Function Call Scopes**: `function "namespace:func<@a>"`
-- **Team Scopes**: `scope<@a[team=red]>`, `scope<@a[team=blue]>`
-- **Explicit Scopes in Conditions**: `if "$score<@s>$ > 10"`, `while "$counter<global>$ < 100"`
+- **Team Scopes**: `<@a[team=red]>`, `<@a[team=blue]>`
+- **Explicit Scopes in Conditions**: `if "$score<@s>$ > 10"`, `while "$counter<@a>$ < 100"`
 - **Smart Completions**: Context-aware scope suggestions based on current code position
+- **Flexible Data Access**: Read from one scope, write to another as needed
 
 ## Installation
 
 1. Install the extension from the VSCode marketplace
 2. Open any `.mdl` file to activate the extension
-3. Start coding with full IntelliSense support!
 
 ## Usage
 

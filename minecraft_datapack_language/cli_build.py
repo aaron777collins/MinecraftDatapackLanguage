@@ -21,6 +21,17 @@ from .cli_colors import (
 )
 
 
+def _extract_scope_selector(var_name: str) -> tuple[str, str]:
+    """Extract scope selector from variable name like 'player_score<@s>' -> ('player_score', '@s')"""
+    if '<' in var_name and var_name.endswith('>'):
+        parts = var_name.split('<', 1)
+        if len(parts) == 2:
+            base_name = parts[0]
+            scope_selector = parts[1][:-1]  # Remove trailing >
+            return base_name, scope_selector
+    return var_name, "@s"  # Default to @s if no scope specified
+
+
 class BuildContext:
     """Context for build operations to prevent race conditions."""
     
@@ -194,7 +205,13 @@ def _generate_scoreboard_objectives(ast: Dict[str, Any], output_dir: Path) -> Li
     
     # Create scoreboard objectives in the order they were found
     for var_name in variables:
-        scoreboard_commands.append(f"scoreboard objectives add {var_name} dummy")
+        # Extract base variable name from scoped variables
+        base_var_name, _ = _extract_scope_selector(var_name)
+        scoreboard_commands.append(f"scoreboard objectives add {base_var_name} dummy")
+    
+    # Add temporary variables for complex expressions (up to 10 temp variables)
+    for i in range(10):
+        scoreboard_commands.append(f"scoreboard objectives add temp_{i} dummy")
     
     return scoreboard_commands
 
@@ -299,6 +316,188 @@ def _process_say_command_with_variables(content: str, selector: str, variable_sc
     return f'tellraw @a [{components_str}]'
 
 
+def _process_complex_expression(expression: Any, target_selector: str, target_var: str, variable_scopes: Dict[str, str] = None, temp_var_counter: int = 0) -> tuple[List[str], int]:
+    """
+    Process complex expressions and break them down into intermediate variables.
+    Returns (commands, new_temp_counter)
+    """
+    if variable_scopes is None:
+        variable_scopes = {}
+    
+    commands = []
+    
+    # Handle different expression types
+    if hasattr(expression, '__class__'):
+        class_name = str(expression.__class__)
+        
+        if 'BinaryExpression' in class_name:
+            # Binary expression: left operator right
+            if hasattr(expression, 'left') and hasattr(expression, 'right') and hasattr(expression, 'operator'):
+                left = expression.left
+                right = expression.right
+                operator = expression.operator
+                
+                # Process left side
+                if hasattr(left, 'name'):
+                    # Left is a variable
+                    left_base_name, left_selector = _extract_scope_selector(left.name)
+                    if left_selector == "@s" and variable_scopes and left_base_name in variable_scopes:
+                        left_selector = variable_scopes[left_base_name]
+                        if left_selector == 'global':
+                            left_selector = "@e[type=armor_stand,tag=mdl_server,limit=1]"
+                    
+                    # Process right side
+                    if hasattr(right, 'value') and isinstance(right.value, (int, str)):
+                        # Right is a literal
+                        if operator == 'PLUS':
+                            commands.append(f"scoreboard players add {target_selector} {target_var} {right.value}")
+                        elif operator == 'MINUS':
+                            commands.append(f"scoreboard players remove {target_selector} {target_var} {right.value}")
+                        elif operator == 'MULTIPLY':
+                            # For multiplication, we need to use operations
+                            temp_var = f"temp_{temp_var_counter}"
+                            temp_var_counter += 1
+                            commands.append(f"scoreboard players set {target_selector} {temp_var} {right.value}")
+                            commands.append(f"scoreboard players operation {target_selector} {target_var} *= {target_selector} {temp_var}")
+                        elif operator == 'DIVIDE':
+                            # For division, we need to use operations
+                            temp_var = f"temp_{temp_var_counter}"
+                            temp_var_counter += 1
+                            commands.append(f"scoreboard players set {target_selector} {temp_var} {right.value}")
+                            commands.append(f"scoreboard players operation {target_selector} {target_var} /= {target_selector} {temp_var}")
+                        else:
+                            # Other operators - use operation
+                            commands.append(f"# Complex operation: {target_var} = {left.name} {operator} {right.value}")
+                    elif hasattr(right, 'name'):
+                        # Right is also a variable - need to use operations
+                        right_base_name, right_selector = _extract_scope_selector(right.name)
+                        if right_selector == "@s" and variable_scopes and right_base_name in variable_scopes:
+                            right_selector = variable_scopes[right_base_name]
+                            if right_selector == 'global':
+                                right_selector = "@e[type=armor_stand,tag=mdl_server,limit=1]"
+                        
+                        if operator == 'PLUS':
+                            # First set target to left value
+                            commands.append(f"scoreboard players operation {target_selector} {target_var} = {left_selector} {left_base_name}")
+                            # Then add right value
+                            commands.append(f"scoreboard players operation {target_selector} {target_var} += {right_selector} {right_base_name}")
+                        elif operator == 'MINUS':
+                            # First set target to left value
+                            commands.append(f"scoreboard players operation {target_selector} {target_var} = {left_selector} {left_base_name}")
+                            # Then subtract right value
+                            commands.append(f"scoreboard players operation {target_selector} {target_var} -= {right_selector} {right_base_name}")
+                        elif operator == 'MULTIPLY':
+                            # First set target to left value
+                            commands.append(f"scoreboard players operation {target_selector} {target_var} = {left_selector} {left_base_name}")
+                            # Then multiply by right value
+                            commands.append(f"scoreboard players operation {target_selector} {target_var} *= {right_selector} {right_base_name}")
+                        elif operator == 'DIVIDE':
+                            # First set target to left value
+                            commands.append(f"scoreboard players operation {target_selector} {target_var} = {left_selector} {left_base_name}")
+                            # Then divide by right value
+                            commands.append(f"scoreboard players operation {target_selector} {target_var} /= {right_selector} {right_base_name}")
+                        else:
+                            # Other operators - use operation
+                            commands.append(f"# Complex operation: {target_var} = {left.name} {operator} {right.name}")
+                    else:
+                        # Complex right side - need to process recursively
+                        temp_var = f"temp_{temp_var_counter}"
+                        temp_var_counter += 1
+                        right_commands, temp_var_counter = _process_complex_expression(right, target_selector, temp_var, variable_scopes, temp_var_counter)
+                        commands.extend(right_commands)
+                        
+                        # Now perform the operation
+                        if operator == 'PLUS':
+                            commands.append(f"scoreboard players operation {target_selector} {target_var} += {target_selector} {temp_var}")
+                        elif operator == 'MINUS':
+                            commands.append(f"scoreboard players operation {target_selector} {target_var} -= {target_selector} {temp_var}")
+                        elif operator == 'MULTIPLY':
+                            commands.append(f"scoreboard players operation {target_selector} {target_var} *= {target_selector} {temp_var}")
+                        elif operator == 'DIVIDE':
+                            commands.append(f"scoreboard players operation {target_selector} {target_var} /= {target_selector} {temp_var}")
+                        else:
+                            commands.append(f"# Complex operation: {target_var} = {left.name} {operator} {temp_var}")
+                else:
+                    # Left is not a simple variable - need to process recursively
+                    temp_var = f"temp_{temp_var_counter}"
+                    temp_var_counter += 1
+                    left_commands, temp_var_counter = _process_complex_expression(left, target_selector, temp_var, variable_scopes, temp_var_counter)
+                    commands.extend(left_commands)
+                    
+                    # Now process the right side
+                    if hasattr(right, 'value') and isinstance(right.value, (int, str)):
+                        # Right is a literal
+                        if operator == 'PLUS':
+                            commands.append(f"scoreboard players add {target_selector} {target_var} {right.value}")
+                        elif operator == 'MINUS':
+                            commands.append(f"scoreboard players remove {target_selector} {target_var} {right.value}")
+                        else:
+                            commands.append(f"# Complex operation: {target_var} = {temp_var} {operator} {right.value}")
+                    else:
+                        # Right is also complex - need to process recursively
+                        right_temp_var = f"temp_{temp_var_counter}"
+                        temp_var_counter += 1
+                        right_commands, temp_var_counter = _process_complex_expression(right, target_selector, right_temp_var, variable_scopes, temp_var_counter)
+                        commands.extend(right_commands)
+                        
+                        # Now perform the operation between the two temp variables
+                        if operator == 'PLUS':
+                            commands.append(f"scoreboard players operation {target_selector} {target_var} = {target_selector} {temp_var}")
+                            commands.append(f"scoreboard players operation {target_selector} {target_var} += {target_selector} {right_temp_var}")
+                        elif operator == 'MINUS':
+                            commands.append(f"scoreboard players operation {target_selector} {target_var} = {target_selector} {temp_var}")
+                            commands.append(f"scoreboard players operation {target_selector} {target_var} -= {target_selector} {right_temp_var}")
+                        elif operator == 'MULTIPLY':
+                            commands.append(f"scoreboard players operation {target_selector} {target_var} = {target_selector} {temp_var}")
+                            commands.append(f"scoreboard players operation {target_selector} {target_var} *= {target_selector} {right_temp_var}")
+                        elif operator == 'DIVIDE':
+                            commands.append(f"scoreboard players operation {target_selector} {target_var} = {target_selector} {temp_var}")
+                            commands.append(f"scoreboard players operation {target_selector} {target_var} /= {target_selector} {right_temp_var}")
+                        else:
+                            commands.append(f"# Complex operation: {target_var} = {temp_var} {operator} {right_temp_var}")
+            else:
+                commands.append(f"# Malformed binary expression: {expression}")
+        
+        elif 'VariableExpression' in class_name:
+            # Simple variable reference
+            if hasattr(expression, 'name'):
+                var_name = expression.name
+                base_var_name, var_selector = _extract_scope_selector(var_name)
+                if var_selector == "@s" and variable_scopes and base_var_name in variable_scopes:
+                    var_selector = variable_scopes[base_var_name]
+                    if var_selector == 'global':
+                        var_selector = "@e[type=armor_stand,tag=mdl_server,limit=1]"
+                
+                commands.append(f"scoreboard players operation {target_selector} {target_var} = {var_selector} {base_var_name}")
+            else:
+                commands.append(f"# Malformed variable expression: {expression}")
+        
+        elif 'LiteralExpression' in class_name:
+            # Literal value
+            if hasattr(expression, 'value'):
+                try:
+                    num_value = int(expression.value)
+                    commands.append(f"scoreboard players set {target_selector} {target_var} {num_value}")
+                except (ValueError, TypeError):
+                    commands.append(f"# Cannot convert literal to number: {expression.value}")
+            else:
+                commands.append(f"# Malformed literal expression: {expression}")
+        
+        else:
+            # Unknown expression type
+            commands.append(f"# Unknown expression type: {class_name} - {expression}")
+    
+    else:
+        # Direct value
+        try:
+            num_value = int(expression)
+            commands.append(f"scoreboard players set {target_selector} {target_var} {num_value}")
+        except (ValueError, TypeError):
+            commands.append(f"# Cannot convert expression to number: {expression}")
+    
+    return commands, temp_var_counter
+
+
 def _process_statement(statement: Any, namespace: str, function_name: str, statement_index: int = 0, is_tag_function: bool = False, selector: str = "@s", variable_scopes: Dict[str, str] = None, build_context: BuildContext = None, output_dir: Path = None) -> List[str]:
     """Process a single statement and return Minecraft commands."""
     if variable_scopes is None:
@@ -336,65 +535,68 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
         var_name = statement['name']
         value = statement['value']
         
-        # Determine the correct selector for this variable based on its declared scope
-        var_selector = selector  # Default to current selector
-        if variable_scopes and var_name in variable_scopes:
-            declared_scope = variable_scopes[var_name]
+        # Extract scope selector from variable name (e.g., 'player_score<@s>' -> 'player_score', '@s')
+        base_var_name, var_selector = _extract_scope_selector(var_name)
+        
+        # If no scope selector in name, fall back to declared scope
+        if var_selector == "@s" and variable_scopes and base_var_name in variable_scopes:
+            declared_scope = variable_scopes[base_var_name]
             if declared_scope == 'global':
                 var_selector = "@e[type=armor_stand,tag=mdl_server,limit=1]"
             else:
                 var_selector = declared_scope
-        print(f"DEBUG: Variable {var_name} assignment using selector: {var_selector} (declared scope: {variable_scopes.get(var_name, 'none')})")
+        
+        print(f"DEBUG: Variable {base_var_name} assignment using selector: {var_selector} (from name: {var_name})")
         
         # Handle different value types
         if isinstance(value, int):
-            commands.append(f"scoreboard players set {var_selector} {var_name} {value}")
+            commands.append(f"scoreboard players set {var_selector} {base_var_name} {value}")
         elif isinstance(value, str) and value.startswith('$') and value.endswith('$'):
             # Variable reference
             ref_var = value[1:-1]  # Remove $ symbols
-            commands.append(f"scoreboard players operation {var_selector} {var_name} = {var_selector} {ref_var}")
-        elif hasattr(value, '__class__') and 'BinaryExpression' in str(value.__class__):
-            # Handle complex expressions (BinaryExpression, etc.)
-            # Convert to proper Minecraft scoreboard commands
-            if hasattr(value, 'left') and hasattr(value, 'right') and hasattr(value, 'operator'):
-                left = value.left
-                right = value.right
-                operator = value.operator
-                
-                # Handle different operators
-                if operator == 'PLUS':
-                    if hasattr(left, 'name') and hasattr(right, 'value'):
-                        # counter = counter + 1
-                        commands.append(f"scoreboard players add {var_selector} {var_name} {right.value}")
-                    else:
-                        # Complex case - use operation
-                        commands.append(f"# Complex addition: {var_name} = {left} + {right}")
-                elif operator == 'MINUS':
-                    if hasattr(left, 'name') and hasattr(right, 'value'):
-                        # health = health - 10
-                        commands.append(f"scoreboard players remove {var_selector} {var_name} {right.value}")
-                    else:
-                        # Complex case - use operation
-                        commands.append(f"# Complex operation: {var_name} = {left} - {right}")
+            # Extract scope from reference variable if it has one
+            ref_base_name, ref_selector = _extract_scope_selector(ref_var)
+            if ref_selector == "@s" and variable_scopes and ref_base_name in variable_scopes:
+                declared_scope = variable_scopes[ref_base_name]
+                if declared_scope == 'global':
+                    ref_selector = "@e[type=armor_stand,tag=mdl_server,limit=1]"
                 else:
-                    # Other operators - use operation
-                    commands.append(f"# Complex operation: {var_name} = {left} {operator} {right}")
+                    ref_selector = declared_scope
+            commands.append(f"scoreboard players operation {var_selector} {base_var_name} = {ref_selector} {ref_base_name}")
+        elif hasattr(value, '__class__') and 'VariableExpression' in str(value.__class__):
+            # Variable expression (e.g., playerCounter<@s> = globalCounter<@a>)
+            if hasattr(value, 'name'):
+                ref_var = value.name
+                # Extract scope from reference variable
+                ref_base_name, ref_selector = _extract_scope_selector(ref_var)
+                if ref_selector == "@s" and variable_scopes and ref_base_name in variable_scopes:
+                    declared_scope = variable_scopes[ref_base_name]
+                    if declared_scope == 'global':
+                        ref_selector = "@e[type=armor_stand,tag=mdl_server,limit=1]"
+                    else:
+                        ref_selector = declared_scope
+                commands.append(f"scoreboard players operation {var_selector} {base_var_name} = {ref_selector} {ref_base_name}")
             else:
-                commands.append(f"# Complex assignment: {var_name} = {value}")
+                commands.append(f"# Variable expression assignment: {base_var_name} = {value}")
+        elif hasattr(value, '__class__') and 'BinaryExpression' in str(value.__class__):
+            # Handle complex expressions using the enhanced expression processor
+            # This will break down complex expressions into intermediate variables
+            expression_commands, _ = _process_complex_expression(value, var_selector, base_var_name, variable_scopes, 0)
+            commands.extend(expression_commands)
         else:
             # Handle LiteralExpression and other value types
             try:
                 if hasattr(value, 'value'):
                     # LiteralExpression case
                     num_value = int(value.value)
-                    commands.append(f"scoreboard players set {var_selector} {var_name} {num_value}")
+                    commands.append(f"scoreboard players set {var_selector} {base_var_name} {num_value}")
                 else:
                     # Direct value case
                     num_value = int(value)
-                    commands.append(f"scoreboard players set {var_selector} {var_name} {num_value}")
+                    commands.append(f"scoreboard players set {var_selector} {base_var_name} {num_value}")
             except (ValueError, TypeError):
                 # If we can't convert to int, add a placeholder
-                commands.append(f"# Assignment: {var_name} = {value}")
+                commands.append(f"# Assignment: {base_var_name} = {value}")
     
     elif statement['type'] == 'if_statement':
         condition = statement['condition']
@@ -507,11 +709,21 @@ def _generate_function_file(ast: Dict[str, Any], output_dir: Path, namespace: st
             for var_decl in ast['variables']:
                 var_name = var_decl['name']
                 var_scope = var_decl.get('scope')
-                if var_scope:
-                    variable_scopes[var_name] = var_scope
-                    print(f"DEBUG: Variable {var_name} has scope {var_scope}")
+                
+                # Extract base variable name and scope selector
+                base_var_name, scope_selector = _extract_scope_selector(var_name)
+                
+                if scope_selector != "@s":
+                    # Variable has explicit scope selector
+                    variable_scopes[base_var_name] = scope_selector
+                    print(f"DEBUG: Variable {base_var_name} has scope {scope_selector} from name {var_name}")
+                elif var_scope:
+                    # Variable has scope from scope field (legacy support)
+                    variable_scopes[base_var_name] = var_scope
+                    print(f"DEBUG: Variable {base_var_name} has scope {var_scope} from scope field")
                 else:
-                    print(f"DEBUG: Variable {var_name} has no scope (defaults to @s)")
+                    # Variable has no scope (defaults to @s)
+                    print(f"DEBUG: Variable {base_var_name} has no scope (defaults to @s)")
         
         print(f"DEBUG: Collected variable scopes: {variable_scopes}")
         

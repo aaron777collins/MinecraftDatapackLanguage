@@ -317,9 +317,29 @@ class MDLParser:
                 )
             
             # Check if this is a variable assignment (identifier followed by =)
+            # Need to handle scope selectors like: identifier<scope> = ...
             if (self.current + 1 < len(self.tokens) and 
                 self.tokens[self.current + 1].type == TokenType.ASSIGN):
                 return self._parse_variable_assignment()
+            elif (self.current + 1 < len(self.tokens) and 
+                  self.tokens[self.current + 1].type == TokenType.LANGLE):
+                # This might be a scoped variable assignment: identifier<scope> = ...
+                # Look ahead to see if there's an assignment after the scope selector
+                temp_current = self.current + 1
+                while (temp_current < len(self.tokens) and 
+                       self.tokens[temp_current].type != TokenType.RANGLE and
+                       self.tokens[temp_current].type != TokenType.ASSIGN):
+                    temp_current += 1
+                
+                if (temp_current < len(self.tokens) and 
+                    self.tokens[temp_current].type == TokenType.RANGLE and
+                    temp_current + 1 < len(self.tokens) and
+                    self.tokens[temp_current + 1].type == TokenType.ASSIGN):
+                    # This is a scoped variable assignment
+                    return self._parse_variable_assignment()
+                else:
+                    # This is a command with scope selector
+                    return self._parse_command()
             else:
                 # Assume it's a command
                 return self._parse_command()
