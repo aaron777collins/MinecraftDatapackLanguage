@@ -116,11 +116,11 @@ while $counter<@s>$ > 0 {
 
 ### Hooks
 ```mdl
-on_load "game:start_game";                      // Runs when datapack loads
-on_tick "game:update_timer";                     // Runs every tick
+on_load game:start_game;                         // Runs when datapack loads
+on_tick game:update_timer;                       // Runs every tick
 ```
 
-**Note:** Hooks use quoted strings for function references, unlike regular function calls. This is because hooks are processed at datapack load time, not during execution.
+**Note:** Hooks use the same function reference syntax as regular function calls, but they are processed at datapack load time, not during execution.
 
 ### Raw Blocks
 ```mdl
