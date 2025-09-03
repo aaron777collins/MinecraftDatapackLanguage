@@ -16,7 +16,7 @@ MDL is a simple, scope-aware language that compiles to Minecraft datapack `.mcfu
 - **No scope inheritance**: Each operation uses its own explicitly defined scope
 - **Default scope**: When no scope is specified, always use `@s` (current player)
 - **No return values**: All functions are void - they execute commands and modify state
-- **No quotes needed**: Use `$variable<scope>$` syntax directly instead of string literals
+- **No quotes in expressions**: Use `$variable<scope>$` syntax directly for value reads; strings are used only for names, paths, and literal text where required (e.g., pack names, tag declarations)
 - **Function execution**: Use `exec` keyword to execute all functions
 
 ## Basic Syntax
@@ -105,6 +105,17 @@ if $player_health<@s>$ < 5 {
     exec game:check_health;
 }
 ```
+##### Composing Conditions (no logical operators)
+```mdl
+// Use nested if/else instead of &&, ||, !
+if $score<@s>$ > 10 {
+    if $health<@s>$ > 0 {
+        exec game:reward;
+    }
+} else {
+    exec game:punish;
+}
+```
 
 #### While Loops
 ```mdl
@@ -121,6 +132,60 @@ on_tick game:update_timer;                       // Runs every tick
 ```
 
 **Note:** Hooks use the same function reference syntax as regular function calls, but they are processed at datapack load time, not during execution.
+
+### Tags
+```mdl
+// General form
+// tag <registry> "<name>" "<json/path>";
+
+// Example: recipes
+tag recipes "custom_crafting" "tags/recipes/custom_crafting.json";
+
+// Example: blocks
+tag blocks "mineable/hammer" "tags/blocks/mineable_hammer.json";
+
+// Example: items
+tag items "tools/hammer" "tags/items/tools_hammer.json";
+
+// Example: functions (note: see Hooks note below)
+tag functions "game/tick_extras" "tags/functions/tick_extras.json";
+```
+
+Supported Minecraft tag registries (by folder name under `data/<namespace>/tags/`):
+- blocks
+- items
+- fluids
+- entity_types
+- functions
+- biomes
+- damage_type
+- game_events
+- recipes
+- cat_variant
+- frog_variant
+- wolf_variant
+- painting_variant
+- instrument
+- worldgen/biome
+- worldgen/placed_feature
+- worldgen/configured_feature
+- worldgen/structure
+- worldgen/structure_set
+- worldgen/template_pool
+- worldgen/processor_list
+- worldgen/density_function
+- worldgen/noise
+- worldgen/flat_level_generator_preset
+
+Tag declaration semantics:
+- The `registry` determines the output folder under `data/<namespace>/tags/`.
+- `"name"` is the tag file name (without `.json`). Use slashes for subfolders if desired.
+- `"json/path"` is a source JSON file path in your project; its contents are copied to the generated datapack at `data/<namespace>/tags/<registry>/<name>.json`.
+- The JSON must be a valid tag file with at least `values: [...]` and optional `replace: true/false`.
+
+Important notes:
+- Do not manually override `minecraft:tick` or `minecraft:load` function tags if you use `on_tick`/`on_load`; the compiler manages those memberships.
+- Resource locations in tag JSON `values` must be valid for the chosen registry.
 
 ### Raw Blocks
 ```mdl
@@ -221,11 +286,6 @@ exec utils:helper;                              // Execute from different namesp
 < (less than)
 >= (greater than or equal)
 <= (less than or equal)
-
-// Logical
-&& (and)
-|| (or)
-! (not)
 ```
 
 ### Expression Examples
@@ -235,11 +295,6 @@ player_score<@s> = $x<@a>$ + $y<@p>$ * $z<@r>$;
 
 // Parentheses for precedence
 player_score<@s> = ($x<@s>$ + $y<@s>$) * 2;
-
-// Logical expressions
-if $score<@s>$ > 10 && $health<@s>$ > 0 {
-    exec game:reward;
-}
 ```
 
 ## Reserved Names
@@ -393,7 +448,7 @@ This section defines exactly how MDL source code is broken down into tokens. Thi
 
 #### **Keywords** (Reserved Words)
 ```
-pack, namespace, function, var, num, if, else, while, on_load, on_tick, exec
+pack, namespace, function, var, num, if, else, while, on_load, on_tick, exec, tag
 ```
 
 #### **Identifiers**
@@ -407,6 +462,12 @@ Examples: `player_score`, `game`, `start_game`, `_internal_var`
 [0-9]+(\.[0-9]+)?
 ```
 Examples: `0`, `42`, `3.14`, `1000`
+ 
+#### **Strings**
+```
+"([^"\\]|\\.)*"
+```
+Examples: `"pack_name"`, `"tags/recipes/custom.json"`, supports escapes like `\"` and `\\`.
 
 #### **Operators**
 ```
@@ -415,9 +476,6 @@ Examples: `0`, `42`, `3.14`, `1000`
 
 // Comparison
 == (EQUAL), != (NOT_EQUAL), > (GREATER), < (LESS), >= (GREATER_EQUAL), <= (LESS_EQUAL)
-
-// Logical
-&& (AND), || (OR), ! (NOT)
 
 // Assignment
 = (ASSIGN)
@@ -792,6 +850,49 @@ function game:level_1_complete<@s> {
     player_score<@s> = player_score<@s> + 100;
 }
 ```
+
+### Tag Declaration Edge Cases
+
+#### **Invalid Registry Name**
+```mdl
+// ❌ Error: Unknown registry
+tag widgets "foo" "tags/widgets/foo.json";
+```
+
+Use one of the supported registries listed above.
+
+#### **Invalid Tag JSON**
+```json
+// ❌ Error: Missing required 'values' array
+{ "replace": false }
+```
+
+Tag JSON must include `values: [...]` with valid resource locations for the chosen registry.
+
+#### **Conflicts with Hooks**
+Avoid declaring function tags that would override `minecraft:tick` or `minecraft:load` when using `on_tick`/`on_load`. The compiler manages those memberships.
+
+#### **Name and Path Mismatch**
+The `"name"` determines the output file name; the `"json/path"` is the source. Both must be consistent with your intended tag contents. Names may use subfolders using `/`.
+
+## Well-Formedness Requirements
+
+1. Program structure
+   - Statements must end with `;` unless they open a block (`{` ... `}`).
+   - Braces must balance; no partial blocks.
+2. Scopes
+   - Every read uses `$variable<scope>$`; every write uses `variable<scope>`.
+   - Default scope for unsuffixed writes is `<@s>`.
+3. Expressions
+   - Arithmetic and comparison operators only; no boolean logical operators. Compose conditions with nested `if`/`else`.
+4. Identifiers and strings
+   - Identifiers: `[a-zA-Z_][a-zA-Z0-9_]*`.
+   - Strings must be double-quoted and allow standard escapes.
+5. Tags
+   - `tag <registry> "name" "json/path";` where `<registry>` is supported.
+   - Source JSON must be valid and reference valid resource locations.
+   - Output path becomes `data/<namespace>/tags/<registry>/<name>.json`.
+   - Do not conflict with compiler-managed function tags for hooks.
 
 ### Error Recovery
 
