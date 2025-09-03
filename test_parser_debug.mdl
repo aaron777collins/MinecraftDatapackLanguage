@@ -1,0 +1,6 @@
+pack "test" "Parser Debug Test" 1;
+namespace "test";
+
+function "debug" {
+    tellraw @s {"text": "test"};
+}

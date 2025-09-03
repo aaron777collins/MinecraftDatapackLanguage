@@ -1,0 +1,5 @@
+pack "test" "Simple Scope Test" 1;
+namespace "test";
+
+var num score<@a> = 0;
+score<@s> = score<@s> + 1;

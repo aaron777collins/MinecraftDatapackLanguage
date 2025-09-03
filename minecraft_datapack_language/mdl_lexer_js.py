@@ -75,6 +75,7 @@ class TokenType:
     RANGLE = "RANGLE"  # > for scope syntax
     DOT = "DOT"
     COLON = "COLON"
+    AT = "AT"  # @ for player selectors
     
     # Literals
     IDENTIFIER = "IDENTIFIER"
@@ -185,6 +186,18 @@ class MDLLexer:
             else:
                 self._scan_identifier(source)
                 return
+        
+        # Handle @ selectors - treat @ followed by identifier as a single token
+        # Actually, let's handle this at the parser level instead
+        # if char == '@':
+        #     self._scan_at_identifier(source)
+        #     return
+        
+        # Handle @ selectors (like @s, @a, @e[type=armor_stand])
+        # Actually, let's treat @ as a regular character and let the parser handle context
+        # if char == '@':
+        #     self._scan_selector(source)
+        #     return
         
         # Handle operators and delimiters
         self._scan_operator_or_delimiter(source)
@@ -655,6 +668,30 @@ class MDLLexer:
         # If we're inside braces, we're likely in a control structure
         return brace_count > 0
     
+    def _scan_at_identifier(self, source: str):
+        """Scan an @ selector identifier (like @s, @a, @e[type=armor_stand])."""
+        # Consume the @
+        self.current += 1
+        self.column += 1
+        
+        # Scan the selector type and any brackets/content
+        while self.current < len(source):
+            char = source[self.current]
+            
+            # Stop at whitespace or other delimiters (but not inside brackets)
+            if char.isspace():
+                break
+            
+            # Continue scanning
+            self.current += 1
+            self.column += 1
+        
+        # Create a token for the entire selector (e.g., @s, @a[team=red])
+        selector_text = source[self.start:self.current]
+        self.tokens.append(Token(TokenType.IDENTIFIER, selector_text, self.line, self.column - len(selector_text)))
+    
+    # Removed _scan_selector method - @ is now treated as a regular character
+    
     def _scan_operator_or_delimiter(self, source: str):
         """Scan operators and delimiters."""
         char = source[self.current]
@@ -704,7 +741,8 @@ class MDLLexer:
             ':': TokenType.COLON,
             '!': TokenType.RAW,  # Allow exclamation marks in text
             '?': TokenType.RAW,  # Allow question marks in text
-            '@': TokenType.RAW,  # Allow @ for player selectors
+            '@': TokenType.RAW,  # Allow @ for selectors in commands
+
             '#': TokenType.RAW,  # Allow # for tags
             '~': TokenType.RAW,  # Allow ~ for relative coordinates
             '^': TokenType.RAW,  # Allow ^ for relative coordinates

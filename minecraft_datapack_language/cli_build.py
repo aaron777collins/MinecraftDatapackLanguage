@@ -522,10 +522,6 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
             processed_command = _process_say_command_with_variables(content, selector, variable_scopes)
             print(f"DEBUG: Processed say command: {repr(processed_command)}")
             commands.append(processed_command)
-        elif command.startswith('tellraw @a ') or command.startswith('tellraw @ a '):
-            # Fix extra space in tellraw commands
-            fixed_command = command.replace('tellraw @ a ', 'tellraw @a ')
-            commands.append(fixed_command)
         else:
             # Process other commands normally
             processed_command = _process_variable_substitutions(command, selector)
@@ -538,8 +534,10 @@ def _process_statement(statement: Any, namespace: str, function_name: str, state
         # Extract scope selector from variable name (e.g., 'player_score<@s>' -> 'player_score', '@s')
         base_var_name, var_selector = _extract_scope_selector(var_name)
         
-        # If no scope selector in name, fall back to declared scope
-        if var_selector == "@s" and variable_scopes and base_var_name in variable_scopes:
+        # The scope in the variable name takes precedence over the declared scope
+        # Only fall back to declared scope if no scope selector was found in the name
+        if var_selector == "@s" and "<" not in var_name and variable_scopes and base_var_name in variable_scopes:
+            # No scope selector in name, fall back to declared scope
             declared_scope = variable_scopes[base_var_name]
             if declared_scope == 'global':
                 var_selector = "@e[type=armor_stand,tag=mdl_server,limit=1]"

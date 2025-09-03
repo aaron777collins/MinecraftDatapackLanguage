@@ -731,45 +731,10 @@ class MDLParser:
         while not self._is_at_end() and self._peek().type != TokenType.SEMICOLON:
             current_token = self._peek()
             
-            # Check if this is an identifier that might be followed by a scope selector
-            if current_token.type == TokenType.IDENTIFIER:
-                identifier_name = current_token.value
-                command_parts.append(identifier_name)
-                self._advance()  # consume the identifier
-                
-                # Look ahead to see if there's a scope selector
-                if not self._is_at_end() and self._peek().type == TokenType.LANGLE:
-                    # This is a scoped variable - parse the scope selector
-                    self._match(TokenType.LANGLE)  # consume '<'
-                    
-                    # Parse scope selector content
-                    scope_parts = []
-                    while not self._is_at_end() and self._peek().type != TokenType.RANGLE:
-                        scope_parts.append(self._peek().value)
-                        self._advance()
-                    
-                    if self._is_at_end():
-                        raise create_parser_error(
-                            message="Unterminated scope selector in command",
-                            file_path=self.source_file,
-                            line=self._peek().line,
-                            column=self._peek().column,
-                            line_content=self._peek().value,
-                            suggestion="Add a closing '>' to terminate the scope selector"
-                        )
-                    
-                    self._match(TokenType.RANGLE)  # consume '>'
-                    scope_selector = ''.join(scope_parts)
-                    
-                    # Add the scope selector to the command parts
-                    command_parts.append(f"<{scope_selector}>")
-                else:
-                    # No scope selector, continue with next token
-                    continue
-            else:
-                # Regular token, just add it
-                command_parts.append(current_token.value)
-                self._advance()
+            # For commands, we just collect all tokens as-is
+            # Variable substitutions with $...$ will be handled separately
+            command_parts.append(current_token.value)
+            self._advance()
         
         if self._is_at_end():
             raise create_parser_error(
@@ -777,7 +742,7 @@ class MDLParser:
                 file_path=self.source_file,
                 line=self._peek().line,
                 column=self._peek().column,
-                line_content=self._peek().value,
+                line_content=self._peek().line,
                 suggestion="Add a semicolon (;) at the end of the command"
             )
         
@@ -1024,6 +989,10 @@ def _smart_join_command_parts(parts: List[str]) -> str:
         if curr_part.startswith(':'):
             # Don't add space for namespace:item patterns
             result += curr_part
+        # Special case: don't add space for @ selectors (like @s, @a, @p, @e[type=armor_stand])
+        elif curr_part.startswith('@'):
+            # Add space before @ selectors to separate them from previous command parts
+            result += " " + curr_part
         else:
             # Add space if needed
             if (prev_part and curr_part and 

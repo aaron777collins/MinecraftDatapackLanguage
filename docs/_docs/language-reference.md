@@ -4,7 +4,18 @@ title: Language Reference
 permalink: /docs/language-reference/
 ---
 
-MDL (Minecraft Datapack Language) is a simple language that compiles to Minecraft datapack `.mcfunction` files.
+# MDL (Minecraft Datapack Language) - Complete Language Reference
+
+MDL is a simple, scope-aware language that compiles to Minecraft datapack `.mcfunction` files. This document defines the complete language specification.
+
+## Core Language Design
+
+### Philosophy
+- **Explicit scoping**: Every variable operation specifies its scope with `<>` brackets
+- **No scope inheritance**: Each operation uses its own explicitly defined scope
+- **Default scope**: When no scope is specified, always use `@s` (current player)
+- **No return values**: All functions are void - they execute commands and modify state
+- **No quotes needed**: Use `$variable<scope>$` syntax directly instead of string literals
 
 ## Basic Syntax
 
@@ -18,372 +29,755 @@ pack "pack_name" "description" pack_format;
 namespace "namespace_name";
 ```
 
-### Variables
+### Variable Declaration
 ```mdl
-// Declare variables with scope
-var num counter<@a> = 0;           // Global scope - accessible by all players
-var num playerScore<@s> = 0;       // Player-specific scope - accessible by current player
-var num teamScore<@a[team=red]> = 0; // Team scope - accessible by red team players
+// Declare variables with explicit scope
+var num player_score<@a> = 0;                    // Global scope - accessible by all players
+var num player_health<@s> = 20;                  // Player-specific scope
+var num team_score<@a[team=red]> = 0;            // Team scope
+var num entity_data<@e[type=armor_stand,tag=mdl_server,limit=1]> = 0; // Custom entity scope
+```
 
-// Assignment with scope selectors
-counter<@a> = 42;                  // Set global counter
-playerScore<@s> = playerScore<@s> + 10; // Access and modify player score
-teamScore<@a[team=red]> = 5;      // Set team score
+### Variable Assignment
+```mdl
+// Always specify scope for assignments
+player_score<@s> = player_score<@s> + 1;         // Add 1 to current player's score
+player_health<@a> = player_health<@s>;           // Read from @s, write to @a
+team_score<@a[team=red]> = 5;                   // Set red team score to 5
 
-// Access variables with different scopes than declared
-counter<@s> = counter<@a>;         // Read global counter, set player counter
-playerScore<@a> = playerScore<@s>; // Read player score, set global score
+// Default scope is @s when not specified
+player_score = 0;                                // Same as player_score<@s> = 0;
 ```
 
 ### Variable Substitution
 ```mdl
-// In strings and commands - variables are automatically resolved to their declared scopes
-say Counter: $counter$;
-tellraw @a {"text":"Score: $playerScore$","color":"gold"};
+// Use $variable<scope>$ syntax anywhere in the code
+tellraw @s You have $player_score<@s>$ points;
+execute if score @s player_score matches 10.. run game:celebrate<@s>;
 
 // In conditions
-if "$playerScore$ > 100" {
-    say High score!;
+if $player_score<@s>$ > 10 {
+    player_score<@s> = 0;
 }
 ```
 
 ### Functions
+
+#### Function Declaration
 ```mdl
-function "function_name" {
-    say Hello World;
-    tellraw @a {"text":"Welcome!","color":"green"};
+// Basic function
+function game:start_game {
+    player_score<@s> = 0;
+    player_health<@s> = 20;
 }
 
-// Call functions
-function "namespace:function_name";
+// Function with scope parameter
+function game:reset_player<@s> {
+    player_score<@s> = 0;
+    player_health<@s> = 20;
+}
+```
 
-// Call functions with scope
-function "namespace:function_name<@a>";
+#### Function Calls
+```mdl
+// Call function (runs at current scope)
+game:start_game;
+
+// Call function with specific scope
+game:reset_player<@s>;                           // Execute as @s
+game:reset_player<@a>;                           // Execute as @a
+game:reset_player<@e[type=armor_stand,tag=mdl_server,limit=1]>; // Execute as specific entity
 ```
 
 ### Control Structures
 
 #### If Statements
 ```mdl
-if "$counter$ > 5" {
-    say Counter is high!;
+if $player_score<@s>$ > 10 {
+    game:celebrate<@s>;
+    player_score<@s> = 0;
 }
 
-if "$health$ < 10" {
-    say Health is low!;
+if $player_health<@s>$ < 5 {
+    game:heal<@s>;
 } else {
-    say Health is good;
+    game:check_health<@s>;
 }
 ```
 
 #### While Loops
 ```mdl
-while "$counter$ < 10" {
-    counter = counter + 1;
-    say Counter: $counter$;
+while $counter<@s>$ > 0 {
+    counter<@s> = counter<@s> - 1;
+    game:countdown<@s>;
 }
 ```
 
-### Raw Command Blocks
+### Hooks
 ```mdl
-// Raw blocks allow direct Minecraft commands without MDL processing
+on_load "game:start_game";                      // Runs when datapack loads
+on_tick "game:update_timer";                     // Runs every tick
+```
+
+**Note:** Hooks use quoted strings for function references, unlike regular function calls. This is because hooks are processed at datapack load time, not during execution.
+
+### Raw Blocks
+```mdl
+// Raw blocks pass through unchanged - no MDL processing
 $!raw
 scoreboard players set @s player_timer_enabled 1
-execute as @a run function mypack:increase_tick_per_player
+execute as @a run function game:increase_tick_per_player
 say "Raw commands bypass MDL syntax checking"
 raw!$
 
 // Single-line raw commands
 $!raw scoreboard players add @s player_tick_counter 1 raw!$
 
-// Mix MDL and raw commands
-say "This is MDL syntax";
-$!raw scoreboard players set @s player_timer_enabled 1 raw!$
-say "Back to MDL syntax";
+// Raw blocks can contain any Minecraft commands, including complex execute chains
+$!raw
+execute as @a[team=red] at @s run particle minecraft:explosion ~ ~ ~ 1 1 1 0 10
+execute as @a[team=blue] at @s run playsound minecraft:entity.player.levelup player @s ~ ~ ~ 1 1
+raw!$
 ```
 
-**Use cases for raw blocks:**
-- Complex `execute` commands that MDL doesn't support
-- Direct scoreboard operations
-- Commands with special syntax that conflicts with MDL
-- Legacy Minecraft commands not yet supported by MDL
-
-### Hooks
-```mdl
-on_load "namespace:function_name";    // Runs when datapack loads
-on_tick "namespace:function_name";    // Runs every tick
-```
+**Important:** Raw blocks are completely ignored by the MDL parser. They get copied directly to the output `.mcfunction` files without any processing. This means you can use any valid Minecraft command syntax inside raw blocks.
 
 ## Scope System
 
-MDL uses a **flexible scope system** where variables can be declared with one scope and accessed with different scopes. This provides powerful data sharing capabilities while maintaining clear scope semantics.
+### Core Scope Rules
 
-**Benefits of Flexible Scopes:**
-- **Declare once, access anywhere** - Set up data structures at one scope level
-- **Flexible data sharing** - Read global data at player level, or player data at global level
-- **Efficient data management** - Store data at the most appropriate scope
-- **Clear data flow** - Always see exactly what scope you're reading from and writing to
-- **No hidden state** - Each access explicitly shows the scope being used
+1. **Always Explicit**: Every variable operation must specify scope with `<>` brackets
+2. **No Inheritance**: Functions do not inherit scope from their caller
+3. **Default Scope**: When no scope specified, always use `@s` (current player)
+4. **No Memory**: The system does not remember a variable's declared scope for subsequent operations
 
-### Variable Declaration Scopes
-- **Global scope** - `var num counter<@a> = 0;` - Server-wide storage
-- **Player scope** - `var num playerScore<@s> = 0;` - Player-specific storage
-- **Team scope** - `var num teamScore<@a[team=red]> = 0;` - Team-specific storage
-- **Custom scope** - `var num entityScore<@e[type=armor_stand,tag=scoreboard,limit=1]> = 0;` - Custom entity storage
+### Scope Examples
 
-### Variable Access with Flexible Scopes
 ```mdl
-// Declare variables at appropriate scopes
-var num globalCounter<@a> = 0;           // Global counter
-var num playerHealth<@s> = 20;           // Player health
-var num teamScore<@a[team=red]> = 0;     // Red team score
+// Declare variable with global scope
+var num global_counter<@a> = 0;
 
-// Access variables with different scopes than declared
-globalCounter<@s> = globalCounter<@a>;   // Read global, set player
-playerHealth<@a> = playerHealth<@s>;     // Read player, set global
-teamScore<@s> = teamScore<@a[team=red]>; // Read team, set player
+// Later operations - each specifies its own scope
+global_counter<@s> = 5;                         // Set current player's counter to 5
+global_counter<@a> = global_counter<@a> + 1;    // Increment global counter
+global_counter = 10;                            // Same as global_counter<@s> = 10 (defaults to @s)
 
-// Complex data flow
-if "$playerHealth<@s>$ < 10" {
-    globalCounter<@a> = globalCounter<@a> + 1;  // Increment global counter
-    teamScore<@a[team=red]> = teamScore<@a[team=red]> + 5; // Award team points
+// Function calls with different scopes
+game:increment<@s>;                             // Run increment function as @s
+game:increment<@a>;                             // Run increment function as @a
+game:increment;                                 // Same as game:increment<@s> (defaults to @s)
+```
+
+### Valid Scope Selectors
+
+```mdl
+// Basic selectors
+<@s>        // Current player
+<@a>        // All players
+<@p>        // Nearest player
+<@r>        // Random player
+
+// Complex selectors
+<@a[team=red]>                                    // Red team players
+<@e[type=armor_stand,tag=mdl_server,limit=1]>    // Specific entity
+<@s[distance=..5]>                                // Current player within 5 blocks
+
+// Global scope (special case)
+<global>                                           // Maps to @e[type=armor_stand,tag=mdl_server,limit=1]
+```
+
+## Mathematical Expressions
+
+### Operators
+```mdl
+// Arithmetic
++ (addition)
+- (subtraction)
+* (multiplication)
+/ (division)
+% (modulo)
+
+// Comparison
+== (equal)
+!= (not equal)
+> (greater than)
+< (less than)
+>= (greater than or equal)
+<= (less than or equal)
+
+// Logical
+&& (and)
+|| (or)
+! (not)
+```
+
+### Expression Examples
+```mdl
+// Complex expressions with different scopes
+player_score<@s> = $x<@a>$ + $y<@p>$ * $z<@r>$;
+
+// Parentheses for precedence
+player_score<@s> = ($x<@s>$ + $y<@s>$) * 2;
+
+// Logical expressions
+if $score<@s>$ > 10 && $health<@s>$ > 0 {
+    game:reward<@s>;
 }
 ```
 
-### Function Call Scopes
+## Reserved Names
+
+### Function Names to Avoid
+- `load` - Conflicts with Minecraft's built-in load function
+- `tick` - Conflicts with Minecraft's built-in tick function
+- Any other names that might conflict with Minecraft's internal functions
+
+### Alternative Naming
 ```mdl
-// Execute as specific selector
-function "namespace:function_name<@a>";           // All players
-function "namespace:function_name<@s>";           // Current player
-function "namespace:function_name<@a[team=red]>"; // Red team players
+// Instead of 'load', use:
+function game:initialize { ... }
+function game:setup { ... }
+function game:start { ... }
+
+// Instead of 'tick', use:
+function game:update { ... }
+function game:loop { ... }
+function game:process { ... }
 ```
 
-## Flexible Scope System Details
+## Complete Examples
 
-### How It Works
-
-The flexible scope system allows you to declare variables at one scope and access them at different scopes:
-
-1. **Declaration**: Variables declare their storage scope when defined
-   ```mdl
-   var num globalVar<@a> = 0;                    // Stored globally
-   var num playerVar<@s> = 0;                    // Stored per player
-   var num teamVar<@a[team=red]> = 0;            // Stored per red team
-   ```
-
-2. **Access**: Variables can be accessed at any scope, regardless of where they were declared
-   ```mdl
-   globalVar<@s> = 42;                           // Read global, set player
-   playerVar<@a> = playerVar<@s>;                // Read player, set global
-   teamVar<@s> = teamVar<@a[team=red]>;          // Read team, set player
-   ```
-
-3. **String Substitution**: Variables in strings automatically use their declared scopes
-   ```mdl
-   say Global: $globalVar$, Player: $playerVar$;  // Automatic scope resolution
-   ```
-
-4. **Explicit Scopes in Conditions**: Override declared scopes in if/while conditions
-   ```mdl
-   if "$playerVar<@s>$ > 10" {                   // Explicit player scope in condition
-       say "Player score is high!";
-   }
-   
-   if "$globalVar<@a>$ > 100" {                  // Global scope in condition
-       say "Global counter reached!";
-   }
-   
-   if "$teamVar<@a[team=red]>$ > 50" {           // Team scope in condition
-       say "Red team is winning!";
-   }
-   ```
-
-### Scope Mapping
-
-MDL maps scopes to Minecraft selectors:
-
-| MDL Scope | Minecraft Selector | Description |
-|-----------|-------------------|-------------|
-| `<@a>` | `@a` | All players (global storage) |
-| `<@s>` | `@s` | Current player |
-| `<@a[team=red]>` | `@a[team=red]` | Red team players |
-| `<@e[type=armor_stand,tag=mdl_server,limit=1]>` | `@e[type=armor_stand,tag=mdl_server,limit=1]` | Custom entity |
-
-### Best Practices
-
-- **Declare at appropriate scope** - Store data where it makes most sense
-- **Access flexibly** - Read from one scope, write to another as needed
-- **Use meaningful names** - `playerScore<@s>` is clearer than `score<@s>`
-- **Document complex scopes** - Add comments for non-standard selectors
-- **Consider data flow** - Think about where data originates and where it needs to go
-
-## Examples
-
-### Basic Hello World
-```mdl
-pack "hello" "A simple hello world datapack" 82;
-namespace "hello";
-
-function "main" {
-    say Hello, Minecraft!;
-    tellraw @a {"text":"Welcome to my datapack!","color":"green"};
-}
-
-on_load "hello:main";
-```
-
-### Counter with Flexible Scoped Variables
+### Basic Counter
 ```mdl
 pack "counter" "Counter example" 82;
 namespace "counter";
 
-var num globalCounter<@a> = 0;           // Global counter
-var num playerCounter<@s> = 0;           // Player-specific counter
+var num global_counter<@a> = 0;
+var num player_counter<@s> = 0;
 
 function "increment" {
-    globalCounter<@a> = globalCounter<@a> + 1;   // Increment global
-    playerCounter<@s> = playerCounter<@s> + 1;   // Increment player
+    global_counter<@a> = global_counter<@a> + 1;
+    player_counter<@s> = player_counter<@s> + 1;
     
-    // Access global data at player level
-    say Global: $globalCounter$, Player: $playerCounter$;
-}
-
-function "show_all" {
-    function "counter:increment<@a>";    // Run for all players
+    tellraw @s Global: $global_counter<@a>$, Player: $player_counter<@s>$;
 }
 
 function "reset_player" {
-    // Reset player counter to global value
-    playerCounter<@s> = globalCounter<@a>;
-    say Reset to global value: $playerCounter$;
+    player_counter<@s> = 0;
+    tellraw @s Counter reset!;
 }
+
+on_load "counter:increment";
 ```
 
-### Team-Based Scoring System
+### Team Game
 ```mdl
 pack "teamgame" "Team game example" 82;
 namespace "teamgame";
 
-var num redTeamScore<@a[team=red]> = 0;     // Red team score
-var num blueTeamScore<@a[team=blue]> = 0;   // Blue team score
-var num playerScore<@s> = 0;                // Individual player score
+var num red_score<@a[team=red]> = 0;
+var num blue_score<@a[team=blue]> = 0;
+var num player_score<@s> = 0;
 
 function "award_points" {
-    // Award points to both player and team
-    playerScore<@s> = playerScore<@s> + 10;
+    player_score<@s> = player_score<@s> + 10;
     
-    // Check team and award team points
-    if "$player<@s> has team red" {
-        redTeamScore<@a[team=red]> = redTeamScore<@a[team=red]> + 5;
-        say Red team score: $redTeamScore$;
-    } else if "$player<@s> has team blue" {
-        blueTeamScore<@a[team=blue]> = blueTeamScore<@a[team=blue]> + 5;
-        say Blue team score: $blueTeamScore$;
+    if $player<@s> has team red {
+        red_score<@a[team=red]> = red_score<@a[team=red]> + 5;
+        tellraw @s Red team score: $red_score<@a[team=red]>$;
+    } else if $player<@s> has team blue {
+        blue_score<@a[team=blue]> = blue_score<@a[team=blue]> + 5;
+        tellraw @s Blue team score: $blue_score<@a[team=blue]>$;
     }
     
-    say Your score: $playerScore$;
+    tellraw @s Your score: $player_score<@s>$;
 }
 
 function "show_leaderboard" {
-    // Display all scores
-    say === LEADERBOARD ===;
-    say Red Team: $redTeamScore$;
-    say Blue Team: $blueTeamScore$;
-    say Your Score: $playerScore$;
+    tellraw @s === LEADERBOARD ===;
+    tellraw @s Red Team: $red_score<@a[team=red]>$;
+    tellraw @s Blue Team: $blue_score<@a[team=blue]>$;
+    tellraw @s Your Score: $player_score<@s>$;
 }
 ```
 
-### While Loop Example
+### Complex Game Logic
 ```mdl
-pack "loops" "Loop example" 82;
-namespace "loops";
-
-var num counter<@a> = 0;
-
-function "countdown" {
-    counter<@a> = 5;
-    while "$counter$ > 0" {
-        say Countdown: $counter$;
-        counter<@a> = counter<@a> - 1;
-    }
-    say Blast off!;
-}
-```
-
-### Raw Commands
-```mdl
-pack "raw" "Raw command example" 82;
-namespace "raw";
-
-function "custom" {
-    // Use raw Minecraft commands
-    effect give @s minecraft:speed 10 1;
-    particle minecraft:explosion ~ ~ ~ 1 1 1 0 10;
-    playsound minecraft:entity.player.levelup player @s ~ ~ ~ 1 1;
-}
-
-function "raw_example" {
-    // Raw blocks allow direct Minecraft commands without MDL processing
-    $!raw
-    scoreboard players set @s player_timer_enabled 1
-    execute as @a run function raw:increase_tick_per_player
-    say "Raw commands bypass MDL syntax checking"
-    raw!$
-    
-    // You can mix MDL and raw commands
-    say "This is MDL syntax";
-    $!raw scoreboard players add @s player_tick_counter 1 raw!$
-    say "Back to MDL syntax";
-}
-```
-
-### Complete Example
-```mdl
-pack "game" "Complete game example" 82;
+pack "game" "Complex game example" 82;
 namespace "game";
 
-// Variables with different scopes
-var num score<@s> = 0;                    // Player-specific score
-var num level<@s> = 1;                    // Player-specific level
-var num globalTimer<@a> = 0;              // Global timer
-var num highScore<@a> = 0;                // Global high score
+var num player_level<@s> = 1;
+var num player_exp<@s> = 0;
+var num global_high_score<@a> = 0;
+var num game_timer<@a> = 0;
 
-// Main game function
-function "start_game" {
-    score<@s> = 0;
-    level<@s> = 1;
-    say Game started! Level: $level$, Score: $score$;
-}
-
-// Level up function
-function "level_up" {
-    if "$score$ >= 100" {
-        level<@s> = level<@s> + 1;
-        score<@s> = score<@s> - 100;
-        say Level up! New level: $level$;
-        tellraw @a {"text":"Player leveled up!","color":"gold"};
+function "gain_experience" {
+    player_exp<@s> = player_exp<@s> + 10;
+    
+    if $player_exp<@s>$ >= 100 {
+        player_level<@s> = player_level<@s>$ + 1;
+        player_exp<@s> = 0;
+        tellraw @s Level up! New level: $player_level<@s>$;
         
-        // Update global high score if this player beats it
-        if "$score<@s>$ > $highScore<@a>$" {
-            highScore<@a> = score<@s>;     // Read player, set global
-            say New high score: $highScore$;
+        if $player_level<@s>$ > $global_high_score<@a>$ {
+            global_high_score<@a> = player_level<@s>$;
+            tellraw @a New high level achieved: $global_high_score<@a>$;
         }
     }
 }
 
-// Timer function
 function "update_timer" {
-    globalTimer<@a> = globalTimer<@a> + 1;
-    if "$globalTimer$ >= 1200" {  // 60 seconds
-        globalTimer<@a> = 0;
-        say Time's up! Final score: $score$;
-        
-        // Award bonus points based on global timer
-        score<@s> = score<@s> + (globalTimer<@a> / 100);
+    game_timer<@a> = game_timer<@a> + 1;
+    
+    if $game_timer<@a>$ >= 1200 {
+        game_timer<@a> = 0;
+        tellraw @s Time's up! Final level: $player_level<@s>$;
     }
 }
 
-// Hooks
-on_load "game:start_game";
 on_tick "game:update_timer";
 ```
+
+## Compilation Rules
+
+### Variable Resolution
+1. **Declaration**: Variables declare their storage scope when defined
+2. **Access**: Variables can be accessed at any scope, regardless of where they were declared
+3. **Assignment**: Each assignment specifies its own scope
+4. **Substitution**: `$variable<scope>$` gets converted to appropriate Minecraft scoreboard commands
+
+### Function Compilation
+1. **Scope Execution**: `function<@s>` becomes `execute as @s run function namespace:function`
+2. **Default Scope**: `function` becomes `execute as @s run function namespace:function`
+3. **No Return Values**: Functions compile to a series of Minecraft commands
+
+### Error Handling
+- **Undefined Variables**: Compilation error if variable not declared
+- **Invalid Scopes**: Compilation error if scope selector is malformed
+- **Missing Semicolons**: Compilation error for incomplete statements
+- **Unterminated Blocks**: Compilation error for missing braces
+
+## Best Practices
+
+1. **Always specify scopes explicitly** - Makes code clear and prevents bugs
+2. **Use meaningful variable names** - `player_score<@s>` is clearer than `score<@s>`
+3. **Group related variables** - Keep variables with similar purposes together
+4. **Comment complex scopes** - Explain non-standard selectors
+5. **Avoid reserved names** - Don't use `load`, `tick`, or other Minecraft keywords
+6. **Use consistent naming** - Pick a convention and stick to it
+7. **Test scope combinations** - Verify that your scope logic works as expected
+
+## Tokenization Specification
+
+This section defines exactly how MDL source code is broken down into tokens. This specification is critical for maintaining consistency between the lexer, parser, and compiler.
+
+### Core Token Types
+
+#### **Keywords** (Reserved Words)
+```
+pack, namespace, function, var, num, if, else, while, on_load, on_tick
+```
+
+#### **Identifiers**
+```
+[a-zA-Z_][a-zA-Z0-9_]*
+```
+Examples: `player_score`, `game`, `start_game`, `_internal_var`
+
+#### **Numbers**
+```
+[0-9]+(\.[0-9]+)?
+```
+Examples: `0`, `42`, `3.14`, `1000`
+
+#### **Operators**
+```
+// Arithmetic
++ (PLUS), - (MINUS), * (MULTIPLY), / (DIVIDE), % (MODULO)
+
+// Comparison
+== (EQUAL), != (NOT_EQUAL), > (GREATER), < (LESS), >= (GREATER_EQUAL), <= (LESS_EQUAL)
+
+// Logical
+&& (AND), || (OR), ! (NOT)
+
+// Assignment
+= (ASSIGN)
+```
+
+#### **Delimiters**
+```
+; (SEMICOLON)     - Statement terminator
+, (COMMA)         - Parameter separator
+: (COLON)         - Namespace separator
+```
+
+#### **Brackets and Braces**
+```
+( (LPAREN), ) (RPAREN)     - Parentheses for expressions and function calls
+{ (LBRACE), } (RBRACE)     - Braces for code blocks
+[ (LBRACKET), ] (RBRACKET) - Brackets for selectors and arrays
+< (LANGLE), > (RANGLE)     - Angle brackets for scope syntax
+```
+
+#### **Special Tokens**
+```
+$ (DOLLAR)        - Variable substitution delimiter
+```
+
+### Scope Selector Tokenization
+
+#### **Basic Selectors**
+```
+@s, @a, @p, @r
+```
+These are tokenized as single `IDENTIFIER` tokens.
+
+#### **Complex Selectors**
+```
+@e[type=armor_stand,tag=mdl_server,limit=1]
+```
+This entire selector is tokenized as a single `IDENTIFIER` token.
+
+#### **Scope Syntax**
+```
+<@s>, <@a[team=red]>, <global>
+```
+These are tokenized as:
+1. `LANGLE` (`<`)
+2. `IDENTIFIER` (the selector content)
+3. `RANGLE` (`>`)
+
+### Variable Substitution Tokenization
+
+#### **Basic Substitution**
+```
+$player_score<@s>$
+```
+Tokenized as:
+1. `DOLLAR` (`$`)
+2. `IDENTIFIER` (`player_score`)
+3. `LANGLE` (`<`)
+4. `IDENTIFIER` (`@s`)
+5. `RANGLE` (`>`)
+6. `DOLLAR` (`$`)
+
+#### **Complex Substitution**
+```
+$team_score<@a[team=red]>$
+```
+Tokenized as:
+1. `DOLLAR` (`$`)
+2. `IDENTIFIER` (`team_score`)
+3. `LANGLE` (`<`)
+4. `IDENTIFIER` (`@a[team=red]`)
+5. `RANGLE` (`>`)
+6. `DOLLAR` (`$`)
+
+### Function Declaration Tokenization
+
+#### **Basic Function**
+```
+function game:start_game {
+```
+Tokenized as:
+1. `FUNCTION` (`function`)
+2. `IDENTIFIER` (`game`)
+3. `COLON` (`:`)
+4. `IDENTIFIER` (`start_game`)
+5. `LBRACE` (`{`)
+
+#### **Function with Scope**
+```
+function game:reset_player<@s> {
+```
+Tokenized as:
+1. `FUNCTION` (`function`)
+2. `IDENTIFIER` (`game`)
+3. `COLON` (`:`)
+4. `IDENTIFIER` (`reset_player`)
+5. `LANGLE` (`<`)
+6. `IDENTIFIER` (`@s`)
+7. `RANGLE` (`>`)
+8. `LBRACE` (`{`)
+
+### Function Call Tokenization
+
+#### **Basic Call**
+```
+game:start_game;
+```
+Tokenized as:
+1. `IDENTIFIER` (`game`)
+2. `COLON` (`:`)
+3. `IDENTIFIER` (`start_game`)
+4. `SEMICOLON` (`;`)
+
+#### **Call with Scope**
+```
+game:reset_player<@s>;
+```
+Tokenized as:
+1. `IDENTIFIER` (`game`)
+2. `COLON` (`:`)
+3. `IDENTIFIER` (`reset_player`)
+4. `LANGLE` (`<`)
+5. `IDENTIFIER` (`@s`)
+6. `RANGLE` (`>`)
+7. `SEMICOLON` (`;`)
+
+### Variable Declaration Tokenization
+
+#### **Basic Declaration**
+```
+var num player_score<@s> = 0;
+```
+Tokenized as:
+1. `VAR` (`var`)
+2. `NUM` (`num`)
+3. `IDENTIFIER` (`player_score`)
+4. `LANGLE` (`<`)
+5. `IDENTIFIER` (`@s`)
+6. `RANGLE` (`>`)
+7. `ASSIGN` (`=`)
+8. `NUMBER` (`0`)
+9. `SEMICOLON` (`;`)
+
+### Variable Assignment Tokenization
+
+#### **Simple Assignment**
+```
+player_score<@s> = 42;
+```
+Tokenized as:
+1. `IDENTIFIER` (`player_score`)
+2. `LANGLE` (`<`)
+3. `IDENTIFIER` (`@s`)
+4. `RANGLE` (`>`)
+5. `ASSIGN` (`=`)
+6. `NUMBER` (`42`)
+7. `SEMICOLON` (`;`)
+
+#### **Expression Assignment**
+```
+player_score<@s> = player_score<@s> + 1;
+```
+Tokenized as:
+1. `IDENTIFIER` (`player_score`)
+2. `LANGLE` (`<`)
+3. `IDENTIFIER` (`@s`)
+4. `RANGLE` (`>`)
+5. `ASSIGN` (`=`)
+6. `IDENTIFIER` (`player_score`)
+7. `LANGLE` (`<`)
+8. `IDENTIFIER` (`@s`)
+9. `RANGLE` (`>`)
+10. `PLUS` (`+`)
+11. `NUMBER` (`1`)
+12. `SEMICOLON` (`;`)
+
+### Control Structure Tokenization
+
+#### **If Statement**
+```
+if $player_score<@s>$ > 10 {
+```
+Tokenized as:
+1. `IF` (`if`)
+2. `DOLLAR` (`$`)
+3. `IDENTIFIER` (`player_score`)
+4. `LANGLE` (`<`)
+5. `IDENTIFIER` (`@s`)
+6. `RANGLE` (`>`)
+7. `DOLLAR` (`$`)
+8. `GREATER` (`>`)
+9. `NUMBER` (`10`)
+10. `LBRACE` (`{`)
+
+#### **While Loop**
+```
+while $counter<@s>$ > 0 {
+```
+Tokenized as:
+1. `WHILE` (`while`)
+2. `DOLLAR` (`$`)
+3. `IDENTIFIER` (`counter`)
+4. `LANGLE` (`<`)
+5. `IDENTIFIER` (`@s`)
+6. `RANGLE` (`>`)
+7. `DOLLAR` (`$`)
+8. `GREATER` (`>`)
+9. `NUMBER` (`0`)
+10. `LBRACE` (`{`)
+
+### Raw Block Tokenization
+
+#### **Raw Block Start**
+```
+$!raw
+```
+Tokenized as:
+1. `DOLLAR` (`$`)
+2. `EXCLAMATION` (`!`)
+3. `IDENTIFIER` (`raw`)
+
+#### **Raw Block End**
+```
+raw!$
+```
+Tokenized as:
+1. `IDENTIFIER` (`raw`)
+2. `EXCLAMATION` (`!`)
+3. `DOLLAR` (`$`)
+
+### Whitespace and Comments
+
+#### **Whitespace**
+- Spaces, tabs, and newlines are ignored during tokenization
+- They serve only to separate tokens
+- Multiple consecutive whitespace characters are treated as a single separator
+
+#### **Comments**
+```
+// Single line comment
+/* Multi-line comment */
+```
+Comments are completely ignored during tokenization and do not generate any tokens.
+
+**Comment Rules:**
+- Single-line comments start with `//` and continue to the end of the line
+- Multi-line comments start with `/*` and end with `*/`
+- Comments can appear anywhere in the code
+- Comments are stripped out before processing - they don't affect the generated `.mcfunction` files
+
+### Tokenization Rules
+
+1. **Longest Match**: Always consume the longest possible token (e.g., `>=` not `>` then `=`)
+2. **No Ambiguity**: Each character sequence maps to exactly one token type
+3. **Scope Priority**: Scope selectors are always tokenized as complete `IDENTIFIER` tokens
+4. **No Context**: Tokenization is context-free - the same character sequence always produces the same tokens
+5. **Error Handling**: Invalid characters or unterminated sequences generate appropriate error tokens
+
+### Example Complete Tokenization
+
+```mdl
+var num player_score<@s> = 0;
+```
+
+**Tokens Generated:**
+1. `VAR` (`var`)
+2. `NUM` (`num`)
+3. `IDENTIFIER` (`player_score`)
+4. `LANGLE` (`<`)
+5. `IDENTIFIER` (`@s`)
+6. `RANGLE` (`>`)
+7. `ASSIGN` (`=`)
+8. `NUMBER` (`0`)
+9. `SEMICOLON` (`;`)
+10. `EOF`
+
+This tokenization specification ensures that the lexer, parser, and compiler all work with the same understanding of how MDL source code is structured.
+
+## Edge Cases and Error Handling
+
+### Common Error Scenarios
+
+#### **Unterminated Scope Selectors**
+```mdl
+// ❌ Error: Missing closing >
+var num score<@s = 0;
+
+// ✅ Correct
+var num score<@s> = 0;
+```
+
+#### **Invalid Scope Selectors**
+```mdl
+// ❌ Error: Invalid selector syntax
+var num score<@invalid[type=armor_stand]> = 0;
+
+// ✅ Correct
+var num score<@e[type=armor_stand,tag=mdl_server,limit=1]> = 0;
+```
+
+#### **Missing Semicolons**
+```mdl
+// ❌ Error: Missing semicolon
+var num score<@s> = 0
+player_score<@s> = 5
+
+// ✅ Correct
+var num score<@s> = 0;
+player_score<@s> = 5;
+```
+
+#### **Unterminated Blocks**
+```mdl
+// ❌ Error: Missing closing brace
+function game:test {
+    player_score<@s> = 0;
+    // Missing }
+
+// ✅ Correct
+function game:test {
+    player_score<@s> = 0;
+}
+```
+
+#### **Invalid Variable References**
+```mdl
+// ❌ Error: Variable not declared
+player_score<@s> = 0;
+score<@s> = 5;  // 'score' was never declared
+
+// ✅ Correct
+var num score<@s> = 0;
+player_score<@s> = 0;
+score<@s> = 5;
+```
+
+### Complex Edge Cases
+
+#### **Nested Scope Selectors in Raw Blocks**
+```mdl
+// This is valid - raw blocks pass through unchanged
+$!raw
+execute if score @s player_score<@s> matches 10.. run function game:celebrate
+raw!$
+```
+
+#### **Scope Selectors with Special Characters**
+```mdl
+// Valid - selector with complex parameters
+var num data<@e[type=armor_stand,tag=mdl_server,limit=1,nbt={CustomName:'{"text":"Server"}'}]> = 0;
+```
+
+#### **Variable Names with Underscores**
+```mdl
+// Valid - underscores are allowed in variable names
+var num player_score_red_team<@a[team=red]> = 0;
+var num _internal_counter<@s> = 0;
+```
+
+#### **Function Names with Numbers**
+```mdl
+// Valid - numbers are allowed in function names
+function game:level_1_complete<@s> {
+    player_score<@s> = player_score<@s> + 100;
+}
+```
+
+### Error Recovery
+
+The MDL compiler attempts to provide helpful error messages:
+
+1. **Line and Column Information** - Shows exactly where the error occurred
+2. **Context** - Displays the problematic line with surrounding context
+3. **Suggestions** - Provides specific guidance on how to fix the error
+4. **Error Categories** - Groups errors by type (syntax, scope, undefined variables, etc.)
+
+### Performance Considerations
+
+- **Large Selectors**: Very long scope selectors may impact compilation time
+- **Deep Nesting**: Excessive nesting of control structures may affect parsing performance
+- **Raw Block Size**: Large raw blocks are processed efficiently as they're copied without parsing
