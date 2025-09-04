@@ -1,9 +1,0 @@
-pack "test_color_project" "A simple hello world datapack" 82;
-namespace "test_color_project";
-
-function "main" {
-    say Hello, Minecraft!;
-    tellraw @a {"text":"Welcome to my datapack!","color":"green"};
-}
-
-on_load "test_color_project:main";

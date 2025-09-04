@@ -45,22 +45,22 @@ jobs:
       - name: Test MDL Parser Import
         run: |
           echo "Testing MDL parser import..."
-          python -c "from minecraft_datapack_language.mdl_parser_js import parse_mdl_js; print('[+] MDL parser imported successfully')"
+          python -c "from minecraft_datapack_language.mdl_parser import MDLParser; print('[+] MDL parser imported successfully')"
 
       - name: Test MDL Lexer Import
         run: |
           echo "Testing MDL lexer import..."
-          python -c "from minecraft_datapack_language.mdl_lexer_js import MDLLexer; print('[+] MDL lexer imported successfully')"
+          python -c "from minecraft_datapack_language.mdl_lexer import MDLLexer; print('[+] MDL lexer imported successfully')"
 
-      - name: Test MDL Linter Import
+      - name: Test AST Nodes Import
         run: |
-          echo "Testing MDL linter import..."
-          python -c "from minecraft_datapack_language.mdl_linter import MDLLinter; print('[+] MDL linter imported successfully')"
+          echo "Testing AST nodes import..."
+          python -c "from minecraft_datapack_language.ast_nodes import Program, PackDeclaration; print('[+] AST nodes imported successfully')"
 
-      - name: Test Expression Processor Import
+      - name: Test Error Classes Import
         run: |
-          echo "Testing expression processor import..."
-          python -c "from minecraft_datapack_language.expression_processor import ExpressionProcessor; print('[+] Expression processor imported successfully')"
+          echo "Testing error classes import..."
+          python -c "from minecraft_datapack_language.mdl_errors import MDLLexerError, MDLParserError; print('[+] Error classes imported successfully')"
 
       - name: Test Python API
         run: |
@@ -82,9 +82,10 @@ jobs:
         run: |
           echo "Testing variable system..."
           python - <<'PY'
-          from minecraft_datapack_language.mdl_parser_js import parse_mdl_js
-          test_code = 'var num test_var = 0;'
-          ast = parse_mdl_js(test_code)
+          from minecraft_datapack_language.mdl_parser import MDLParser
+          parser = MDLParser()
+          test_code = 'var num test_var<@s> = 0;'
+          ast = parser.parse(test_code)
           print('[+] Variable system test passed')
           PY
 
@@ -92,9 +93,10 @@ jobs:
         run: |
           echo "Testing control flow..."
           python - <<'PY'
-          from minecraft_datapack_language.mdl_parser_js import parse_mdl_js
-          test_code = 'if "$test$ > 0" { say "test"; }'
-          ast = parse_mdl_js(test_code)
+          from minecraft_datapack_language.mdl_parser import MDLParser
+          parser = MDLParser()
+          test_code = 'if $test<@s>$ > 0 { say "test"; }'
+          ast = parser.parse(test_code)
           print('[+] Control flow test passed')
           PY
 
@@ -102,9 +104,10 @@ jobs:
         run: |
           echo "Testing while loops..."
           python - <<'PY'
-          from minecraft_datapack_language.mdl_parser_js import parse_mdl_js
-          test_code = 'while "$counter$ < 10" { counter = $counter$ + 1; }'
-          ast = parse_mdl_js(test_code)
+          from minecraft_datapack_language.mdl_parser import MDLParser
+          parser = MDLParser()
+          test_code = 'while $counter<@s>$ < 10 { counter<@s> = $counter<@s>$ + 1; }'
+          ast = parser.parse(test_code)
           print('[+] While loops test passed')
           PY
 
@@ -112,9 +115,10 @@ jobs:
         run: |
           echo "Testing error handling..."
           python - <<'PY'
-          from minecraft_datapack_language.mdl_parser_js import parse_mdl_js
+          from minecraft_datapack_language.mdl_parser import MDLParser
+          parser = MDLParser()
           try:
-              parse_mdl_js('invalid syntax {')
+              parser.parse('invalid syntax {')
               print('[-] Should have failed')
           except:
               print('[+] Error handling test passed')
@@ -129,38 +133,39 @@ jobs:
         run: |
           echo "Testing basic MDL file parsing..."
           python - <<'PY'
-          from minecraft_datapack_language.mdl_parser_js import parse_mdl_js
+          from minecraft_datapack_language.mdl_parser import MDLParser
+          parser = MDLParser()
           test_code = '''
           pack "test" "Test pack" 82;
           namespace "test";
-          var num counter = 0;
-          function "main" {
-              counter = 0;
-              while "$counter$ < 5" {
-                  counter = $counter$ + 1;
-                  say "Counter: $counter$";
+          var num counter<@s> = 0;
+          function test:main<@s> {
+              counter<@s> = 0;
+              while $counter<@s>$ < 5 {
+                  counter<@s> = $counter<@s>$ + 1;
+                  say "Counter: $counter<@s>$";
               }
           }
-          on_tick "test:main";
+          on_tick test:main;
           '''
-          ast = parse_mdl_js(test_code)
+          ast = parser.parse(test_code)
           print('[+] Basic MDL file test passed')
           PY
 
-      - name: Run Basic Test Suite
+      - name: Run Lexer Test Suite
         run: |
-          echo "Running basic test suite..."
-          python -m pytest tests/test_basic.py -v --tb=short
+          echo "Running lexer test suite..."
+          python test_lexer_new.py
           
-      - name: Run I/O Test Suite
+      - name: Run Parser Test Suite
         run: |
-          echo "Running I/O test suite..."
-          python -m pytest tests/test_io.py -v --tb=short
+          echo "Running parser test suite..."
+          python test_parser.py
 
-      - name: Run Comprehensive Test Suite
+      - name: Run All Test Suites
         run: |
-          echo "Running comprehensive test suite..."
-          python -m pytest tests/test_comprehensive_features.py -v --tb=short
+          echo "Running all test suites..."
+          python test_lexer_new.py && python test_parser.py
 
       - name: Upload dist artifacts
         uses: actions/upload-artifact@v4
@@ -191,9 +196,9 @@ jobs:
       - name: Run All Comprehensive Tests
         run: |
           echo "Running comprehensive feature tests..."
-          python -m pytest tests/test_comprehensive_features.py -v --tb=short
+          python test_lexer_new.py && python test_parser.py
           
       - name: Run All Test Suites
         run: |
           echo "Running all test suites..."
-          python -m pytest tests/ -v --tb=short
+          python test_lexer_new.py && python test_parser.py

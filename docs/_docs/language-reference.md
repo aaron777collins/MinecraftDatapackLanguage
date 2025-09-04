@@ -949,3 +949,529 @@ The MDL compiler attempts to provide helpful error messages:
 - **Deep Nesting**: Excessive nesting of control structures may affect parsing performance
 - **Raw Block Size**: Large raw blocks are processed efficiently as they're copied without parsing
 - **Tag Processing**: Tag declarations are processed efficiently as they're simple string operations
+
+## Abstract Syntax Tree (AST) Implementation
+
+The MDL language is implemented using a comprehensive Abstract Syntax Tree (AST) system that represents the parsed code structure. This section explains how the AST works and how it represents all language constructs.
+
+### AST Node Hierarchy
+
+The AST is built using a hierarchy of node classes, each representing a specific language construct:
+
+#### **Root Node: Program**
+```python
+class Program:
+    pack: Optional[PackDeclaration]           # Pack metadata
+    namespace: Optional[NamespaceDeclaration] # Default namespace
+    tags: List[TagDeclaration]               # Resource tag declarations
+    variables: List[VariableDeclaration]     # Variable declarations
+    functions: List[FunctionDeclaration]     # Function definitions
+    hooks: List[HookDeclaration]            # Event hooks (on_load, on_tick)
+    statements: List[ASTNode]               # Top-level statements
+```
+
+The `Program` node serves as the root of the AST, containing all top-level declarations and statements. This structure allows the compiler to:
+- Generate the `pack.mcmeta` file from pack declarations
+- Create the proper directory structure based on namespace
+- Process all tag references for resource generation
+- Manage variable scoping across the entire program
+- Generate function files with proper namespacing
+- Set up event hooks for automatic execution
+
+#### **Declaration Nodes**
+
+**PackDeclaration**
+```python
+class PackDeclaration:
+    name: str           # Pack name (e.g., "MyGame")
+    description: str    # Pack description
+    pack_format: int    # Minecraft pack format version
+```
+
+**NamespaceDeclaration**
+```python
+class NamespaceDeclaration:
+    name: str           # Namespace name (e.g., "game")
+```
+
+**TagDeclaration**
+```python
+class TagDeclaration:
+    tag_type: str       # Resource type (recipe, loot_table, etc.)
+    name: str           # Tag name
+    file_path: str      # Path to the JSON file
+```
+
+**VariableDeclaration**
+```python
+class VariableDeclaration:
+    var_type: str       # Variable type (currently only "num")
+    name: str           # Variable name
+    scope: str          # Scope selector (e.g., "<@s>", "<@a[team=red]>")
+    initial_value: Any  # Initial value expression
+```
+
+**FunctionDeclaration**
+```python
+class FunctionDeclaration:
+    namespace: str      # Function namespace
+    name: str           # Function name
+    scope: Optional[str] # Optional scope for function execution
+    body: List[ASTNode] # Function body statements
+```
+
+**HookDeclaration**
+```python
+class HookDeclaration:
+    hook_type: str      # Hook type ("on_load" or "on_tick")
+    namespace: str      # Function namespace to call
+    name: str           # Function name to call
+    scope: Optional[str] # Optional scope for hook execution
+```
+
+#### **Statement Nodes**
+
+**VariableAssignment**
+```python
+class VariableAssignment:
+    name: str           # Variable name
+    scope: str          # Scope selector
+    value: Any          # Value expression
+```
+
+**VariableSubstitution**
+```python
+class VariableSubstitution:
+    name: str           # Variable name
+    scope: str          # Scope selector
+```
+
+**FunctionCall**
+```python
+class FunctionCall:
+    namespace: str      # Function namespace
+    name: str           # Function name
+    scope: Optional[str] # Optional scope
+```
+
+**Control Structures**
+```python
+class IfStatement:
+    condition: Any      # Condition expression
+    then_body: List[ASTNode]  # Then block statements
+    else_body: Optional[List[ASTNode]]  # Optional else block
+
+class WhileLoop:
+    condition: Any      # Loop condition
+    body: List[ASTNode] # Loop body statements
+```
+
+**Commands**
+```python
+class SayCommand:
+    message: str        # Message text with variable placeholders
+    variables: List[VariableSubstitution]  # Extracted variables
+
+class RawBlock:
+    content: str        # Raw content (passed through unchanged)
+```
+
+#### **Expression Nodes**
+
+**BinaryExpression**
+```python
+class BinaryExpression:
+    left: Any           # Left operand
+    operator: str       # Operator (+, -, *, /, >, <, >=, <=, ==, !=)
+    right: Any          # Right operand
+```
+
+**LiteralExpression**
+```python
+class LiteralExpression:
+    value: Any          # Literal value
+    type: str           # Value type ("number", "string", "identifier")
+```
+
+**ParenthesizedExpression**
+```python
+class ParenthesizedExpression:
+    expression: Any     # Expression inside parentheses
+```
+
+### AST Construction Process
+
+The AST is constructed through a multi-stage process:
+
+1. **Lexical Analysis**: Source code is converted to tokens
+2. **Parsing**: Tokens are parsed into AST nodes
+3. **Validation**: AST structure is validated for correctness
+4. **Compilation**: AST is traversed to generate output
+
+#### **Lexical Analysis (Tokenization)**
+
+The lexer converts source code into a stream of tokens:
+
+```python
+# Source: var num score<@s> = 0;
+# Tokens: [VAR, NUM, IDENTIFIER('score'), LESS, IDENTIFIER('@s'), 
+#          GREATER, ASSIGN, NUMBER('0'), SEMICOLON]
+```
+
+**Token Types**
+- **Keywords**: `PACK`, `NAMESPACE`, `FUNCTION`, `VAR`, `IF`, `WHILE`, etc.
+- **Operators**: `PLUS`, `MINUS`, `MULTIPLY`, `DIVIDE`, `ASSIGN`, `GREATER`, `LESS`, etc.
+- **Delimiters**: `SEMICOLON`, `COMMA`, `COLON`, `LPAREN`, `RPAREN`, etc.
+- **Literals**: `IDENTIFIER`, `NUMBER`, `QUOTE`
+- **Special**: `DOLLAR`, `EXCLAMATION`, `RAW_CONTENT`
+
+#### **Parsing Strategy**
+
+The parser uses a recursive descent approach with operator precedence:
+
+```python
+def _parse_expression(self) -> Any:
+    """Parse expressions with proper operator precedence."""
+    return self._parse_comparison()
+
+def _parse_comparison(self) -> Any:
+    """Parse comparison expressions (>, <, >=, <=, ==, !=)."""
+    expr = self._parse_term()
+    while self._peek().type in [GREATER, LESS, GREATER_EQUAL, LESS_EQUAL, EQUAL, NOT_EQUAL]:
+        operator = self._advance().type
+        right = self._parse_term()
+        expr = BinaryExpression(left=expr, operator=operator, right=right)
+    return expr
+```
+
+**Operator Precedence** (highest to lowest):
+1. **Primary**: Variables, literals, parenthesized expressions
+2. **Factors**: Multiplication, division
+3. **Terms**: Addition, subtraction
+4. **Comparisons**: Greater, less, equal, not equal
+
+### AST Traversal and Code Generation
+
+The AST is designed to support efficient code generation:
+
+#### **Visitor Pattern Support**
+```python
+class ASTVisitor:
+    def visit_program(self, node: Program): pass
+    def visit_variable_declaration(self, node: VariableDeclaration): pass
+    def visit_function_declaration(self, node: FunctionDeclaration): pass
+    # ... other visit methods
+```
+
+#### **Code Generation Strategy**
+1. **Pack Generation**: Create `pack.mcmeta` from pack declarations
+2. **Namespace Setup**: Establish directory structure
+3. **Tag Processing**: Generate resource references
+4. **Variable Management**: Set up scoreboard objectives
+5. **Function Generation**: Create `.mcfunction` files
+6. **Hook Integration**: Set up automatic execution
+
+### Error Handling and Recovery
+
+The AST system provides comprehensive error handling:
+
+#### **Parser Error Context**
+```python
+class MDLParserError:
+    message: str        # Error description
+    file_path: str      # Source file path
+    line: int           # Error line number
+    column: int         # Error column number
+    line_content: str   # Problematic line content
+    suggestion: str     # How to fix the error
+```
+
+#### **Error Recovery Strategies**
+1. **Graceful Degradation**: Continue parsing when possible
+2. **Context Preservation**: Maintain line/column information
+3. **Helpful Messages**: Provide specific fix suggestions
+4. **Error Aggregation**: Collect multiple errors when possible
+
+### Extensibility Features
+
+The AST system is designed for easy extension:
+
+#### **Adding New Node Types**
+```python
+class NewNode(ASTNode):
+    def __init__(self, new_field: str):
+        self.new_field = new_field
+```
+
+#### **Adding New Parsers**
+```python
+def _parse_new_construct(self) -> NewNode:
+    # Parse new language construct
+    pass
+```
+
+#### **Adding New Token Types**
+```python
+class TokenType:
+    # ... existing types ...
+    NEW_TYPE = "NEW_TYPE"
+```
+
+## Parsing System Implementation
+
+The MDL parser implements a robust, extensible parsing system that handles all language constructs defined in the specification. This section explains how the parsing works and how it processes the language.
+
+### Parser Architecture
+
+The parser uses a **recursive descent** approach with **lookahead** capabilities:
+
+```python
+class MDLParser:
+    def __init__(self, source_file: str = None):
+        self.source_file = source_file
+        self.tokens: List[Token] = []
+        self.current = 0
+        self.current_namespace = "mdl"
+```
+
+#### **Core Parsing Methods**
+
+**Program Parsing**
+```python
+def _parse_program(self) -> Program:
+    """Parse the complete program structure."""
+    pack = None
+    namespace = None
+    tags = []
+    variables = []
+    functions = []
+    hooks = []
+    statements = []
+    
+    while not self._is_at_end():
+        # Parse top-level constructs based on token type
+        if self._peek().type == TokenType.PACK:
+            pack = self._parse_pack_declaration()
+        elif self._peek().type == TokenType.NAMESPACE:
+            namespace = self._parse_namespace_declaration()
+        # ... continue with other constructs
+```
+
+**Declaration Parsing**
+```python
+def _parse_pack_declaration(self) -> PackDeclaration:
+    """Parse: pack "name" "description" format;"""
+    self._expect(TokenType.PACK, "Expected 'pack' keyword")
+    self._expect(TokenType.QUOTE, "Expected opening quote for pack name")
+    name = self._expect_identifier("Expected pack name")
+    # ... continue parsing
+```
+
+**Statement Parsing**
+```python
+def _parse_if_statement(self) -> IfStatement:
+    """Parse: if condition { then_body } else { else_body }"""
+    self._expect(TokenType.IF, "Expected 'if' keyword")
+    condition = self._parse_expression()
+    self._expect(TokenType.LBRACE, "Expected '{' to start if body")
+    then_body = self._parse_block()
+    # ... handle optional else clause
+```
+
+### Expression Parsing with Operator Precedence
+
+The parser implements a **Pratt parser** approach for expressions:
+
+```python
+def _parse_expression(self) -> Any:
+    """Entry point for expression parsing."""
+    return self._parse_comparison()
+
+def _parse_comparison(self) -> Any:
+    """Parse comparison expressions with left associativity."""
+    expr = self._parse_term()
+    
+    while not self._is_at_end() and self._peek().type in [
+        TokenType.GREATER, TokenType.LESS, TokenType.GREATER_EQUAL, 
+        TokenType.LESS_EQUAL, TokenType.EQUAL, TokenType.NOT_EQUAL
+    ]:
+        operator = self._peek().type
+        self._advance()
+        right = self._parse_term()
+        expr = BinaryExpression(left=expr, operator=operator, right=right)
+    
+    return expr
+```
+
+**Precedence Levels**:
+1. **Primary**: Variables, literals, parentheses
+2. **Factors**: `*`, `/`
+3. **Terms**: `+`, `-`
+4. **Comparisons**: `>`, `<`, `>=`, `<=`, `==`, `!=`
+
+### Scope Selector Parsing
+
+Scope selectors are parsed differently based on context:
+
+```python
+def _parse_scope_selector(self) -> str:
+    """Parse scope selector: <@s>, <@a[team=red]>, etc."""
+    self._expect(TokenType.LESS, "Expected '<' for scope selector")
+    
+    selector_content = ""
+    while not self._is_at_end() and self._peek().type != TokenType.GREATER:
+        selector_content += self._peek().value
+        self._advance()
+    
+    self._expect(TokenType.GREATER, "Expected '>' to close scope selector")
+    return f"<{selector_content}>"
+```
+
+**Context-Sensitive Parsing**:
+- **Variable Declarations**: Use `LESS`/`GREATER` tokens
+- **Variable Substitutions**: Use `LANGLE`/`RANGLE` tokens
+- **Function Parameters**: Use `LESS`/`GREATER` tokens
+
+### Raw Block Processing
+
+Raw blocks are handled specially to preserve exact content:
+
+```python
+def _parse_raw_block(self) -> RawBlock:
+    """Parse: $!raw ... raw!$"""
+    # Consume $!raw
+    self._expect(TokenType.DOLLAR, "Expected '$' to start raw block")
+    self._expect(TokenType.EXCLAMATION, "Expected '!' after '$' in raw block")
+    self._expect(TokenType.IDENTIFIER, "Expected 'raw' keyword")
+    
+    # Look for RAW_CONTENT token (generated by lexer)
+    if self._peek().type == TokenType.RAW_CONTENT:
+        content = self._peek().value
+        self._advance()
+    else:
+        content = ""
+    
+    # Consume raw!$ end marker
+    self._expect(TokenType.IDENTIFIER, "Expected 'raw' to end raw block")
+    self._expect(TokenType.EXCLAMATION, "Expected '!' to end raw block")
+    self._expect(TokenType.DOLLAR, "Expected '$' to end raw block")
+    
+    return RawBlock(content=content)
+```
+
+### Variable Substitution in Strings
+
+Variable substitutions within strings are handled through regex extraction:
+
+```python
+def _parse_say_command(self) -> SayCommand:
+    """Parse: say "message with $variable<scope>$";"""
+    self._expect(TokenType.IDENTIFIER, "Expected 'say' keyword")
+    self._expect(TokenType.QUOTE, "Expected opening quote for say message")
+    
+    # Get string content (includes variable substitutions)
+    if self._peek().type == TokenType.IDENTIFIER:
+        message = self._peek().value
+        self._advance()
+    else:
+        message = ""
+    
+    # Extract variables using regex pattern
+    variables = []
+    import re
+    var_pattern = r'\$([a-zA-Z_][a-zA-Z0-9_]*<[^>]+>)\$'
+    matches = re.findall(var_pattern, message)
+    
+    for match in matches:
+        if '<' in match and '>' in match:
+            name = match[:match.index('<')]
+            scope = match[match.index('<'):match.index('>')+1]
+            variables.append(VariableSubstitution(name=name, scope=scope))
+    
+    return SayCommand(message=message, variables=variables)
+```
+
+### Error Recovery and Context
+
+The parser provides detailed error information:
+
+```python
+def _error(self, message: str, suggestion: str):
+    """Raise a parser error with full context."""
+    if self._is_at_end():
+        line = 1
+        column = 1
+        line_content = "end of file"
+    else:
+        token = self._peek()
+        line = token.line
+        column = token.column
+        line_content = token.value
+    
+    raise MDLParserError(
+        message=message,
+        file_path=self.source_file,
+        line=line,
+        column=column,
+        line_content=line_content,
+        suggestion=suggestion
+    )
+```
+
+### Parser Extensibility
+
+The parser is designed for easy extension:
+
+#### **Adding New Constructs**
+```python
+def _parse_new_construct(self) -> NewNode:
+    """Parse new language construct."""
+    # Implementation here
+    pass
+
+# Add to _parse_program method:
+elif self._peek().type == TokenType.NEW_KEYWORD:
+    statements.append(self._parse_new_construct())
+```
+
+#### **Adding New Expression Types**
+```python
+def _parse_primary(self) -> Any:
+    """Parse primary expressions."""
+    if self._peek().type == TokenType.NEW_TYPE:
+        return self._parse_new_expression()
+    # ... existing cases
+```
+
+### Performance Optimizations
+
+The parser includes several performance optimizations:
+
+1. **Token Lookahead**: Efficient `_peek()` method for lookahead
+2. **Early Exit**: Quick checks for common token types
+3. **Memory Efficiency**: Minimal object creation during parsing
+4. **Error Recovery**: Fast error detection and reporting
+
+### Integration with Lexer
+
+The parser works seamlessly with the lexer:
+
+```python
+def parse(self, source: str) -> Program:
+    """Parse MDL source code into an AST."""
+    # Lex the source into tokens
+    lexer = MDLLexer(self.source_file)
+    self.tokens = lexer.lex(source)
+    self.current = 0
+    
+    # Parse the program
+    return self._parse_program()
+```
+
+This architecture ensures that:
+- **Lexical errors** are caught early with detailed context
+- **Parsing errors** provide helpful recovery suggestions
+- **AST construction** is robust and handles edge cases
+- **Error reporting** is consistent across the entire pipeline
+
+The parsing system provides a solid foundation for the MDL compiler, ensuring that all language constructs are properly understood and can be translated into Minecraft datapack commands.

@@ -1,1 +1,0 @@
-tellraw @ s {"text":"Progress: "+ i +"/"+ max_iterations}

@@ -1,7 +1,0 @@
-{
-  "values": [
-    "basic_hello:load",
-    "basic_hello:main",
-    "basic_hello:load"
-  ]
-}

@@ -88,6 +88,7 @@ class TokenType:
     NEWLINE = "NEWLINE"
     EOF = "EOF"
     COMMENT = "COMMENT"              # Comments (ignored during parsing)
+    RAW_CONTENT = "RAW_CONTENT"      # Raw content inside raw blocks
 
 
 class MDLLexer:
@@ -309,10 +310,19 @@ class MDLLexer:
     
     def _scan_raw_text(self):
         """Scan raw text inside a raw block."""
+        # Remember where the raw content starts
+        content_start = self.current
+        
         # Consume all characters until we find raw!$
         while self.current < len(self.source) - 4:
             if (self.source[self.current:self.current + 5] == 'raw!$'):
-                # Found the end marker - consume it and exit raw mode
+                # Found the end marker - extract the content
+                raw_content = self.source[content_start:self.current]
+                
+                # Generate a single RAW_CONTENT token with all the content
+                self.tokens.append(Token(TokenType.RAW_CONTENT, raw_content, self.line, self.column))
+                
+                # Consume the end marker and exit raw mode
                 self.current += 5
                 self.column += 5
                 self.in_raw_mode = False
@@ -333,8 +343,6 @@ class MDLLexer:
         # If we didn't find the end marker, it's an error
         if self.current >= len(self.source) - 4:
             self._error("Unterminated raw block", "Add 'raw!$' to close the raw block")
-        
-        # Raw text is copied as-is, no tokens generated
     
     def _scan_variable_substitution(self):
         """Scan variable substitution ($variable<scope>$)."""
