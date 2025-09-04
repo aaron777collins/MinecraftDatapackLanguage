@@ -17,12 +17,12 @@ Welcome to the complete documentation for the Minecraft Datapack Language (MDL).
 {% assign language_ref = site.nav | where: "title", "Language Reference" | first %}
 {% assign multi_file = site.nav | where: "title", "Multi-file Projects" | first %}
 {% assign cli_ref = site.nav | where: "title", "CLI Reference" | first %}
-{% assign python_api = site.nav | where: "title", "Python API" | first %}
+{% assign python_api = site.nav | where: "title", "Python Bindings" | first %}
 
 - **[Language Reference]({{ language_ref.url }})** - Complete syntax and language features
 - **[Multi-file Projects]({{ multi_file.url }})** - How to organize and structure larger MDL projects
 - **[CLI Reference]({{ cli_ref.url }})** - Command-line interface usage and options
-- **[Python API]({{ python_api.url }})** - Programmatic access to MDL functionality
+- **[Python Bindings]({{ python_api.url }})** - Programmatic access to MDL functionality
 
 ## Tools and Extensions
 
@@ -64,7 +64,7 @@ Welcome to the complete documentation for the Minecraft Datapack Language (MDL).
   </div>
   
   <div class="doc-card">
-    <h3>🐍 Python API</h3>
+    <h3>🐍 Python Bindings</h3>
     <p>Programmatic access to MDL functionality for automation and integration.</p>
     <a href="{{ python_api.url }}" class="doc-link">API Reference →</a>
   </div>

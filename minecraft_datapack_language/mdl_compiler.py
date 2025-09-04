@@ -152,6 +152,12 @@ class MDLCompiler:
         if hasattr(self, 'temp_commands'):
             self.temp_commands = []
         
+        # Set current function context and reset per-function counters
+        self._current_function_name = func.name
+        self.if_counter = 0
+        self.else_counter = 0
+        self.while_counter = 0
+        
         # Generate commands from function body
         for statement in func.body:
             cmd = self._statement_to_command(statement)
@@ -497,10 +503,8 @@ class MDLCompiler:
                 loop_body_lines.append(cmd)
         
         # Add the recursive call at the end to continue the loop
-        if self._is_scoreboard_condition(while_loop.condition):
-            loop_body_lines.append(f"execute if score {condition} run function {self.current_namespace}:{loop_function_name}")
-        else:
-            loop_body_lines.append(f"execute if {condition} run function {self.current_namespace}:{loop_function_name}")
+        cond_str, _inv = self._build_condition(while_loop.condition)
+        loop_body_lines.append(f"execute if {cond_str} run function {self.current_namespace}:{loop_function_name}")
         
         # Store the loop function as its own file
         self._store_generated_function(loop_function_name, loop_body_lines)
@@ -517,24 +521,21 @@ class MDLCompiler:
     
     def _generate_if_function_name(self) -> str:
         """Generate a unique name for an if function."""
-        if not hasattr(self, 'if_counter'):
-            self.if_counter = 0
         self.if_counter += 1
-        return f"if_{self.if_counter}"
+        prefix = getattr(self, '_current_function_name', 'fn')
+        return f"{prefix}__if_{self.if_counter}"
     
     def _generate_else_function_name(self) -> str:
         """Generate a unique name for an else function."""
-        if not hasattr(self, 'else_counter'):
-            self.else_counter = 0
         self.else_counter += 1
-        return f"else_{self.else_counter}"
+        prefix = getattr(self, '_current_function_name', 'fn')
+        return f"{prefix}__else_{self.else_counter}"
     
     def _generate_while_function_name(self) -> str:
         """Generate a unique name for a while function."""
-        if not hasattr(self, 'while_counter'):
-            self.while_counter = 0
         self.while_counter += 1
-        return f"while_{self.while_counter}"
+        prefix = getattr(self, '_current_function_name', 'fn')
+        return f"{prefix}__while_{self.while_counter}"
     
     def _store_generated_function(self, name: str, lines: List[str]):
         """Store a generated function as a separate file under the same namespace."""

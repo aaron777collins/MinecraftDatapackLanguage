@@ -3,6 +3,7 @@ from .mdl_lexer import MDLLexer, Token, TokenType
 from .mdl_parser import MDLParser
 from .ast_nodes import *
 from .dir_map import DirMap
+from .python_api import Pack
 
 __all__ = [
     "MDLLexer", "Token", "TokenType",
@@ -13,7 +14,8 @@ __all__ = [
     "SayCommand", "TellrawCommand", "ExecuteCommand", "ScoreboardCommand",
     "BinaryExpression", "UnaryExpression", "ParenthesizedExpression", "LiteralExpression",
     "ScopeSelector",
-    "DirMap"
+    "DirMap",
+    "Pack"
 ]
 
 # CLI entry point

@@ -73,9 +73,9 @@ MinecraftDatapackLanguage/
 - **Configuration**: Add configuration options
 - **Integration**: Better integration with other tools
 
-### 3. Python API
+### 3. Python Bindings
 
-- **API improvements**: Enhance the Python API
+- **Bindings improvements**: Enhance the Python bindings
 - **New features**: Add new capabilities
 - **Documentation**: Improve API documentation
 - **Examples**: Add more examples
@@ -135,7 +135,7 @@ python -m pytest
 mdl --help
 mdl build --mdl sample.mdl -o test_output
 
-# Test the Python API
+# Test the Python bindings
 python -c "from minecraft_datapack_language import Pack; print('API works!')"
 ```
 

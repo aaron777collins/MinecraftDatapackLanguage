@@ -78,7 +78,7 @@ def main():
         ("test_comprehensive_end_to_end.py", "End-to-end comprehensive tests"),
         ("test_complex_scenarios.py", "Complex scenario tests"),
         ("test_compiler_fixes.py", "Compiler fix verification tests"),
-        ("test_python_api.py", "Python API tests"),
+        ("test_python_bindings.py", "Python bindings tests"),
         ("test_cli.py", "CLI functionality tests"),
     ]
     
@@ -122,13 +122,13 @@ def main():
     results.append(("Function Execution", function_result))
     
     # 4. Test Python API
-    print("\nTesting Python API...")
+    print("\nTesting Python bindings...")
     api_result = run_test_suite(
-        "Python API Basic",
+        "Python Bindings Basic",
         "python -c \"from minecraft_datapack_language import Pack; import tempfile; from pathlib import Path; p = Pack('Test', 'Test pack', 82); ns = p.namespace('test'); ns.function('hello', 'say Hello World!'); with tempfile.TemporaryDirectory() as temp_dir: p.build(temp_dir); output = Path(temp_dir) / 'data' / 'test' / 'function' / 'hello.mcfunction'; assert output.exists(); print('Python API test successful')\"",
-        "Test basic Python API functionality"
+        "Test basic Python bindings functionality"
     )
-    results.append(("Python API", api_result))
+    results.append(("Python Bindings", api_result))
     
     # 5. Test CLI
     print("\nTesting CLI...")

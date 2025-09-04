@@ -1,10 +1,10 @@
 ---
 layout: page
-title: Python API
-permalink: /docs/python-api/
+title: Python Bindings
+permalink: /docs/python-bindings/
 ---
 
-The MDL Python API provides a clean, programmatic way to create Minecraft datapacks. It's fully compatible with the new JavaScript-style MDL language and supports all advanced features including variables, control flow, complex nesting, and the explicit scope system.
+The MDL Python bindings provide a clean, programmatic way to create Minecraft datapacks. They're fully compatible with the MDL language and support all advanced features including variables, control flow, complex nesting, and the explicit scope system.
 
 ## Quick Start
 
@@ -67,6 +67,36 @@ ns.function("function_name", "command1", "command2", ...)
 **Methods:**
 - `function(name, *commands)` - Add a function with commands
 
+### Control Flow and Expressions (Bindings)
+
+Bindings include helpers to compose expressions and control flow identical to MDL:
+
+```python
+from minecraft_datapack_language import Pack
+from minecraft_datapack_language.python_api import num, var_read, binop
+
+p = Pack("Control Flow", "desc", 82)
+ns = p.namespace("game")
+
+def build_logic(fb):
+    # declare variable
+    fb.declare_var("counter", "<@s>", 0)
+
+    # counter<@s> = $counter<@s>$ + 1
+    fb.set("counter", "<@s>", binop(var_read("counter", "<@s>"), "PLUS", num(1)))
+
+    # if $counter<@s>$ > 5 { say "hi" } else { say "low" }
+    cond = binop(var_read("counter", "<@s>"), "GREATER", num(5))
+    fb.if_(cond, lambda t: t.say("hi"), lambda e: e.say("low"))
+
+    # while $counter<@s>$ < 10 { counter<@s> = $counter<@s>$ + 1 }
+    wcond = binop(var_read("counter", "<@s>"), "LESS", num(10))
+    fb.while_(wcond, lambda b: b.set("counter", "<@s>", binop(var_read("counter", "<@s>"), "PLUS", num(1))))
+
+ns.function("main", build_logic)
+p.build("dist")
+```
+
 ## Basic Examples
 
 ### Hello World
@@ -121,7 +151,7 @@ def create_particle_pack():
 
 ### Variables and Control Flow
 
-The Python API supports all the advanced features of the JavaScript-style MDL language including the explicit scope system:
+The bindings support all the advanced features of the MDL language including the explicit scope system:
 
 ```python
 from minecraft_datapack_language import Pack
@@ -327,7 +357,7 @@ p.build("output_dir", wrapper="my_pack")
 
 ## Integration with MDL Files
 
-You can use the Python API alongside MDL files:
+You can use the Python bindings alongside MDL files:
 
 ```python
 from minecraft_datapack_language import Pack
@@ -340,7 +370,7 @@ def create_hybrid_pack():
     
     ast = parse_mdl_js(mdl_content)
     
-    # Create pack via Python API
+    # Create pack via Python bindings
     p = Pack("Hybrid Pack", "Combines MDL and Python", 82)
     
     # Add functions from MDL
@@ -348,7 +378,7 @@ def create_hybrid_pack():
         ns = p.namespace(func.namespace)
         ns.function(func.name, *func.commands)
     
-    # Add additional functions via Python API
+    # Add additional functions via Python bindings
     ns = p.namespace("python")
     ns.function("python_func", "say Created via Python API!")
     
@@ -505,4 +535,4 @@ if __name__ == "__main__":
     print("Complete example pack built successfully!")
 ```
 
-The Python API provides a powerful, flexible way to create Minecraft datapacks with full support for the JavaScript-style MDL language features including the new explicit scope system.
+The Python bindings provide a powerful, flexible way to create Minecraft datapacks with full support for the MDL language features including the explicit scope system.

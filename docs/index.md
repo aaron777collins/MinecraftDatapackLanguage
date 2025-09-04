@@ -74,13 +74,13 @@ A **modern JavaScript-style compiler** that lets you write Minecraft datapacks w
     <a href="{{ site.baseurl }}/docs/multi-file-projects/" class="doc-link">Learn More →</a>
   </div>
   <div class="doc-card">
-    <h3>🐍 Python API</h3>
+    <h3>🐍 Python Bindings</h3>
     <p>Programmatic datapack creation</p>
     <div class="doc-meta">
       <span class="category">API</span>
       <span class="category">Python</span>
     </div>
-    <a href="{{ site.baseurl }}/docs/python-api/" class="doc-link">Python API →</a>
+    <a href="{{ site.baseurl }}/docs/python-bindings/" class="doc-link">Python Bindings →</a>
   </div>
 </div>
 

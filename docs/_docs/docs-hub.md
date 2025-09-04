@@ -58,7 +58,7 @@ Search and browse all available documentation for the Minecraft Datapack Languag
   </div>
   
   <div class="doc-card" data-categories="python api programming">
-    <h3>🐍 Python API</h3>
+    <h3>🐍 Python Bindings</h3>
     <p>Programmatic access to MDL functionality for automation and integration.</p>
     <div class="doc-meta">
       <span class="category">API</span>

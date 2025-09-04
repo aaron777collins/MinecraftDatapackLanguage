@@ -37,11 +37,11 @@ This document summarizes the implementation of if/else if/else functionality in 
 - `README.md` - Added conditional blocks section
 - `docs/_docs/language-reference.md` - Added comprehensive conditional documentation
 - `docs/_docs/examples.md` - Added conditional examples
-- `docs/_docs/python-api.md` - Added conditional Python API examples
+- `docs/_docs/python-bindings.md` - Added conditional Python bindings examples
 
 ### Tests
 - `test_examples/conditionals.mdl` - Comprehensive MDL test file
-- `test_examples/conditionals.py` - Python API test file
+- `test_examples/conditionals.py` - Python bindings test file
 - `test_regression.py` - Regression test suite
 - `test_examples/run_all_tests.py` - Updated to include conditionals
 
@@ -55,12 +55,12 @@ This document summarizes the implementation of if/else if/else functionality in 
 - ✅ Conditional function calls
 - ✅ Invalid syntax handling
 - ✅ Regression testing (existing functionality)
-- ✅ Python API compatibility
+- ✅ Python bindings compatibility
 
 ### Test Results
 - **Regression Tests**: 7/7 passed ✅
 - **Comprehensive Tests**: 17/17 passed ✅
-- **Python API Tests**: All passed ✅
+- **Python bindings tests**: All passed ✅
 
 ## 📖 Documentation
 
@@ -152,7 +152,7 @@ execute unless entity @s[type=minecraft:player,nbt={SelectedItem:{id:"minecraft:
 - ✅ Comprehensive testing completed
 - ✅ Documentation updated
 - ✅ Examples created
-- ✅ Python API support
+- ✅ Python bindings support
 - ✅ Regression tests passing
 - ✅ Backward compatibility verified
 - ✅ Error handling implemented

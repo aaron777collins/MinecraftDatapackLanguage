@@ -1,5 +1,5 @@
 title: Minecraft Datapack Language (MDL) v12
-description: A powerful compiler that lets you write Minecraft datapacks in a modern JavaScript-style language (.mdl) or via a clean Python API
+description: A powerful compiler that lets you write Minecraft datapacks in a modern JavaScript-style language (.mdl) or via clean Python bindings
 url: "https://www.mcmdl.com"
 github_username: aaron777collins
 github_repo: MinecraftDatapackLanguage
@@ -68,7 +68,7 @@ nav:
     url: /docs/multi-file-projects/
   - title: CLI Reference
     url: /docs/cli-reference/
-  - title: Python API
+  - title: Python Bindings
     url: /docs/python-api/
   - title: VS Code Extension
     url: /docs/vscode-extension/
