@@ -279,7 +279,7 @@ class MDLParser:
         )
     
     def _parse_if_statement(self) -> IfStatement:
-        """Parse if statement: if condition { then_body } else { else_body }"""
+        """Parse if statement: if condition { then_body } else { else_body } or else if { ... }"""
         self._expect(TokenType.IF, "Expected 'if' keyword")
         
         condition = self._parse_expression()
@@ -292,9 +292,16 @@ class MDLParser:
         else_body = None
         if self._peek().type == TokenType.ELSE:
             self._advance()  # consume 'else'
-            self._expect(TokenType.LBRACE, "Expected '{' to start else body")
-            else_body = self._parse_block()
-            self._expect(TokenType.RBRACE, "Expected '}' to end else body")
+            
+            # Check if this is an else if
+            if self._peek().type == TokenType.IF:
+                # This is an else if - parse it as a nested if statement
+                else_body = [self._parse_if_statement()]
+            else:
+                # This is a regular else
+                self._expect(TokenType.LBRACE, "Expected '{' to start else body")
+                else_body = self._parse_block()
+                self._expect(TokenType.RBRACE, "Expected '}' to end else body")
         
         return IfStatement(
             condition=condition,
