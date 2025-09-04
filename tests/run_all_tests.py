@@ -1,0 +1,158 @@
+#!/usr/bin/env python3
+"""
+Comprehensive test runner for MDL.
+Runs all test suites and provides detailed reporting.
+"""
+
+import sys
+import subprocess
+import time
+from pathlib import Path
+
+
+def run_test_suite(name, command, description=""):
+    """Run a test suite and return results."""
+    print(f"\n{'='*60}")
+    print(f"Running {name}")
+    if description:
+        print(f"Description: {description}")
+    print(f"{'='*60}")
+    
+    start_time = time.time()
+    
+    try:
+        result = subprocess.run(command, shell=True, capture_output=True, text=True)
+        duration = time.time() - start_time
+        
+        if result.returncode == 0:
+            print(f"✅ {name} PASSED in {duration:.2f}s")
+            if result.stdout:
+                print("Output:")
+                print(result.stdout)
+            return True
+        else:
+            print(f"❌ {name} FAILED in {duration:.2f}s")
+            print("Error output:")
+            print(result.stderr)
+            if result.stdout:
+                print("Standard output:")
+                print(result.stdout)
+            return False
+            
+    except Exception as e:
+        duration = time.time() - start_time
+        print(f"💥 {name} CRASHED in {duration:.2f}s")
+        print(f"Exception: {e}")
+        return False
+
+
+def main():
+    """Run all test suites."""
+    print("🚀 Starting Comprehensive MDL Test Suite")
+    print(f"Python version: {sys.version}")
+    print(f"Working directory: {Path.cwd()}")
+    
+    # Test results
+    results = []
+    
+    # 1. Run pytest with coverage
+    print("\n📊 Running pytest with coverage...")
+    pytest_result = run_test_suite(
+        "Pytest Suite",
+        "python -m pytest tests/ -v --cov=minecraft_datapack_language --cov-report=term-missing --cov-report=html:htmlcov",
+        "Comprehensive pytest suite with coverage reporting"
+    )
+    results.append(("Pytest", pytest_result))
+    
+    # 2. Run specific test files
+    test_files = [
+        ("test_comprehensive_end_to_end.py", "End-to-end comprehensive tests"),
+        ("test_complex_scenarios.py", "Complex scenario tests"),
+        ("test_compiler_fixes.py", "Compiler fix verification tests"),
+        ("test_python_api.py", "Python API tests"),
+        ("test_cli.py", "CLI functionality tests"),
+    ]
+    
+    for test_file, description in test_files:
+        test_path = Path("tests") / test_file
+        if test_path.exists():
+            result = run_test_suite(
+                f"Direct {test_file}",
+                f"python tests/{test_file}",
+                description
+            )
+            results.append((test_file, result))
+        else:
+            print(f"⚠️  {test_file} not found, skipping")
+    
+    # 3. Run MDL compilation tests
+    print("\n🔨 Testing MDL compilation...")
+    
+    # Test complex scenarios
+    complex_result = run_test_suite(
+        "Complex Scenarios Compilation",
+        "python -c \"from minecraft_datapack_language.mdl_parser import MDLParser; from minecraft_datapack_language.mdl_compiler import MDLCompiler; import tempfile; from pathlib import Path; source = '''pack \\\"test\\\" \\\"Test pack\\\" 82; namespace \\\"test\\\"; var num counter<@s> = 0; var num health<@s> = 20; var num bonus<@s> = 5; function test:complex_math<@s> { counter<@s> = ($counter<@s>$ + $health<@s>$) * $bonus<@s>$; }'''; parser = MDLParser(); ast = parser.parse(source); compiler = MDLCompiler('temp_output'); compiler.compile(ast); print('Complex expressions compilation successful')\"",
+        "Test complex mathematical expressions compilation"
+    )
+    results.append(("Complex Expressions", complex_result))
+    
+    # Test control flow
+    control_result = run_test_suite(
+        "Control Flow Compilation",
+        "python -c \"from minecraft_datapack_language.mdl_parser import MDLParser; from minecraft_datapack_language.mdl_compiler import MDLCompiler; import tempfile; from pathlib import Path; source = '''pack \\\"test\\\" \\\"Test pack\\\" 82; namespace \\\"test\\\"; var num health<@s> = 20; function test:health_check<@s> { if $health<@s>$ < 10 { say \\\"Health is low!\\\"; } else { say \\\"Health is good!\\\"; } }'''; parser = MDLParser(); ast = parser.parse(source); compiler = MDLCompiler('temp_output'); compiler.compile(ast); print('Control flow compilation successful')\"",
+        "Test if/else control flow compilation"
+    )
+    results.append(("Control Flow", control_result))
+    
+    # Test function execution
+    function_result = run_test_suite(
+        "Function Execution Compilation",
+        "python -c \"from minecraft_datapack_language.mdl_parser import MDLParser; from minecraft_datapack_language.mdl_compiler import MDLCompiler; import tempfile; from pathlib import Path; source = '''pack \\\"test\\\" \\\"Test pack\\\" 82; namespace \\\"test\\\"; function test:helper<@s> { say \\\"Helper function!\\\"; } function test:main<@s> { exec test:helper<@s>; }'''; parser = MDLParser(); ast = parser.parse(source); compiler = MDLCompiler('temp_output'); compiler.compile(ast); print('Function execution compilation successful')\"",
+        "Test function execution with scopes"
+    )
+    results.append(("Function Execution", function_result))
+    
+    # 4. Test Python API
+    print("\n🐍 Testing Python API...")
+    api_result = run_test_suite(
+        "Python API Basic",
+        "python -c \"from minecraft_datapack_language import Pack; import tempfile; from pathlib import Path; p = Pack('Test', 'Test pack', 82); ns = p.namespace('test'); ns.function('hello', 'say Hello World!'); with tempfile.TemporaryDirectory() as temp_dir: p.build(temp_dir); output = Path(temp_dir) / 'data' / 'test' / 'function' / 'hello.mcfunction'; assert output.exists(); print('Python API test successful')\"",
+        "Test basic Python API functionality"
+    )
+    results.append(("Python API", api_result))
+    
+    # 5. Test CLI
+    print("\n💻 Testing CLI...")
+    cli_result = run_test_suite(
+        "CLI Help",
+        "python -m minecraft_datapack_language.cli --help",
+        "Test CLI help command"
+    )
+    results.append(("CLI Help", cli_result))
+    
+    # Summary
+    print(f"\n{'='*60}")
+    print("📋 TEST SUMMARY")
+    print(f"{'='*60}")
+    
+    passed = 0
+    total = len(results)
+    
+    for name, result in results:
+        status = "✅ PASS" if result else "❌ FAIL"
+        print(f"{status} {name}")
+        if result:
+            passed += 1
+    
+    print(f"\nResults: {passed}/{total} tests passed")
+    
+    if passed == total:
+        print("🎉 All tests passed! MDL is working correctly.")
+        return 0
+    else:
+        print("💥 Some tests failed. Please check the output above.")
+        return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

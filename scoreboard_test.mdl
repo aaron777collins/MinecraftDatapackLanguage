@@ -1,0 +1,32 @@
+pack "scoreboard_test" "Testing scoreboard decimal behavior" 82;
+namespace "test";
+
+var num counter<@s> = 10;
+var num decimal_counter<@s> = 5.5;
+
+function test:scoreboard_demo<@s> {
+    // Set values
+    counter<@s> = 15;
+    decimal_counter<@s> = 7.8;
+    
+    // Display values
+    say "Integer counter: $counter<@s>$";
+    say "Decimal counter: $decimal_counter<@s>$";
+    
+    // Math operations
+    counter<@s> = $counter<@s>$ + 3;
+    decimal_counter<@s> = $decimal_counter<@s>$ + 2.2;
+    
+    say "After math - Integer: $counter<@s>$, Decimal: $decimal_counter<@s>$";
+    
+    // Comparisons work the same
+    if $counter<@s>$ > 10 {
+        say "Counter is greater than 10!";
+    }
+    
+    if $decimal_counter<@s>$ > 5 {
+        say "Decimal counter is greater than 5!";
+    }
+}
+
+on_load test:scoreboard_demo<@s>;

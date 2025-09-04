@@ -1,0 +1,101 @@
+pack "test_comprehensive" "Testing all fixes comprehensively" 82;
+namespace "test";
+
+// Tag declarations
+tag recipe "test_recipe" "recipes/test.json";
+tag loot_table "test_loot" "loot_tables/test.json";
+tag advancement "test_advancement" "advancements/test.json";
+
+var num counter<@s> = 0;
+var num health<@s> = 20;
+var num score<@s> = 100;
+var num bonus<@s> = 5;
+var num global_score<@a> = 0;
+
+function test:complex_expressions_working<@s> {
+    // Test complex mathematical expressions
+    score<@s> = ($counter<@s>$ + $health<@s>$) * $bonus<@s>$;
+    counter<@s> = ($score<@s>$ / $bonus<@s>$) - $health<@s>$;
+    
+    // Test complex conditions
+    if ($counter<@s>$ + $bonus<@s>$) > ($score<@s>$ / 2) {
+        say "Complex condition met!";
+    }
+    
+    // Test nested expressions
+    if (($counter<@s>$ * 2) + ($health<@s>$ / 4)) >= ($score<@s>$ - $bonus<@s>$) {
+        say "Nested expression condition met!";
+    }
+}
+
+function test:function_execution_working<@s> {
+    // Test function calls without scope
+    exec test:complex_expressions_working;
+    
+    // Test function calls with scope
+    exec test:complex_expressions_working<@s>;
+    exec test:complex_expressions_working<@a>;
+}
+
+function test:control_flow_working<@s> {
+    // Test if/else if/else
+    if $counter<@s>$ > 10 {
+        say "Counter is high!";
+        counter<@s> = 0;
+    } else if $counter<@s>$ > 5 {
+        say "Counter is medium!";
+        counter<@s> = $counter<@s>$ + 1;
+    } else {
+        say "Counter is low!";
+        counter<@s> = $counter<@s>$ + 2;
+    }
+    
+    // Test while loop
+    while $counter<@s>$ < 5 {
+        counter<@s> = $counter<@s>$ + 1;
+        say "Counter: $counter<@s>$";
+    }
+}
+
+function test:nested_control_flow<@s> {
+    if $health<@s>$ > 15 {
+        if $counter<@s>$ > 5 {
+            say "Healthy and high counter!";
+        } else {
+            say "Healthy but low counter!";
+        }
+    } else {
+        if $score<@s>$ > 50 {
+            say "Low health but high score!";
+        } else {
+            say "Low health and low score!";
+        }
+    }
+}
+
+function test:variable_scope_handling<@s> {
+    // Test reading from different scopes
+    global_score<@a> = $score<@s>$;
+    
+    // Test complex operations across scopes
+    score<@s> = ($global_score<@a>$ + $bonus<@s>$) * 2;
+    
+    // Test conditional operations
+    if $global_score<@a>$ > $score<@s>$ {
+        global_score<@a> = $score<@s>$;
+    }
+}
+
+function test:raw_blocks_working<@s> {
+    // Test raw blocks pass through unchanged
+    $!raw
+    scoreboard players set @s test_raw 1
+    say "Raw block works!"
+    raw!$
+    
+    // Test single-line raw
+    $!raw scoreboard players add @s test_raw 1 raw!$
+}
+
+on_load test:complex_expressions_working;
+on_tick test:control_flow_working;

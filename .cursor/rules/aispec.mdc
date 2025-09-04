@@ -7,3 +7,4 @@ alwaysApply: true
 - Use the MDL_AI_SPEC_SHEET (living spec doc) to remember the important context. Update it if it is out of date. Do NOT forget to follow the development cycle.
 - Test locally via python, not necessarily using mdl.
 - Use ./scripts/UpdateMDL.sh to update mdl after making changes
+- Use ./mdllocal.sh to run mdl locally when testing

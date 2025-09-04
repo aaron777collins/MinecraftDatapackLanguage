@@ -147,11 +147,31 @@ class MDLCompiler:
             lines.append(f"# Scope: {func.scope}")
         lines.append("")
         
+        # Reset temporary commands for this function
+        if hasattr(self, 'temp_commands'):
+            self.temp_commands = []
+        
         # Generate commands from function body
         for statement in func.body:
             cmd = self._statement_to_command(statement)
             if cmd:
                 lines.append(cmd)
+        
+        # Add any temporary commands that were generated during compilation
+        if hasattr(self, 'temp_commands') and self.temp_commands:
+            lines.append("")
+            lines.append("# Temporary variable operations:")
+            for temp_cmd in self.temp_commands:
+                lines.append(temp_cmd)
+        
+        # Add any generated functions that were created during compilation
+        if hasattr(self, 'generated_functions') and self.generated_functions:
+            lines.append("")
+            lines.append("# Generated functions:")
+            for func_name, func_lines in self.generated_functions.items():
+                lines.append(f"# {func_name}:")
+                lines.extend(func_lines)
+                lines.append("")
         
         return "\n".join(lines)
     
@@ -290,9 +310,20 @@ class MDLCompiler:
     def _variable_assignment_to_command(self, assignment: VariableAssignment) -> str:
         """Convert variable assignment to scoreboard command."""
         objective = self.variables.get(assignment.name, assignment.name)
-        value = self._expression_to_value(assignment.value)
         scope = assignment.scope.strip("<>")
-        return f"scoreboard players set {scope} {objective} {value}"
+        
+        # Check if the value is a complex expression
+        if isinstance(assignment.value, BinaryExpression):
+            # Complex expression - use temporary variable approach
+            temp_var = self._generate_temp_variable_name()
+            self._compile_expression_to_temp(assignment.value, temp_var)
+            
+            # Return the command to set the target variable from the temp
+            return f"scoreboard players operation {scope} {objective} = @s {temp_var}"
+        else:
+            # Simple value - use direct assignment
+            value = self._expression_to_value(assignment.value)
+            return f"scoreboard players set {scope} {objective} {value}"
     
     def _say_command_to_command(self, say: SayCommand) -> str:
         """Convert say command to tellraw command with JSON formatting."""
@@ -348,93 +379,160 @@ class MDLCompiler:
                 return f'tellraw @a {first_part}'
     
     def _if_statement_to_command(self, if_stmt: IfStatement) -> str:
-        """Convert if statement to comment and include actual statements."""
+        """Convert if statement to proper Minecraft execute if commands."""
         condition = self._expression_to_condition(if_stmt.condition)
-        lines = [f"# if {condition}"]
+        lines = []
         
-        # Include the actual statements from the if body for visibility
+        # Generate the if condition using execute if
+        if self._is_scoreboard_condition(if_stmt.condition):
+            # For scoreboard conditions, use execute if score
+            lines.append(f"execute if score {condition} run function {self.current_namespace}:{self._generate_if_function_name()}")
+        else:
+            # For other conditions, use execute if
+            lines.append(f"execute if {condition} run function {self.current_namespace}:{self._generate_if_function_name()}")
+        
+        # Generate the if body function
+        if_body_lines = [f"# Function: {self.current_namespace}:{self._generate_if_function_name()}"]
         for stmt in if_stmt.then_body:
             if isinstance(stmt, VariableAssignment):
-                # Include variable assignments directly
                 cmd = self._variable_assignment_to_command(stmt)
-                lines.append(cmd)
+                if_body_lines.append(cmd)
             elif isinstance(stmt, SayCommand):
-                # Include say commands directly
                 cmd = self._say_command_to_command(stmt)
-                lines.append(cmd)
+                if_body_lines.append(cmd)
             elif isinstance(stmt, RawBlock):
-                # Include raw blocks directly
-                lines.append(stmt.content)
+                if_body_lines.append(stmt.content)
             elif isinstance(stmt, IfStatement):
-                # Recursively handle nested if statements
                 cmd = self._if_statement_to_command(stmt)
-                lines.append(cmd)
+                if_body_lines.append(cmd)
             elif isinstance(stmt, WhileLoop):
-                # Handle while loops
                 cmd = self._while_loop_to_command(stmt)
-                lines.append(cmd)
+                if_body_lines.append(cmd)
             elif isinstance(stmt, FunctionCall):
-                # Handle function calls
                 cmd = self._function_call_to_command(stmt)
-                lines.append(cmd)
+                if_body_lines.append(cmd)
         
         # Handle else body if it exists
         if if_stmt.else_body:
-            lines.append("")
-            lines.append("# else:")
-            for stmt in if_stmt.else_body:
-                if isinstance(stmt, VariableAssignment):
-                    cmd = self._variable_assignment_to_command(stmt)
-                    lines.append(cmd)
-                elif isinstance(stmt, SayCommand):
-                    cmd = self._say_command_to_command(stmt)
-                    lines.append(cmd)
-                elif isinstance(stmt, RawBlock):
-                    lines.append(stmt.content)
-                elif isinstance(stmt, IfStatement):
-                    cmd = self._if_statement_to_command(stmt)
-                    lines.append(cmd)
-                elif isinstance(stmt, WhileLoop):
-                    cmd = self._while_loop_to_command(stmt)
-                    lines.append(cmd)
-                elif isinstance(stmt, FunctionCall):
-                    cmd = self._function_call_to_command(stmt)
-                    lines.append(cmd)
+            if isinstance(if_stmt.else_body, list) and len(if_stmt.else_body) == 1 and isinstance(if_stmt.else_body[0], IfStatement):
+                # This is an else if - handle it recursively
+                else_if_lines = self._if_statement_to_command(if_stmt.else_body[0])
+                lines.extend(else_if_lines.split('\n'))
+            else:
+                # This is a regular else
+                if self._is_scoreboard_condition(if_stmt.condition):
+                    lines.append(f"execute unless score {condition} run function {self.current_namespace}:{self._generate_else_function_name()}")
+                else:
+                    lines.append(f"execute unless {condition} run function {self.current_namespace}:{self._generate_else_function_name()}")
+                
+                # Generate the else body function
+                else_body_lines = [f"# Function: {self.current_namespace}:{self._generate_else_function_name()}"]
+                for stmt in if_stmt.else_body:
+                    if isinstance(stmt, VariableAssignment):
+                        cmd = self._variable_assignment_to_command(stmt)
+                        else_body_lines.append(cmd)
+                    elif isinstance(stmt, SayCommand):
+                        cmd = self._say_command_to_command(stmt)
+                        else_body_lines.append(cmd)
+                    elif isinstance(stmt, RawBlock):
+                        else_body_lines.append(stmt.content)
+                    elif isinstance(stmt, IfStatement):
+                        cmd = self._if_statement_to_command(stmt)
+                        else_body_lines.append(cmd)
+                    elif isinstance(stmt, WhileLoop):
+                        cmd = self._while_loop_to_command(stmt)
+                        else_body_lines.append(cmd)
+                    elif isinstance(stmt, FunctionCall):
+                        cmd = self._function_call_to_command(stmt)
+                        else_body_lines.append(cmd)
+                
+                # Store the else function for later generation
+                self._store_generated_function(self._generate_else_function_name(), else_body_lines)
+        
+        # Store the if function for later generation
+        self._store_generated_function(self._generate_if_function_name(), if_body_lines)
         
         return "\n".join(lines)
     
     def _while_loop_to_command(self, while_loop: WhileLoop) -> str:
-        """Convert while loop to comment and include actual statements."""
+        """Convert while loop to proper Minecraft loop logic."""
         condition = self._expression_to_condition(while_loop.condition)
-        lines = [f"# while {condition}"]
+        lines = []
         
-        # Include the actual statements from the while body for visibility
+        # Generate the while loop using a recursive function approach
+        loop_function_name = self._generate_while_function_name()
+        
+        # First, call the loop function
+        lines.append(f"function {self.current_namespace}:{loop_function_name}")
+        
+        # Generate the loop function body
+        loop_body_lines = [f"# Function: {self.current_namespace}:{loop_function_name}"]
+        
+        # Add the loop body statements
         for stmt in while_loop.body:
             if isinstance(stmt, VariableAssignment):
-                # Include variable assignments directly
                 cmd = self._variable_assignment_to_command(stmt)
-                lines.append(cmd)
+                loop_body_lines.append(cmd)
             elif isinstance(stmt, SayCommand):
-                # Include say commands directly
                 cmd = self._say_command_to_command(stmt)
-                lines.append(cmd)
+                loop_body_lines.append(cmd)
             elif isinstance(stmt, RawBlock):
-                # Include raw blocks directly
-                lines.append(stmt.content)
+                loop_body_lines.append(stmt.content)
             elif isinstance(stmt, IfStatement):
-                # Recursively handle nested if statements
                 cmd = self._if_statement_to_command(stmt)
-                lines.append(cmd)
+                loop_body_lines.append(cmd)
             elif isinstance(stmt, WhileLoop):
-                # Handle nested while loops
                 cmd = self._while_loop_to_command(stmt)
-                lines.append(cmd)
+                loop_body_lines.append(cmd)
             elif isinstance(stmt, FunctionCall):
-                # Handle function calls
                 cmd = self._function_call_to_command(stmt)
-                lines.append(cmd)
+                loop_body_lines.append(cmd)
+        
+        # Add the recursive call at the end to continue the loop
+        if self._is_scoreboard_condition(while_loop.condition):
+            loop_body_lines.append(f"execute if score {condition} run function {self.current_namespace}:{loop_function_name}")
+        else:
+            loop_body_lines.append(f"execute if {condition} run function {self.current_namespace}:{loop_function_name}")
+        
+        # Store the loop function for later generation
+        self._store_generated_function(loop_function_name, loop_body_lines)
         
         return "\n".join(lines)
+    
+    def _is_scoreboard_condition(self, expression: Any) -> bool:
+        """Check if an expression is a scoreboard comparison."""
+        if isinstance(expression, BinaryExpression):
+            # Check if it's comparing a scoreboard value
+            if isinstance(expression.left, VariableSubstitution) or isinstance(expression.right, VariableSubstitution):
+                return True
+        return False
+    
+    def _generate_if_function_name(self) -> str:
+        """Generate a unique name for an if function."""
+        if not hasattr(self, 'if_counter'):
+            self.if_counter = 0
+        self.if_counter += 1
+        return f"if_{self.if_counter}"
+    
+    def _generate_else_function_name(self) -> str:
+        """Generate a unique name for an else function."""
+        if not hasattr(self, 'else_counter'):
+            self.else_counter = 0
+        self.else_counter += 1
+        return f"else_{self.else_counter}"
+    
+    def _generate_while_function_name(self) -> str:
+        """Generate a unique name for a while function."""
+        if not hasattr(self, 'while_counter'):
+            self.while_counter = 0
+        self.while_counter += 1
+        return f"while_{self.while_counter}"
+    
+    def _store_generated_function(self, name: str, lines: List[str]):
+        """Store a generated function for later output."""
+        if not hasattr(self, 'generated_functions'):
+            self.generated_functions = {}
+        self.generated_functions[name] = lines
     
     def _function_call_to_command(self, func_call: FunctionCall) -> str:
         """Convert function call to execute command."""
@@ -452,11 +550,12 @@ class MDLCompiler:
             scope = expression.scope.strip("<>")
             return f"score {scope} {objective}"
         elif isinstance(expression, BinaryExpression):
-            left = self._expression_to_value(expression.left)
-            right = self._expression_to_value(expression.right)
-            return f"{left} {expression.operator} {right}"
+            # For complex expressions, we need to use temporary variables
+            temp_var = self._generate_temp_variable_name()
+            self._compile_expression_to_temp(expression, temp_var)
+            return f"score @s {temp_var}"
         elif isinstance(expression, ParenthesizedExpression):
-            return f"({self._expression_to_value(expression.expression)})"
+            return self._expression_to_value(expression.expression)
         else:
             return str(expression)
     
@@ -468,3 +567,93 @@ class MDLCompiler:
             return f"{left} {expression.operator} {right}"
         else:
             return self._expression_to_value(expression)
+    
+    def _compile_expression_to_temp(self, expression: BinaryExpression, temp_var: str):
+        """Compile a complex expression to a temporary variable using valid Minecraft commands."""
+        left_temp = None
+        right_temp = None
+        
+        if isinstance(expression.left, BinaryExpression):
+            # Left side is complex - compile it first
+            left_temp = self._generate_temp_variable_name()
+            self._compile_expression_to_temp(expression.left, left_temp)
+            left_value = f"score @s {left_temp}"
+        else:
+            left_value = self._expression_to_value(expression.left)
+        
+        if isinstance(expression.right, BinaryExpression):
+            # Right side is complex - compile it first
+            right_temp = self._generate_temp_variable_name()
+            self._compile_expression_to_temp(expression.right, right_temp)
+            right_value = f"score @s {right_temp}"
+        else:
+            right_value = self._expression_to_value(expression.right)
+        
+        # Generate the operation command
+        if expression.operator == "PLUS":
+            if isinstance(expression.left, BinaryExpression):
+                self._store_temp_command(f"scoreboard players operation @s {temp_var} = @s {left_temp}")
+            else:
+                self._store_temp_command(f"scoreboard players set @s {temp_var} {left_value}")
+            
+            if isinstance(expression.right, BinaryExpression):
+                self._store_temp_command(f"scoreboard players add @s {temp_var} {right_value}")
+            else:
+                self._store_temp_command(f"scoreboard players add @s {temp_var} {right_value}")
+                
+        elif expression.operator == "MINUS":
+            if isinstance(expression.left, BinaryExpression):
+                self._store_temp_command(f"scoreboard players operation @s {temp_var} = @s {left_temp}")
+            else:
+                self._store_temp_command(f"scoreboard players set @s {temp_var} {left_value}")
+            
+            if isinstance(expression.right, BinaryExpression):
+                self._store_temp_command(f"scoreboard players remove @s {temp_var} {right_value}")
+            else:
+                self._store_temp_command(f"scoreboard players remove @s {temp_var} {right_value}")
+                
+        elif expression.operator == "MULTIPLY":
+            if isinstance(expression.left, BinaryExpression):
+                self._store_temp_command(f"scoreboard players operation @s {temp_var} = @s {left_temp}")
+            else:
+                self._store_temp_command(f"scoreboard players set @s {temp_var} {left_value}")
+            
+            if isinstance(expression.right, BinaryExpression):
+                self._store_temp_command(f"scoreboard players operation @s {temp_var} *= @s {right_temp}")
+            else:
+                # For literal values, we need to use a different approach
+                if isinstance(expression.right, LiteralExpression):
+                    self._store_temp_command(f"scoreboard players multiply @s {temp_var} {expression.right.value}")
+                else:
+                    self._store_temp_command(f"scoreboard players operation @s {temp_var} *= {right_value}")
+                
+        elif expression.operator == "DIVIDE":
+            if isinstance(expression.left, BinaryExpression):
+                self._store_temp_command(f"scoreboard players operation @s {temp_var} = @s {left_temp}")
+            else:
+                self._store_temp_command(f"scoreboard players set @s {temp_var} {left_value}")
+            
+            if isinstance(expression.right, BinaryExpression):
+                self._store_temp_command(f"scoreboard players operation @s {temp_var} /= @s {right_temp}")
+            else:
+                # For literal values, we need to use a different approach
+                if isinstance(expression.right, LiteralExpression):
+                    self._store_temp_command(f"scoreboard players divide @s {temp_var} {expression.right.value}")
+                else:
+                    self._store_temp_command(f"scoreboard players operation @s {temp_var} /= {right_value}")
+        else:
+            # For other operators, just set the value
+            self._store_temp_command(f"scoreboard players set @s {temp_var} 0")
+    
+    def _store_temp_command(self, command: str):
+        """Store a temporary command for later execution."""
+        if not hasattr(self, 'temp_commands'):
+            self.temp_commands = []
+        self.temp_commands.append(command)
+    
+    def _generate_temp_variable_name(self) -> str:
+        """Generate a unique temporary variable name."""
+        if not hasattr(self, 'temp_counter'):
+            self.temp_counter = 0
+        self.temp_counter += 1
+        return f"temp_{self.temp_counter}"

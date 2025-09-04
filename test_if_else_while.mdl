@@ -1,0 +1,42 @@
+pack "test_if_else_while" "Testing if/else if/else and while loops" 82;
+namespace "test";
+
+var num counter<@s> = 0;
+var num health<@s> = 20;
+
+function test:if_else_test<@s> {
+    if $counter<@s>$ > 5 {
+        say "Counter is high!";
+        counter<@s> = 0;
+    } else if $counter<@s>$ > 2 {
+        say "Counter is medium!";
+        counter<@s> = $counter<@s>$ + 1;
+    } else {
+        say "Counter is low!";
+        counter<@s> = $counter<@s>$ + 2;
+    }
+}
+
+function test:while_loop_test<@s> {
+    while $counter<@s>$ < 10 {
+        counter<@s> = $counter<@s>$ + 1;
+        say "Counter: $counter<@s>$";
+    }
+}
+
+function test:nested_test<@s> {
+    if $health<@s>$ > 15 {
+        if $counter<@s>$ > 5 {
+            say "Healthy and high counter!";
+        } else {
+            say "Healthy but low counter!";
+        }
+    } else {
+        while $health<@s>$ < 20 {
+            health<@s> = $health<@s>$ + 1;
+            say "Healing... Health: $health<@s>$";
+        }
+    }
+}
+
+on_load test:if_else_test<@s>;

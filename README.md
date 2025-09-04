@@ -7,7 +7,6 @@ A **modern, scope-aware language** that lets you write Minecraft datapacks with 
 🔧 **[VS Code Extension](https://marketplace.visualstudio.com/items?itemName=mdl.minecraft-datapack-language)** - Syntax highlighting, IntelliSense, and snippets
 
 ![CI](https://github.com/aaron777collins/MinecraftDatapackLanguage/workflows/CI/badge.svg)
-![Test Examples](https://github.com/aaron777collins/MinecraftDatapackLanguage/workflows/Test%20Examples/badge.svg)
 ![Documentation](https://github.com/aaron777collins/MinecraftDatapackLanguage/workflows/Build%20and%20Deploy%20Documentation/badge.svg)
 ![PyPI](https://img.shields.io/pypi/v/minecraft-datapack-language?style=flat-square)
 ![Release](https://github.com/aaron777collins/MinecraftDatapackLanguage/workflows/Release/badge.svg)

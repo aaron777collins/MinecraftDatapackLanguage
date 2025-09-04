@@ -162,6 +162,140 @@ jobs:
           echo "Running complex scenario tests..."
           python test_complex_scenarios.py
 
+      - name: Run Compiler Fix Tests
+        run: |
+          echo "Running compiler fix tests..."
+          python test_compiler_fixes.py
+
+      - name: Test Compiler Fixes with MDL Files
+        run: |
+          echo "Testing compiler fixes with MDL files..."
+          
+          # Test complex expressions
+          echo "Testing complex expressions..."
+          python -c "
+          from minecraft_datapack_language.mdl_parser import MDLParser
+          from minecraft_datapack_language.mdl_compiler import MDLCompiler
+          import tempfile
+          from pathlib import Path
+          
+          source = '''
+          pack \"test\" \"Test pack\" 82;
+          namespace \"test\";
+          var num counter<@s> = 0;
+          var num health<@s> = 20;
+          var num bonus<@s> = 5;
+          function test:complex_math<@s> {
+              counter<@s> = (\$counter<@s>\$ + \$health<@s>\$) * \$bonus<@s>\$;
+          }
+          '''
+          
+          parser = MDLParser()
+          ast = parser.parse(source)
+          
+          with tempfile.TemporaryDirectory() as temp_dir:
+              compiler = MDLCompiler(temp_dir)
+              compiler.compile(ast)
+              output_file = Path(temp_dir) / 'data' / 'test' / 'function' / 'complex_math.mcfunction'
+              if output_file.exists():
+                  content = output_file.read_text()
+                  if 'scoreboard players set @s temp_' in content:
+                      print('[+] Complex expressions working correctly')
+                  else:
+                      print('[-] Complex expressions not working')
+                      exit(1)
+              else:
+                  print('[-] Output file not created')
+                  exit(1)
+          "
+          
+          # Test control flow
+          echo "Testing control flow..."
+          python -c "
+          from minecraft_datapack_language.mdl_parser import MDLParser
+          from minecraft_datapack_language.mdl_compiler import MDLCompiler
+          import tempfile
+          from pathlib import Path
+          
+          source = '''
+          pack \"test\" \"Test pack\" 82;
+          namespace \"test\";
+          var num counter<@s> = 0;
+          function test:control_test<@s> {
+              if \$counter<@s>\$ > 5 {
+                  say \"High counter!\";
+              } else if \$counter<@s>\$ > 2 {
+                  say \"Medium counter!\";
+              } else {
+                  say \"Low counter!\";
+              }
+              while \$counter<@s>\$ < 10 {
+                  counter<@s> = \$counter<@s>\$ + 1;
+              }
+          }
+          '''
+          
+          parser = MDLParser()
+          ast = parser.parse(source)
+          
+          with tempfile.TemporaryDirectory() as temp_dir:
+              compiler = MDLCompiler(temp_dir)
+              compiler.compile(ast)
+              output_file = Path(temp_dir) / 'data' / 'test' / 'function' / 'control_test.mcfunction'
+              if output_file.exists():
+                  content = output_file.read_text()
+                  if 'execute if score' in content and 'function test:while_' in content:
+                      print('[+] Control flow working correctly')
+                  else:
+                      print('[-] Control flow not working')
+                      exit(1)
+              else:
+                  print('[-] Output file not created')
+                  exit(1)
+          "
+          
+          # Test function execution
+          echo "Testing function execution..."
+          python -c "
+          from minecraft_datapack_language.mdl_parser import MDLParser
+          from minecraft_datapack_language.mdl_compiler import MDLCompiler
+          import tempfile
+          from pathlib import Path
+          
+          source = '''
+          pack \"test\" \"Test pack\" 82;
+          namespace \"test\";
+          function test:helper<@s> {
+              say \"Helper function!\";
+          }
+          function test:main<@s> {
+              exec test:helper;
+              exec test:helper<@s>;
+              exec test:helper<@a>;
+          }
+          '''
+          
+          parser = MDLParser()
+          ast = parser.parse(source)
+          
+          with tempfile.TemporaryDirectory() as temp_dir:
+              compiler = MDLCompiler(temp_dir)
+              compiler.compile(ast)
+              main_file = Path(temp_dir) / 'data' / 'test' / 'function' / 'main.mcfunction'
+              if main_file.exists():
+                  content = main_file.read_text()
+                  if 'function test:helper' in content and 'execute as @s run function test:helper' in content:
+                      print('[+] Function execution working correctly')
+                  else:
+                      print('[-] Function execution not working')
+                      exit(1)
+              else:
+                  print('[-] Output file not created')
+                  exit(1)
+          "
+          
+          print('[+] All compiler fix tests passed!')
+
       - name: Upload dist artifacts
         uses: actions/upload-artifact@v4
         with:

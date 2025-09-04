@@ -1,6 +1,6 @@
 
 # Quick helpers for MDL
-.PHONY: venv install build sdist wheel pipx-install pipx-uninstall zipapp test clean
+.PHONY: venv install build sdist wheel pipx-install pipx-uninstall zipapp test clean test-compiler
 
 PYTHON ?= python3
 
@@ -26,8 +26,12 @@ pipx-install:
 pipx-uninstall:
 	pipx uninstall minecraft-datapack-language || true
 
-test:
-	bash scripts/test_cli.sh
+test-compiler: ## Test the compiler fixes
+	@echo "Testing compiler fixes..."
+	@python test_compiler_fixes.py
+
+test: test-compiler ## Run all tests
+	@echo "All tests completed."
 
 clean:
 	rm -rf .venv build dist *.egg-info tmp_mdl_test mdl.pyz

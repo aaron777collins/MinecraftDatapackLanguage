@@ -1,0 +1,86 @@
+pack "scope_demo" "Demonstrating function scope vs execution scope" 82;
+namespace "demo";
+
+// Variables with different scopes
+var num player_score<@s> = 0;
+var num team_score<@a[team=red]> = 0;
+var num global_timer<@a> = 0;
+
+// Function declared with @s scope
+function demo:player_function<@s> {
+    // This function is DESIGNED for player context
+    say "Player function running!";
+    
+    // Can access player-scoped variables
+    say "Your score: $player_score<@s>$";
+    
+    // Can access global variables
+    say "Global timer: $global_timer<@a>$";
+    
+    // Can access team variables (but they're team-specific)
+    say "Red team score: $team_score<@a[team=red]>$";
+}
+
+// Function declared with @a scope  
+function demo:global_function<@a> {
+    // This function is DESIGNED for global context
+    say "Global function running!";
+    
+    // Can access global variables
+    say "Global timer: $global_timer<@a>$";
+    
+    // Can access team variables
+    say "Red team score: $team_score<@a[team=red]>$";
+    
+    // CANNOT access player-specific variables
+    // say "Player score: $player_score<@s>$";  // ❌ This would cause an error!
+}
+
+// Function declared with team scope
+function demo:team_function<@a[team=red]> {
+    // This function is DESIGNED for red team context
+    say "Red team function running!";
+    
+    // Can access team variables
+    say "Red team score: $team_score<@a[team=red]>$";
+    
+    // Can access global variables
+    say "Global timer: $global_timer<@a>$";
+    
+    // CANNOT access player-specific variables
+    // say "Player score: $player_score<@s>$";  // ❌ This would cause an error!
+}
+
+// Now let's see how execution scope works
+function demo:test_execution<@s> {
+    say "=== Testing Execution Scope ===";
+    
+    // Execute player function with @s scope (matches declaration)
+    exec demo:player_function<@s>;           // ✅ Perfect match
+    
+    // Execute player function with @a scope (different from declaration)
+    exec demo:player_function<@a>;           // ✅ Works! Execution scope overrides
+    
+    // Execute global function with @s scope (different from declaration)  
+    exec demo:global_function<@s>;           // ✅ Works! Execution scope overrides
+    
+    // Execute team function with @a scope (different from declaration)
+    exec demo:team_function<@a>;             // ✅ Works! Execution scope overrides
+    
+    say "=== All executions completed ===";
+}
+
+// Test what happens with scope mismatches
+function demo:test_scope_validation<@s> {
+    say "=== Testing Scope Validation ===";
+    
+    // This should work - function designed for @s, executed with @s
+    exec demo:player_function<@s>;
+    
+    // This should also work - function designed for @s, executed with @a
+    exec demo:player_function<@a>;
+    
+    say "=== Scope validation tests completed ===";
+}
+
+on_load demo:test_execution<@s>;

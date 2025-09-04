@@ -1,0 +1,61 @@
+pack "test_complex" "Testing complex expressions and function execution" 82;
+namespace "test";
+
+var num counter<@s> = 0;
+var num health<@s> = 20;
+var num score<@s> = 100;
+var num bonus<@s> = 5;
+
+function test:complex_expressions<@s> {
+    // Test complex mathematical expressions
+    score<@s> = ($counter<@s>$ + $health<@s>$) * $bonus<@s>$;
+    counter<@s> = ($score<@s>$ / $bonus<@s>$) - $health<@s>$;
+    
+    // Test complex conditions
+    if ($counter<@s>$ + $bonus<@s>$) > ($score<@s>$ / 2) {
+        say "Complex condition met!";
+    }
+    
+    // Test nested expressions
+    if (($counter<@s>$ * 2) + ($health<@s>$ / 4)) >= ($score<@s>$ - $bonus<@s>$) {
+        say "Nested expression condition met!";
+    }
+}
+
+function test:function_execution<@s> {
+    // Test function calls without scope
+    exec test:complex_expressions;
+    
+    // Test function calls with scope
+    exec test:complex_expressions<@s>;
+    
+    // Test function calls with different scope
+    exec test:complex_expressions<@a>;
+}
+
+function test:control_flow<@s> {
+    // Test complex while loop condition
+    while ($counter<@s>$ < ($score<@s>$ / $bonus<@s>$)) {
+        counter<@s> = $counter<@s>$ + 1;
+        
+        // Test nested if with complex condition (using division to check even/odd)
+        if ($counter<@s>$ / 2) * 2 == $counter<@s>$ {
+            if $counter<@s>$ < $health<@s>$ {
+                say "Even counter less than health!";
+            }
+        }
+    }
+}
+
+function test:variable_scope_test<@s> {
+    // Test reading from different scopes
+    var num temp<@a> = $counter<@s>$ + $bonus<@s>$;
+    
+    // Test writing to different scopes
+    score<@a> = $temp<@a>$ * 2;
+    
+    // Test complex scope operations
+    if $temp<@a>$ > $score<@s>$ {
+        bonus<@a> = $bonus<@s>$ + 10;
+    }
+}

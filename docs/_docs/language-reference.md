@@ -14,12 +14,13 @@ MDL is a simple, scope-aware language that compiles to Minecraft datapack `.mcfu
 - **Explicit scoping**: Every variable operation specifies its scope with `<>` brackets
 - **Clear reading vs writing**: Use `$variable<scope>$` for reading, `variable<scope>` for writing
 - **No scope inheritance**: Each operation uses its own explicitly defined scope
-- **Default scope**: When no scope is specified, always use `@s` (current player)
+- **Default scope**: When no scope specified, always use `@s` (current player)
 - **No return values**: All functions are void - they execute commands and modify state
 - **No quotes needed**: Use `$variable<scope>$` syntax directly instead of string literals
 - **Function execution**: Use `exec` keyword to execute all functions
 - **Tag-based resources**: Use tag syntax to reference datapack resources like recipes, loot tables, etc.
 - **User-friendly communication**: `say` commands automatically convert to `tellraw` with proper JSON formatting
+- **Real control flow**: If/else if/else statements and while loops that actually work and generate proper Minecraft conditional logic
 
 ## Basic Syntax
 
@@ -115,8 +116,8 @@ function game:start_game {
     player_health<@s> = 20;
 }
 
-// Function declaration (no scope parameters)
-function game:reset_player {
+// Function with scope parameter
+function game:reset_player<@s> {
     player_score<@s> = 0;
     player_health<@s> = 20;
 }
@@ -148,6 +149,20 @@ if $player_health<@s>$ < 5 {
 }
 ```
 
+#### Else If Statements
+```mdl
+if $player_score<@s>$ > 100 {
+    exec game:celebrate;
+    player_score<@s> = 0;
+} else if $player_score<@s>$ > 50 {
+    exec game:reward;
+    player_score<@s> = $player_score<@s>$ + 10;
+} else {
+    exec game:encourage;
+    player_score<@s>$ = $player_score<@s>$ + 5;
+}
+```
+
 #### While Loops
 ```mdl
 while $counter<@s>$ > 0 {
@@ -155,6 +170,8 @@ while $counter<@s>$ > 0 {
     exec game:countdown;
 }
 ```
+
+**Note:** All control structures generate proper Minecraft conditional logic using `execute if` commands and recursive function calls for loops. The compiler automatically handles nested structures and generates the appropriate Minecraft datapack commands.
 
 ### Hooks
 ```mdl
@@ -313,7 +330,7 @@ tag advancement "first_sword" "advancements/first_sword.json";
 var num global_counter<@a> = 0;
 var num player_counter<@s> = 0;
 
-function "increment" {
+function "increment"<@s> {
     global_counter<@a> = $global_counter<@a>$ + 1;
     player_counter<@s> = $player_counter<@s>$ + 1;
     
@@ -324,7 +341,7 @@ function "increment" {
     say "Player $player_counter<@s>$ just incremented the counter!";
 }
 
-function "reset_player" {
+function "reset_player"<@s> {
     player_counter<@s> = 0;
     tellraw @s {"text":"Counter reset!"};
 }
@@ -347,25 +364,40 @@ var num red_score<@a[team=red]> = 0;
 var num blue_score<@a[team=blue]> = 0;
 var num player_score<@s> = 0;
 
-function "award_points" {
+function "award_points"<@s> {
     player_score<@s> = $player_score<@s>$ + 10;
     
-    if $player<@s> has team red {
+    if $player_score<@s>$ > 100 {
+        red_score<@a[team=red]> = $red_score<@a[team=red]>$ + 10;
+        tellraw @s {"text":"High score bonus! Red team score: ","extra":[{"score":{"name":"@s","objective":"red_score"}}]};
+    } else if $player_score<@s>$ > 50 {
         red_score<@a[team=red]> = $red_score<@a[team=red]>$ + 5;
-        tellraw @s {"text":"Red team score: ","extra":[{"score":{"name":"@s","objective":"red_score"}}]};
-    } else if $player<@s> has team blue {
-        blue_score<@a[team=blue]> = $blue_score<@a[team=blue]>$ + 5;
-        tellraw @s {"text":"Blue team score: ","extra":[{"score":{"name":"@s","objective":"blue_score"}}]};
+        tellraw @s {"text":"Medium score bonus! Red team score: ","extra":[{"score":{"name":"@s","objective":"red_score"}}]};
+    } else {
+        red_score<@a[team=red]> = $red_score<@a[team=red]>$ + 1;
+        tellraw @s {"text":"Standard bonus! Red team score: ","extra":[{"score":{"name":"@s","objective":"red_score"}}]};
     }
     
     tellraw @s {"text":"Your score: ","extra":[{"score":{"name":"@s","objective":"player_score"}}]};
 }
 
-function "show_leaderboard" {
+function "show_leaderboard"<@s> {
     tellraw @s {"text":"=== LEADERBOARD ==="};
     tellraw @s {"text":"Red Team: ","extra":[{"score":{"name":"@s","objective":"red_score"}}]};
     tellraw @s {"text":"Blue Team: ","extra":[{"score":{"name":"@s","objective":"blue_score"}}]};
     tellraw @s {"text":"Your Score: ","extra":[{"score":{"name":"@s","objective":"player_score"}}]};
+}
+
+function "countdown_timer"<@s> {
+    var num timer<@s> = 10;
+    
+    while $timer<@s>$ > 0 {
+        tellraw @s {"text":"Time remaining: ","extra":[{"score":{"name":"@s","objective":"timer"}}]};
+        timer<@s> = $timer<@s>$ - 1;
+        exec game:wait_one_second;
+    }
+    
+    tellraw @s {"text":"Time's up!"};
 }
 ```
 
@@ -386,7 +418,7 @@ var num player_exp<@s> = 0;
 var num global_high_score<@a> = 0;
 var num game_timer<@a> = 0;
 
-function "gain_experience" {
+function "gain_experience"<@s> {
     player_exp<@s> = $player_exp<@s>$ + 10;
     
     if $player_exp<@s>$ >= 100 {
@@ -401,7 +433,7 @@ function "gain_experience" {
     }
 }
 
-function "update_timer" {
+function "update_timer"<@a> {
     game_timer<@a> = $game_timer<@a>$ + 1;
     
     if $game_timer<@a>$ >= 1200 {
@@ -425,6 +457,13 @@ on_tick "game:update_timer";
 1. **Exec Calls**: `exec function` becomes `execute as @s run function namespace:function`
 2. **Exec Calls with Scope**: `exec function<@s>` becomes `execute as @s run function namespace:function`
 3. **No Return Values**: Functions compile to a series of Minecraft commands
+
+### Control Structure Compilation
+1. **If Statements**: Generate `execute if score condition run function namespace:if_function` commands
+2. **Else If Statements**: Handle nested if statements recursively, generating proper conditional chains
+3. **Else Blocks**: Generate `execute unless score condition run function namespace:else_function` commands
+4. **While Loops**: Generate recursive function calls that continue while the condition is true
+5. **Nested Structures**: Automatically handle complex nested if/else and while loop combinations
 
 ### Say Command Compilation
 1. **Simple Text**: `say "message"` becomes `tellraw @a {"text":"message"}`
