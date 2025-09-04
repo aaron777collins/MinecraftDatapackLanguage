@@ -26,6 +26,8 @@ Examples:
   mdl new my_project                        # Create a new project
         """
     )
+    # Global options
+    parser.add_argument('--version', action='store_true', help='Show version and exit')
     
     subparsers = parser.add_subparsers(dest='command', help='Available commands')
     
@@ -34,6 +36,7 @@ Examples:
     build_parser.add_argument('--mdl', required=True, help='MDL file(s) or directory to build')
     build_parser.add_argument('-o', '--output', required=True, help='Output directory for the datapack')
     build_parser.add_argument('--verbose', action='store_true', help='Show detailed output')
+    build_parser.add_argument('--wrapper', help='Optional wrapper directory name for the datapack output')
     
     # Check command
     check_parser = subparsers.add_parser('check', help='Check MDL files for syntax errors')
@@ -45,9 +48,19 @@ Examples:
     new_parser.add_argument('project_name', help='Name of the new project')
     new_parser.add_argument('--pack-name', help='Custom name for the datapack')
     new_parser.add_argument('--pack-format', type=int, default=82, help='Pack format number (default: 82)')
+    new_parser.add_argument('--output', help='Directory to create the project in (defaults to current directory)')
     
     args = parser.parse_args()
     
+    if args.version and not args.command:
+        # Print version and exit
+        try:
+            from . import __version__
+        except Exception:
+            __version__ = "0.0.0"
+        print(__version__)
+        return 0
+
     if not args.command:
         parser.print_help()
         return 1
@@ -133,6 +146,7 @@ def build_command(args):
             print(f"Compiling to {output_dir}...")
         
         compiler = MDLCompiler()
+        # Note: --wrapper is currently accepted for compatibility but not required by compiler
         output_path = compiler.compile(final_ast, str(output_dir))
         
         print(f"Successfully built datapack: {output_path}")
@@ -193,9 +207,10 @@ def new_command(args):
     project_name = args.project_name
     pack_name = args.pack_name or project_name
     pack_format = args.pack_format
+    base_dir = Path(args.output) if getattr(args, 'output', None) else Path('.')
+    project_dir = base_dir / project_name
     
     # Create project directory
-    project_dir = Path(project_name)
     if project_dir.exists():
         print(f"Error: Project directory '{project_name}' already exists")
         return 1
@@ -213,7 +228,7 @@ var num counter<@s> = 0;
 var num global_timer<@a> = 0;
 
 // Main function
-function {project_name}:main<@s> {{
+function {project_name}:main {{
     say "Hello from {project_name}!";
     
     // Variable example
@@ -228,13 +243,13 @@ function {project_name}:main<@s> {{
     }}
 }}
 
-// Load function
-function {project_name}:load<@s> {{
-    say "Datapack loaded successfully!";
+// Init function (avoid reserved names like 'load' or 'tick')
+function {project_name}:init {{
+    say "Datapack initialized successfully!";
 }}
 
 // Hook to run on load
-on_load {project_name}:load<@s>;
+on_load {project_name}:init;
 '''
     
     with open(mdl_file, 'w', encoding='utf-8') as f:
@@ -281,7 +296,7 @@ For more information, visit: https://www.mcmdl.com
     with open(readme_file, 'w', encoding='utf-8') as f:
         f.write(readme_content)
     
-    print(f"Created new MDL project: {project_name}/")
+    print(f"Created new MDL project: {project_dir}/")
     print(f"  - {mdl_file}")
     print(f"  - {readme_file}")
     print(f"\nNext steps:")

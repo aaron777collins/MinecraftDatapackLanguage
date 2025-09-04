@@ -16,6 +16,7 @@ from .ast_nodes import (
 )
 from .dir_map import get_dir_map, DirMap
 from .mdl_errors import MDLCompilerError
+from .mdl_lexer import TokenType
 
 
 class MDLCompiler:
@@ -163,15 +164,6 @@ class MDLCompiler:
             lines.append("# Temporary variable operations:")
             for temp_cmd in self.temp_commands:
                 lines.append(temp_cmd)
-        
-        # Add any generated functions that were created during compilation
-        if hasattr(self, 'generated_functions') and self.generated_functions:
-            lines.append("")
-            lines.append("# Generated functions:")
-            for func_name, func_lines in self.generated_functions.items():
-                lines.append(f"# {func_name}:")
-                lines.extend(func_lines)
-                lines.append("")
         
         return "\n".join(lines)
     
@@ -380,19 +372,19 @@ class MDLCompiler:
     
     def _if_statement_to_command(self, if_stmt: IfStatement) -> str:
         """Convert if statement to proper Minecraft execute if commands."""
-        condition = self._expression_to_condition(if_stmt.condition)
+        condition, invert_then = self._build_condition(if_stmt.condition)
         lines = []
         
-        # Generate the if condition using execute if
-        if self._is_scoreboard_condition(if_stmt.condition):
-            # For scoreboard conditions, use execute if score
-            lines.append(f"execute if score {condition} run function {self.current_namespace}:{self._generate_if_function_name()}")
+        # Prepare function name for the then branch
+        if_function_name = self._generate_if_function_name()
+        # Generate condition command
+        if invert_then:
+            lines.append(f"execute unless {condition} run function {self.current_namespace}:{if_function_name}")
         else:
-            # For other conditions, use execute if
-            lines.append(f"execute if {condition} run function {self.current_namespace}:{self._generate_if_function_name()}")
+            lines.append(f"execute if {condition} run function {self.current_namespace}:{if_function_name}")
         
-        # Generate the if body function
-        if_body_lines = [f"# Function: {self.current_namespace}:{self._generate_if_function_name()}"]
+        # Generate the if body function content
+        if_body_lines = [f"# Function: {self.current_namespace}:{if_function_name}"]
         for stmt in if_stmt.then_body:
             if isinstance(stmt, VariableAssignment):
                 cmd = self._variable_assignment_to_command(stmt)
@@ -415,18 +407,26 @@ class MDLCompiler:
         # Handle else body if it exists
         if if_stmt.else_body:
             if isinstance(if_stmt.else_body, list) and len(if_stmt.else_body) == 1 and isinstance(if_stmt.else_body[0], IfStatement):
-                # This is an else if - handle it recursively
-                else_if_lines = self._if_statement_to_command(if_stmt.else_body[0])
-                lines.extend(else_if_lines.split('\n'))
-            else:
-                # This is a regular else
-                if self._is_scoreboard_condition(if_stmt.condition):
-                    lines.append(f"execute unless score {condition} run function {self.current_namespace}:{self._generate_else_function_name()}")
+                # Else-if: create an else function wrapper that contains the nested if
+                else_function_name = self._generate_else_function_name()
+                if invert_then:
+                    lines.append(f"execute if {condition} run function {self.current_namespace}:{else_function_name}")
                 else:
-                    lines.append(f"execute unless {condition} run function {self.current_namespace}:{self._generate_else_function_name()}")
-                
-                # Generate the else body function
-                else_body_lines = [f"# Function: {self.current_namespace}:{self._generate_else_function_name()}"]
+                    lines.append(f"execute unless {condition} run function {self.current_namespace}:{else_function_name}")
+                else_body_lines = [f"# Function: {self.current_namespace}:{else_function_name}"]
+                nested_cmd = self._if_statement_to_command(if_stmt.else_body[0])
+                for nested_line in nested_cmd.split('\n'):
+                    if nested_line:
+                        else_body_lines.append(nested_line)
+                self._store_generated_function(else_function_name, else_body_lines)
+            else:
+                # Regular else: compile its body into its own function
+                else_function_name = self._generate_else_function_name()
+                if invert_then:
+                    lines.append(f"execute if {condition} run function {self.current_namespace}:{else_function_name}")
+                else:
+                    lines.append(f"execute unless {condition} run function {self.current_namespace}:{else_function_name}")
+                else_body_lines = [f"# Function: {self.current_namespace}:{else_function_name}"]
                 for stmt in if_stmt.else_body:
                     if isinstance(stmt, VariableAssignment):
                         cmd = self._variable_assignment_to_command(stmt)
@@ -445,12 +445,10 @@ class MDLCompiler:
                     elif isinstance(stmt, FunctionCall):
                         cmd = self._function_call_to_command(stmt)
                         else_body_lines.append(cmd)
-                
-                # Store the else function for later generation
-                self._store_generated_function(self._generate_else_function_name(), else_body_lines)
+                self._store_generated_function(else_function_name, else_body_lines)
         
-        # Store the if function for later generation
-        self._store_generated_function(self._generate_if_function_name(), if_body_lines)
+        # Store the if function as its own file
+        self._store_generated_function(if_function_name, if_body_lines)
         
         return "\n".join(lines)
     
@@ -494,7 +492,7 @@ class MDLCompiler:
         else:
             loop_body_lines.append(f"execute if {condition} run function {self.current_namespace}:{loop_function_name}")
         
-        # Store the loop function for later generation
+        # Store the loop function as its own file
         self._store_generated_function(loop_function_name, loop_body_lines)
         
         return "\n".join(lines)
@@ -529,10 +527,15 @@ class MDLCompiler:
         return f"while_{self.while_counter}"
     
     def _store_generated_function(self, name: str, lines: List[str]):
-        """Store a generated function for later output."""
-        if not hasattr(self, 'generated_functions'):
-            self.generated_functions = {}
-        self.generated_functions[name] = lines
+        """Store a generated function as a separate file under the same namespace."""
+        if self.dir_map:
+            functions_dir = self.output_dir / "data" / self.current_namespace / self.dir_map.function
+        else:
+            functions_dir = self.output_dir / "data" / self.current_namespace / "functions"
+        functions_dir.mkdir(parents=True, exist_ok=True)
+        func_file = functions_dir / f"{name}.mcfunction"
+        with open(func_file, 'w') as f:
+            f.write("\n".join(lines) + "\n")
     
     def _function_call_to_command(self, func_call: FunctionCall) -> str:
         """Convert function call to execute command."""
@@ -544,6 +547,15 @@ class MDLCompiler:
     def _expression_to_value(self, expression: Any) -> str:
         """Convert expression to a value string."""
         if isinstance(expression, LiteralExpression):
+            # Format numbers as integers if possible
+            if isinstance(expression.value, (int, float)):
+                try:
+                    v = float(expression.value)
+                    if v.is_integer():
+                        return str(int(v))
+                    return str(v)
+                except Exception:
+                    return str(expression.value)
             return str(expression.value)
         elif isinstance(expression, VariableSubstitution):
             objective = self.variables.get(expression.name, expression.name)
@@ -560,13 +572,76 @@ class MDLCompiler:
             return str(expression)
     
     def _expression_to_condition(self, expression: Any) -> str:
-        """Convert expression to a condition string."""
+        """Legacy: Convert expression to a naive condition string (internal use)."""
         if isinstance(expression, BinaryExpression):
             left = self._expression_to_value(expression.left)
             right = self._expression_to_value(expression.right)
             return f"{left} {expression.operator} {right}"
         else:
             return self._expression_to_value(expression)
+
+    def _build_condition(self, expression: Any) -> (str, bool):
+        """Build a valid Minecraft execute condition.
+        Returns (condition_string, invert_then) where invert_then True means the THEN branch should use 'unless'.
+        """
+        # Default: generic expression string, no inversion
+        invert_then = False
+        
+        if isinstance(expression, BinaryExpression):
+            left = expression.left
+            right = expression.right
+            op = expression.operator
+            # Variable vs literal
+            if isinstance(left, VariableSubstitution) and isinstance(right, LiteralExpression) and isinstance(right.value, (int, float)):
+                objective = self.variables.get(left.name, left.name)
+                scope = left.scope.strip("<>")
+                # Normalize number
+                try:
+                    v = float(right.value)
+                except Exception:
+                    v = None
+                if v is not None:
+                    n = int(v) if float(v).is_integer() else v
+                    if op == TokenType.GREATER:
+                        rng = f"{int(n)+1}.." if isinstance(n, int) else f"{v+1}.."
+                        return (f"score {scope} {objective} matches {rng}", False)
+                    if op == TokenType.GREATER_EQUAL:
+                        rng = f"{int(n)}.."
+                        return (f"score {scope} {objective} matches {rng}", False)
+                    if op == TokenType.LESS:
+                        rng = f"..{int(n)-1}"
+                        return (f"score {scope} {objective} matches {rng}", False)
+                    if op == TokenType.LESS_EQUAL:
+                        rng = f"..{int(n)}"
+                        return (f"score {scope} {objective} matches {rng}", False)
+                    if op == TokenType.EQUAL:
+                        rng = f"{int(n)}"
+                        return (f"score {scope} {objective} matches {rng}", False)
+                    if op == TokenType.NOT_EQUAL:
+                        rng = f"{int(n)}"
+                        return (f"score {scope} {objective} matches {rng}", True)
+            # Variable vs variable
+            if isinstance(left, VariableSubstitution) and isinstance(right, VariableSubstitution):
+                lobj = self.variables.get(left.name, left.name)
+                lscope = left.scope.strip("<>")
+                robj = self.variables.get(right.name, right.name)
+                rscope = right.scope.strip("<>")
+                if op in (TokenType.GREATER, TokenType.GREATER_EQUAL, TokenType.LESS, TokenType.LESS_EQUAL, TokenType.EQUAL):
+                    comp_map = {
+                        TokenType.GREATER: ">",
+                        TokenType.GREATER_EQUAL: ">=",
+                        TokenType.LESS: "<",
+                        TokenType.LESS_EQUAL: "<=",
+                        TokenType.EQUAL: "="
+                    }
+                    comp = comp_map[op]
+                    return (f"score {lscope} {lobj} {comp} {rscope} {robj}", False)
+                if op == TokenType.NOT_EQUAL:
+                    # Use equals with inversion
+                    return (f"score {lscope} {lobj} = {rscope} {robj}", True)
+        
+        # Fallback: treat as generic condition string
+        return (self._expression_to_condition(expression), False)
     
     def _compile_expression_to_temp(self, expression: BinaryExpression, temp_var: str):
         """Compile a complex expression to a temporary variable using valid Minecraft commands."""

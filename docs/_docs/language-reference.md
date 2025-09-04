@@ -116,8 +116,8 @@ function game:start_game {
     player_health<@s> = 20;
 }
 
-// Function with scope parameter
-function game:reset_player<@s> {
+// Function declaration (no scope on definition)
+function game:reset_player {
     player_score<@s> = 0;
     player_health<@s> = 20;
 }
@@ -330,7 +330,7 @@ tag advancement "first_sword" "advancements/first_sword.json";
 var num global_counter<@a> = 0;
 var num player_counter<@s> = 0;
 
-function "increment"<@s> {
+function "increment" {
     global_counter<@a> = $global_counter<@a>$ + 1;
     player_counter<@s> = $player_counter<@s>$ + 1;
     
@@ -341,7 +341,7 @@ function "increment"<@s> {
     say "Player $player_counter<@s>$ just incremented the counter!";
 }
 
-function "reset_player"<@s> {
+function "reset_player" {
     player_counter<@s> = 0;
     tellraw @s {"text":"Counter reset!"};
 }
@@ -364,7 +364,7 @@ var num red_score<@a[team=red]> = 0;
 var num blue_score<@a[team=blue]> = 0;
 var num player_score<@s> = 0;
 
-function "award_points"<@s> {
+function "award_points" {
     player_score<@s> = $player_score<@s>$ + 10;
     
     if $player_score<@s>$ > 100 {
@@ -381,14 +381,14 @@ function "award_points"<@s> {
     tellraw @s {"text":"Your score: ","extra":[{"score":{"name":"@s","objective":"player_score"}}]};
 }
 
-function "show_leaderboard"<@s> {
+function "show_leaderboard" {
     tellraw @s {"text":"=== LEADERBOARD ==="};
     tellraw @s {"text":"Red Team: ","extra":[{"score":{"name":"@s","objective":"red_score"}}]};
     tellraw @s {"text":"Blue Team: ","extra":[{"score":{"name":"@s","objective":"blue_score"}}]};
     tellraw @s {"text":"Your Score: ","extra":[{"score":{"name":"@s","objective":"player_score"}}]};
 }
 
-function "countdown_timer"<@s> {
+function "countdown_timer" {
     var num timer<@s> = 10;
     
     while $timer<@s>$ > 0 {
@@ -418,7 +418,7 @@ var num player_exp<@s> = 0;
 var num global_high_score<@a> = 0;
 var num game_timer<@a> = 0;
 
-function "gain_experience"<@s> {
+function "gain_experience" {
     player_exp<@s> = $player_exp<@s>$ + 10;
     
     if $player_exp<@s>$ >= 100 {
@@ -433,7 +433,7 @@ function "gain_experience"<@s> {
     }
 }
 
-function "update_timer"<@a> {
+function "update_timer" {
     game_timer<@a> = $game_timer<@a>$ + 1;
     
     if $game_timer<@a>$ >= 1200 {
@@ -660,7 +660,7 @@ Tokenized as:
 
 #### **Function with Scope**
 ```
-function game:reset_player<@s> {
+function game:reset_player {
 ```
 Tokenized as:
 1. `FUNCTION` (`function`)
@@ -961,7 +961,7 @@ var num _internal_counter<@s> = 0;
 #### **Function Names with Numbers**
 ```mdl
 // Valid - numbers are allowed in function names
-function game:level_1_complete<@s> {
+function game:level_1_complete {
     player_score<@s> = player_score<@s> + 100;
 }
 ```
