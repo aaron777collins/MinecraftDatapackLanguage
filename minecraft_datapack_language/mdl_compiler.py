@@ -231,6 +231,12 @@ class MDLCompiler:
         load_file = functions_dir / "load.mcfunction"
         with open(load_file, 'w') as f:
             f.write(load_content)
+        # Ensure minecraft load tag points to namespace:load
+        tags_fn_dir = self.output_dir / "data" / "minecraft" / self.dir_map.tags_function
+        tags_fn_dir.mkdir(parents=True, exist_ok=True)
+        load_tag_file = tags_fn_dir / "load.json"
+        with open(load_tag_file, 'w') as f:
+            json.dump({"values": [f"{self.current_namespace}:load"]}, f, indent=2)
         
         # Create tick function if needed
         tick_hooks = [h for h in hooks if h.hook_type == "on_tick"]
@@ -239,6 +245,10 @@ class MDLCompiler:
             tick_file = functions_dir / "tick.mcfunction"
             with open(tick_file, 'w') as f:
                 f.write(tick_content)
+            # Ensure minecraft tick tag points to namespace:tick
+            tick_tag_file = tags_fn_dir / "tick.json"
+            with open(tick_tag_file, 'w') as f:
+                json.dump({"values": [f"{self.current_namespace}:tick"]}, f, indent=2)
     
     def _generate_load_function(self, hooks: List[HookDeclaration]) -> str:
         """Generate the content of load.mcfunction."""
