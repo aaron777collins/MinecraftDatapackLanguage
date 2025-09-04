@@ -47,29 +47,6 @@ mdl build --mdl . -o dist --ignore-warnings
 
 ### Check Command
 
-Validate MDL files without building:
-
-```bash
-mdl check <files>
-```
-
-**Examples:**
-```bash
-# Check single file
-mdl check hello.mdl
-
-# Check current directory
-mdl check .
-
-# Check entire directory
-mdl check myproject/
-
-# Check with warnings suppressed
-mdl check myproject/ --ignore-warnings
-```
-
-### Check Command
-
 Validate MDL files for syntax and semantic errors:
 
 ```bash
@@ -103,9 +80,9 @@ The check command provides comprehensive error reporting with:
 Error 1: MDLSyntaxError in test.mdl:15:8
 Missing closing brace for if statement
 Context:
-  13:   if (score > 10) {
+  13:   if $score<@s>$ > 10 {
   14:     say "High score!"
-  15:     score = 0
+  15:     score<@s> = 0
   16:   }
 
 Suggestion: Add closing brace '}' after line 15
@@ -114,7 +91,7 @@ Error 2: MDLLexerError in test.mdl:22:12
 Unterminated string literal
 Context:
   20:   say "Hello world
-  21:   score = 10
+  21:   score<@s> = 10
   22:   say "Goodbye
 
 Suggestion: Add closing quote '"' at the end of line 20
@@ -230,7 +207,7 @@ Error 2: MDLLexerError in test.mdl:22:12
 Unterminated string literal
 Context:
   20:   say "Hello world
-  21:   score = 10
+  21:   score<@s> = 10
   22:   say "Goodbye
 
 Suggestion: Add closing quote '"' at the end of line 20
@@ -238,10 +215,10 @@ Suggestion: Add closing quote '"' at the end of line 20
 Error 3: MDLValidationError in test.mdl:8:5
 Undefined variable 'player_score'
 Context:
-   6:   score = 10
-   7:   lives = 3
-   8:   player_score = 5
-   9:   say "Score: $score$"
+   6:   score<@s> = 10
+   7:   lives<@s> = 3
+   8:   player_score<@s> = 5
+   9:   say "Score: $score<@s>$"
 
 Suggestion: Declare the variable first with 'variable player_score = 0'
 
@@ -279,11 +256,11 @@ If you prefer to create files manually, you can start with:
 pack "hello" "My first datapack" 82;
 namespace "hello";
 
-function "main" {
-    say Hello, Minecraft!;
+function hello:main<@s> {
+    say "Hello, Minecraft!";
 }
 
-on_load "hello:main";
+on_load hello:main<@s>;
 ```
 
 2. **Check the file:**
@@ -321,26 +298,26 @@ MDL supports explicit scope selectors in if/while conditions, allowing you to ov
 
 ```mdl
 // Variables with different scopes
-var num playerScore = 0;                    // Defaults to @s
-var num globalCounter scope<global> = 0;    // Global scope
-var num teamScore scope<@a[team=red]> = 0;  // Team scope
+var num playerScore<@s> = 0;                    // Defaults to @s
+var num globalCounter<@a> = 0;                  // Global scope
+var num teamScore<@a[team=red]> = 0;            // Team scope
 
-function "main" {
+function hello:main<@s> {
     // Use explicit scope in conditions
-    if "$playerScore<@s>$ > 10" {
+    if $playerScore<@s>$ > 10 {
         say "Current player score is high!";
     }
     
-    if "$globalCounter<global>$ > 100" {
+    if $globalCounter<@a>$ > 100 {
         say "Global counter reached milestone!";
     }
     
-    if "$teamScore<@a[team=red]>$ > 50" {
+    if $teamScore<@a[team=red]>$ > 50 {
         say "Red team is winning!";
     }
     
     // Check another player's score
-    if "$playerScore<@p[name=Steve]>$ > 5" {
+    if $playerScore<@p[name=Steve]>$ > 5 {
         say "Steve has a good score!";
     }
 }

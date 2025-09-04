@@ -17,7 +17,7 @@ Only the first file needs a pack declaration:
 pack "my_project" "A multi-file project" 82;
 namespace "core";
 
-var num playerCount scope<global> = 0;
+var num playerCount<@a> = 0;
 
 function "init" {
     playerCount<global> = 0;
@@ -109,7 +109,7 @@ Variables from all files are automatically merged:
 
 ```mdl
 // core.mdl
-var num globalTimer scope<global> = 0;
+var num globalTimer<@a> = 0;
 var num playerScore = 0;  // Defaults to player-specific scope
 ```
 
@@ -126,12 +126,12 @@ When working with multiple files, you can use explicit scope selectors in condit
 
 ```mdl
 // core.mdl
-var num globalTimer scope<global> = 0;
+var num globalTimer<@a> = 0;
 var num playerScore = 0;  // Defaults to player-specific scope
 
 function "check_status" {
     // Check global timer
-    if "$globalTimer<global>$ > 1000" {
+    if "$globalTimer<@a>$ > 1000" {
         say "Game has been running for a while!";
     }
     
@@ -170,11 +170,11 @@ Here's a complete example with multiple files:
 pack "adventure" "Adventure game" 82;
 namespace "core";
 
-var num gameState scope<global> = 0;
+var num gameState<@a> = 0;
 var num playerLevel = 1;  // Defaults to player-specific scope
 
 function "init" {
-    gameState<global> = 0;
+    gameState<@a> = 0;
     playerLevel<@s> = 1;
     say Adventure game initialized!;
 }
@@ -243,7 +243,7 @@ mdl build --mdl "main.mdl combat.mdl ui.mdl game.mdl" -o dist
 3. **Clear naming**: Use descriptive file and namespace names
 4. **Shared variables**: Declare shared variables in the main file
 5. **Function organization**: Group related functions in the same file
-6. **Proper scoping**: Use `scope<global>` for server-wide variables, no scope for player-specific variables
+6. **Proper scoping**: Use `<@a>` for server-wide variables, no scope for player-specific variables
 7. **Explicit scope access**: Always access variables with their scope like `variable<scope>`
 
 ## File Structure Example

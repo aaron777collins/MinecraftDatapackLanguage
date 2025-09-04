@@ -16,6 +16,12 @@ __all__ = [
     "DirMap"
 ]
 
+# CLI entry point
+def main():
+    """CLI entry point for the mdl command."""
+    from .cli import main as cli_main
+    return cli_main()
+
 try:
     from ._version import version as __version__   # written by setuptools-scm
 except Exception:

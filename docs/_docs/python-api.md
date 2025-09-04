@@ -133,7 +133,7 @@ def create_advanced_pack():
     
     # Functions with variables and control flow using explicit scopes
     ns.function("variable_demo",
-        "var num counter scope<global> = 0",
+        "var num counter<@a> = 0",
         "counter<global> = 10",
         "counter<global> = counter<global> + 5",
         "if \"$counter$ >= 15\" {",
@@ -154,7 +154,7 @@ def create_advanced_pack():
     )
     
     ns.function("loop_demo",
-        "var num countdown scope<global> = 5",
+        "var num countdown<@a> = 5",
         "while \"$countdown$ > 0\" {",
         "    say Countdown: $countdown$",
         "    countdown<global> = countdown<global> - 1",
@@ -433,7 +433,7 @@ def create_complete_pack():
     # Core namespace
     core = p.namespace("core")
     core.function("init",
-        "var num gameState scope<global> = 0",
+        "var num gameState<@a> = 0",
         "var num playerLevel = 1",
         "gameState<global> = 0",
         "playerLevel<@s> = 1",

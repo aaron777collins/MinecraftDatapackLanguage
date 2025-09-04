@@ -107,7 +107,7 @@ The extension highlights the following MDL elements:
 
 - **Pack declarations**: `pack "Name" description "Desc" pack_format 48`
 - **Namespaces**: `namespace "example"`
-- **Functions**: `function "name":`
+- **Functions**: `function namespace:name<@s>`
 - **Lifecycle hooks**: `on_load`, `on_tick`
 - **Tags**: `tag function "minecraft:tick":`
 - **Comments**: `# This is a comment`

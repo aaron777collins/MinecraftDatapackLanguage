@@ -14,12 +14,12 @@ A simple datapack that says hello when loaded:
 pack "hello" "A simple hello world datapack" 82;
 namespace "hello";
 
-function "main" {
-    say Hello, Minecraft!;
+function hello:main<@s> {
+    say "Hello, Minecraft!";
     tellraw @a {"text":"Welcome to my datapack!","color":"green"};
 }
 
-on_load "hello:main";
+on_load hello:main<@s>;
 ```
 
 ## Counter with Scoped Variables
@@ -30,20 +30,20 @@ Demonstrates variables with different scopes:
 pack "counter" "Counter example" 82;
 namespace "counter";
 
-var num globalCounter scope<global> = 0;
-var num playerCounter = 0;  // Defaults to player-specific scope
+var num globalCounter<@a> = 0;
+var num playerCounter<@s> = 0;  // Defaults to player-specific scope
 
-function "increment" {
-    globalCounter<global> = globalCounter<global> + 1;
-    playerCounter<@s> = playerCounter<@s> + 1;
-    say Global: $globalCounter$, Player: $playerCounter$;
+function counter:increment<@s> {
+    globalCounter<@a> = $globalCounter<@a>$ + 1;
+    playerCounter<@s> = $playerCounter<@s>$ + 1;
+    say "Global: $globalCounter<@a>$, Player: $playerCounter<@s>$";
 }
 
-function "show_all" {
-    function "counter:increment<@a>";
+function counter:show_all<@s> {
+    exec counter:increment<@a>;
 }
 
-on_load "counter:increment";
+on_load counter:increment<@s>;
 ```
 
 ## While Loop Example
@@ -54,18 +54,18 @@ A countdown timer using a while loop:
 pack "loops" "Loop example" 82;
 namespace "loops";
 
-var num counter scope<global> = 0;
+var num counter<@a> = 0;
 
-function "countdown" {
-    counter<global> = 5;
-    while "$counter$ > 0" {
-        say Countdown: $counter$;
-        counter<global> = counter<global> - 1;
+function loops:countdown<@s> {
+    counter<@a> = 5;
+    while $counter<@a>$ > 0 {
+        say "Countdown: $counter<@a>$";
+        counter<@a> = $counter<@a>$ - 1;
     }
-    say Blast off!;
+    say "Blast off!";
 }
 
-on_load "loops:countdown";
+on_load loops:countdown<@s>;
 ```
 
 ## Raw Commands
@@ -76,14 +76,14 @@ Using raw Minecraft commands:
 pack "raw" "Raw command example" 82;
 namespace "raw";
 
-function "custom" {
+function raw:custom<@s> {
     // Use raw Minecraft commands
     effect give @s minecraft:speed 10 1;
     particle minecraft:explosion ~ ~ ~ 1 1 1 0 10;
     playsound minecraft:entity.player.levelup player @s ~ ~ ~ 1 1;
 }
 
-on_load "raw:custom";
+on_load raw:custom<@s>;
 ```
 
 ## Complete Game Example
@@ -95,23 +95,23 @@ pack "game" "Complete game example" 82;
 namespace "game";
 
 // Variables
-var num score = 0;  // Defaults to player-specific scope
-var num level = 1;  // Defaults to player-specific scope
-var num globalTimer scope<global> = 0;
+var num score<@s> = 0;  // Defaults to player-specific scope
+var num level<@s> = 1;  // Defaults to player-specific scope
+var num globalTimer<@a> = 0;
 
 // Main game function
 function "start_game" {
     score<@s> = 0;
     level<@s> = 1;
-    say Game started! Level: $level$, Score: $score$;
+            say "Game started! Level: $level<@s>$, Score: $score<@s>$";
 }
 
 // Level up function
 function "level_up" {
-    if "$score$ >= 100" {
+    if $score<@s>$ >= 100 {
         level<@s> = level<@s> + 1;
         score<@s> = score<@s> - 100;
-        say Level up! New level: $level$;
+        say "Level up! New level: $level<@s>$";
         tellraw @a {"text":"Player leveled up!","color":"gold"};
     }
 }
@@ -119,16 +119,16 @@ function "level_up" {
 // Timer function
 function "update_timer" {
     globalTimer<global> = globalTimer<global> + 1;
-    if "$globalTimer$ >= 1200" {  // 60 seconds
+    if $globalTimer<@a>$ >= 1200 {  // 60 seconds
         globalTimer<global> = 0;
-        say Time's up! Final score: $score$;
+        say "Time's up! Final score: $score<@s>$";
     }
 }
 
 // Add score function
 function "add_score" {
     score<@s> = score<@s> + 10;
-    say Score: $score$;
+            say "Score: $score<@s>$";
     function "game:level_up";
 }
 
@@ -146,9 +146,9 @@ pack "teams" "Team system example" 82;
 namespace "teams";
 
 // Team variables
-var num redScore scope<@a[team=red]> = 0;
-var num blueScore scope<@a[team=blue]> = 0;
-var num gameTimer scope<global> = 0;
+var num redScore<@a[team=red]> = 0;
+var num blueScore<@a[team=blue]> = 0;
+var num gameTimer<@a> = 0;
 
 // Initialize teams
 function "init" {
@@ -162,13 +162,13 @@ function "init" {
 function "update" {
     gameTimer<global> = gameTimer<global> + 1;
     
-    if "$gameTimer$ >= 2400" {  // 2 minutes
+    if $gameTimer<@a>$ >= 2400 {  // 2 minutes
         gameTimer<global> = 0;
-        say Game over! Red: $redScore$, Blue: $blueScore$;
+        say "Game over! Red: $redScore<@a[team=red]>$, Blue: $blueScore<@a[team=blue]>$";
         
-        if "$redScore$ > $blueScore$" {
+        if $redScore<@a[team=red]>$ > $blueScore<@a[team=blue]>$ {
             tellraw @a {"text":"Red team wins!","color":"red"};
-        } else if "$blueScore$ > $redScore$" {
+        } else if $blueScore<@a[team=blue]>$ > $redScore<@a[team=red]>$ {
             tellraw @a {"text":"Blue team wins!","color":"blue"};
         } else {
             tellraw @a {"text":"It's a tie!","color":"yellow"};
@@ -179,13 +179,13 @@ function "update" {
 // Add points to red team
 function "red_point" {
     redScore<@a[team=red]> = redScore<@a[team=red]> + 1;
-    say Red team score: $redScore$;
+            say "Red team score: $redScore<@a[team=red]>$";
 }
 
 // Add points to blue team
 function "blue_point" {
     blueScore<@a[team=blue]> = blueScore<@a[team=blue]> + 1;
-    say Blue team score: $blueScore$;
+            say "Blue team score: $blueScore<@a[team=blue]>$";
 }
 
 // Hooks
@@ -202,7 +202,7 @@ Organizing code across multiple files:
 pack "multifile" "Multi-file example" 82;
 namespace "core";
 
-var num playerCount scope<global> = 0;
+var num playerCount<@a> = 0;
 
 function "init" {
     playerCount = 0;
@@ -217,7 +217,7 @@ on_load "core:init";
 namespace "ui";
 
 function "show_hud" {
-    tellraw @a {"text":"Players: $playerCount$","color":"green"};
+    tellraw @a {"text":"Players: $playerCount<@a>$","color":"green"};
 }
 
 function "update_hud" {
@@ -250,8 +250,8 @@ namespace "scopes";
 
 // Variables with different scopes
 var num playerScore = 0;                    // Defaults to @s
-var num globalCounter scope<global> = 0;    // Global scope
-var num teamScore scope<@a[team=red]> = 0;  // Team scope
+var num globalCounter<@a> = 0;                  // Global scope
+var num teamScore<@a[team=red]> = 0;            // Team scope
 
 function "main" {
     // Test explicit scope overrides in if conditions
@@ -280,7 +280,7 @@ function "main" {
     // Use explicit scopes in while loops too
     while "$globalCounter<global>$ < 10" {
         globalCounter<global> = globalCounter<global> + 1;
-        say "Counter: $globalCounter$";
+        say "Counter: $globalCounter<@a>$";
     }
 }
 

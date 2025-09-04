@@ -23,12 +23,12 @@ Create your first MDL file:
 pack "hello" "My first datapack" 82;
 namespace "hello";
 
-function "main" {
-    say Hello, Minecraft!;
+function hello:main<@s> {
+    say "Hello, Minecraft!";
     tellraw @a {"text":"Welcome to my datapack!","color":"green"};
 }
 
-on_load "hello:main";
+on_load hello:main<@s>;
 ```
 
 Compile it:
@@ -47,17 +47,17 @@ Variables store numbers and can be scoped to different entities. MDL uses an **e
 
 ```mdl
 // Player-specific variable (default)
-var num playerScore = 0;
+var num playerScore<@s> = 0;
 
 // Server-wide variable
-var num globalCounter scope<global> = 0;
+var num globalCounter<@a> = 0;
 
 // Team-specific variable
-var num teamScore scope<@a[team=red]> = 0;
+var num teamScore<@a[team=red]> = 0;
 
 // Access variables with explicit scopes
 playerScore<@s> = 42;                    // Player scope
-globalCounter<global> = 100;             // Global scope
+globalCounter<@a> = 100;                 // Global scope
 teamScore<@a[team=red]> = 5;            // Team scope
 ```
 
@@ -66,11 +66,11 @@ teamScore<@a[team=red]> = 5;            // Team scope
 Use `$variable$` to read variable values. Variables automatically resolve to their declared scopes:
 
 ```mdl
-say Your score: $playerScore$;
-tellraw @a {"text":"Global counter: $globalCounter$","color":"gold"};
+say "Your score: $playerScore<@s>$";
+tellraw @a {"text":"Global counter: $globalCounter<@a>$","color":"gold"};
 
-if "$playerScore$ > 100" {
-    say High score!;
+if $playerScore<@s>$ > 100 {
+    say "High score!";
 }
 ```
 
@@ -79,16 +79,16 @@ if "$playerScore$ > 100" {
 Functions contain Minecraft commands:
 
 ```mdl
-function "my_function" {
-    say This is my function!;
+function hello:my_function<@s> {
+    say "This is my function!";
     effect give @s minecraft:speed 10 1;
 }
 
 // Call a function
-function "hello:my_function";
+exec hello:my_function<@s>;
 
 // Call a function for all players
-function "hello:my_function<@a>";
+exec hello:my_function<@a>;
 ```
 
 ### Control Structures
@@ -97,7 +97,7 @@ MDL supports real if/else statements and while loops:
 
 ```mdl
 // If statement
-if "$playerScore$ > 50" {
+if $playerScore<@s>$ > 50 {
     say Great job!;
 } else {
     say Keep trying!;
@@ -157,7 +157,7 @@ namespace "example";
 
 // Variables
 var num playerScore = 0;  // Defaults to player-specific scope
-var num globalTimer scope<global> = 0;
+var num globalTimer<@a> = 0;
 
 // Initialize function
 function "init" {

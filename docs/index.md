@@ -130,19 +130,18 @@ pip install minecraft-datapack-language
 ```mdl
 // hello.mdl
 pack "My First Pack" "A simple example" 82;
-
 namespace "example";
 
-var num counter = 0;
+var num counter<@s> = 0;
 
-function "hello" {
-    say Hello, Minecraft!;
+function example:hello<@s> {
+    say "Hello, Minecraft!";
     tellraw @a {"text":"Welcome to my datapack!","color":"green"};
-    counter = counter + 1;
-    say Counter: $counter$;
+    counter<@s> = $counter<@s>$ + 1;
+    say "Counter: $counter<@s>$";
 }
 
-on_load "example:hello";
+on_load example:hello<@s>;
 ```
 
 ### Build and Run
@@ -171,11 +170,11 @@ execute unless score @s counter matches 5.. run say Low counter!
 **MDL:**
 ```mdl
 // Clean, readable, and maintainable
-counter = counter + 1;
-if "$counter$ > 5" {
-    say High counter!;
+counter<@s> = $counter<@s>$ + 1;
+if $counter<@s>$ > 5 {
+    say "High counter!";
 } else {
-    say Low counter!;
+    say "Low counter!";
 }
 ```
 
@@ -196,7 +195,7 @@ if "$counter$ > 5" {
 Write real if/else statements and while loops:
 
 ```mdl
-if "$health$ < 10" {
+if $health<@s>$ < 10 {
     say Health is low!;
     effect give @s minecraft:regeneration 10 1;
 } else if "$health$ < 20" {
