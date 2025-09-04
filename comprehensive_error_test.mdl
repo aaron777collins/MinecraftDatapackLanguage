@@ -1,0 +1,30 @@
+pack "comprehensive_error_test" "Testing comprehensive error reporting" 82;
+namespace "comprehensive";
+
+// Test 1: Lexer errors (should be caught)
+var num counter<@s> = 0;
+
+// Test 2: Parser errors (should be caught) - FIXED
+function test:parser_error<@s> {
+    if $counter<@s>$ > 5 {
+        say "High counter!";
+    }
+}
+
+// Test 3: Unclosed string - FIXED
+function test:unclosed_string<@s> {
+    say "This string is now closed";
+}
+
+// Test 4: Invalid scope syntax (should be caught by parser)
+var num bad_scope<@a[invalid=]> = 0;
+
+// Test 5: Missing semicolon - FIXED
+var num missing_semicolon<@s> = 0;
+
+// Test 6: Invalid function call (should be caught by parser)
+function test:invalid_call<@s> {
+    exec test:undefined_function;
+}
+
+on_load test:parser_error<@s>;

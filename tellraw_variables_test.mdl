@@ -1,0 +1,62 @@
+pack "tellraw_test" "Testing variable substitution in tellraw" 82;
+namespace "tellraw";
+
+// Variables for testing
+var num player_score<@s> = 100;
+var num player_level<@s> = 5;
+var num player_health<@s> = 20;
+var num temp_value<@s> = 0;
+
+// Method 1: Automatic say -> tellraw conversion with variables
+function tellraw:simple<@s> {
+    say "Score: $player_score<@s>$, Level: $player_level<@s>$";
+    say "Health: $player_health<@s>$";
+}
+
+// Method 2: Raw block with manual tellraw construction
+function tellraw:manual<@s> {
+    $!raw
+    tellraw @s {"text":"Manual tellraw - Score: ","extra":[{"score":{"name":"@s","objective":"player_score"}}]}
+    raw!$
+}
+
+// Method 3: Complex formatting with colors and multiple variables
+function tellraw:complex<@s> {
+    $!raw
+    tellraw @a {"text":"","extra":[{"text":"* ","color":"gold"},{"text":"Score: ","color":"green"},{"score":{"name":"@s","objective":"player_score"}},{"text":" | ","color":"gray"},{"text":"Level: ","color":"blue"},{"score":{"name":"@s","objective":"player_level"}}]}
+    raw!$
+}
+
+// Method 4: Dynamic content with calculated values
+function tellraw:dynamic<@s> {
+    // Calculate total stats
+    temp_value<@s> = $player_score<@s>$ + $player_level<@s>$;
+    
+    $!raw
+    tellraw @s {"text":"Total stats: ","extra":[{"score":{"name":"@s","objective":"temp_value"}}]}
+    raw!$
+}
+
+// Method 5: Conditional tellraw with different colors
+function tellraw:conditional<@s> {
+    if $player_score<@s>$ > 50 {
+        $!raw
+        tellraw @a {"text":"High score achieved! ","extra":[{"score":{"name":"@s","objective":"player_score"}}],"color":"gold"}
+        raw!$
+    } else {
+        $!raw
+        tellraw @a {"text":"Keep trying! Score: ","extra":[{"score":{"name":"@s","objective":"player_score"}}],"color":"red"}
+        raw!$
+    }
+}
+
+// Test all methods
+function tellraw:test_all<@s> {
+    exec tellraw:simple<@s>;
+    exec tellraw:manual<@s>;
+    exec tellraw:complex<@s>;
+    exec tellraw:dynamic<@s>;
+    exec tellraw:conditional<@s>;
+}
+
+on_load tellraw:test_all<@s>;

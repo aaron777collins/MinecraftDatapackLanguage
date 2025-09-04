@@ -1,0 +1,11 @@
+pack "test" "Simple test" 82;
+namespace "test";
+
+var num counter<@s> = 0;
+
+function test:main<@s> {
+    say "Hello!";
+    counter<@s> = $counter<@s>$ + 1;
+}
+
+on_load test:main<@s>;
