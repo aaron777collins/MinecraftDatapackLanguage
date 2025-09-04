@@ -186,6 +186,19 @@ class MDLCompilationError(MDLError):
 
 
 @dataclass
+class MDLCompilerError(MDLError):
+    """Error during compilation process."""
+    error_type: str = "compiler_error"
+    
+    def __str__(self) -> str:
+        try:
+            from .cli_colors import color
+            return f"{color.error_type('Compiler Error:')} {super().__str__()}"
+        except ImportError:
+            return f"Compiler Error: {super().__str__()}"
+
+
+@dataclass
 class MDLFileError(MDLError):
     """Error related to file operations."""
     error_type: str = "file_error"
@@ -302,6 +315,7 @@ def create_error(error_type: str, message: str, file_path: Optional[str] = None,
         "validation": MDLValidationError,
         "build": MDLBuildError,
         "compilation": MDLCompilationError,
+        "compiler": MDLCompilerError,
         "file": MDLFileError,
         "configuration": MDLConfigurationError
     }

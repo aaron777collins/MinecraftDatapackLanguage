@@ -217,15 +217,15 @@ class MDLParser:
     
     def _parse_scope_selector(self) -> str:
         """Parse scope selector: <@s>, <@a[team=red]>, etc."""
-        self._expect(TokenType.LESS, "Expected '<' for scope selector")
+        self._expect(TokenType.LANGLE, "Expected '<' for scope selector")
         
         # Parse the selector content
         selector_content = ""
-        while not self._is_at_end() and self._peek().type != TokenType.GREATER:
+        while not self._is_at_end() and self._peek().type != TokenType.RANGLE:
             selector_content += self._peek().value
             self._advance()
         
-        self._expect(TokenType.GREATER, "Expected '>' to close scope selector")
+        self._expect(TokenType.RANGLE, "Expected '>' to close scope selector")
         
         return f"<{selector_content}>"
     
@@ -240,7 +240,7 @@ class MDLParser:
         
         # Parse optional scope
         scope = None
-        if self._peek().type == TokenType.LESS:
+        if self._peek().type == TokenType.LANGLE:
             scope = self._parse_scope_selector()
         
         self._expect(TokenType.LBRACE, "Expected '{' to start function body")
@@ -267,7 +267,7 @@ class MDLParser:
         
         # Parse optional scope
         scope = None
-        if self._peek().type == TokenType.LESS:
+        if self._peek().type == TokenType.LANGLE:
             scope = self._parse_scope_selector()
         
         self._expect(TokenType.SEMICOLON, "Expected semicolon after function call")
@@ -333,7 +333,7 @@ class MDLParser:
         
         # Parse optional scope
         scope = None
-        if self._peek().type == TokenType.LESS:
+        if self._peek().type == TokenType.LANGLE:
             scope = self._parse_scope_selector()
         
         self._expect(TokenType.SEMICOLON, "Expected semicolon after hook declaration")
@@ -498,6 +498,8 @@ class MDLParser:
                 statements.append(self._parse_while_loop())
             elif self._peek().type == TokenType.EXEC:
                 statements.append(self._parse_function_call())
+            elif self._peek().type == TokenType.DOLLAR and self._peek(1).type == TokenType.EXCLAMATION:
+                statements.append(self._parse_raw_block())
             elif self._peek().type == TokenType.IDENTIFIER:
                 if self._peek().value == "say":
                     statements.append(self._parse_say_command())

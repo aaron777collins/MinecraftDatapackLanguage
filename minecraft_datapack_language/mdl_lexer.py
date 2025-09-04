@@ -200,6 +200,17 @@ class MDLLexer:
             self._scan_selector()
             return
         
+        # Handle scope selectors (<@s>, <@a[team=red]>, etc.)
+        if char == '<':
+            # Check if this is a scope selector (followed by @ or identifier)
+            if (self.current + 1 < len(self.source) and 
+                (self.source[self.current + 1] == '@' or 
+                 self.source[self.current + 1].isalpha() or 
+                 self.source[self.current + 1] == '_')):
+                self._scan_scope_selector()
+                return
+            # Otherwise, treat as LESS operator (handled by _scan_operator_or_delimiter)
+        
         # Handle operators and delimiters
         self._scan_operator_or_delimiter()
     
