@@ -1,17 +1,10 @@
 {
-  "Pack Declaration (Format 82+)": {
-    "prefix": "pack82",
+  "Pack Declaration": {
+    "prefix": "pack",
     "body": [
-      "pack \"${1:Pack Name}\" \"${2:Description}\" 82;"
+      "pack \"${1:Pack Name}\" \"${2:Description}\" ${3:15};"
     ],
-    "description": "Pack declaration with format 82+ metadata"
-  },
-  "Pack Declaration (Legacy)": {
-    "prefix": "pack48",
-    "body": [
-      "pack \"${1:Pack Name}\" \"${2:Description}\" 48;"
-    ],
-    "description": "Pack declaration with legacy format 48"
+    "description": "Pack declaration with metadata"
   },
   "Namespace": {
     "prefix": "namespace",
@@ -20,415 +13,235 @@
     ],
     "description": "Namespace declaration"
   },
-  "Function": {
+  "Function Declaration": {
     "prefix": "function",
     "body": [
-      "function \"${1:function_name}\" {",
-      "    ${2:command};",
+      "function ${1:namespace}:${2:function_name}<${3:@s}> {",
+      "    ${4:// Function body}",
       "}"
     ],
-    "description": "Function declaration"
+    "description": "Function declaration with scope"
   },
-  "Function Call with Scope": {
-    "prefix": "funcscope",
+  "Function Call": {
+    "prefix": "exec",
     "body": [
-      "function \"${1:namespace:function_name}<${2:@s|global|@a}>\""
+      "exec ${1:namespace}:${2:function_name}<${3:@s}>;"
     ],
-    "description": "Function call with explicit scope"
+    "description": "Execute function with scope"
   },
   "Variable Declaration": {
     "prefix": "var",
     "body": [
-      "var ${1:num|str|list} ${2:variable_name} = ${3:value};"
+      "var num ${1:variable_name}<${2:@s}> = ${3:0};"
     ],
-    "description": "Variable declaration"
+    "description": "Variable declaration with scope"
   },
-  "Variable Declaration with Scope": {
-    "prefix": "varscope",
+  "Variable Assignment": {
+    "prefix": "assign",
     "body": [
-      "var ${1:num|str|list} ${2:variable_name} scope<${3:@s|global|@a}> = ${4:value};"
+      "${1:variable_name}<${2:@s}> = ${3:value};"
     ],
-    "description": "Variable declaration with explicit scope"
+    "description": "Variable assignment with scope"
   },
-  "Number Variable": {
-    "prefix": "varnum",
+  "Variable Substitution": {
+    "prefix": "varread",
     "body": [
-      "var num ${1:variable_name} = ${2:0};"
+      "$${1:variable_name}<${2:@s}>$"
     ],
-    "description": "Number variable declaration"
-  },
-  "Number Variable with Scope": {
-    "prefix": "varnumscope",
-    "body": [
-      "var num ${1:variable_name} scope<${2:@s|global|@a}> = ${3:0};"
-    ],
-    "description": "Number variable declaration with explicit scope"
-  },
-  "String Variable": {
-    "prefix": "varstr",
-    "body": [
-      "var str ${1:variable_name} = \"${2:value}\";"
-    ],
-    "description": "String variable declaration"
-  },
-  "List Variable": {
-    "prefix": "varlist",
-    "body": [
-      "var list ${1:variable_name} = [${2:item1}, ${3:item2}];"
-    ],
-    "description": "List variable declaration"
-  },
-  "While Loop": {
-    "prefix": "while",
-    "body": [
-      "while \"${1:condition}\" {",
-      "    ${2:command};",
-      "}"
-    ],
-    "description": "While loop"
-  },
-  "For Loop": {
-    "prefix": "for",
-    "body": [
-      "for ${1:variable} in ${2:@e[tag=collection]} {",
-      "    ${3:command};",
-      "}"
-    ],
-    "description": "For loop"
+    "description": "Read variable value with scope"
   },
   "If Statement": {
     "prefix": "if",
     "body": [
-      "if \"${1:condition}\" {",
-      "    ${2:command};",
+      "if $${1:condition}<${2:@s}>$ ${3:>} ${4:0} {",
+      "    ${5:// Then block}",
       "}"
     ],
-    "description": "If statement"
+    "description": "If statement with condition"
   },
   "If-Else Statement": {
     "prefix": "ifelse",
     "body": [
-      "if \"${1:condition}\" {",
-      "    ${2:command};",
+      "if $${1:condition}<${2:@s}>$ ${3:>} ${4:0} {",
+      "    ${5:// Then block}",
       "} else {",
-      "    ${3:command};",
+      "    ${6:// Else block}",
       "}"
     ],
-    "description": "If-else statement"
+    "description": "If-else statement with condition"
   },
-  "If-Else If-Else Statement": {
-    "prefix": "ifelseif",
+  "While Loop": {
+    "prefix": "while",
     "body": [
-      "if \"${1:condition}\" {",
-      "    ${2:command};",
-      "} else if \"${3:condition}\" {",
-      "    ${4:command};",
-      "} else {",
-      "    ${5:command};",
+      "while $${1:condition}<${2:@s}>$ ${3:>} ${4:0} {",
+      "    ${5:// Loop body}",
       "}"
     ],
-    "description": "If-else if-else statement"
+    "description": "While loop with condition"
   },
-  "Switch Statement": {
-    "prefix": "switch",
-    "body": [
-      "switch (${1:expression}) {",
-      "    case ${2:value}:",
-      "        ${3:command};",
-      "        break;",
-      "    default:",
-      "        ${4:command};",
-      "        break;",
-      "}"
-    ],
-    "description": "Switch statement"
-  },
-  "Try-Catch Block": {
-    "prefix": "trycatch",
-    "body": [
-      "try {",
-      "    ${1:command};",
-      "} catch (${2:error}) {",
-      "    ${3:error_handling};",
-      "}"
-    ],
-    "description": "Try-catch error handling"
-  },
-  "Throw Statement": {
-    "prefix": "throw",
-    "body": [
-      "throw \"${1:error_message}\";"
-    ],
-    "description": "Throw error statement"
-  },
-  "Break Statement": {
-    "prefix": "break",
-    "body": [
-      "break;"
-    ],
-    "description": "Break statement"
-  },
-  "Continue Statement": {
-    "prefix": "continue",
-    "body": [
-      "continue;"
-    ],
-    "description": "Continue statement"
-  },
-  "Return Statement": {
-    "prefix": "return",
-    "body": [
-      "return ${1:value};"
-    ],
-    "description": "Return statement"
-  },
-  "Import Statement": {
-    "prefix": "import",
-    "body": [
-      "import ${1:module} from \"${2:path}\";"
-    ],
-    "description": "Import statement"
-  },
-  "Import As": {
-    "prefix": "importas",
-    "body": [
-      "import ${1:module} as ${2:alias} from \"${3:path}\";"
-    ],
-    "description": "Import with alias"
-  },
-  "On Tick Hook": {
-    "prefix": "ontick",
-    "body": [
-      "on_tick \"${1:namespace:function}\";"
-    ],
-    "description": "On tick hook"
-  },
-  "On Load Hook": {
+  "Hook - On Load": {
     "prefix": "onload",
     "body": [
-      "on_load \"${1:namespace:function}\";"
+      "on_load ${1:namespace}:${2:function_name}<${3:@s}>;"
     ],
-    "description": "On load hook"
+    "description": "Hook that runs when datapack loads"
   },
-  "Tag Declaration": {
-    "prefix": "tag",
+  "Hook - On Tick": {
+    "prefix": "ontick",
     "body": [
-      "tag ${1:function|item|block|entity_type|fluid|game_event} \"${2:namespace:tag_name}\" {",
-      "    add \"${3:value}\";",
-      "}"
+      "on_tick ${1:namespace}:${2:function_name}<${3:@s}>;"
     ],
-    "description": "Tag declaration"
+    "description": "Hook that runs every tick"
   },
-  "Recipe Declaration": {
-    "prefix": "recipe",
+  "Tag - Recipe": {
+    "prefix": "tagrecipe",
     "body": [
-      "recipe \"${1:recipe_name}\" \"${2:recipes/recipe.json}\";"
+      "tag recipe \"${1:tag_name}\" \"${2:path/to/recipe.json}\";"
     ],
-    "description": "Recipe declaration with JSON file reference"
+    "description": "Recipe tag declaration"
   },
-  "Loot Table Declaration": {
-    "prefix": "loot_table",
+  "Tag - Loot Table": {
+    "prefix": "tagloot",
     "body": [
-      "loot_table \"${1:loot_name}\" \"${2:loot_tables/loot.json}\";"
+      "tag loot_table \"${1:tag_name}\" \"${2:path/to/loot_table.json}\";"
     ],
-    "description": "Loot table declaration with JSON file reference"
+    "description": "Loot table tag declaration"
   },
-  "Advancement Declaration": {
-    "prefix": "advancement",
+  "Tag - Advancement": {
+    "prefix": "tagadvancement",
     "body": [
-      "advancement \"${1:advancement_name}\" \"${2:advancements/advancement.json}\";"
+      "tag advancement \"${1:tag_name}\" \"${2:path/to/advancement.json}\";"
     ],
-    "description": "Advancement declaration with JSON file reference"
+    "description": "Advancement tag declaration"
   },
-  "Predicate Declaration": {
-    "prefix": "predicate",
+  "Tag - Item Modifier": {
+    "prefix": "tagitemmod",
     "body": [
-      "predicate \"${1:predicate_name}\" \"${2:predicates/predicate.json}\";"
+      "tag item_modifier \"${1:tag_name}\" \"${2:path/to/item_modifier.json}\";"
     ],
-    "description": "Predicate declaration with JSON file reference"
+    "description": "Item modifier tag declaration"
   },
-  "Item Modifier Declaration": {
-    "prefix": "item_modifier",
+  "Tag - Predicate": {
+    "prefix": "tagpredicate",
     "body": [
-      "item_modifier \"${1:modifier_name}\" \"${2:item_modifiers/modifier.json}\";"
+      "tag predicate \"${1:tag_name}\" \"${2:path/to/predicate.json}\";"
     ],
-    "description": "Item modifier declaration with JSON file reference"
+    "description": "Predicate tag declaration"
   },
-  "Structure Declaration": {
-    "prefix": "structure",
+  "Tag - Structure": {
+    "prefix": "tagstructure",
     "body": [
-      "structure \"${1:structure_name}\" \"${2:structures/structure.json}\";"
+      "tag structure \"${1:tag_name}\" \"${2:path/to/structure.json}\";"
     ],
-    "description": "Structure declaration with JSON file reference"
-  },
-  "Execute Command": {
-    "prefix": "execute",
-    "body": [
-      "execute ${1:if|unless} ${2:condition} run ${3:command};"
-    ],
-    "description": "Execute command"
+    "description": "Structure tag declaration"
   },
   "Say Command": {
     "prefix": "say",
     "body": [
-      "say ${1:message};"
+      "say \"${1:message}\";"
     ],
-    "description": "Say command"
+    "description": "Say command (auto-converts to tellraw)"
   },
-  "Tellraw Command": {
-    "prefix": "tellraw",
+  "Say with Variable": {
+    "prefix": "sayvar",
     "body": [
-      "tellraw @a {\"text\":\"${1:message}\",\"color\":\"${2:white}\"};"
+      "say \"${1:message} $${2:variable}<${3:@s}>$ ${4:more text}\";"
     ],
-    "description": "Tellraw command"
+    "description": "Say command with variable substitution"
+  },
+  "Raw Block": {
+    "prefix": "raw",
+    "body": [
+      "$!raw",
+      "    ${1:// Raw Minecraft commands here}",
+      "raw!$"
+    ],
+    "description": "Raw block for direct Minecraft commands"
+  },
+  "Scoreboard Operation": {
+    "prefix": "scoreboard",
+    "body": [
+      "scoreboard players ${1:set|add|remove} ${2:@s} ${3:objective} ${4:value};"
+    ],
+    "description": "Scoreboard operation command"
+  },
+  "Execute Command": {
+    "prefix": "execute",
+    "body": [
+      "execute ${1:as|at|if|unless} ${2:@s} ${3:run} ${4:command};"
+    ],
+    "description": "Execute command with conditions"
+  },
+  "Team Operation": {
+    "prefix": "team",
+    "body": [
+      "team ${1:add|remove|join|leave} ${2:team_name} ${3:@s};"
+    ],
+    "description": "Team management command"
   },
   "Effect Command": {
     "prefix": "effect",
     "body": [
-      "effect give @a minecraft:${1:effect} ${2:duration} ${3:amplifier};"
+      "effect give ${1:@s} ${2:minecraft:speed} ${3:30} ${4:1};"
     ],
-    "description": "Effect command"
+    "description": "Apply status effect"
   },
   "Particle Command": {
     "prefix": "particle",
     "body": [
-      "particle minecraft:${1:particle} ~ ~ ~ ${2:dx} ${3:dy} ${4:dz} ${5:speed} ${6:count};"
+      "particle ${1:minecraft:explosion} ${2:~} ${3:~} ${4:~} ${5:1} ${6:1} ${7:1} ${8:0} ${9:10};"
     ],
-    "description": "Particle command"
+    "description": "Create particle effect"
   },
-  "Scoreboard Command": {
-    "prefix": "scoreboard",
+  "Sound Command": {
+    "prefix": "playsound",
     "body": [
-      "scoreboard players ${1:set|add|remove} @s ${2:objective} ${3:value};"
+      "playsound ${1:minecraft:entity.player.levelup} ${2:player} ${3:@s} ${4:~} ${5:~} ${6:~} ${7:1} ${8:1};"
     ],
-    "description": "Scoreboard command"
+    "description": "Play sound effect"
   },
-  "Function Call": {
-    "prefix": "function",
+  "Give Command": {
+    "prefix": "give",
     "body": [
-      "function ${1:namespace:function};"
+      "give ${1:@s} ${2:minecraft:diamond_sword} ${3:1};"
     ],
-    "description": "Function call"
+    "description": "Give item to player"
+  },
+  "Teleport Command": {
+    "prefix": "tp",
+    "body": [
+      "tp ${1:@s} ${2:~} ${3:~} ${4:~};"
+    ],
+    "description": "Teleport entity"
+  },
+  "Kill Command": {
+    "prefix": "kill",
+    "body": [
+      "kill ${1:@s};"
+    ],
+    "description": "Kill entity"
+  },
+  "Summon Command": {
+    "prefix": "summon",
+    "body": [
+      "summon ${1:minecraft:armor_stand} ${2:~} ${3:~} ${4:~} {${5:Tags:['mdl_server']}};"
+    ],
+    "description": "Summon entity"
   },
   "Comment Block": {
     "prefix": "comment",
     "body": [
       "/*",
-      " * ${1:comment}",
+      " * ${1:Comment text}",
       " */"
     ],
-    "description": "Comment block"
+    "description": "Multi-line comment block"
   },
   "Single Line Comment": {
     "prefix": "//",
     "body": [
-      "// ${1:comment}"
+      "// ${1:Comment text}"
     ],
     "description": "Single line comment"
-  },
-  "Raw Text Block": {
-    "prefix": "raw",
-    "body": [
-      "$!raw",
-      "    ${1:Insert raw text here - this will be inserted directly into the function without parsing}",
-      "raw!$"
-    ],
-    "description": "Raw text block - content is inserted directly without MDL parsing"
-  },
-  "Variable Access with Scope": {
-    "prefix": "varaccess",
-    "body": [
-      "${1:variable_name}<${2:@s|global|@a}>"
-    ],
-    "description": "Access variable with explicit scope"
-  },
-  "Variable Assignment with Scope": {
-    "prefix": "varassign",
-    "body": [
-      "${1:variable_name}<${2:@s|global|@a}> = ${3:value};"
-    ],
-    "description": "Assign value to variable with explicit scope"
-  },
-  "Team Variable Declaration": {
-    "prefix": "teamvar",
-    "body": [
-      "var num ${1:variable_name} scope<@a[team=${2:red|blue|green}]> = ${3:0};"
-    ],
-    "description": "Team-specific variable declaration"
-  },
-  "Team Variable Access": {
-    "prefix": "teamaccess",
-    "body": [
-      "${1:variable_name}<@a[team=${2:red|blue|green}]>"
-    ],
-    "description": "Access team-specific variable"
-  },
-  "Raw Text with Function Example": {
-    "prefix": "rawfunction",
-    "body": [
-      "$!raw",
-      "    say \"This contains the word function without breaking the parser\";",
-      "    say \"You can put any text here, including function, if, while, etc.\";",
-      "raw!$"
-    ],
-    "description": "Example raw text block showing how to use the word 'function' in commands"
-  },
-  "Complete Example": {
-    "prefix": "example",
-    "body": [
-      "pack \"${1:Example Pack}\" \"${2:Example description}\" 82;",
-      "",
-      "namespace \"${3:example}\";",
-      "",
-      "// Global variables",
-      "var num global_counter = 0;",
-      "var str global_message = \"Hello World\";",
-      "",
-      "function \"init\" {",
-      "    say Initializing...;",
-      "    global_counter = 0;",
-      "    global_message = \"Initialized\";",
-      "}",
-      "",
-      "function \"tick\" {",
-      "    global_counter = global_counter + 1;",
-      "    ",
-      "    if \"score @s ${3:global_counter} matches 10\" {",
-      "        say Counter reached 10!;",
-      "        global_counter = 0;",
-      "    }",
-      "    ",
-      "    for player in @a {",
-      "        effect give @s minecraft:speed 1 0;",
-      "    }",
-      "    ",
-      "    // Raw text example",
-      "    $!raw",
-      "    say \"This contains the word function without breaking the parser\";",
-      "    raw!$",
-      "}",
-      "",
-      "// Registry types",
-      "recipe \"custom_sword\" \"recipes/custom_sword.json\";",
-      "loot_table \"custom_block\" \"loot_tables/custom_block.json\";",
-      "advancement \"craft_sword\" \"advancements/craft_sword.json\";",
-      "predicate \"has_sword\" \"predicates/has_sword.json\";",
-      "item_modifier \"sword_nbt\" \"item_modifiers/sword_nbt.json\";",
-      "structure \"custom_house\" \"structures/custom_house.json\";",
-      "",
-      "// Tags",
-      "tag function \"minecraft:load\" {",
-      "    add \"${3:init}\";",
-      "}",
-      "",
-      "tag item \"${3:swords}\" {",
-      "    add \"minecraft:diamond_sword\";",
-      "}",
-      "",
-      "// Lifecycle hooks",
-      "on_load \"${3:init}\";",
-      "on_tick \"${3:tick}\";"
-    ],
-    "description": "Complete MDL example with all features including registry types and raw text"
   }
 }

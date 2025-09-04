@@ -1,7 +1,7 @@
 [project]
 name = "minecraft-datapack-language"         # REQUIRED
 dynamic = ["version"]                         # version comes from setuptools-scm
-description = "Compile JavaScript-style MDL language or Python API into a Minecraft datapack (1.21+ ready). Features variables, control flow, error handling, and VS Code extension."
+description = "Compile MDL language with explicit scoping into a Minecraft datapack (1.21+ ready). Features variables, control flow, error handling, and VS Code extension."
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [

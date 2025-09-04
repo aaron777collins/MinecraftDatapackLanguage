@@ -17,10 +17,10 @@ export function activate(context: vscode.ExtensionContext) {
       
       // Check if we're in a pack declaration
       if (linePrefix.includes('pack "') && !linePrefix.includes('pack_format')) {
-        const formatItem = new vscode.CompletionItem('pack_format 82', vscode.CompletionItemKind.Field);
+        const formatItem = new vscode.CompletionItem('pack_format 15', vscode.CompletionItemKind.Field);
         formatItem.detail = 'Pack format version';
-        formatItem.documentation = 'Specifies the pack format version. Use 82 for new JavaScript-style format';
-        formatItem.insertText = 'pack_format 82';
+        formatItem.documentation = 'Specifies the pack format version. Use 15 for modern format';
+        formatItem.insertText = 'pack_format 15';
         completionItems.push(formatItem);
       }
       
@@ -39,47 +39,29 @@ export function activate(context: vscode.ExtensionContext) {
         numItem.insertText = 'num';
         completionItems.push(numItem);
         
-        const strItem = new vscode.CompletionItem('str', vscode.CompletionItemKind.Keyword);
-        strItem.detail = 'String variable type';
-        strItem.documentation = 'Declares a string variable stored in NBT data';
-        strItem.insertText = 'str';
-        completionItems.push(strItem);
-        
-        const listItem = new vscode.CompletionItem('list', vscode.CompletionItemKind.Keyword);
-        listItem.detail = 'List variable type';
-        listItem.documentation = 'Declares a list variable stored in multiple scoreboard objectives';
-        listItem.insertText = 'list';
-        completionItems.push(listItem);
-        
         // Scope completions for variable declarations
-        const scopeItem = new vscode.CompletionItem('scope<global>', vscode.CompletionItemKind.Keyword);
-        scopeItem.detail = 'Global scope';
-        scopeItem.documentation = 'Declare variable with global scope (server-wide storage)';
-        scopeItem.insertText = 'scope<global>';
+        const scopeItem = new vscode.CompletionItem('<@s>', vscode.CompletionItemKind.Keyword);
+        scopeItem.detail = 'Player scope';
+        scopeItem.documentation = 'Declare variable with player scope (default for most variables)';
+        scopeItem.insertText = '<@s>';
         completionItems.push(scopeItem);
         
-        const playerScopeItem = new vscode.CompletionItem('scope<@s>', vscode.CompletionItemKind.Keyword);
-        playerScopeItem.detail = 'Player scope';
-        playerScopeItem.documentation = 'Declare variable with player scope (default for most variables)';
-        playerScopeItem.insertText = 'scope<@s>';
-        completionItems.push(playerScopeItem);
-        
-        const allPlayersScopeItem = new vscode.CompletionItem('scope<@a>', vscode.CompletionItemKind.Keyword);
+        const allPlayersScopeItem = new vscode.CompletionItem('<@a>', vscode.CompletionItemKind.Keyword);
         allPlayersScopeItem.detail = 'All players scope';
         allPlayersScopeItem.documentation = 'Declare variable with all players scope';
-        allPlayersScopeItem.insertText = 'scope<@a>';
+        allPlayersScopeItem.insertText = '<@a>';
         completionItems.push(allPlayersScopeItem);
+        
+        const teamScopeItem = new vscode.CompletionItem('<@a[team=red]>', vscode.CompletionItemKind.Keyword);
+        teamScopeItem.detail = 'Team scope';
+        teamScopeItem.documentation = 'Declare variable with team scope';
+        teamScopeItem.insertText = '<@a[team=red]>';
+        completionItems.push(teamScopeItem);
       }
       
-      // Variable access with scope completions
+      // Variable assignment with scope completions
       if (linePrefix.includes('=') || linePrefix.includes('+') || linePrefix.includes('-') || linePrefix.includes('*') || linePrefix.includes('/')) {
         // Suggest scope syntax for variable access
-        const globalScopeItem = new vscode.CompletionItem('<global>', vscode.CompletionItemKind.Keyword);
-        globalScopeItem.detail = 'Global scope access';
-        globalScopeItem.documentation = 'Access variable with global scope';
-        globalScopeItem.insertText = '<global>';
-        completionItems.push(globalScopeItem);
-        
         const playerScopeItem = new vscode.CompletionItem('<@s>', vscode.CompletionItemKind.Keyword);
         playerScopeItem.detail = 'Player scope access';
         playerScopeItem.documentation = 'Access variable with player scope';
@@ -91,21 +73,19 @@ export function activate(context: vscode.ExtensionContext) {
         allPlayersScopeItem.documentation = 'Access variable with all players scope';
         allPlayersScopeItem.insertText = '<@a>';
         completionItems.push(allPlayersScopeItem);
+        
+        const teamScopeItem = new vscode.CompletionItem('<@a[team=red]>', vscode.CompletionItemKind.Keyword);
+        teamScopeItem.detail = 'Team scope access';
+        teamScopeItem.documentation = 'Access variable with team scope';
+        teamScopeItem.insertText = '<@a[team=red]>';
+        completionItems.push(teamScopeItem);
       }
       
       // Control flow keywords
       const controlFlowKeywords = [
         { name: 'if', detail: 'If statement', doc: 'Conditional statement with curly braces' },
-        { name: 'else if', detail: 'Else if statement', doc: 'Additional conditional branch' },
         { name: 'else', detail: 'Else statement', doc: 'Default branch for conditional' },
-        { name: 'while', detail: 'While loop', doc: 'Loop that continues while condition is true' },
-        { name: 'for', detail: 'For loop', doc: 'Loop that iterates over entities or values' },
-        { name: 'switch', detail: 'Switch statement', doc: 'Multi-branch conditional statement' },
-        { name: 'case', detail: 'Case label', doc: 'Individual case in switch statement' },
-        { name: 'default', detail: 'Default case', doc: 'Default branch in switch statement' },
-        { name: 'break', detail: 'Break statement', doc: 'Exit current loop or switch' },
-        { name: 'continue', detail: 'Continue statement', doc: 'Skip to next iteration of loop' },
-        { name: 'return', detail: 'Return statement', doc: 'Return value from function' }
+        { name: 'while', detail: 'While loop', doc: 'Loop that continues while condition is true' }
       ];
       
       controlFlowKeywords.forEach(keyword => {
@@ -116,26 +96,9 @@ export function activate(context: vscode.ExtensionContext) {
         completionItems.push(item);
       });
       
-      // Error handling keywords
-      const errorKeywords = [
-        { name: 'try', detail: 'Try block', doc: 'Start of error handling block' },
-        { name: 'catch', detail: 'Catch block', doc: 'Error handling block' },
-        { name: 'throw', detail: 'Throw statement', doc: 'Throw an error' }
-      ];
-      
-      errorKeywords.forEach(keyword => {
-        const item = new vscode.CompletionItem(keyword.name, vscode.CompletionItemKind.Keyword);
-        item.detail = keyword.detail;
-        item.documentation = keyword.doc;
-        item.insertText = keyword.name;
-        completionItems.push(item);
-      });
-      
       // Variable declaration keywords
       const varKeywords = [
-        { name: 'var', detail: 'Variable declaration', doc: 'Declare a variable' },
-        { name: 'let', detail: 'Let declaration', doc: 'Declare a block-scoped variable' },
-        { name: 'const', detail: 'Constant declaration', doc: 'Declare a constant variable' }
+        { name: 'var', detail: 'Variable declaration', doc: 'Declare a variable' }
       ];
       
       varKeywords.forEach(keyword => {
@@ -146,14 +109,44 @@ export function activate(context: vscode.ExtensionContext) {
         completionItems.push(item);
       });
       
-      // Import keywords
-      const importKeywords = [
-        { name: 'import', detail: 'Import statement', doc: 'Import module or function' },
-        { name: 'from', detail: 'From clause', doc: 'Specify import source' },
-        { name: 'as', detail: 'As alias', doc: 'Import with alias' }
+      // Function execution keywords
+      const execKeywords = [
+        { name: 'exec', detail: 'Execute function', doc: 'Execute a function with optional scope' }
       ];
       
-      importKeywords.forEach(keyword => {
+      execKeywords.forEach(keyword => {
+        const item = new vscode.CompletionItem(keyword.name, vscode.CompletionItemKind.Keyword);
+        item.detail = keyword.detail;
+        item.documentation = keyword.doc;
+        item.insertText = keyword.name;
+        completionItems.push(item);
+      });
+      
+      // Hook keywords
+      const hookKeywords = [
+        { name: 'on_load', detail: 'Load hook', doc: 'Function that runs when datapack loads' },
+        { name: 'on_tick', detail: 'Tick hook', doc: 'Function that runs every tick' }
+      ];
+      
+      hookKeywords.forEach(keyword => {
+        const item = new vscode.CompletionItem(keyword.name, vscode.CompletionItemKind.Keyword);
+        item.detail = keyword.detail;
+        item.documentation = keyword.doc;
+        item.insertText = keyword.name;
+        completionItems.push(item);
+      });
+      
+      // Tag type keywords
+      const tagTypeKeywords = [
+        { name: 'recipe', detail: 'Recipe tag', doc: 'Tag for custom crafting recipes' },
+        { name: 'loot_table', detail: 'Loot table tag', doc: 'Tag for custom loot drops' },
+        { name: 'advancement', detail: 'Advancement tag', doc: 'Tag for custom advancements' },
+        { name: 'item_modifier', detail: 'Item modifier tag', doc: 'Tag for custom item modifiers' },
+        { name: 'predicate', detail: 'Predicate tag', doc: 'Tag for custom predicates' },
+        { name: 'structure', detail: 'Structure tag', doc: 'Tag for custom structures' }
+      ];
+      
+      tagTypeKeywords.forEach(keyword => {
         const item = new vscode.CompletionItem(keyword.name, vscode.CompletionItemKind.Keyword);
         item.detail = keyword.detail;
         item.documentation = keyword.doc;
@@ -163,8 +156,8 @@ export function activate(context: vscode.ExtensionContext) {
       
       // Minecraft commands
       const minecraftCommands = [
-        { name: 'say', detail: 'Say command', doc: 'Send message to all players' },
-        { name: 'tellraw', detail: 'Tellraw command', doc: 'Send formatted message' },
+        { name: 'say', detail: 'Say command', doc: 'Send message to all players (auto-converts to tellraw)' },
+        { name: 'tellraw', detail: 'Tellraw command', doc: 'Send formatted message with JSON' },
         { name: 'effect', detail: 'Effect command', doc: 'Apply status effect' },
         { name: 'particle', detail: 'Particle command', doc: 'Create particle effect' },
         { name: 'execute', detail: 'Execute command', doc: 'Execute command conditionally' },
@@ -186,13 +179,7 @@ export function activate(context: vscode.ExtensionContext) {
       });
       
       // Function call scope completions
-      if (linePrefix.includes('function') && linePrefix.includes('"')) {
-        const functionGlobalScopeItem = new vscode.CompletionItem('<global>', vscode.CompletionItemKind.Keyword);
-        functionGlobalScopeItem.detail = 'Global scope function call';
-        functionGlobalScopeItem.documentation = 'Execute function as global scope (server)';
-        functionGlobalScopeItem.insertText = '<global>';
-        completionItems.push(functionGlobalScopeItem);
-        
+      if (linePrefix.includes('exec') && linePrefix.includes(':')) {
         const functionPlayerScopeItem = new vscode.CompletionItem('<@s>', vscode.CompletionItemKind.Keyword);
         functionPlayerScopeItem.detail = 'Player scope function call';
         functionPlayerScopeItem.documentation = 'Execute function as current player';
@@ -204,6 +191,12 @@ export function activate(context: vscode.ExtensionContext) {
         functionAllPlayersScopeItem.documentation = 'Execute function as all players';
         functionAllPlayersScopeItem.insertText = '<@a>';
         completionItems.push(functionAllPlayersScopeItem);
+        
+        const functionTeamScopeItem = new vscode.CompletionItem('<@a[team=red]>', vscode.CompletionItemKind.Keyword);
+        functionTeamScopeItem.detail = 'Team scope function call';
+        functionTeamScopeItem.documentation = 'Execute function as team members';
+        functionTeamScopeItem.insertText = '<@a[team=red]>';
+        completionItems.push(functionTeamScopeItem);
       }
       
       // Entity selectors
@@ -241,6 +234,24 @@ export function activate(context: vscode.ExtensionContext) {
       
       rawTextItems.forEach(item => {
         const completionItem = new vscode.CompletionItem(item.name, vscode.CompletionItemKind.Keyword);
+        completionItem.detail = item.detail;
+        completionItem.documentation = item.doc;
+        completionItem.insertText = new vscode.SnippetString(item.insertText);
+        completionItems.push(completionItem);
+      });
+      
+      // Variable substitution syntax
+      const varSubItems = [
+        { 
+          name: '$variable<@s>$', 
+          detail: 'Variable substitution', 
+          doc: 'Read variable value with scope',
+          insertText: '$${1:variable}<${2:@s}>$'
+        }
+      ];
+      
+      varSubItems.forEach(item => {
+        const completionItem = new vscode.CompletionItem(item.name, vscode.CompletionItemKind.Variable);
         completionItem.detail = item.detail;
         completionItem.documentation = item.doc;
         completionItem.insertText = new vscode.SnippetString(item.insertText);
@@ -286,7 +297,7 @@ export function activate(context: vscode.ExtensionContext) {
     if (!name) { return; }
     const description = await vscode.window.showInputBox({ prompt: 'Project description', value: 'My MDL Project' });
     if (!description) { return; }
-    const cmd = `mdl new "${name}" --name "${description}" --pack-format 82`;
+    const cmd = `mdl new "${name}" --name "${description}" --pack-format 15`;
     runShell(cmd);
   });
 

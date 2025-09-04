@@ -1,77 +1,77 @@
 # Minecraft Datapack Language (MDL) - VSCode Extension
 
-A comprehensive VSCode extension for the JavaScript-style MDL language, providing syntax highlighting, IntelliSense, snippets, and build tools for creating Minecraft datapacks.
+A comprehensive VSCode extension for the MDL language, providing syntax highlighting, IntelliSense, snippets, and build tools for creating Minecraft datapacks with explicit scoping and modern syntax.
 
 ## Features
 
 ### 🎨 Syntax Highlighting
-- Full support for JavaScript-style MDL syntax
+- Full support for MDL syntax with explicit scoping
 - Highlighting for all keywords, operators, and Minecraft commands
 - Support for comments (`//` and `/* */`)
-- Variable and function highlighting
+- Variable and function highlighting with scope selectors
 - Entity selector highlighting (`@p`, `@r`, `@a`, `@e`, `@s`)
-- **Scope selector syntax highlighting** - Angle brackets `<@s>`, `<@a>`, etc.
+- **Explicit scope selector syntax highlighting** - Angle brackets `<@s>`, `<@a[team=red]>`, etc.
+- Tag declaration highlighting for all resource types
 
 ### 💡 IntelliSense & Auto-completion
 - Smart completion for all MDL keywords
-- Variable type suggestions (`num`, `str`, `list`)
-- **Flexible scope selector system support** - Complete scope syntax for variables and functions
-- Control flow keywords (`if`, `else`, `while`, `for`, `switch`, `try`, `catch`)
+- Variable type suggestions (`num`)
+- **Explicit scope selector system support** - Complete scope syntax for variables and functions
+- Control flow keywords (`if`, `else`, `while`)
 - Minecraft command suggestions
 - Entity selector completion
 - Function and namespace completion
+- Tag type completion (`recipe`, `loot_table`, `advancement`, etc.)
 
 ### 📝 Code Snippets
 Comprehensive snippets for all MDL features:
 
 #### Basic Structure
-- `pack82` - Pack declaration with format 82
+- `pack` - Pack declaration with metadata
 - `namespace` - Namespace declaration
-- `function` - Function declaration
+- `function` - Function declaration with scope
 
 #### Variables
-- `var` - Variable declaration
-- `varnum` - Number variable
-- `varstr` - String variable
-- `varlist` - List variable
-- `varscope` - Variable declaration with scope selector
-- `varnumscope` - Number variable with scope selector
-- `varaccess` - Variable access with scope selector
-- `varassign` - Variable assignment with scope selector
-- `teamvar` - Team-specific variable declaration
-- `teamaccess` - Team variable access
+- `var` - Variable declaration with scope
+- `assign` - Variable assignment with scope
+- `varread` - Variable substitution with scope
 
 #### Control Flow
-- `if` - If statement
-- `ifelse` - If-else statement
-- `ifelseif` - If-else if-else statement
-- `while` - While loop
-- `for` - For loop
-- `switch` - Switch statement
-- `trycatch` - Try-catch block
+- `if` - If statement with condition
+- `ifelse` - If-else statement with condition
+- `while` - While loop with condition
 
-#### Error Handling
-- `throw` - Throw statement
-- `break` - Break statement
-- `continue` - Continue statement
-- `return` - Return statement
+#### Functions and Execution
+- `exec` - Execute function with scope
+- `onload` - Hook that runs when datapack loads
+- `ontick` - Hook that runs every tick
+
+#### Tags and Resources
+- `tagrecipe` - Recipe tag declaration
+- `tagloot` - Loot table tag declaration
+- `tagadvancement` - Advancement tag declaration
+- `tagitemmod` - Item modifier tag declaration
+- `tagpredicate` - Predicate tag declaration
+- `tagstructure` - Structure tag declaration
 
 #### Minecraft Commands
-- `say` - Say command
-- `tellraw` - Tellraw command
-- `effect` - Effect command
-- `particle` - Particle command
-- `execute` - Execute command
-- `scoreboard` - Scoreboard command
-- `function` - Function call
-- `funcscope` - Function call with scope selector
+- `say` - Say command (auto-converts to tellraw)
+- `sayvar` - Say command with variable substitution
+- `raw` - Raw block for direct Minecraft commands
+- `scoreboard` - Scoreboard operation command
+- `execute` - Execute command with conditions
+- `team` - Team management command
+- `effect` - Apply status effect
+- `particle` - Create particle effect
+- `playsound` - Play sound effect
+- `give` - Give item to player
+- `tp` - Teleport entity
+- `kill` - Kill entity
+- `summon` - Summon entity
 
-#### Lifecycle Hooks
-- `ontick` - On tick hook
-- `onload` - On load hook
-
-#### Complete Examples
-- `example` - Complete MDL example with all features
+#### Comments and Documentation
+- `comment` - Multi-line comment block
+- `//` - Single line comment
 
 ### 🛠️ Build Tools
 - **MDL: Build current file** - Build the current MDL file to a datapack
@@ -85,238 +85,166 @@ Comprehensive snippets for all MDL features:
 - Bracket matching
 - Comment toggling
 
-### 🎯 Flexible Scope Selector System
-The extension provides comprehensive support for MDL's flexible scope selector system:
+### 🎯 Explicit Scope Selector System
+The extension provides comprehensive support for MDL's explicit scope selector system:
 
-- **Variable Declaration Scopes**: `<@a>`, `<@s>`, `<@a[team=red]>`
-- **Variable Access Scopes**: `variable<@s>`, `counter<@a>`, `score<@a[team=red]>`
-- **Function Call Scopes**: `function "namespace:func<@a>"`
+- **Variable Declaration Scopes**: `<@s>`, `<@a>`, `<@a[team=red]>`
+- **Variable Assignment Scopes**: `variable<@s>`, `counter<@a>`, `score<@a[team=red]>`
+- **Variable Substitution Scopes**: `$variable<@s>$`, `$counter<@a>$`
+- **Function Call Scopes**: `exec namespace:func<@a>`
+- **Hook Scopes**: `on_load namespace:func<@s>`
 - **Team Scopes**: `<@a[team=red]>`, `<@a[team=blue]>`
-- **Explicit Scopes in Conditions**: `if "$score<@s>$ > 10"`, `while "$counter<@a>$ < 100"`
 - **Smart Completions**: Context-aware scope suggestions based on current code position
-- **Flexible Data Access**: Read from one scope, write to another as needed
 
 ## Installation
 
-1. Install the extension from the VSCode marketplace
-2. Open any `.mdl` file to activate the extension
+### From VSCode Marketplace
+1. Open VSCode
+2. Go to Extensions (Ctrl+Shift+X)
+3. Search for "Minecraft Datapack Language"
+4. Click Install
+
+### From VSIX File
+1. Download the `.vsix` file from releases
+2. In VSCode, go to Extensions
+3. Click the "..." menu and select "Install from VSIX..."
+4. Select the downloaded file
 
 ## Usage
 
-### Creating a New Project
+### Creating a New MDL File
+1. Create a new file with `.mdl` extension
+2. The extension will automatically activate
+3. Start typing to see syntax highlighting and IntelliSense
 
-1. Open the command palette (`Ctrl+Shift+P`)
-2. Run "MDL: Create new project"
-3. Enter project name and description
-4. A new MDL project will be created
+### Basic MDL Syntax
+```mdl
+pack "MyPack" "My awesome datapack" 15;
+namespace "game";
 
-### Building a Datapack
+var num player_score<@s> = 0;
+var num team_score<@a[team=red]> = 0;
 
-1. Open an MDL file
-2. Press `Ctrl+Shift+P` and run "MDL: Build current file"
-3. Enter output directory
-4. Your datapack will be built!
+function game:start<@s> {
+    player_score<@s> = 100;
+    say "Welcome! Your score is $player_score<@s>$";
+}
+
+on_load game:start<@s>;
+```
 
 ### Using Snippets
+Type the snippet prefix and press Tab to expand:
+- Type `pack` and press Tab for pack declaration
+- Type `function` and press Tab for function declaration
+- Type `var` and press Tab for variable declaration
 
-Type the snippet prefix and press `Tab` to expand:
-
-```mdl
-// Type 'pack82' and press Tab
-pack "My Pack" description "Description" pack_format 82;
-
-// Type 'function' and press Tab
-function "my_function" {
-    // Type 'say' and press Tab
-    say Hello World;
-}
-
-// Type 'varnum' and press Tab
-var num counter = 0;
-
-// Type 'if' and press Tab
-if "condition" {
-    // commands
-}
-```
+### Building Datapacks
+1. Open an MDL file
+2. Press Ctrl+Shift+P to open command palette
+3. Type "MDL: Build current file"
+4. Enter output directory when prompted
 
 ## Language Features
 
-### Variables
+### Explicit Scoping
+Every variable operation in MDL requires explicit scope specification:
+- **Reading**: `$variable<@s>$` - Read variable value from player scope
+- **Writing**: `variable<@s> = value` - Write value to player scope
+- **Functions**: `function namespace:name<@s> { ... }` - Function with scope
 
-```mdl
-// Number variables (stored in scoreboard)
-var num counter = 0;
-var num health = 20;
+### Variable System
+- **Types**: Currently supports `num` (number) variables
+- **Storage**: Variables are stored in Minecraft scoreboard objectives
+- **Scopes**: Each variable operation specifies its own scope
+- **No Inheritance**: Functions don't inherit scope from caller
 
-// String variables (stored in NBT)
-var str message = "Hello World";
-var str player_name = "Steve";
+### Control Structures
+- **If Statements**: `if condition { ... } else { ... }`
+- **While Loops**: `while condition { ... }`
+- **Conditions**: Use variable substitutions like `$score<@s>$ > 10`
 
-// List variables (stored in multiple scoreboards)
-var list items = ["sword", "shield", "potion"];
-```
-
-### Control Flow
-
-```mdl
-// If statements
-if "entity @s[type=minecraft:player]" {
-    say Player detected;
-} else if "entity @s[type=minecraft:zombie]" {
-    say Zombie detected;
-} else {
-    say Unknown entity;
-}
-
-// While loops
-while "score @s counter matches 1.." {
-    say Counter: @s counter;
-    counter = counter - 1;
-}
-
-// For loops
-for player in @a {
-    effect give @s minecraft:speed 10 1;
-}
-
-// Switch statements
-switch (counter) {
-    case 1:
-        say One;
-        break;
-    case 2:
-        say Two;
-        break;
-    default:
-        say Other;
-        break;
-}
-```
-
-### Explicit Scopes in Conditions
-
-MDL supports explicit scope selectors in if/while conditions to override declared variable scopes:
-
-```mdl
-// Variables with different scopes
-var num playerScore = 0;                    // Defaults to @s
-var num globalCounter scope<global> = 0;    // Global scope
-var num teamScore scope<@a[team=red]> = 0;  // Team scope
-
-// Use explicit scopes in conditions
-if "$playerScore<@s>$ > 10" {
-    say "Current player score is high!";
-}
-
-if "$globalCounter<global>$ > 100" {
-    say "Global counter reached milestone!";
-}
-
-if "$teamScore<@a[team=red]>$ > 50" {
-    say "Red team is winning!";
-}
-
-// Check another player's score
-if "$playerScore<@p[name=Steve]>$ > 5" {
-    say "Steve has a good score!";
-}
-```
-
-This feature allows you to check variables across different scopes without changing their declared scope.
-
-### Error Handling
-
-```mdl
-try {
-    say Trying operation;
-    throw "error_message";
-} catch (error) {
-    say Caught error: error;
-}
-```
-
-### Functions
-
-```mdl
-function "init" {
-    say Initializing...;
-    var num counter = 0;
-    return counter;
-}
-
-function "tick" {
-    counter = counter + 1;
-    if "score @s counter matches 10" {
-        say Counter reached 10!;
-        counter = 0;
-    }
-}
-```
-
-### Lifecycle Hooks
-
-```mdl
-// Hook functions to Minecraft lifecycle
-on_load "example:init";
-on_tick "example:tick";
-```
+### Hooks
+- **on_load**: Runs when datapack loads
+- **on_tick**: Runs every game tick
+- Both support scope specification
 
 ### Tags
+Support for all Minecraft datapack resource types:
+- Recipes, loot tables, advancements
+- Item modifiers, predicates, structures
+- Automatic JSON file generation
 
+### Raw Blocks
+Use `$!raw ... raw!$` to insert raw Minecraft commands:
 ```mdl
-// Function tags
-tag "function" "minecraft:load" values ["example:init"];
-tag "function" "minecraft:tick" values ["example:tick"];
-
-// Item tags
-tag "item" "example:swords" values ["minecraft:diamond_sword", "minecraft:netherite_sword"];
+$!raw
+execute as @a run particle minecraft:explosion ~ ~ ~ 1 1 1 0 10
+raw!$
 ```
-
-## Keyboard Shortcuts
-
-- `Ctrl+Shift+P` - Open command palette
-- `Tab` - Expand snippets
-- `Ctrl+/` - Toggle line comment
-- `Shift+Alt+F` - Format document
-- `Ctrl+Space` - Trigger suggestions
 
 ## Configuration
 
-The extension automatically detects MDL files and provides appropriate syntax highlighting and IntelliSense. No additional configuration is required.
+### Language Settings
+The extension automatically configures:
+- File association for `.mdl` files
+- Syntax highlighting rules
+- IntelliSense providers
+- Code snippets
+
+### Customization
+You can customize the extension behavior through VSCode settings:
+- Indentation rules
+- Bracket matching
+- Auto-closing pairs
 
 ## Troubleshooting
 
 ### Extension Not Working
-1. Make sure you have a `.mdl` file open
-2. Check that the file extension is `.mdl`
-3. Reload VSCode if needed
+1. Ensure the file has `.mdl` extension
+2. Check VSCode Extensions panel for errors
+3. Reload VSCode window (Ctrl+Shift+P → "Developer: Reload Window")
 
-### Build Commands Not Working
-1. Ensure MDL CLI is installed: `pip install minecraft-datapack-language`
-2. Check that `mdl` command is available in your PATH
-3. Verify your MDL syntax is correct
+### Syntax Highlighting Issues
+1. Verify file extension is `.mdl`
+2. Check for syntax errors in the file
+3. Try reloading the VSCode window
 
-### IntelliSense Not Working
-1. Make sure the file is saved with `.mdl` extension
-2. Check that the language mode is set to "MDL"
-3. Try reloading the window
+### Build Issues
+1. Ensure `mdl` command is available in PATH
+2. Check MDL installation: `mdl --version`
+3. Verify file syntax is correct
 
 ## Contributing
 
-This extension is part of the Minecraft Datapack Language project. Contributions are welcome!
+Contributions are welcome! Please:
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Submit a pull request
+
+## Support
+
+- **Issues**: Report bugs on GitHub
+- **Documentation**: See the main MDL documentation
+- **Community**: Join our Discord server
 
 ## License
 
 This extension is licensed under the same license as the main MDL project.
 
-## Support
+## Changelog
 
-For issues and questions:
-- Check the [MDL documentation](https://github.com/aaron777collins/MinecraftDatapackLanguage)
-- Report issues on the GitHub repository
-- Join the community discussions
+### v1.0.0
+- Complete rewrite for new MDL language specification
+- Explicit scope selector support
+- Updated syntax highlighting and IntelliSense
+- New snippets for all language features
+- Tag system support
+- Raw block support
+- Hook system support
 
----
-
-**Happy coding with MDL! 🎮**
+### v0.3.0 (Legacy)
+- JavaScript-style MDL support
+- Flexible scope selectors
+- Legacy syntax features

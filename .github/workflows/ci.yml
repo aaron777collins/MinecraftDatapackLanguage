@@ -67,7 +67,7 @@ jobs:
           echo "Testing Python API functionality..."
           python - <<'PY'
           from minecraft_datapack_language import Pack
-          p = Pack('test', 'Test pack', 82)
+          p = Pack('test', 'Test pack', 15)
           ns = p.namespace('test')
           ns.function('test_func', 'say Hello World')
           print('[+] Python API test passed')
@@ -76,7 +76,7 @@ jobs:
       - name: Test MDL Parsing
         run: |
           echo "Testing MDL parsing..."
-          python -c "from minecraft_datapack_language.mdl_parser_js import parse_mdl_js; print('[+] MDL parser imported successfully')"
+          python -c "from minecraft_datapack_language.mdl_parser import MDLParser; print('[+] MDL parser imported successfully')"
 
       - name: Test Variable System
         run: |
@@ -136,7 +136,7 @@ jobs:
           from minecraft_datapack_language.mdl_parser import MDLParser
           parser = MDLParser()
           test_code = '''
-          pack "test" "Test pack" 82;
+          pack "test" "Test pack" 15;
           namespace "test";
           var num counter<@s> = 0;
           function test:main<@s> {
@@ -152,20 +152,15 @@ jobs:
           print('[+] Basic MDL file test passed')
           PY
 
-      - name: Run Lexer Test Suite
+      - name: Run Comprehensive End-to-End Tests
         run: |
-          echo "Running lexer test suite..."
-          python test_lexer_new.py
+          echo "Running comprehensive end-to-end tests..."
+          python test_comprehensive_end_to_end.py
           
-      - name: Run Parser Test Suite
+      - name: Run Complex Scenario Tests
         run: |
-          echo "Running parser test suite..."
-          python test_parser.py
-
-      - name: Run All Test Suites
-        run: |
-          echo "Running all test suites..."
-          python test_lexer_new.py && python test_parser.py
+          echo "Running complex scenario tests..."
+          python test_complex_scenarios.py
 
       - name: Upload dist artifacts
         uses: actions/upload-artifact@v4
@@ -196,9 +191,14 @@ jobs:
       - name: Run All Comprehensive Tests
         run: |
           echo "Running comprehensive feature tests..."
-          python test_lexer_new.py && python test_parser.py
+          python test_comprehensive_end_to_end.py
+          
+      - name: Run Complex Scenario Tests
+        run: |
+          echo "Running complex scenario tests..."
+          python test_complex_scenarios.py
           
       - name: Run All Test Suites
         run: |
           echo "Running all test suites..."
-          python test_lexer_new.py && python test_parser.py
+          python test_comprehensive_end_to_end.py && python test_complex_scenarios.py

@@ -15,19 +15,17 @@
     { "open": "[", "close": "]" },
     { "open": "(", "close": ")" },
     { "open": "<", "close": ">", "notIn": ["string"] },
-    { "open": "\"", "close": "\"", "notIn": ["string"] },
-    { "open": "'", "close": "'", "notIn": ["string"] }
+    { "open": "\"", "close": "\"", "notIn": ["string"] }
   ],
   "surroundingPairs": [
     ["{", "}"],
     ["[", "]"],
     ["(", ")"],
     ["<", ">"],
-    ["\"", "\""],
-    ["'", "'"]
+    ["\"", "\""]
   ],
   "indentationRules": {
-    "increaseIndentPattern": "\\{[^}]*$|\\b(if|else|while|for|function|try|catch|switch|case|tag)\\b.*\\{[^}]*$",
+    "increaseIndentPattern": "\\{[^}]*$|\\b(if|else|while|function|tag)\\b.*\\{[^}]*$",
     "decreaseIndentPattern": "^\\s*\\}"
   },
   "folding": {
