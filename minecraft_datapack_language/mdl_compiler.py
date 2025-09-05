@@ -313,6 +313,8 @@ class MDLCompiler:
         """Convert an AST statement to a Minecraft command."""
         if isinstance(statement, VariableAssignment):
             return self._variable_assignment_to_command(statement)
+        elif isinstance(statement, VariableDeclaration):
+            return self._variable_declaration_to_command(statement)
         elif isinstance(statement, SayCommand):
             return self._say_command_to_command(statement)
         elif isinstance(statement, RawBlock):
@@ -343,6 +345,24 @@ class MDLCompiler:
             # Simple value - use direct assignment
             value = self._expression_to_value(assignment.value)
             return f"scoreboard players set {scope} {objective} {value}"
+
+    def _variable_declaration_to_command(self, decl: VariableDeclaration) -> str:
+        """Handle var declarations appearing inside function bodies.
+        Ensure objective is registered and optionally set initial value.
+        """
+        objective = self.variables.get(decl.name, decl.name)
+        # Register objective so load function adds it
+        self.variables[decl.name] = objective
+        # If there is an initial value, set it in current context
+        scope = decl.scope.strip("<>")
+        init = None
+        try:
+            init = self._expression_to_value(decl.initial_value)
+        except Exception:
+            init = None
+        if init is not None:
+            return f"scoreboard players set {scope} {objective} {init}"
+        return f"# var {decl.name} declared"
     
     def _say_command_to_command(self, say: SayCommand) -> str:
         """Convert say command to tellraw command with JSON formatting."""
@@ -420,6 +440,9 @@ class MDLCompiler:
             if isinstance(stmt, VariableAssignment):
                 cmd = self._variable_assignment_to_command(stmt)
                 if_body_lines.append(cmd)
+            elif isinstance(stmt, VariableDeclaration):
+                cmd = self._variable_declaration_to_command(stmt)
+                if_body_lines.append(cmd)
             elif isinstance(stmt, SayCommand):
                 cmd = self._say_command_to_command(stmt)
                 if_body_lines.append(cmd)
@@ -468,6 +491,9 @@ class MDLCompiler:
                     if isinstance(stmt, VariableAssignment):
                         cmd = self._variable_assignment_to_command(stmt)
                         else_body_lines.append(cmd)
+                    elif isinstance(stmt, VariableDeclaration):
+                        cmd = self._variable_declaration_to_command(stmt)
+                        else_body_lines.append(cmd)
                     elif isinstance(stmt, SayCommand):
                         cmd = self._say_command_to_command(stmt)
                         else_body_lines.append(cmd)
@@ -512,6 +538,9 @@ class MDLCompiler:
         for stmt in while_loop.body:
             if isinstance(stmt, VariableAssignment):
                 cmd = self._variable_assignment_to_command(stmt)
+                loop_body_lines.append(cmd)
+            elif isinstance(stmt, VariableDeclaration):
+                cmd = self._variable_declaration_to_command(stmt)
                 loop_body_lines.append(cmd)
             elif isinstance(stmt, SayCommand):
                 cmd = self._say_command_to_command(stmt)
