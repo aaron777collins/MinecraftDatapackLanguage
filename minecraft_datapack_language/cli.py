@@ -145,8 +145,10 @@ def build_command(args):
         if args.verbose:
             print(f"Compiling to {output_dir}...")
         
+        # Support optional wrapper directory
+        if getattr(args, 'wrapper', None):
+            output_dir = output_dir / args.wrapper
         compiler = MDLCompiler()
-        # Note: --wrapper is currently accepted for compatibility but not required by compiler
         output_path = compiler.compile(final_ast, str(output_dir))
         
         print(f"Successfully built datapack: {output_path}")

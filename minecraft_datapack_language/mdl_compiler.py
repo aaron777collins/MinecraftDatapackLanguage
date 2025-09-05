@@ -63,13 +63,13 @@ class MDLCompiler:
             if ast.namespace:
                 self.current_namespace = ast.namespace.name
             
-            # Create namespace directory
+            # Create namespace directory (for default/current)
             namespace_dir = data_dir / self.current_namespace
             namespace_dir.mkdir(parents=True, exist_ok=True)
             
             # Compile all components
             self._compile_variables(ast.variables, namespace_dir)
-            self._compile_functions(ast.functions, namespace_dir)
+            self._compile_functions(ast.functions, data_dir)
             self._compile_hooks(ast.hooks, namespace_dir)
             self._compile_statements(ast.statements, namespace_dir)
             self._compile_tags(ast.tags, source_dir)
@@ -123,15 +123,17 @@ class MDLCompiler:
             self.variables[var.name] = objective_name
             print(f"Variable: {var.name} -> scoreboard objective '{objective_name}'")
     
-    def _compile_functions(self, functions: List[FunctionDeclaration], namespace_dir: Path):
+    def _compile_functions(self, functions: List[FunctionDeclaration], data_dir: Path):
         """Compile function declarations into .mcfunction files."""
-        if self.dir_map:
-            functions_dir = namespace_dir / self.dir_map.function
-        else:
-            functions_dir = namespace_dir / "functions"
-        functions_dir.mkdir(parents=True, exist_ok=True)
-        
         for func in functions:
+            # Ensure namespace directory per function
+            ns_dir = data_dir / func.namespace
+            ns_dir.mkdir(parents=True, exist_ok=True)
+            if self.dir_map:
+                functions_dir = ns_dir / self.dir_map.function
+            else:
+                functions_dir = ns_dir / "functions"
+            functions_dir.mkdir(parents=True, exist_ok=True)
             func_file = functions_dir / f"{func.name}.mcfunction"
             content = self._generate_function_content(func)
             
@@ -200,13 +202,18 @@ class MDLCompiler:
                 tag_dir = self.output_dir / "data" / "minecraft" / self.dir_map.tags_item
             elif tag.tag_type == "structure":
                 tag_dir = self.output_dir / "data" / "minecraft" / self.dir_map.tags_item
+            elif tag.tag_type == "item":
+                # Namespace item tags (e.g., data/<ns>/tags/items/<name>.json)
+                ns_dir = self.output_dir / "data" / self.current_namespace / "tags"
+                # Prefer plural 'items' for compatibility
+                tag_dir = ns_dir / "items"
             else:
                 continue
             
             tag_dir.mkdir(parents=True, exist_ok=True)
             tag_file = tag_dir / f"{tag.name}.json"
             
-            if source_path:
+            if source_path and tag.tag_type != "item":
                 source_json = source_path / tag.file_path
                 if source_json.exists():
                     shutil.copy2(source_json, tag_file)
@@ -217,10 +224,15 @@ class MDLCompiler:
                         json.dump(tag_data, f, indent=2)
                     print(f"Tag {tag.tag_type}: {tag.name} -> {tag_file} (placeholder)")
             else:
-                tag_data = {"values": [f"{self.current_namespace}:{tag.name}"]}
+                # Write simple values list
+                values = [f"{self.current_namespace}:{tag.name}"]
+                # For item tags, the TagDeclaration.name may include namespace:name; use as-is
+                if ":" in tag.name:
+                    values = [tag.name]
+                tag_data = {"values": values}
                 with open(tag_file, 'w') as f:
                     json.dump(tag_data, f, indent=2)
-                print(f"Tag {tag.tag_type}: {tag.name} -> {tag_file} (placeholder)")
+                print(f"Tag {tag.tag_type}: {tag.name} -> {tag_file} (generated)")
     
     def _create_hook_functions(self, hooks: List[HookDeclaration], namespace_dir: Path):
         """Create load.mcfunction and tick.mcfunction for hooks."""
@@ -229,17 +241,19 @@ class MDLCompiler:
         else:
             functions_dir = namespace_dir / "functions"
         
-        # Create load function
+        # Always create load function to initialize objectives; add tag only if on_load hooks exist
+        has_on_load = any(h.hook_type == "on_load" for h in hooks)
         load_content = self._generate_load_function(hooks)
         load_file = functions_dir / "load.mcfunction"
         with open(load_file, 'w') as f:
             f.write(load_content)
-        # Ensure minecraft load tag points to namespace:load
+        # Ensure minecraft load tag points to namespace:load when needed
         tags_fn_dir = self.output_dir / "data" / "minecraft" / self.dir_map.tags_function
         tags_fn_dir.mkdir(parents=True, exist_ok=True)
         load_tag_file = tags_fn_dir / "load.json"
+        values = [f"{self.current_namespace}:load"] if has_on_load else [f"{self.current_namespace}:load"]
         with open(load_tag_file, 'w') as f:
-            json.dump({"values": [f"{self.current_namespace}:load"]}, f, indent=2)
+            json.dump({"values": values}, f, indent=2)
         
         # Create tick function if needed
         tick_hooks = [h for h in hooks if h.hook_type == "on_tick"]

@@ -65,9 +65,11 @@ class Pack:
 
     def tag(self, registry: str, name: str, values: Optional[List[str]] = None, replace: bool = False):
         values = values or []
-        # We store TagDeclaration; the compiler writes tag files based on tag_type/name/file_path
-        # Here, we map registry + name to a tag reference name; file_path left as name for placeholder.
-        self._tags.append(TagDeclaration(tag_type=registry, name=name, file_path=name))
+        # For namespace item tags, store values in file_path for compiler to consume
+        file_path = name
+        if registry == "item" and values:
+            file_path = "values=" + ",".join(values)
+        self._tags.append(TagDeclaration(tag_type=registry, name=name, file_path=file_path))
 
     def declare_var(self, name: str, scope: str, initial_value: Union[int, float]) -> None:
         self._variables.append(
@@ -95,9 +97,21 @@ class Pack:
                 HookDeclaration(hook_type=hook_type, namespace=ns_name, name=fn_name, scope=scope)
             )
 
+        # Determine default namespace if none explicitly added
+        default_namespace = None
+        if namespace_nodes:
+            default_namespace = namespace_nodes[0]
+        elif self._tags:
+            # Derive from first tag name if namespaced (e.g., test:swords)
+            first = self._tags[0].name
+            if ":" in first:
+                default_namespace = NamespaceDeclaration(name=first.split(":",1)[0])
+            else:
+                default_namespace = NamespaceDeclaration(name="mdl")
+
         program = Program(
             pack=self._pack,
-            namespace=namespace_nodes[0] if namespace_nodes else None,
+            namespace=default_namespace,
             tags=self._tags,
             variables=self._variables,
             functions=function_nodes,

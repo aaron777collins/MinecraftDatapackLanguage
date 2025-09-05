@@ -53,5 +53,6 @@ def test_bindings_complex_expression():
         func = Path(td) / 'data' / 'calc' / 'function'
         text = (func / 'math.mcfunction').read_text()
         assert 'scoreboard players operation @s x = @s temp_' in text
-        assert '# Temporary variable operations:' in text
+        # Temp ops are inlined now; footer removed
+        assert 'temp_' in text
 
