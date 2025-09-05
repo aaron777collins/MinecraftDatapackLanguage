@@ -148,9 +148,9 @@ class MDLCompiler:
             lines.append(f"# Scope: {func.scope}")
         lines.append("")
         
-        # Reset temporary commands for this function
-        if hasattr(self, 'temp_commands'):
-            self.temp_commands = []
+        # Ensure a temp-command sink stack exists
+        if not hasattr(self, '_temp_sink_stack'):
+            self._temp_sink_stack = []
         
         # Set current function context and reset per-function counters
         self._current_function_name = func.name
@@ -158,18 +158,15 @@ class MDLCompiler:
         self.else_counter = 0
         self.while_counter = 0
         
+        # Route temp commands into this function's body by default
+        self._temp_sink_stack.append(lines)
         # Generate commands from function body
         for statement in func.body:
             cmd = self._statement_to_command(statement)
             if cmd:
                 lines.append(cmd)
-        
-        # Add any temporary commands that were generated during compilation
-        if hasattr(self, 'temp_commands') and self.temp_commands:
-            lines.append("")
-            lines.append("# Temporary variable operations:")
-            for temp_cmd in self.temp_commands:
-                lines.append(temp_cmd)
+        # Done routing temp commands for this function body
+        self._temp_sink_stack.pop()
         
         return "\n".join(lines)
     
@@ -401,6 +398,10 @@ class MDLCompiler:
         
         # Generate the if body function content
         if_body_lines = [f"# Function: {self.current_namespace}:{if_function_name}"]
+        # Route temp commands to the if-body function content
+        if not hasattr(self, '_temp_sink_stack'):
+            self._temp_sink_stack = []
+        self._temp_sink_stack.append(if_body_lines)
         for stmt in if_stmt.then_body:
             if isinstance(stmt, VariableAssignment):
                 cmd = self._variable_assignment_to_command(stmt)
@@ -419,6 +420,8 @@ class MDLCompiler:
             elif isinstance(stmt, FunctionCall):
                 cmd = self._function_call_to_command(stmt)
                 if_body_lines.append(cmd)
+        # Stop routing temp commands for if-body
+        self._temp_sink_stack.pop()
         
         # Handle else body if it exists
         if if_stmt.else_body:
@@ -443,6 +446,10 @@ class MDLCompiler:
                 else:
                     lines.append(f"execute unless {condition} run function {self.current_namespace}:{else_function_name}")
                 else_body_lines = [f"# Function: {self.current_namespace}:{else_function_name}"]
+                # Route temp commands into the else-body
+                if not hasattr(self, '_temp_sink_stack'):
+                    self._temp_sink_stack = []
+                self._temp_sink_stack.append(else_body_lines)
                 for stmt in if_stmt.else_body:
                     if isinstance(stmt, VariableAssignment):
                         cmd = self._variable_assignment_to_command(stmt)
@@ -461,6 +468,8 @@ class MDLCompiler:
                     elif isinstance(stmt, FunctionCall):
                         cmd = self._function_call_to_command(stmt)
                         else_body_lines.append(cmd)
+                # Stop routing temp commands for else-body
+                self._temp_sink_stack.pop()
                 self._store_generated_function(else_function_name, else_body_lines)
         
         # Store the if function as its own file
@@ -483,6 +492,9 @@ class MDLCompiler:
         loop_body_lines = [f"# Function: {self.current_namespace}:{loop_function_name}"]
         
         # Add the loop body statements
+        if not hasattr(self, '_temp_sink_stack'):
+            self._temp_sink_stack = []
+        self._temp_sink_stack.append(loop_body_lines)
         for stmt in while_loop.body:
             if isinstance(stmt, VariableAssignment):
                 cmd = self._variable_assignment_to_command(stmt)
@@ -505,6 +517,8 @@ class MDLCompiler:
         # Add the recursive call at the end to continue the loop
         cond_str, _inv = self._build_condition(while_loop.condition)
         loop_body_lines.append(f"execute if {cond_str} run function {self.current_namespace}:{loop_function_name}")
+        # Stop routing temp commands for while-body
+        self._temp_sink_stack.pop()
         
         # Store the loop function as its own file
         self._store_generated_function(loop_function_name, loop_body_lines)
@@ -680,10 +694,20 @@ class MDLCompiler:
             if isinstance(expression.left, BinaryExpression):
                 self._store_temp_command(f"scoreboard players operation @s {temp_var} = @s {left_temp}")
             else:
-                self._store_temp_command(f"scoreboard players set @s {temp_var} {left_value}")
-            
-            if isinstance(expression.right, BinaryExpression):
-                self._store_temp_command(f"scoreboard players add @s {temp_var} {right_value}")
+                # Assign from left value (score or literal)
+                if isinstance(expression.left, VariableSubstitution) or (isinstance(expression.left, str) and str(left_value).startswith("score ")):
+                    parts = str(left_value).split()
+                    scope = parts[1]
+                    obj = parts[2]
+                    self._store_temp_command(f"scoreboard players operation @s {temp_var} = {scope} {obj}")
+                else:
+                    self._store_temp_command(f"scoreboard players set @s {temp_var} {left_value}")
+            # Add right value
+            if isinstance(expression.right, VariableSubstitution) or (isinstance(expression.right, str) and str(right_value).startswith("score ")):
+                parts = str(right_value).split()
+                scope = parts[1]
+                obj = parts[2]
+                self._store_temp_command(f"scoreboard players operation @s {temp_var} += {scope} {obj}")
             else:
                 self._store_temp_command(f"scoreboard players add @s {temp_var} {right_value}")
                 
@@ -691,10 +715,19 @@ class MDLCompiler:
             if isinstance(expression.left, BinaryExpression):
                 self._store_temp_command(f"scoreboard players operation @s {temp_var} = @s {left_temp}")
             else:
-                self._store_temp_command(f"scoreboard players set @s {temp_var} {left_value}")
-            
-            if isinstance(expression.right, BinaryExpression):
-                self._store_temp_command(f"scoreboard players remove @s {temp_var} {right_value}")
+                if isinstance(expression.left, VariableSubstitution) or (isinstance(expression.left, str) and str(left_value).startswith("score ")):
+                    parts = str(left_value).split()
+                    scope = parts[1]
+                    obj = parts[2]
+                    self._store_temp_command(f"scoreboard players operation @s {temp_var} = {scope} {obj}")
+                else:
+                    self._store_temp_command(f"scoreboard players set @s {temp_var} {left_value}")
+            # Subtract right value
+            if isinstance(expression.right, VariableSubstitution) or (isinstance(expression.right, str) and str(right_value).startswith("score ")):
+                parts = str(right_value).split()
+                scope = parts[1]
+                obj = parts[2]
+                self._store_temp_command(f"scoreboard players operation @s {temp_var} -= {scope} {obj}")
             else:
                 self._store_temp_command(f"scoreboard players remove @s {temp_var} {right_value}")
                 
@@ -702,12 +735,18 @@ class MDLCompiler:
             if isinstance(expression.left, BinaryExpression):
                 self._store_temp_command(f"scoreboard players operation @s {temp_var} = @s {left_temp}")
             else:
-                self._store_temp_command(f"scoreboard players set @s {temp_var} {left_value}")
+                if isinstance(expression.left, VariableSubstitution) or (isinstance(expression.left, str) and str(left_value).startswith("score ")):
+                    parts = str(left_value).split()
+                    scope = parts[1]
+                    obj = parts[2]
+                    self._store_temp_command(f"scoreboard players operation @s {temp_var} = {scope} {obj}")
+                else:
+                    self._store_temp_command(f"scoreboard players set @s {temp_var} {left_value}")
             
             if isinstance(expression.right, BinaryExpression):
                 self._store_temp_command(f"scoreboard players operation @s {temp_var} *= @s {right_temp}")
             else:
-                # For literal values, we need to use a different approach
+                # For literal values, keep explicit multiply command for compatibility
                 if isinstance(expression.right, LiteralExpression):
                     self._store_temp_command(f"scoreboard players multiply @s {temp_var} {expression.right.value}")
                 else:
@@ -717,12 +756,18 @@ class MDLCompiler:
             if isinstance(expression.left, BinaryExpression):
                 self._store_temp_command(f"scoreboard players operation @s {temp_var} = @s {left_temp}")
             else:
-                self._store_temp_command(f"scoreboard players set @s {temp_var} {left_value}")
+                if isinstance(expression.left, VariableSubstitution) or (isinstance(expression.left, str) and str(left_value).startswith("score ")):
+                    parts = str(left_value).split()
+                    scope = parts[1]
+                    obj = parts[2]
+                    self._store_temp_command(f"scoreboard players operation @s {temp_var} = {scope} {obj}")
+                else:
+                    self._store_temp_command(f"scoreboard players set @s {temp_var} {left_value}")
             
             if isinstance(expression.right, BinaryExpression):
                 self._store_temp_command(f"scoreboard players operation @s {temp_var} /= @s {right_temp}")
             else:
-                # For literal values, we need to use a different approach
+                # For literal values, keep explicit divide command for compatibility
                 if isinstance(expression.right, LiteralExpression):
                     self._store_temp_command(f"scoreboard players divide @s {temp_var} {expression.right.value}")
                 else:
@@ -732,10 +777,12 @@ class MDLCompiler:
             self._store_temp_command(f"scoreboard players set @s {temp_var} 0")
     
     def _store_temp_command(self, command: str):
-        """Store a temporary command for later execution."""
-        if not hasattr(self, 'temp_commands'):
-            self.temp_commands = []
-        self.temp_commands.append(command)
+        """Append a temporary command into the current output sink (function/if/while body)."""
+        if hasattr(self, '_temp_sink_stack') and self._temp_sink_stack:
+            self._temp_sink_stack[-1].append(command)
+        else:
+            # Fallback: do nothing, but keep behavior predictable
+            pass
     
     def _generate_temp_variable_name(self) -> str:
         """Generate a unique temporary variable name."""

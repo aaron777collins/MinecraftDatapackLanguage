@@ -215,7 +215,8 @@ class TestComprehensiveEndToEnd(TestCase):
             self.assertTrue((output_path_obj / "pack.mcmeta").exists())
             self.assertTrue((output_path_obj / "data").exists())
             self.assertTrue((output_path_obj / "data" / "epic").exists())
-            self.assertTrue((output_path_obj / "data" / "epic" / "functions").exists())
+            # Accept either 'function' or 'functions' dir depending on dir_map
+            self.assertTrue((output_path_obj / "data" / "epic" / "function").exists() or (output_path_obj / "data" / "epic" / "functions").exists())
             self.assertTrue((output_path_obj / "data" / "minecraft" / "tags" / "items").exists())
             
             # Verify pack.mcmeta content
@@ -225,7 +226,9 @@ class TestComprehensiveEndToEnd(TestCase):
                 self.assertEqual(pack_data["pack"]["description"], "An epic adventure datapack with magic and combat")
             
             # Verify function files
-            functions_dir = output_path_obj / "data" / "epic" / "functions"
+            functions_dir = output_path_obj / "data" / "epic" / "function"
+            if not functions_dir.exists():
+                functions_dir = output_path_obj / "data" / "epic" / "functions"
             expected_functions = [
                 "initialize_game.mcfunction",
                 "cast_spell.mcfunction", 

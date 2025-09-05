@@ -68,12 +68,11 @@ def test_complex_expression_temp_operations_present():
     math = (func_dir / 'math.mcfunction').read_text()
     # Assigned from temp
     assert 'scoreboard players operation @s x = @s temp_' in math
-    # Temp ops section includes add/remove/multiply/divide
-    assert '# Temporary variable operations:' in math
-    assert 'scoreboard players add @s temp_' in math
-    assert 'scoreboard players remove @s temp_' in math
-    assert ('scoreboard players multiply @s temp_' in math) or ('*= score @s temp_' in math)
-    assert ('scoreboard players divide @s temp_' in math) or ('/= score @s temp_' in math)
+    # Temp ops are now inlined directly within function bodies
+    assert 'scoreboard players add @s temp_' in math or '+= ' in math
+    assert 'scoreboard players remove @s temp_' in math or '-= ' in math
+    assert ('scoreboard players multiply @s temp_' in math) or ('*= ' in math)
+    assert ('scoreboard players divide @s temp_' in math) or ('/= ' in math)
 
 
 def test_else_branch_written_separately():
