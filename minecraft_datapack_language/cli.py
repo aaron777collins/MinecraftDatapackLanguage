@@ -7,6 +7,7 @@ import argparse
 import sys
 import os
 from pathlib import Path
+import shutil
 from .mdl_lexer import MDLLexer
 from .mdl_parser import MDLParser
 from .mdl_compiler import MDLCompiler
@@ -37,6 +38,7 @@ Examples:
     build_parser.add_argument('-o', '--output', required=True, help='Output directory for the datapack')
     build_parser.add_argument('--verbose', action='store_true', help='Show detailed output')
     build_parser.add_argument('--wrapper', help='Optional wrapper directory name for the datapack output')
+    build_parser.add_argument('--no-zip', action='store_true', help='Do not create a zip archive (zip is created by default)')
     
     # Check command
     check_parser = subparsers.add_parser('check', help='Check MDL files for syntax errors')
@@ -150,6 +152,14 @@ def build_command(args):
             output_dir = output_dir / args.wrapper
         compiler = MDLCompiler()
         output_path = compiler.compile(final_ast, str(output_dir))
+
+        # Zip the datapack by default unless disabled
+        if not getattr(args, 'no_zip', False):
+            base_name = str(Path(output_path))
+            # Create archive next to the output directory (base_name.zip)
+            archive_path = shutil.make_archive(base_name, 'zip', root_dir=str(Path(output_path)))
+            if args.verbose:
+                print(f"Created archive: {archive_path}")
         
         print(f"Successfully built datapack: {output_path}")
         return 0

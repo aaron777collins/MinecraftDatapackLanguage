@@ -59,6 +59,10 @@ class TestCLIBuild:
             assert output_file.exists()
             content = output_file.read_text()
             assert "tellraw @a" in content
+            # Zip should be created by default
+            zip_path = Path(str(temp_dir))
+            # When output is a directory, archive base is that directory; expect temp_dir.zip
+            assert Path(f"{temp_dir}.zip").exists()
     
     def test_build_with_wrapper(self):
         """Test building with wrapper option."""
@@ -224,10 +228,12 @@ class TestCLIComplexFeatures:
             # Build it
             result = subprocess.run([
                 sys.executable, "-m", "minecraft_datapack_language.cli", 
-                "build", "--mdl", str(mdl_file), "-o", str(temp_dir)
+                "build", "--mdl", str(mdl_file), "-o", str(temp_dir), "--no-zip"
             ], capture_output=True, text=True)
             
             assert result.returncode == 0
+            # No zip when --no-zip
+            assert not Path(f"{temp_dir}.zip").exists()
             
             # Check output
             output_file = Path(temp_dir) / "data" / "test" / "function" / "counter.mcfunction"
@@ -374,7 +380,7 @@ class TestCLIIntegration:
             var num game_state<@s> = 0;
             
             function test:init<@s> {
-                game_state = 1;
+                game_state<@s> = 1;
                 say "Game initialized!";
             }
             
@@ -434,12 +440,14 @@ class TestCLIIntegration:
             assert level_up_file.exists()
             assert game_loop_file.exists()
             
-            # Check tags
-            load_tag = Path(temp_dir) / "data" / "minecraft" / "tags" / "functions" / "load.json"
-            tick_tag = Path(temp_dir) / "data" / "minecraft" / "tags" / "functions" / "tick.json"
-            
-            assert load_tag.exists()
-            assert tick_tag.exists()
+            # Check tags (support singular/plural based on pack_format dir_map)
+            load_tag_plural = Path(temp_dir) / "data" / "minecraft" / "tags" / "functions" / "load.json"
+            load_tag_singular = Path(temp_dir) / "data" / "minecraft" / "tags" / "function" / "load.json"
+            tick_tag_plural = Path(temp_dir) / "data" / "minecraft" / "tags" / "functions" / "tick.json"
+            tick_tag_singular = Path(temp_dir) / "data" / "minecraft" / "tags" / "function" / "tick.json"
+
+            assert load_tag_plural.exists() or load_tag_singular.exists()
+            assert tick_tag_plural.exists() or tick_tag_singular.exists()
 
 
 if __name__ == "__main__":

@@ -22,6 +22,8 @@ Build MDL files into Minecraft datapacks:
 
 ```bash
 mdl build --mdl <files> -o <output_dir>
+# Zips by default -> creates <output_dir>.zip
+# Use --no-zip to skip archive creation
 ```
 
 **Examples:**
@@ -148,6 +150,7 @@ my_awesome_pack/
 | `-o <dir>` | Output directory | `-o dist` |
 | `--verbose` | Show detailed output | `--verbose` |
 | `--wrapper <name>` | Custom wrapper name | `--wrapper mypack` |
+| `--no-zip` | Skip creating zip archive (zip is default) | `--no-zip` |
 | `--ignore-warnings` | Suppress warning messages | `--ignore-warnings` |
 
 ### Check Options

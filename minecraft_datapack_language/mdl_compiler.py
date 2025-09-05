@@ -225,10 +225,11 @@ class MDLCompiler:
                     print(f"Tag {tag.tag_type}: {tag.name} -> {tag_file} (placeholder)")
             else:
                 # Write simple values list
-                values = [f"{self.current_namespace}:{tag.name}"]
-                # For item tags, the TagDeclaration.name may include namespace:name; use as-is
-                if ":" in tag.name:
-                    values = [tag.name]
+                # For item tags, the TagDeclaration.name may include namespace:name
+                # The output filename should be the local name (after ':') if present
+                name_for_file = tag.name.split(":", 1)[1] if ":" in tag.name else tag.name
+                tag_file = tag_dir / f"{name_for_file}.json"
+                values = [tag.name if ":" in tag.name else f"{self.current_namespace}:{tag.name}"]
                 tag_data = {"values": values}
                 with open(tag_file, 'w') as f:
                     json.dump(tag_data, f, indent=2)
@@ -249,11 +250,14 @@ class MDLCompiler:
         load_file = functions_dir / "load.mcfunction"
         with open(load_file, 'w') as f:
             f.write(load_content)
-        # Ensure minecraft load tag points to namespace:load when needed
+        # Ensure minecraft load tag points to namespace:load
         tags_fn_dir = self.output_dir / "data" / "minecraft" / self.dir_map.tags_function
         tags_fn_dir.mkdir(parents=True, exist_ok=True)
         load_tag_file = tags_fn_dir / "load.json"
-        values = [f"{self.current_namespace}:load"] if has_on_load else [f"{self.current_namespace}:load"]
+        # If there are explicit on_load hooks, include them; otherwise reference namespace:load
+        values = [f"{self.current_namespace}:load"]
+        if has_on_load:
+            values = [f"{hook.namespace}:{hook.name}" for hook in hooks if hook.hook_type == "on_load"]
         with open(load_tag_file, 'w') as f:
             json.dump({"values": values}, f, indent=2)
         

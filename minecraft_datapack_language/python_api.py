@@ -129,33 +129,108 @@ class Namespace:
         self._functions: List[FunctionDeclaration] = []
         self._hooks: List = []
 
-    def function(self, name: str, *commands_or_builder: Union[str, Callable[["FunctionBuilder"], None]]):
-        builder = FunctionBuilder(self._pack, self, name)
-
-        # If a single callable is given, treat it as a builder lambda
+    def function(self, name: str, *commands_or_builder: Union[str, Callable["FunctionBuilder"], None]):
+        # Case 1: builder callable - use FunctionBuilder API directly
         if len(commands_or_builder) == 1 and callable(commands_or_builder[0]):
+            builder = FunctionBuilder(self._pack, self, name)
             commands_or_builder[0](builder)
-        else:
-            # Interpret simple strings: say "..."; exec ns:name; raw lines fall back to RawBlock
-            for cmd in commands_or_builder:
-                if not isinstance(cmd, str):
-                    continue
-                stripped = cmd.strip().rstrip(";")
-                if stripped.startswith("say "):
-                    msg = stripped[len("say ") :].strip()
-                    if msg.startswith("\"") and msg.endswith("\""):
-                        msg = msg[1:-1]
-                    builder.say(msg)
-                elif stripped.startswith("exec "):
-                    target = stripped[len("exec ") :].strip()
-                    # Optional scope in angle brackets e.g., util:helper<@s>
-                    scope = None
-                    if "<" in target and target.endswith(">"):
-                        scope = target[target.index("<") :]
-                        target = target[: target.index("<")]
-                    builder.exec(target, scope)
-                else:
-                    builder.raw(cmd)
+            func_node = FunctionDeclaration(namespace=self.name, name=name, scope=None, body=builder._body)
+            self._functions.append(func_node)
+            return func_node
+
+        # Case 2: string-based function body - try parsing as MDL source to build real AST
+        body_lines: List[str] = []
+        for cmd in commands_or_builder:
+            if isinstance(cmd, str):
+                body_lines.append(cmd)
+
+        if body_lines:
+            try:
+                from .mdl_parser import MDLParser
+                pack_decl = self._pack._pack
+
+                # Heuristic: attempt MDL parse only if there are control structures or var declarations
+                looks_like_mdl = any(
+                    l.strip().startswith(("var ", "if ", "while ", "on_load", "on_tick")) or
+                    l.strip().endswith("{") or l.strip() == "}" or "$" in l
+                    for l in body_lines
+                )
+                if looks_like_mdl:
+                    normalized: List[str] = []
+                    for line in body_lines:
+                        s = line.strip()
+                        if not s:
+                            continue
+                        if s.startswith("say "):
+                            msg = s[len("say ") :].strip()
+                            if not (msg.startswith('"') and msg.endswith('"')):
+                                msg = f'"{msg}"'
+                            normalized.append(f"say {msg};")
+                        elif s.startswith("exec "):
+                            if not s.endswith(";"):
+                                s = s + ";"
+                            normalized.append(s)
+                        elif s.startswith("var "):
+                            if not s.endswith(";"):
+                                s = s + ";"
+                            normalized.append(s)
+                        elif s.endswith("{") or s == "}" or s.endswith("}"):
+                            normalized.append(s)
+                        else:
+                            # Heuristic: detect assignment like name<scope> = expr
+                            try:
+                                import re as _re
+                                if _re.match(r'^[A-Za-z_][A-Za-z0-9_]*(<[^>]+>)?\s*=\s*', s):
+                                    if not s.endswith(";"):
+                                        s = s + ";"
+                                    normalized.append(s)
+                                else:
+                                    # Unknown command; wrap as single-line raw so parser accepts it
+                                    normalized.append(f"$!raw {s} raw!$")
+                            except Exception:
+                                normalized.append(f"$!raw {s} raw!$")
+
+                    src_lines = [
+                        f'pack "{pack_decl.name}" "{pack_decl.description}" {pack_decl.pack_format};',
+                        f'namespace "{self.name}";',
+                        f'function {self.name}:{name} {{'
+                    ]
+                    src_lines.extend(normalized)
+                    src_lines.append('}')
+                    source = "\n".join(src_lines)
+                    parser = MDLParser("<python_api>")
+                    ast = parser.parse(source)
+                    if ast.variables:
+                        self._pack._variables.extend(ast.variables)
+                    if ast.tags:
+                        self._pack._tags.extend(ast.tags)
+                    if ast.hooks:
+                        self._pack._hooks.extend([(h.hook_type, f"{h.namespace}:{h.name}", h.scope) for h in ast.hooks])
+                    if ast.functions:
+                        fn = ast.functions[0]
+                        self._functions.append(fn)
+                        return fn
+            except Exception:
+                pass
+
+        # Fallback: interpret simple strings
+        builder = FunctionBuilder(self._pack, self, name)
+        for cmd in body_lines:
+            stripped = cmd.strip().rstrip(";")
+            if stripped.startswith("say "):
+                msg = stripped[len("say ") :].strip()
+                if msg.startswith('"') and msg.endswith('"'):
+                    msg = msg[1:-1]
+                builder.say(msg)
+            elif stripped.startswith("exec "):
+                target = stripped[len("exec ") :].strip()
+                scope = None
+                if "<" in target and target.endswith(">"):
+                    scope = target[target.index("<") :]
+                    target = target[: target.index("<")]
+                builder.exec(target, scope)
+            else:
+                builder.raw(cmd)
 
         func_node = FunctionDeclaration(namespace=self.name, name=name, scope=None, body=builder._body)
         self._functions.append(func_node)
