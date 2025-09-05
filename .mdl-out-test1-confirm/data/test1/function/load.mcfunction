@@ -3,5 +3,6 @@
 
 scoreboard objectives add counter dummy "counter"
 scoreboard objectives add global_timer dummy "global_timer"
+scoreboard objectives add testfunccount1 dummy "testfunccount1"
 
 function test1:load1

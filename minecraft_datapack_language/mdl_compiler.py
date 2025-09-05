@@ -240,6 +240,8 @@ class MDLCompiler:
             functions_dir = namespace_dir / self.dir_map.function
         else:
             functions_dir = namespace_dir / "functions"
+        # Ensure functions dir exists
+        functions_dir.mkdir(parents=True, exist_ok=True)
         
         # Always create load function to initialize objectives; add tag only if on_load hooks exist
         has_on_load = any(h.hook_type == "on_load" for h in hooks)
@@ -330,6 +332,9 @@ class MDLCompiler:
     
     def _variable_assignment_to_command(self, assignment: VariableAssignment) -> str:
         """Convert variable assignment to scoreboard command."""
+        # Auto-declare objective on first use
+        if assignment.name not in self.variables:
+            self.variables[assignment.name] = assignment.name
         objective = self.variables.get(assignment.name, assignment.name)
         scope = assignment.scope.strip("<>")
         
