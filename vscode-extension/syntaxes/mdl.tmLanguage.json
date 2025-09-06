@@ -166,18 +166,27 @@
     },
     {
       "name": "function.call.mdl",
-      "begin": "\\b(exec)\\s+([a-zA-Z_][a-zA-Z0-9_]*):([a-zA-Z_][a-zA-Z0-9_]*)\\s*(<)",
-      "end": "(>)",
+      "begin": "\\b(exec)\\s+([a-zA-Z_][a-zA-Z0-9_]*)[:]([a-zA-Z_][a-zA-Z0-9_]*)",
+      "end": ";",
       "beginCaptures": {
         "1": { "name": "keyword.control.mdl" },
         "2": { "name": "entity.name.namespace.mdl" },
-        "3": { "name": "entity.name.function.mdl" },
-        "4": { "name": "punctuation.angle.brackets.mdl" }
-      },
-      "endCaptures": {
-        "1": { "name": "punctuation.angle.brackets.mdl" }
+        "3": { "name": "entity.name.function.mdl" }
       },
       "patterns": [
+        {
+          "name": "punctuation.angle.brackets.mdl",
+          "begin": "<",
+          "end": ">"
+        },
+        {
+          "name": "storage.with.keyword.mdl",
+          "match": "\\bwith\\b"
+        },
+        {
+          "name": "string.quoted.double.mdl",
+          "match": "\"([^\"\\]|\\.)*\""
+        },
         {
           "name": "entity.name.selector.mdl",
           "match": "(@p|@r|@a|@e|@s|@initiator|@c|@v|@d|@w)"

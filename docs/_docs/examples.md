@@ -86,6 +86,30 @@ function raw:custom<@s> {
 on_load raw:custom<@s>;
 ```
 
+## Function Macros
+
+Demonstrates macro lines and passing arguments:
+
+```mdl
+pack "macros" "Function macro example" 82;
+namespace "macros";
+
+function macros:greet<@s> {
+    // Macro line with placeholders
+    $ say Hello $(name) x$(count);
+}
+
+function macros:main<@s> {
+    // Pass JSON compound (quoted in MDL)
+    exec macros:greet<@s> "{name:\"Alex\",count:2}";
+
+    // Or use data source with 'with'
+    exec macros:greet<@s> with storage my:data player.greeting;
+}
+
+on_load macros:main<@s>;
+```
+
 ## Complete Game Example
 
 A complete game with scoring, levels, and timers:
