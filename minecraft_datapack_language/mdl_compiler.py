@@ -369,8 +369,16 @@ class MDLCompiler:
             # Return the command to set the target variable from the temp
             return f"scoreboard players operation {scope} {objective} = @s {temp_var}"
         else:
-            # Simple value - use direct assignment
+            # Simple value - use direct assignment or scoreboard copy
             value = self._expression_to_value(assignment.value)
+            # If RHS resolves to a scoreboard reference (e.g., 'score @s some_obj'),
+            # emit an operation copy instead of an invalid 'set ... score ...'
+            if isinstance(value, str) and value.startswith("score "):
+                parts = value.split()
+                if len(parts) >= 3:
+                    src_scope = parts[1]
+                    src_objective = parts[2]
+                    return f"scoreboard players operation {scope} {objective} = {src_scope} {src_objective}"
             return f"scoreboard players set {scope} {objective} {value}"
 
     def _variable_declaration_to_command(self, decl: VariableDeclaration) -> str:
@@ -388,6 +396,13 @@ class MDLCompiler:
         except Exception:
             init = None
         if init is not None:
+            # Initialize from another scoreboard using operation copy
+            if isinstance(init, str) and init.startswith("score "):
+                parts = init.split()
+                if len(parts) >= 3:
+                    src_scope = parts[1]
+                    src_objective = parts[2]
+                    return f"scoreboard players operation {scope} {objective} = {src_scope} {src_objective}"
             return f"scoreboard players set {scope} {objective} {init}"
         return f"# var {decl.name} declared"
     
@@ -772,7 +787,7 @@ class MDLCompiler:
                 self._store_temp_command(f"scoreboard players operation @s {temp_var} = @s {left_temp}")
             else:
                 # Assign from left value (score or literal)
-                if isinstance(expression.left, VariableSubstitution) or (isinstance(expression.left, str) and str(left_value).startswith("score ")):
+                if isinstance(expression.left, VariableSubstitution) or (isinstance(left_value, str) and left_value.startswith("score ")):
                     parts = str(left_value).split()
                     scope = parts[1]
                     obj = parts[2]
@@ -780,7 +795,7 @@ class MDLCompiler:
                 else:
                     self._store_temp_command(f"scoreboard players set @s {temp_var} {left_value}")
             # Add right value
-            if isinstance(expression.right, VariableSubstitution) or (isinstance(expression.right, str) and str(right_value).startswith("score ")):
+            if isinstance(expression.right, VariableSubstitution) or (isinstance(right_value, str) and right_value.startswith("score ")):
                 parts = str(right_value).split()
                 scope = parts[1]
                 obj = parts[2]
@@ -792,7 +807,7 @@ class MDLCompiler:
             if isinstance(expression.left, BinaryExpression):
                 self._store_temp_command(f"scoreboard players operation @s {temp_var} = @s {left_temp}")
             else:
-                if isinstance(expression.left, VariableSubstitution) or (isinstance(expression.left, str) and str(left_value).startswith("score ")):
+                if isinstance(expression.left, VariableSubstitution) or (isinstance(left_value, str) and left_value.startswith("score ")):
                     parts = str(left_value).split()
                     scope = parts[1]
                     obj = parts[2]
@@ -800,7 +815,7 @@ class MDLCompiler:
                 else:
                     self._store_temp_command(f"scoreboard players set @s {temp_var} {left_value}")
             # Subtract right value
-            if isinstance(expression.right, VariableSubstitution) or (isinstance(expression.right, str) and str(right_value).startswith("score ")):
+            if isinstance(expression.right, VariableSubstitution) or (isinstance(right_value, str) and right_value.startswith("score ")):
                 parts = str(right_value).split()
                 scope = parts[1]
                 obj = parts[2]
@@ -812,7 +827,7 @@ class MDLCompiler:
             if isinstance(expression.left, BinaryExpression):
                 self._store_temp_command(f"scoreboard players operation @s {temp_var} = @s {left_temp}")
             else:
-                if isinstance(expression.left, VariableSubstitution) or (isinstance(expression.left, str) and str(left_value).startswith("score ")):
+                if isinstance(expression.left, VariableSubstitution) or (isinstance(left_value, str) and left_value.startswith("score ")):
                     parts = str(left_value).split()
                     scope = parts[1]
                     obj = parts[2]
@@ -825,15 +840,27 @@ class MDLCompiler:
             else:
                 # For literal values, keep explicit multiply command for compatibility
                 if isinstance(expression.right, LiteralExpression):
-                    self._store_temp_command(f"scoreboard players multiply @s {temp_var} {expression.right.value}")
+                    # Normalize number formatting (e.g., 2.0 -> 2)
+                    literal_str = self._expression_to_value(expression.right)
+                    self._store_temp_command(f"scoreboard players multiply @s {temp_var} {literal_str}")
                 else:
-                    self._store_temp_command(f"scoreboard players operation @s {temp_var} *= {right_value}")
+                    # If right_value is a score reference string, strip the leading 'score '
+                    if isinstance(right_value, str) and right_value.startswith("score "):
+                        parts = right_value.split()
+                        if len(parts) >= 3:
+                            scope = parts[1]
+                            obj = parts[2]
+                            self._store_temp_command(f"scoreboard players operation @s {temp_var} *= {scope} {obj}")
+                        else:
+                            self._store_temp_command(f"scoreboard players operation @s {temp_var} *= {right_value}")
+                    else:
+                        self._store_temp_command(f"scoreboard players operation @s {temp_var} *= {right_value}")
                 
         elif expression.operator == "DIVIDE":
             if isinstance(expression.left, BinaryExpression):
                 self._store_temp_command(f"scoreboard players operation @s {temp_var} = @s {left_temp}")
             else:
-                if isinstance(expression.left, VariableSubstitution) or (isinstance(expression.left, str) and str(left_value).startswith("score ")):
+                if isinstance(expression.left, VariableSubstitution) or (isinstance(left_value, str) and left_value.startswith("score ")):
                     parts = str(left_value).split()
                     scope = parts[1]
                     obj = parts[2]
@@ -846,9 +873,21 @@ class MDLCompiler:
             else:
                 # For literal values, keep explicit divide command for compatibility
                 if isinstance(expression.right, LiteralExpression):
-                    self._store_temp_command(f"scoreboard players divide @s {temp_var} {expression.right.value}")
+                    # Normalize number formatting (e.g., 2.0 -> 2)
+                    literal_str = self._expression_to_value(expression.right)
+                    self._store_temp_command(f"scoreboard players divide @s {temp_var} {literal_str}")
                 else:
-                    self._store_temp_command(f"scoreboard players operation @s {temp_var} /= {right_value}")
+                    # If right_value is a score reference string, strip the leading 'score '
+                    if isinstance(right_value, str) and right_value.startswith("score "):
+                        parts = right_value.split()
+                        if len(parts) >= 3:
+                            scope = parts[1]
+                            obj = parts[2]
+                            self._store_temp_command(f"scoreboard players operation @s {temp_var} /= {scope} {obj}")
+                        else:
+                            self._store_temp_command(f"scoreboard players operation @s {temp_var} /= {right_value}")
+                    else:
+                        self._store_temp_command(f"scoreboard players operation @s {temp_var} /= {right_value}")
         else:
             # For other operators, just set the value
             self._store_temp_command(f"scoreboard players set @s {temp_var} 0")

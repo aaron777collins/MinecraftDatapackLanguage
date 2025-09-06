@@ -48,7 +48,8 @@ function test:complex_math<@s> {
         print(f"Generated content:\n{content}")
         
         # Verify it contains valid Minecraft commands
-        assert "scoreboard players set @s temp_" in content, "Should generate temporary variables"
+        # Temp variables may be assigned via set or operation depending on operands
+        assert ("scoreboard players set @s temp_" in content) or ("scoreboard players operation @s temp_" in content), "Should generate temporary variable assignment"
         # Add operations may use "+=" with another score; accept either form
         assert ("scoreboard players add @s temp_" in content) or ("+= @s" in content), "Should generate add operations"
         assert "scoreboard players operation @s temp_" in content, "Should generate scoreboard operations"
@@ -177,10 +178,11 @@ function test:scope_test<@s> {
         print(f"Generated content:\n{content}")
         
         # Verify scope handling
-        assert "scoreboard players set @a global_score" in content, "Should handle @a scope"
+        # Copy from another score should use operation, not set with 'score ...'
+        assert "scoreboard players operation @a global_score = @s player_score" in content, "Should copy @s->@a via operation"
         # Assignment to player_score uses temp operation then operation set; accept operation form
         assert ("scoreboard players set @s player_score" in content) or ("scoreboard players operation @s player_score =" in content), "Should handle @s scope"
-        assert "score @s player_score" in content, "Should read from @s scope"
+        assert "@s player_score" in content, "Should reference @s player_score somewhere"
         # Read from @a appears in temp operations; accept either explicit read or operation form
         assert ("score @a global_score" in content) or ("= @a global_score" in content)
         
