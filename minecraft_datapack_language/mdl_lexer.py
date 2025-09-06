@@ -175,9 +175,9 @@ class MDLLexer:
             self._scan_multi_line_comment()
             return
         
-        # Handle strings (quotes)
-        if char == '"':
-            self._scan_string()
+        # Handle strings (double or single quotes)
+        if char == '"' or char == '\'':
+            self._scan_string(char)
             return
         
         # Handle raw block markers
@@ -280,8 +280,8 @@ class MDLLexer:
         # Unterminated comment
         self._error("Unterminated multi-line comment", "Add */ to close the comment")
     
-    def _scan_string(self):
-        """Scan a string literal (quoted text)."""
+    def _scan_string(self, quote_char: str):
+        """Scan a string literal (quoted text) using the given quote character."""
         # Skip opening quote
         self.current += 1
         self.column += 1
@@ -289,9 +289,9 @@ class MDLLexer:
         start_line = self.line
         start_column = self.column
         
-        # Scan until closing quote
+        # Scan until matching closing quote
         while (self.current < len(self.source) and 
-               self.source[self.current] != '"'):
+               self.source[self.current] != quote_char):
             if self.source[self.current] == '\n':
                 self._error("Unterminated string literal", "Add a closing quote")
             
@@ -311,14 +311,14 @@ class MDLLexer:
         self.column += 1
         
         # Generate QUOTE token for the opening quote
-        self.tokens.append(Token(TokenType.QUOTE, '"', start_line, start_column))
+        self.tokens.append(Token(TokenType.QUOTE, quote_char, start_line, start_column))
         
         # Generate IDENTIFIER token for the string content
         string_content = self.source[self.start + 1:self.current - 1]
         self.tokens.append(Token(TokenType.IDENTIFIER, string_content, start_line, start_column + 1))
         
         # Generate QUOTE token for the closing quote
-        self.tokens.append(Token(TokenType.QUOTE, '"', self.line, self.column - 1))
+        self.tokens.append(Token(TokenType.QUOTE, quote_char, self.line, self.column - 1))
     
     def _scan_raw_block_start(self):
         """Scan the start of a raw block ($!raw)."""

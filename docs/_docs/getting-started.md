@@ -96,8 +96,8 @@ function hello:greet<@s> {
     $ say Hello $(name)!
 }
 
-// Pass arguments via JSON compound (quoted in MDL)
-exec hello:greet<@s> "{name:\"Alex\"}";
+// Pass arguments via JSON compound (quoted in MDL). Single quotes recommended:
+exec hello:greet<@s> '{name:"Alex"}';
 
 // Or via data source with 'with'
 exec hello:greet<@s> with storage my:data player.name;

@@ -156,7 +156,7 @@ function test:greet<@s> {
 }
 
 function test:main<@s> {
-    exec test:greet<@s> "{name:\"Alex\",count:2}";
+    exec test:greet<@s> '{name:"Alex",count:2}';
     exec test:greet<@s> with storage my:data player.info;
 }
 """
@@ -174,8 +174,8 @@ function test:main<@s> {
         main = main_file.read_text()
         # Macro line emitted verbatim
         assert "$ say Hello $(name) x$(count);" in greet
-        # Compound emitted unquoted and with scope prefix
-        assert "execute as @s run function test:greet {name:\"Alex\",count:2}" in main
+        # Compound emitted unquoted (single-quoted input allowed by lexer) and with scope prefix
+        assert "execute as @s run function test:greet {name:\"Alex\",count:2}" in main or "execute as @s run function test:greet {name:\"Alex\",count:2}" in main
         # With-clause preserved
         assert "execute as @s run function test:greet with storage my:data player.info" in main
     print("✅ Function macros and arguments test passed!")

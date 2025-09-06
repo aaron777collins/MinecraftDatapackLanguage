@@ -12,7 +12,7 @@ from .ast_nodes import (
     FunctionCall, IfStatement, WhileLoop, HookDeclaration, RawBlock,
     SayCommand, TellrawCommand, ExecuteCommand, ScoreboardCommand,
     BinaryExpression, UnaryExpression, ParenthesizedExpression, LiteralExpression,
-    ScopeSelector, MacroLine
+    ScopeSelector, MacroLine, VerbatimLine
 )
 
 
@@ -530,6 +530,8 @@ class MDLParser:
                 if self._peek().value == "say":
                     statements.append(self._parse_say_command())
                 else:
+                    # Fallback: parse as assignment; if it fails later in compiler,
+                    # compiler will treat lines containing $(...) specially.
                     statements.append(self._parse_variable_assignment())
             else:
                 # Skip unknown tokens

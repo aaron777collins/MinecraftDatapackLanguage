@@ -13,7 +13,7 @@ from .ast_nodes import (
     VariableDeclaration, VariableAssignment, VariableSubstitution, FunctionDeclaration,
     FunctionCall, IfStatement, WhileLoop, HookDeclaration, RawBlock,
     SayCommand, BinaryExpression, LiteralExpression, ParenthesizedExpression,
-    MacroLine
+    MacroLine, VerbatimLine
 )
 from .dir_map import get_dir_map, DirMap
 from .mdl_errors import MDLCompilerError
@@ -167,7 +167,7 @@ class MDLCompiler:
         for statement in func.body:
             cmd = self._statement_to_command(statement)
             if cmd:
-                lines.append(cmd)
+                lines.append(self._maybe_promote_to_macro(cmd))
         # Done routing temp commands for this function body
         self._temp_sink_stack.pop()
         
@@ -334,6 +334,8 @@ class MDLCompiler:
             return self._function_call_to_command(statement)
         elif isinstance(statement, MacroLine):
             # Emit macro line verbatim; runtime substitution handled by Minecraft
+            return statement.content
+        elif isinstance(statement, VerbatimLine):
             return statement.content
         else:
             return None
@@ -632,6 +634,20 @@ class MDLCompiler:
         if func_call.with_clause:
             return f"{prefix}{target} with {func_call.with_clause}"
         return f"{prefix}{target}"
+
+    def _maybe_promote_to_macro(self, line: str) -> str:
+        """If a compiled line contains $(var) placeholder, prefix with '$ ' to mark as macro.
+        This lets authors simply use $(var) in MDL and provide JSON at call time.
+        """
+        try:
+            if "$(" in line and ")" in line:
+                # Avoid double-prefixing if already a macro or comment
+                stripped = line.lstrip()
+                if not stripped.startswith("$") and not stripped.startswith("#"):
+                    return "$ " + line
+        except Exception:
+            pass
+        return line
     
     def _expression_to_value(self, expression: Any) -> str:
         """Convert expression to a value string."""

@@ -117,6 +117,12 @@ class MacroLine(ASTNode):
 
 
 @dataclass
+class VerbatimLine(ASTNode):
+    """A verbatim command line that MDL should emit as-is (sans semicolon)."""
+    content: str
+
+
+@dataclass
 class SayCommand(ASTNode):
     """Say command that auto-converts to tellraw."""
     message: str

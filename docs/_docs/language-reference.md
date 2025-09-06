@@ -145,11 +145,11 @@ function game:say_hello<@s> {
 }
 ```
 
-2) Call a function with a data compound (quoted in MDL, unquoted in generated mcfunction):
+2) Call a function with a data compound (quoted in MDL, unquoted in generated mcfunction). You can use single quotes to avoid escaping:
 
 ```mdl
-// MDL source (quotes are required around the JSON to parse as one token)
-exec game:say_hello<@s> "{name:\"Alex\",times:3}";
+// MDL source (quotes are required; single quotes recommended to reduce escaping)
+exec game:say_hello<@s> '{name:"Alex",times:3}';
 
 // Generated mcfunction
 // execute as @s run function game:say_hello {name:"Alex",times:3}
