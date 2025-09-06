@@ -1,6 +1,6 @@
 {
   "pack": {
-    "pack_format": 82,
-    "description": "Test pack"
+    "pack_format": 15,
+    "description": "A simple hello world datapack"
   }
 }

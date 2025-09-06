@@ -74,6 +74,7 @@ class FunctionCall(ASTNode):
     namespace: str
     name: str
     scope: Optional[str]  # Optional scope for the function call
+    args: Optional[List[Any]] = None
 
 
 @dataclass
@@ -110,7 +111,7 @@ class RawBlock(ASTNode):
 class SayCommand(ASTNode):
     """Say command that auto-converts to tellraw."""
     message: str
-    variables: List[VariableSubstitution]  # Variables to substitute
+    variables: List[Any]  # VariableSubstitution or MacroParameterRef
 
 
 @dataclass
@@ -177,3 +178,22 @@ class Program(ASTNode):
     functions: List[FunctionDeclaration]
     hooks: List[HookDeclaration]
     statements: List[ASTNode]  # Top-level statements
+    macros: List['MacroDeclaration']
+
+
+# --- Macro support ---
+
+@dataclass
+class MacroDeclaration(ASTNode):
+    """Macro declaration that supports compile-time parameters and expansion."""
+    namespace: str
+    name: str
+    params: List[str]
+    body: List[ASTNode]
+
+
+@dataclass
+class MacroParameterRef(ASTNode):
+    """Reference to a macro parameter like $param$ (no scope)."""
+    name: str
+

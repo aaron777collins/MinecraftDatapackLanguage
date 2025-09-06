@@ -36,6 +36,7 @@ class TokenType:
     ON_LOAD = "ON_LOAD"
     ON_TICK = "ON_TICK"
     EXEC = "EXEC"
+    MACRO = "MACRO"
     TAG = "TAG"
     
     # Tag Types (Resource Categories)
@@ -574,6 +575,7 @@ class MDLLexer:
             'on_load': TokenType.ON_LOAD,
             'on_tick': TokenType.ON_TICK,
             'exec': TokenType.EXEC,
+            'macro': TokenType.MACRO,
             'tag': TokenType.TAG,
             
             # Tag types
