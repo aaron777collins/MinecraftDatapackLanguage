@@ -79,6 +79,7 @@ class TokenType:
     QUOTE = "QUOTE"                  # " (string literal delimiter)
     EXCLAMATION = "EXCLAMATION"      # ! (for raw blocks)
     RANGE = "RANGE"                  # .. (range operator)
+    DOT = "DOT"                      # . (for paths in with-clause)
     
     # Literals
     IDENTIFIER = "IDENTIFIER"        # Variable names, function names, etc.
@@ -89,6 +90,7 @@ class TokenType:
     EOF = "EOF"
     COMMENT = "COMMENT"              # Comments (ignored during parsing)
     RAW_CONTENT = "RAW_CONTENT"      # Raw content inside raw blocks
+    MACRO_LINE = "MACRO_LINE"        # Entire macro line starting with '$' at line-begin
 
 
 class MDLLexer:
@@ -167,9 +169,9 @@ class MDLLexer:
             self._scan_multi_line_comment()
             return
         
-        # Handle strings (quotes)
-        if char == '"':
-            self._scan_string()
+        # Handle strings (quotes) - support both ' and "
+        if char == '"' or char == "'":
+            self._scan_string(quote_char=char)
             return
         
         # Handle raw block markers
@@ -180,6 +182,11 @@ class MDLLexer:
         
 
         
+        # Handle macro line: '$' as first non-space on the line (not $!raw)
+        if char == '$' and self._is_line_start_nonspace():
+            self._scan_macro_line()
+            return
+
         # Handle variable substitution
         if char == '$':
             self._scan_variable_substitution()
@@ -264,7 +271,7 @@ class MDLLexer:
         # Unterminated comment
         self._error("Unterminated multi-line comment", "Add */ to close the comment")
     
-    def _scan_string(self):
+    def _scan_string(self, quote_char='"'):
         """Scan a string literal (quoted text)."""
         # Skip opening quote
         self.current += 1
@@ -275,7 +282,7 @@ class MDLLexer:
         
         # Scan until closing quote
         while (self.current < len(self.source) and 
-               self.source[self.current] != '"'):
+               self.source[self.current] != quote_char):
             if self.source[self.current] == '\n':
                 self._error("Unterminated string literal", "Add a closing quote")
             
@@ -295,14 +302,34 @@ class MDLLexer:
         self.column += 1
         
         # Generate QUOTE token for the opening quote
-        self.tokens.append(Token(TokenType.QUOTE, '"', start_line, start_column))
+        self.tokens.append(Token(TokenType.QUOTE, quote_char, start_line, start_column))
         
         # Generate IDENTIFIER token for the string content
         string_content = self.source[self.start + 1:self.current - 1]
         self.tokens.append(Token(TokenType.IDENTIFIER, string_content, start_line, start_column + 1))
         
         # Generate QUOTE token for the closing quote
-        self.tokens.append(Token(TokenType.QUOTE, '"', self.line, self.column - 1))
+        self.tokens.append(Token(TokenType.QUOTE, quote_char, self.line, self.column - 1))
+
+    def _is_line_start_nonspace(self) -> bool:
+        """Return True if current position is at the first non-space character in the line."""
+        # Find beginning of current line
+        idx = self.current - 1
+        while idx >= 0 and self.source[idx] != '\n':
+            if not self.source[idx].isspace():
+                return False
+            idx -= 1
+        return True
+
+    def _scan_macro_line(self):
+        """Scan a full macro line starting with '$' as first non-space char."""
+        # Capture from current to end of line (excluding trailing newline)
+        line_start = self.current
+        while self.current < len(self.source) and self.source[self.current] != '\n':
+            self.current += 1
+            self.column += 1
+        content = self.source[line_start:self.current]
+        self.tokens.append(Token(TokenType.MACRO_LINE, content, self.line, 1))
     
     def _scan_raw_block_start(self):
         """Scan the start of a raw block ($!raw)."""
@@ -548,7 +575,8 @@ class MDLLexer:
             '{': TokenType.LBRACE,
             '}': TokenType.RBRACE,
             '[': TokenType.LBRACKET,
-            ']': TokenType.RBRACKET
+            ']': TokenType.RBRACKET,
+            '.': TokenType.DOT
         }
         
         if char in token_map:

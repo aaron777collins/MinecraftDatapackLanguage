@@ -11,7 +11,7 @@ from typing import Dict, List, Any, Optional
 from .ast_nodes import (
     Program, PackDeclaration, NamespaceDeclaration, TagDeclaration,
     VariableDeclaration, VariableAssignment, VariableSubstitution, FunctionDeclaration,
-    FunctionCall, IfStatement, WhileLoop, HookDeclaration, RawBlock,
+    FunctionCall, IfStatement, WhileLoop, HookDeclaration, RawBlock, MacroLine,
     SayCommand, BinaryExpression, LiteralExpression, ParenthesizedExpression
 )
 from .dir_map import get_dir_map, DirMap
@@ -325,6 +325,8 @@ class MDLCompiler:
             return self._say_command_to_command(statement)
         elif isinstance(statement, RawBlock):
             return statement.content
+        elif isinstance(statement, MacroLine):
+            return statement.content
         elif isinstance(statement, IfStatement):
             return self._if_statement_to_command(statement)
         elif isinstance(statement, WhileLoop):
@@ -616,10 +618,17 @@ class MDLCompiler:
     
     def _function_call_to_command(self, func_call: FunctionCall) -> str:
         """Convert function call to execute command."""
+        # Build base function invocation, possibly with macro args
+        suffix = ""
+        if func_call.macro_json:
+            suffix = f" {func_call.macro_json}"
+        elif func_call.with_clause:
+            suffix = f" with {func_call.with_clause}"
+
+        base = f"function {func_call.namespace}:{func_call.name}{suffix}"
         if func_call.scope:
-            return f"execute as {func_call.scope.strip('<>')} run function {func_call.namespace}:{func_call.name}"
-        else:
-            return f"function {func_call.namespace}:{func_call.name}"
+            return f"execute as {func_call.scope.strip('<>')} run {base}"
+        return base
     
     def _expression_to_value(self, expression: Any) -> str:
         """Convert expression to a value string."""

@@ -9,7 +9,7 @@ from .mdl_errors import MDLParserError
 from .ast_nodes import (
     ASTNode, Program, PackDeclaration, NamespaceDeclaration, TagDeclaration,
     VariableDeclaration, VariableAssignment, VariableSubstitution, FunctionDeclaration,
-    FunctionCall, IfStatement, WhileLoop, HookDeclaration, RawBlock,
+    FunctionCall, IfStatement, WhileLoop, HookDeclaration, RawBlock, MacroLine,
     SayCommand, TellrawCommand, ExecuteCommand, ScoreboardCommand,
     BinaryExpression, UnaryExpression, ParenthesizedExpression, LiteralExpression,
     ScopeSelector
@@ -257,7 +257,7 @@ class MDLParser:
         )
     
     def _parse_function_call(self) -> FunctionCall:
-        """Parse function call: exec namespace:name<scope>;"""
+        """Parse function call: exec namespace:name<scope>? [ '{json}' | with <data source> [path] ] ;"""
         self._expect(TokenType.EXEC, "Expected 'exec' keyword")
         
         # Parse namespace:name
@@ -269,13 +269,41 @@ class MDLParser:
         scope = None
         if self._peek().type == TokenType.LANGLE:
             scope = self._parse_scope_selector()
-        
+
+        # Optional macro arguments (inline JSON in a quoted string)
+        macro_json = None
+        with_clause = None
+        if self._peek().type == TokenType.QUOTE:
+            self._advance()  # opening quote
+            if self._peek().type == TokenType.IDENTIFIER:
+                macro_json = self._peek().value
+                self._advance()
+            self._expect(TokenType.QUOTE, "Expected closing quote for macro JSON")
+        elif self._peek().type == TokenType.IDENTIFIER and self._peek().value == 'with':
+            # Capture everything after 'with' up to the semicolon as raw clause
+            self._advance()  # consume 'with'
+            # Expect a data source spec like: storage <identifier> <path-with-dots>
+            # Accumulate tokens until semicolon, inserting spaces only between identifiers/numbers
+            built: List[str] = []
+            prev_type = None
+            while not self._is_at_end() and self._peek().type != TokenType.SEMICOLON:
+                t = self._advance()
+                # Insert a space between adjacent identifiers/numbers
+                if built and (prev_type in (TokenType.IDENTIFIER, TokenType.NUMBER, TokenType.RBRACE, TokenType.RBRACKET)
+                              and t.type in (TokenType.IDENTIFIER, TokenType.NUMBER)):
+                    built.append(" ")
+                built.append(t.value)
+                prev_type = t.type
+            with_clause = "".join(built).strip()
+
         self._expect(TokenType.SEMICOLON, "Expected semicolon after function call")
         
         return FunctionCall(
             namespace=namespace,
             name=name,
-            scope=scope
+            scope=scope,
+            macro_json=macro_json,
+            with_clause=with_clause
         )
     
     def _parse_if_statement(self) -> IfStatement:
@@ -498,6 +526,10 @@ class MDLParser:
                 statements.append(self._parse_while_loop())
             elif self._peek().type == TokenType.EXEC:
                 statements.append(self._parse_function_call())
+            elif self._peek().type == TokenType.MACRO_LINE:
+                # Preserve macro line exactly as-is
+                statements.append(MacroLine(content=self._peek().value))
+                self._advance()
             elif self._peek().type == TokenType.DOLLAR and self._peek(1).type == TokenType.EXCLAMATION:
                 statements.append(self._parse_raw_block())
             elif self._peek().type == TokenType.IDENTIFIER:

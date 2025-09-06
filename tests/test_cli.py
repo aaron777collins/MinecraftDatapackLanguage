@@ -292,6 +292,9 @@ class TestCLIComplexFeatures:
             function test:main<@s> {
                 exec test:helper;
                 exec test:helper<@s>;
+                // Macro calls (inline JSON and with-clause)
+                exec test:helper '{foo:"bar"}';
+                exec test:helper with storage test:ctx args;
             }
             ''')
             

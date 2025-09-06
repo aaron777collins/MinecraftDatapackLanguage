@@ -74,6 +74,9 @@ class FunctionCall(ASTNode):
     namespace: str
     name: str
     scope: Optional[str]  # Optional scope for the function call
+    # Macro invocation support (Minecraft function macros)
+    macro_json: Optional[str] = None  # Inline compound JSON string (including braces)
+    with_clause: Optional[str] = None  # Raw "with <data source> [path]" clause (without leading 'with')
 
 
 @dataclass
@@ -130,6 +133,12 @@ class ExecuteCommand(ASTNode):
 class ScoreboardCommand(ASTNode):
     """Scoreboard command."""
     command: str
+
+
+@dataclass
+class MacroLine(ASTNode):
+    """A raw macro line for mcfunction starting with '$' and containing $(vars)."""
+    content: str
 
 
 # Expression nodes

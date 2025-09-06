@@ -1,0 +1,20 @@
+// MDL Macros Example - macro lines and exec macro arguments
+pack "macros_example" "Function macro demo" 82;
+namespace "macros_ex";
+
+function macros_ex:greeter {
+    $say "Hello $(name)"
+    say "Greeting complete.";
+}
+
+function macros_ex:runner {
+    // Inline JSON compound (prefer single quotes around the JSON)
+    exec macros_ex:greeter '{name:"Casey"}';
+
+    // With-clause using a storage data source
+    exec macros_ex:greeter with storage macros_ex:ctx player.profile;
+}
+
+on_load macros_ex:runner;
+
+

@@ -131,6 +131,12 @@ exec game:start_game;                            // Execute any function
 exec utils:calculator;                           // Execute from different namespace
 exec game:reset_player<@s>;                      // Execute function with scope
 exec game:reset_player<@a>;                      // Execute function with different scope
+
+// Function Macros (Minecraft snapshot): pass macro arguments
+// Inline JSON compound as a single-quoted string to minimize escapes
+exec game:spawn_mob '{id:"minecraft:cow",name:"Betsy"}';
+// With-clause to pull a compound from a data source
+exec game:spawn_mob with storage mymod:ctx path.to.compound;
 ```
 
 ### Control Structures
@@ -198,6 +204,14 @@ $!raw
 execute as @a[team=red] at @s run particle minecraft:explosion ~ ~ ~ 1 1 1 0 10
 execute as @a[team=blue] at @s run playsound minecraft:entity.player.levelup player @s ~ ~ ~ 1 1
 raw!$
+```
+
+### Macro Lines
+```mdl
+// Lines starting with $ are emitted as-is into the generated .mcfunction and
+// can contain $(variable) placeholders that Minecraft will substitute when the
+// function is called with a macro compound.
+$summon minecraft:cow ~ ~ ~ {CustomName:'{"text":"$(name)"}'}
 ```
 
 **Important:** Raw blocks are completely ignored by the MDL parser. They get copied directly to the output `.mcfunction` files without any processing. This means you can use any valid Minecraft command syntax inside raw blocks.

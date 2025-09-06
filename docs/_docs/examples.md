@@ -86,6 +86,32 @@ function raw:custom {
 on_load raw:custom;
 ```
 
+## Function Macros
+
+Demonstrates macro lines and passing macro data to functions:
+
+```mdl
+pack "macros" "Function macro examples" 82;
+namespace "macros";
+
+// Target function using a macro line with $(name)
+function macros:greeter {
+    $say "Hello $(name)"
+    say "Done";
+}
+
+// Callers using inline JSON and with-clause
+function macros:callers {
+    // Inline JSON compound (prefer single quotes outside)
+    exec macros:greeter '{name:"Alex"}';
+
+    // Pull compound from a data source via with-clause
+    exec macros:greeter with storage macros:ctx player.info;
+}
+
+on_load macros:callers;
+```
+
 ## Complete Game Example
 
 A complete game with scoring, levels, and timers:
