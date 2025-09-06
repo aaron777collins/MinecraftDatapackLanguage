@@ -134,14 +134,14 @@ namespace "example";
 
 var num counter<@s> = 0;
 
-function example:hello<@s> {
+function example:hello {
     say "Hello, Minecraft!";
     tellraw @a {"text":"Welcome to my datapack!","color":"green"};
     counter<@s> = $counter<@s>$ + 1;
     say "Counter: $counter<@s>$";
 }
 
-on_load example:hello<@s>;
+on_load example:hello;
 ```
 
 ### Build and Run

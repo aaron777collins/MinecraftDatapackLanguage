@@ -73,7 +73,7 @@ def main():
     )
     results.append(("Pytest", pytest_result))
     
-    # 2. Run specific test files
+    # 2. Run specific test files via pytest (ensures proper import paths)
     test_files = [
         ("test_comprehensive_end_to_end.py", "End-to-end comprehensive tests"),
         ("test_complex_scenarios.py", "Complex scenario tests"),
@@ -81,13 +81,13 @@ def main():
         ("test_python_bindings.py", "Python bindings tests"),
         ("test_cli.py", "CLI functionality tests"),
     ]
-    
+
     for test_file, description in test_files:
         test_path = Path("tests") / test_file
         if test_path.exists():
             result = run_test_suite(
-                f"Direct {test_file}",
-                f"python tests/{test_file}",
+                f"Pytest {test_file}",
+                f"python -m pytest -q tests/{test_file}",
                 description
             )
             results.append((test_file, result))
@@ -125,7 +125,7 @@ def main():
     print("\nTesting Python bindings...")
     api_result = run_test_suite(
         "Python Bindings Basic",
-        "python -c \"from minecraft_datapack_language import Pack; import tempfile; from pathlib import Path; p = Pack('Test', 'Test pack', 82); ns = p.namespace('test'); ns.function('hello', 'say Hello World!'); with tempfile.TemporaryDirectory() as temp_dir: p.build(temp_dir); output = Path(temp_dir) / 'data' / 'test' / 'function' / 'hello.mcfunction'; assert output.exists(); print('Python API test successful')\"",
+        "python -c \"from minecraft_datapack_language import Pack; import tempfile, shutil; from pathlib import Path; td=tempfile.mkdtemp(); p=Pack('Test','Test pack',82); ns=p.namespace('test'); ns.function('hello','say Hello World!'); p.build(td); output=Path(td)/'data'/'test'/'function'/'hello.mcfunction'; assert output.exists(); print('Python API test successful'); shutil.rmtree(td)\"",
         "Test basic Python bindings functionality"
     )
     results.append(("Python Bindings", api_result))

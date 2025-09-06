@@ -6,8 +6,8 @@ var num player_score<@s> = 0;
 var num team_score<@a[team=red]> = 0;
 var num global_timer<@a> = 0;
 
-// Function declared with @s scope
-function demo:player_function<@s> {
+// Function: player context
+function demo:player_function {
     // This function is DESIGNED for player context
     say "Player function running!";
     
@@ -21,8 +21,8 @@ function demo:player_function<@s> {
     say "Red team score: $team_score<@a[team=red]>$";
 }
 
-// Function declared with @a scope  
-function demo:global_function<@a> {
+// Function: global context
+function demo:global_function {
     // This function is DESIGNED for global context
     say "Global function running!";
     
@@ -36,8 +36,8 @@ function demo:global_function<@a> {
     // say "Player score: $player_score<@s>$";  // ❌ This would cause an error!
 }
 
-// Function declared with team scope
-function demo:team_function<@a[team=red]> {
+// Function: team context
+function demo:team_function {
     // This function is DESIGNED for red team context
     say "Red team function running!";
     
@@ -52,7 +52,7 @@ function demo:team_function<@a[team=red]> {
 }
 
 // Now let's see how execution scope works
-function demo:test_execution<@s> {
+function demo:test_execution {
     say "=== Testing Execution Scope ===";
     
     // Execute player function with @s scope (matches declaration)
@@ -71,7 +71,7 @@ function demo:test_execution<@s> {
 }
 
 // Test what happens with scope mismatches
-function demo:test_scope_validation<@s> {
+function demo:test_scope_validation {
     say "=== Testing Scope Validation ===";
     
     // This should work - function designed for @s, executed with @s
@@ -83,4 +83,4 @@ function demo:test_scope_validation<@s> {
     say "=== Scope validation tests completed ===";
 }
 
-on_load demo:test_execution<@s>;
+on_load demo:test_execution;

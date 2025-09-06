@@ -5,19 +5,19 @@ namespace "hello_world";
 // Global counter accessible by all players
 var num globalCounter<@a> = 0;
 
-function "main" {
+function hello_world:main {
     // Increment global counter
-    globalCounter<@a> = globalCounter<@a> + 1;
+    globalCounter<@a> = $globalCounter<@a>$ + 1;
     
-    say Hello, Minecraft!;
-    tellraw @a {"text":"Welcome to my datapack!","color":"green"};
-    say Global counter: $globalCounter$;
+    say "Hello, Minecraft!";
+    say "Welcome to my datapack!";
+    say "Global counter: $globalCounter<@a>$";
 }
 
-function "greet_player" {
+function hello_world:greet_player {
     // Player-specific greeting
-    say Welcome, player! You are visitor number $globalCounter$;
+    say "Welcome, player! You are visitor number $globalCounter<@a>$";
 }
 
-on_load "hello_world:main";
-on_tick "hello_world:greet_player<@a>";
+on_load hello_world:main;
+on_tick hello_world:greet_player<@a>;

@@ -259,7 +259,7 @@ If you prefer to create files manually, you can start with:
 pack "hello" "My first datapack" 82;
 namespace "hello";
 
-function hello:main<@s> {
+function hello:main {
     say "Hello, Minecraft!";
 }
 
@@ -305,7 +305,7 @@ var num playerScore<@s> = 0;                    // Defaults to @s
 var num globalCounter<@a> = 0;                  // Global scope
 var num teamScore<@a[team=red]> = 0;            // Team scope
 
-function hello:main<@s> {
+function hello:main {
     // Use explicit scope in conditions
     if $playerScore<@s>$ > 10 {
         say "Current player score is high!";

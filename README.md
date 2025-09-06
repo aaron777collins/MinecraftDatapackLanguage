@@ -125,17 +125,17 @@ namespace "game";
 var num player_score<@s> = 0;
 var num team_score<@a[team=red]> = 0;
 
-function game:start<@s> {
+function game:start {
     player_score<@s> = 100;
     say "Welcome! Your score is $player_score<@s>$";
 }
 
-on_load game:start<@s>;
+on_load game:start;
 ```
 
 ### Control Structures
 ```mdl
-function game:check_score<@s> {
+function game:check_score {
     if $player_score<@s>$ > 10 {
         say "Great score!";
         player_score<@s> = $player_score<@s>$ + 5;
@@ -164,7 +164,7 @@ tag structure "wizard_tower" "structures/wizard_tower.json";
 
 ### Raw Blocks and Say Commands
 ```mdl
-function game:special_effect<@s> {
+function game:special_effect {
     $!raw
     execute as @s run particle minecraft:explosion ~ ~ ~ 1 1 1 0 10
     execute as @s run playsound minecraft:entity.player.levelup player @s ~ ~ ~ 1 1

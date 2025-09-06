@@ -14,12 +14,12 @@ A simple datapack that says hello when loaded:
 pack "hello" "A simple hello world datapack" 82;
 namespace "hello";
 
-function hello:main<@s> {
+function hello:main {
     say "Hello, Minecraft!";
     tellraw @a {"text":"Welcome to my datapack!","color":"green"};
 }
 
-on_load hello:main<@s>;
+on_load hello:main;
 ```
 
 ## Counter with Scoped Variables
@@ -33,17 +33,17 @@ namespace "counter";
 var num globalCounter<@a> = 0;
 var num playerCounter<@s> = 0;  // Defaults to player-specific scope
 
-function counter:increment<@s> {
+function counter:increment {
     globalCounter<@a> = $globalCounter<@a>$ + 1;
     playerCounter<@s> = $playerCounter<@s>$ + 1;
     say "Global: $globalCounter<@a>$, Player: $playerCounter<@s>$";
 }
 
-function counter:show_all<@s> {
+function counter:show_all {
     exec counter:increment<@a>;
 }
 
-on_load counter:increment<@s>;
+on_load counter:increment;
 ```
 
 ## While Loop Example
@@ -56,7 +56,7 @@ namespace "loops";
 
 var num counter<@a> = 0;
 
-function loops:countdown<@s> {
+function loops:countdown {
     counter<@a> = 5;
     while $counter<@a>$ > 0 {
         say "Countdown: $counter<@a>$";
@@ -65,7 +65,7 @@ function loops:countdown<@s> {
     say "Blast off!";
 }
 
-on_load loops:countdown<@s>;
+on_load loops:countdown;
 ```
 
 ## Raw Commands
@@ -76,14 +76,14 @@ Using raw Minecraft commands:
 pack "raw" "Raw command example" 82;
 namespace "raw";
 
-function raw:custom<@s> {
+function raw:custom {
     // Use raw Minecraft commands
     effect give @s minecraft:speed 10 1;
     particle minecraft:explosion ~ ~ ~ 1 1 1 0 10;
     playsound minecraft:entity.player.levelup player @s ~ ~ ~ 1 1;
 }
 
-on_load raw:custom<@s>;
+on_load raw:custom;
 ```
 
 ## Complete Game Example

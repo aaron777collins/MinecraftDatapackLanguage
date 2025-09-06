@@ -23,12 +23,12 @@ Create your first MDL file:
 pack "hello" "My first datapack" 82;
 namespace "hello";
 
-function hello:main<@s> {
+function hello:main {
     say "Hello, Minecraft!";
     tellraw @a {"text":"Welcome to my datapack!","color":"green"};
 }
 
-on_load hello:main<@s>;
+on_load hello:main;
 ```
 
 Compile it:
@@ -79,7 +79,7 @@ if $playerScore<@s>$ > 100 {
 Functions contain Minecraft commands:
 
 ```mdl
-function hello:my_function<@s> {
+function hello:my_function {
     say "This is my function!";
     effect give @s minecraft:speed 10 1;
 }

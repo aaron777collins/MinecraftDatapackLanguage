@@ -7,52 +7,59 @@ var num global_timer<@a> = 0;
 var num red_team_score<@a[team=red]> = 0;
 var num blue_team_score<@a[team=blue]> = 0;
 
-// Function that works with any scope
-function example:display_score<@s> {
+// Function that works with any scope (player)
+function example:display_score_player {
     say "Your score: $player_score<@s>$";
 }
 
-function example:display_score<@a> {
+// Function that works with any scope (global)
+function example:display_score_global {
     say "Global timer: $global_timer<@a>$";
 }
 
-function example:display_score<@a[team=red]> {
+// Function that works with any scope (red team)
+function example:display_score_red {
     say "Red team score: $red_team_score<@a[team=red]>$";
 }
 
+// Function that works with any scope (blue team)
+function example:display_score_blue {
+    say "Blue team score: $blue_team_score<@a[team=blue]>$";
+}
+
 // Method 1: Multiple exec statements
-function example:method1<@s> {
+function example:method1 {
     say "=== Method 1: Multiple exec statements ===";
-    exec example:display_score<@s>;           // Current player
-    exec example:display_score<@a>;           // All players
-    exec example:display_score<@a[team=red]>; // Red team
+    exec example:display_score_player<@s>;           // Current player
+    exec example:display_score_global<@a>;           // All players
+    exec example:display_score_red<@a[team=red]>;    // Red team
 }
 
 // Method 2: Raw blocks for complex execution
-function example:method2<@s> {
+function example:method2 {
     say "=== Method 2: Raw blocks ===";
     $!raw
     # Execute for current player
-    execute as @s run function example:display_score
+    execute as @s run function example:display_score_player
     
     # Execute for all players
-    execute as @a run function example:display_score
+    execute as @a run function example:display_score_global
     
     # Execute for red team
-    execute as @a[team=red] run function example:display_score
+    execute as @a[team=red] run function example:display_score_red
     
     # Execute for players with high scores
-    execute as @a[scores={player_score=10..}] run function example:display_score
+    execute as @a[scores={player_score=10..}] run function example:display_score_player
     raw!$
 }
 
 // Method 3: Conditional execution
-function example:method3<@s> {
+function example:method3 {
     say "=== Method 3: Conditional execution ===";
     
     // Execute based on player score
     if $player_score<@s>$ > 5 {
-        exec example:display_score<@s>;
+        exec example:display_score_player<@s>;
         say "High score player!";
     } else {
         say "Keep trying!";
@@ -60,22 +67,22 @@ function example:method3<@s> {
     
     // Execute for different teams
     if $red_team_score<@a[team=red]>$ > $blue_team_score<@a[team=blue]>$ {
-        exec example:display_score<@a[team=red]>;
+        exec example:display_score_red<@a[team=red]>;
         say "Red team is winning!";
     } else {
-        exec example:display_score<@a[team=blue]>;
+        exec example:display_score_blue<@a[team=blue]>;
         say "Blue team is winning!";
     }
 }
 
 // Method 4: Batch execution with different scopes
-function example:method4<@s> {
+function example:method4 {
     say "=== Method 4: Batch execution ===";
     
     // Execute same function for multiple scopes
-    exec example:display_score<@s>;           // Player scope
-    exec example:display_score<@a>;           // Global scope
-    exec example:display_score<@a[team=red]>; // Team scope
+    exec example:display_score_player<@s>;           // Player scope
+    exec example:display_score_global<@a>;           // Global scope
+    exec example:display_score_red<@a[team=red]>;    // Team scope
     
     // You can also chain different functions
     exec example:method1<@s>;
@@ -83,7 +90,7 @@ function example:method4<@s> {
 }
 
 // Main function to test all methods
-function example:test_all<@s> {
+function example:test_all {
     say "Testing multi-scope execution methods...";
     
     // Set some test values
@@ -101,4 +108,4 @@ function example:test_all<@s> {
     say "All multi-scope tests completed!";
 }
 
-on_load example:test_all<@s>;
+on_load example:test_all;

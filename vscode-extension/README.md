@@ -125,12 +125,12 @@ namespace "game";
 var num player_score<@s> = 0;
 var num team_score<@a[team=red]> = 0;
 
-function game:start<@s> {
+function game:start {
     player_score<@s> = 100;
     say "Welcome! Your score is $player_score<@s>$";
 }
 
-on_load game:start<@s>;
+on_load game:start;
 ```
 
 ### Using Snippets
@@ -151,7 +151,7 @@ Type the snippet prefix and press Tab to expand:
 Every variable operation in MDL requires explicit scope specification:
 - **Reading**: `$variable<@s>$` - Read variable value from player scope
 - **Writing**: `variable<@s> = value` - Write value to player scope
-- **Functions**: `function namespace:name<@s> { ... }` - Function with scope
+- **Functions**: `function namespace:name { ... }` - Function definition
 
 ### Variable System
 - **Types**: Currently supports `num` (number) variables
