@@ -197,7 +197,9 @@ class TestPythonAPIFunctionCalls:
             "say Starting...",
             "exec test:helper1",
             "exec test:helper2<@s>",
-            "exec test:helper1<@a>"
+            "exec test:helper1<@a>",
+            "exec test:helper2<@s> \"{value:5,name:\\"Bob\\"}\"",
+            "exec test:helper2<@s> with storage my:data path.to"
         )
         
         with tempfile.TemporaryDirectory() as temp_dir:

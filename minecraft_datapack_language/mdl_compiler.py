@@ -12,7 +12,8 @@ from .ast_nodes import (
     Program, PackDeclaration, NamespaceDeclaration, TagDeclaration,
     VariableDeclaration, VariableAssignment, VariableSubstitution, FunctionDeclaration,
     FunctionCall, IfStatement, WhileLoop, HookDeclaration, RawBlock,
-    SayCommand, BinaryExpression, LiteralExpression, ParenthesizedExpression
+    SayCommand, BinaryExpression, LiteralExpression, ParenthesizedExpression,
+    MacroLine
 )
 from .dir_map import get_dir_map, DirMap
 from .mdl_errors import MDLCompilerError
@@ -331,6 +332,9 @@ class MDLCompiler:
             return self._while_loop_to_command(statement)
         elif isinstance(statement, FunctionCall):
             return self._function_call_to_command(statement)
+        elif isinstance(statement, MacroLine):
+            # Emit macro line verbatim; runtime substitution handled by Minecraft
+            return statement.content
         else:
             return None
     
@@ -615,11 +619,19 @@ class MDLCompiler:
             f.write("\n".join(lines) + "\n")
     
     def _function_call_to_command(self, func_call: FunctionCall) -> str:
-        """Convert function call to execute command."""
+        """Convert function call to execute command, supporting macro args."""
+        prefix = ""
         if func_call.scope:
-            return f"execute as {func_call.scope.strip('<>')} run function {func_call.namespace}:{func_call.name}"
-        else:
-            return f"function {func_call.namespace}:{func_call.name}"
+            prefix = f"execute as {func_call.scope.strip('<>')} run "
+        target = f"function {func_call.namespace}:{func_call.name}"
+        # Attach macro invocation arguments if present
+        if func_call.compound:
+            # Compound is already a JSON string content without quotes in AST
+            # In mcfunction we must pass a compound, not a quoted string
+            return f"{prefix}{target} {func_call.compound}"
+        if func_call.with_clause:
+            return f"{prefix}{target} with {func_call.with_clause}"
+        return f"{prefix}{target}"
     
     def _expression_to_value(self, expression: Any) -> str:
         """Convert expression to a value string."""

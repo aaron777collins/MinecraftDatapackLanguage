@@ -36,6 +36,7 @@ class TokenType:
     ON_LOAD = "ON_LOAD"
     ON_TICK = "ON_TICK"
     EXEC = "EXEC"
+    WITH = "WITH"
     TAG = "TAG"
     
     # Tag Types (Resource Categories)
@@ -89,6 +90,7 @@ class TokenType:
     EOF = "EOF"
     COMMENT = "COMMENT"              # Comments (ignored during parsing)
     RAW_CONTENT = "RAW_CONTENT"      # Raw content inside raw blocks
+    MACRO_LINE = "MACRO_LINE"        # Function macro line starting with $
 
 
 class MDLLexer:
@@ -115,6 +117,7 @@ class MDLLexer:
         self.line = 1
         self.column = 1
         self.in_raw_mode = False
+        self.at_line_start = True
         self.source = ""
     
     def lex(self, source: str) -> List[Token]:
@@ -157,6 +160,11 @@ class MDLLexer:
         if char.isspace():
             self._scan_whitespace()
             return
+
+        # Macro line: '$' as the first non-space character on the line (but not $!raw)
+        if char == '$' and self.at_line_start and not (self._peek(1) == '!' and self._peek(2) == 'r'):
+            self._scan_macro_line()
+            return
         
         # Handle comments
         if char == '/' and self._peek(1) == '/':
@@ -182,21 +190,26 @@ class MDLLexer:
         
         # Handle variable substitution
         if char == '$':
+            # From here onward, we are definitely past the first non-space on the line
+            self.at_line_start = False
             self._scan_variable_substitution()
             return
         
         # Handle numbers
         if char.isdigit():
+            self.at_line_start = False
             self._scan_number()
             return
         
         # Handle identifiers and keywords
         if char.isalpha() or char == '_':
+            self.at_line_start = False
             self._scan_identifier()
             return
         
         # Handle @ selectors (like @s, @a, @e[type=armor_stand])
         if char == '@':
+            self.at_line_start = False
             self._scan_selector()
             return
         
@@ -212,6 +225,7 @@ class MDLLexer:
             # Otherwise, treat as LESS operator (handled by _scan_operator_or_delimiter)
         
         # Handle operators and delimiters
+        self.at_line_start = False
         self._scan_operator_or_delimiter()
     
     def _scan_whitespace(self):
@@ -222,6 +236,8 @@ class MDLLexer:
             if char == '\n':
                 self.line += 1
                 self.column = 1
+                # After a newline, we are at the start of a new line until a non-space token appears
+                self.at_line_start = True
             else:
                 self.column += 1
             self.current += 1
@@ -354,6 +370,19 @@ class MDLLexer:
         # If we didn't find the end marker, it's an error
         if self.current >= len(self.source) - 4:
             self._error("Unterminated raw block", "Add 'raw!$' to close the raw block")
+
+    def _scan_macro_line(self):
+        """Scan a function macro line starting with '$' at line start."""
+        # Capture from current position until end of line or EOF
+        start_line = self.line
+        start_column = self.column
+        line_start = self.current
+        while self.current < len(self.source) and self.source[self.current] != '\n':
+            self.current += 1
+            self.column += 1
+        content = self.source[line_start:self.current]
+        # Emit a single MACRO_LINE token with the full content (including leading '$')
+        self.tokens.append(Token(TokenType.MACRO_LINE, content, start_line, start_column))
     
     def _scan_variable_substitution(self):
         """Scan variable substitution ($variable<scope>$)."""
@@ -574,6 +603,7 @@ class MDLLexer:
             'on_load': TokenType.ON_LOAD,
             'on_tick': TokenType.ON_TICK,
             'exec': TokenType.EXEC,
+            'with': TokenType.WITH,
             'tag': TokenType.TAG,
             
             # Tag types

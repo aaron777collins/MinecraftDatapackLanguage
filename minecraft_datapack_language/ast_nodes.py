@@ -74,6 +74,10 @@ class FunctionCall(ASTNode):
     namespace: str
     name: str
     scope: Optional[str]  # Optional scope for the function call
+    # Optional arguments for function macros (Minecraft 1.21+)
+    # Exactly one of compound or with_clause may be set
+    compound: Optional[str] = None  # e.g., {"name":"Alex","count":2}
+    with_clause: Optional[str] = None  # e.g., storage my:bag items[0]
 
 
 @dataclass
@@ -103,6 +107,12 @@ class HookDeclaration(ASTNode):
 @dataclass
 class RawBlock(ASTNode):
     """Raw block of Minecraft commands."""
+    content: str
+
+
+@dataclass
+class MacroLine(ASTNode):
+    """Function macro line starting with $ and containing $(var) placeholders."""
     content: str
 
 

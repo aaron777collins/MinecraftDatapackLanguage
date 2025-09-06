@@ -12,7 +12,7 @@ from .ast_nodes import (
     FunctionCall, IfStatement, WhileLoop, HookDeclaration, RawBlock,
     SayCommand, TellrawCommand, ExecuteCommand, ScoreboardCommand,
     BinaryExpression, UnaryExpression, ParenthesizedExpression, LiteralExpression,
-    ScopeSelector
+    ScopeSelector, MacroLine
 )
 
 
@@ -89,6 +89,9 @@ class MDLParser:
                     statements.append(self._parse_while_loop())
                 elif self._peek().type == TokenType.DOLLAR and self._peek(1).type == TokenType.EXCLAMATION:
                     statements.append(self._parse_raw_block())
+                elif self._peek().type == TokenType.MACRO_LINE:
+                    # Function macro raw line (beginning with $)
+                    statements.append(self._parse_macro_line())
                 elif self._peek().type == TokenType.IDENTIFIER:
                     # Could be a variable assignment or say command
                     if self._peek().value == "say":
@@ -257,7 +260,7 @@ class MDLParser:
         )
     
     def _parse_function_call(self) -> FunctionCall:
-        """Parse function call: exec namespace:name<scope>;"""
+        """Parse function call: exec namespace:name<scope> [compound_string | with clause];"""
         self._expect(TokenType.EXEC, "Expected 'exec' keyword")
         
         # Parse namespace:name
@@ -270,12 +273,33 @@ class MDLParser:
         if self._peek().type == TokenType.LANGLE:
             scope = self._parse_scope_selector()
         
+        # Optional compound string or with clause
+        compound = None
+        with_clause = None
+        
+        # exec ns:name<scope> "{...json...}";
+        if self._peek().type == TokenType.QUOTE and self._peek(1).type == TokenType.IDENTIFIER and self._peek(2).type == TokenType.QUOTE:
+            self._advance()  # opening quote
+            compound = self._expect_identifier("Expected compound JSON string content")
+            self._expect(TokenType.QUOTE, "Expected closing quote for compound JSON")
+        # exec ns:name<scope> with <data source/path tokens...>;
+        elif self._peek().type == TokenType.WITH:
+            self._advance()  # consume 'with'
+            # Accumulate raw token values until ';'
+            parts = []
+            while not self._is_at_end() and self._peek().type != TokenType.SEMICOLON:
+                parts.append(self._peek().value)
+                self._advance()
+            with_clause = " ".join(parts).strip()
+        
         self._expect(TokenType.SEMICOLON, "Expected semicolon after function call")
         
         return FunctionCall(
             namespace=namespace,
             name=name,
-            scope=scope
+            scope=scope,
+            compound=compound,
+            with_clause=with_clause
         )
     
     def _parse_if_statement(self) -> IfStatement:
@@ -500,6 +524,8 @@ class MDLParser:
                 statements.append(self._parse_function_call())
             elif self._peek().type == TokenType.DOLLAR and self._peek(1).type == TokenType.EXCLAMATION:
                 statements.append(self._parse_raw_block())
+            elif self._peek().type == TokenType.MACRO_LINE:
+                statements.append(self._parse_macro_line())
             elif self._peek().type == TokenType.IDENTIFIER:
                 if self._peek().value == "say":
                     statements.append(self._parse_say_command())
@@ -510,6 +536,11 @@ class MDLParser:
                 self._advance()
         
         return statements
+
+    def _parse_macro_line(self) -> MacroLine:
+        """Parse a function macro raw line token into an AST node."""
+        token = self._expect(TokenType.MACRO_LINE, "Expected macro line starting with '$'")
+        return MacroLine(content=token.value)
     
     # Helper methods
     def _advance(self) -> Token:
