@@ -89,6 +89,18 @@ exec hello:my_function<@s>;
 
 // Call a function for all players
 exec hello:my_function<@a>;
+
+// Function Macros (1.21+)
+// Define a macro line using $ and placeholders like $(name)
+function hello:greet<@s> {
+    $ say Hello $(name)!
+}
+
+// Pass arguments via JSON compound (quoted in MDL)
+exec hello:greet<@s> "{name:\"Alex\"}";
+
+// Or via data source with 'with'
+exec hello:greet<@s> with storage my:data player.name;
 ```
 
 ### Control Structures

@@ -144,6 +144,42 @@ function test:main<@s> {
         
         print("✅ Function execution test passed!")
 
+def test_function_macros_and_arguments():
+    """Test that macro lines and exec arguments compile correctly."""
+    print("Testing function macros and arguments...")
+    source = """
+pack "test" "Test pack" 82;
+namespace "test";
+
+function test:greet<@s> {
+    $ say Hello $(name) x$(count);
+}
+
+function test:main<@s> {
+    exec test:greet<@s> "{name:\"Alex\",count:2}";
+    exec test:greet<@s> with storage my:data player.info;
+}
+"""
+    with tempfile.TemporaryDirectory() as temp_dir:
+        parser = MDLParser()
+        ast = parser.parse(source)
+        compiler = MDLCompiler(temp_dir)
+        compiler.compile(ast)
+        func_dir = Path(temp_dir) / "data" / "test" / "function"
+        greet_file = func_dir / "greet.mcfunction"
+        main_file = func_dir / "main.mcfunction"
+        assert greet_file.exists(), "greet function file should exist"
+        assert main_file.exists(), "main function file should exist"
+        greet = greet_file.read_text()
+        main = main_file.read_text()
+        # Macro line emitted verbatim
+        assert "$ say Hello $(name) x$(count);" in greet
+        # Compound emitted unquoted and with scope prefix
+        assert "execute as @s run function test:greet {name:\"Alex\",count:2}" in main
+        # With-clause preserved
+        assert "execute as @s run function test:greet with storage my:data player.info" in main
+    print("✅ Function macros and arguments test passed!")
+
 def test_variable_scopes():
     """Test that variable scopes are handled correctly."""
     print("Testing variable scopes...")
@@ -195,6 +231,7 @@ def main():
         test_control_flow()
         test_function_execution()
         test_variable_scopes()
+        test_function_macros_and_arguments()
         
         print("\n🎉 All tests passed! The compiler fixes are working correctly.")
         

@@ -98,6 +98,10 @@ A **modern JavaScript-style compiler** that lets you write Minecraft datapacks w
     <p>Number variables with arithmetic operations and variable substitution</p>
   </div>
   <div class="feature">
+    <h3>🧩 Function Macros</h3>
+    <p>Use <code>$(var)</code> placeholders in <code>$</code>-prefixed lines; call with JSON or <code>with</code></p>
+  </div>
+  <div class="feature">
     <h3>⚡ Modern Minecraft</h3>
     <p>Pack format 82 by default with latest Minecraft features</p>
   </div>

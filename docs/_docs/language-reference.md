@@ -133,6 +133,44 @@ exec game:reset_player<@s>;                      // Execute function with scope
 exec game:reset_player<@a>;                      // Execute function with different scope
 ```
 
+#### Function Macros and Arguments (1.21+)
+
+MDL supports Minecraft's Function Macros and new function call argument forms.
+
+1) Define macro lines inside functions using `$` as the first non-space character. Use `$(variable)` placeholders inside the line.
+
+```mdl
+function game:say_hello<@s> {
+    $ say Hello $(name) x$(times);
+}
+```
+
+2) Call a function with a data compound (quoted in MDL, unquoted in generated mcfunction):
+
+```mdl
+// MDL source (quotes are required around the JSON to parse as one token)
+exec game:say_hello<@s> "{name:\"Alex\",times:3}";
+
+// Generated mcfunction
+// execute as @s run function game:say_hello {name:"Alex",times:3}
+```
+
+3) Call a function with a data source (with-clause):
+
+```mdl
+// MDL source
+exec game:say_hello<@s> with storage my:bag player.info;
+
+// Generated mcfunction
+// execute as @s run function game:say_hello with storage my:bag player.info
+```
+
+Notes:
+- The compound must provide all variables referenced in macro placeholders like `$(name)` and `$(times)`.
+- Extra data in the compound is ignored at runtime by Minecraft.
+- Calling a non-macro function with a compound is allowed; Minecraft will ignore the data at runtime.
+- If substitution produces a syntax error in a line, Minecraft skips the entire function call at runtime.
+
 ### Control Structures
 
 #### If Statements
