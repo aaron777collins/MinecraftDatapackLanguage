@@ -166,11 +166,27 @@ class MDLCompiler:
         for statement in func.body:
             cmd = self._statement_to_command(statement)
             if cmd:
-                lines.append(cmd)
+                lines.append(self._ensure_macro_prefix(cmd))
         # Done routing temp commands for this function body
         self._temp_sink_stack.pop()
         
         return "\n".join(lines)
+
+    def _ensure_macro_prefix(self, text: str) -> str:
+        """Ensure any line containing a macro placeholder $(var) starts with '$'.
+        Handles multi-line text by processing each line independently.
+        """
+        import re
+        macro_re = re.compile(r"\$\([A-Za-z_][A-Za-z0-9_]*\)")
+        def process_line(line: str) -> str:
+            if macro_re.search(line):
+                stripped = line.lstrip()
+                if not stripped.startswith('$'):
+                    return '$' + line
+            return line
+        if '\n' in text:
+            return '\n'.join(process_line(ln) for ln in text.split('\n'))
+        return process_line(text)
     
     def _compile_hooks(self, hooks: List[HookDeclaration], namespace_dir: Path):
         """Compile hook declarations."""
