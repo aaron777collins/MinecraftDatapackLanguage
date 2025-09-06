@@ -12,7 +12,8 @@ from .ast_nodes import (
     Program, PackDeclaration, NamespaceDeclaration, TagDeclaration,
     VariableDeclaration, VariableAssignment, VariableSubstitution, FunctionDeclaration,
     FunctionCall, IfStatement, WhileLoop, HookDeclaration, RawBlock,
-    SayCommand, BinaryExpression, LiteralExpression, ParenthesizedExpression
+    SayCommand, BinaryExpression, LiteralExpression, ParenthesizedExpression,
+    MacroDeclaration, MacroParameterRef
 )
 from .dir_map import get_dir_map, DirMap
 from .mdl_errors import MDLCompilerError
@@ -29,6 +30,7 @@ class MDLCompiler:
         self.dir_map: Optional[DirMap] = None
         self.current_namespace = "mdl"
         self.variables: Dict[str, str] = {}  # name -> objective mapping
+        self.macros: Dict[str, MacroDeclaration] = {}
         
     def compile(self, ast: Program, source_dir: str = None) -> str:
         """Compile MDL AST into a complete Minecraft datapack."""
@@ -67,6 +69,12 @@ class MDLCompiler:
             namespace_dir = data_dir / self.current_namespace
             namespace_dir.mkdir(parents=True, exist_ok=True)
             
+            # Register macros for expansion
+            try:
+                for m in getattr(ast, 'macros', []) or []:
+                    self.macros[f"{m.namespace}:{m.name}"] = m
+            except Exception:
+                self.macros = {}
             # Compile all components
             self._compile_variables(ast.variables, namespace_dir)
             self._compile_functions(ast.functions, data_dir)
@@ -330,9 +338,112 @@ class MDLCompiler:
         elif isinstance(statement, WhileLoop):
             return self._while_loop_to_command(statement)
         elif isinstance(statement, FunctionCall):
+            # Macro call with arguments
+            if getattr(statement, 'args', None):
+                macro_id = f"{statement.namespace}:{statement.name}"
+                if macro_id not in self.macros:
+                    raise MDLCompilerError(
+                        f"Macro '{macro_id}' not found for exec with arguments",
+                        "Define a macro with that name or remove arguments"
+                    )
+                return self._expand_macro_call_to_commands(self.macros[macro_id], statement.args)
             return self._function_call_to_command(statement)
         else:
             return None
+
+    def _expand_macro_call_to_commands(self, macro: MacroDeclaration, args: List[Any]) -> str:
+        """Expand a macro call into commands by substituting parameters into its body."""
+        if len(args) != len(macro.params):
+            raise MDLCompilerError(
+                f"Macro '{macro.namespace}:{macro.name}' expects {len(macro.params)} args, got {len(args)}",
+                "Adjust the call to match the parameter count"
+            )
+        param_map = {param: arg for param, arg in zip(macro.params, args)}
+        # For say command substitution of $param$, we need message rewriting support
+        expanded_lines: List[str] = []
+        for stmt in macro.body:
+            substituted = self._substitute_params_in_node(stmt, param_map)
+            # substituted can be a list of nodes (if a say expanded to pre-commands + say)
+            nodes_to_emit = substituted if isinstance(substituted, list) else [substituted]
+            for node in nodes_to_emit:
+                cmd = self._statement_to_command(node)
+                if cmd:
+                    expanded_lines.append(cmd)
+        return "\n".join(expanded_lines)
+
+    def _substitute_params_in_node(self, node: Any, param_map: Dict[str, Any]) -> Any:
+        """Deep substitute MacroParameterRef occurrences with provided argument expressions."""
+        import copy
+        n = copy.deepcopy(node)
+        # VariableAssignment
+        if isinstance(n, VariableAssignment):
+            n.value = self._substitute_in_expr(n.value, param_map)
+            return n
+        # VariableDeclaration
+        if isinstance(n, VariableDeclaration):
+            n.initial_value = self._substitute_in_expr(n.initial_value, param_map)
+            return n
+        # IfStatement
+        if isinstance(n, IfStatement):
+            n.condition = self._substitute_in_expr(n.condition, param_map)
+            n.then_body = [self._substitute_params_in_node(s, param_map) for s in n.then_body]
+            if n.else_body:
+                n.else_body = [self._substitute_params_in_node(s, param_map) for s in n.else_body]
+            return n
+        # WhileLoop
+        if isinstance(n, WhileLoop):
+            n.condition = self._substitute_in_expr(n.condition, param_map)
+            n.body = [self._substitute_params_in_node(s, param_map) for s in n.body]
+            return n
+        # FunctionCall in macro body (nested macro/function calls)
+        if isinstance(n, FunctionCall):
+            if n.args:
+                n.args = [self._substitute_in_expr(a, param_map) for a in n.args]
+            return n
+        # SayCommand: handle $param$ inside
+        if isinstance(n, SayCommand):
+            return self._substitute_in_say(n, param_map)
+        # RawBlock - no change
+        return n
+
+    def _substitute_in_expr(self, expr: Any, param_map: Dict[str, Any]) -> Any:
+        if isinstance(expr, MacroParameterRef):
+            return param_map.get(expr.name, expr)
+        if isinstance(expr, BinaryExpression):
+            return BinaryExpression(
+                left=self._substitute_in_expr(expr.left, param_map),
+                operator=expr.operator,
+                right=self._substitute_in_expr(expr.right, param_map)
+            )
+        if isinstance(expr, ParenthesizedExpression):
+            return ParenthesizedExpression(expression=self._substitute_in_expr(expr.expression, param_map))
+        # VariableSubstitution or LiteralExpression or others remain
+        return expr
+
+    def _substitute_in_say(self, say: SayCommand, param_map: Dict[str, Any]) -> Any:
+        import copy
+        s = copy.deepcopy(say)
+        # Replace $param$ in message with appropriate placeholders
+        for var in list(s.variables):
+            if isinstance(var, MacroParameterRef) and var.name in param_map:
+                arg = param_map[var.name]
+                pattern = f"${var.name}$"
+                if isinstance(arg, VariableSubstitution):
+                    # Repoint placeholder to actual variable pattern
+                    repl = f"${arg.name}{arg.scope}$"
+                    s.message = s.message.replace(pattern, repl)
+                    # Replace variable entry with the actual one
+                    s.variables.remove(var)
+                    s.variables.append(copy.deepcopy(arg))
+                elif isinstance(arg, LiteralExpression):
+                    # Inline the literal into the message
+                    s.message = s.message.replace(pattern, str(arg.value))
+                    s.variables.remove(var)
+                else:
+                    # Fallback: inline string form
+                    s.message = s.message.replace(pattern, str(self._expression_to_value(arg)))
+                    s.variables.remove(var)
+        return s
     
     def _variable_assignment_to_command(self, assignment: VariableAssignment) -> str:
         """Convert variable assignment to scoreboard command."""
@@ -381,13 +492,20 @@ class MDLCompiler:
             return self._build_tellraw_json(say.message, say.variables)
     
     def _build_tellraw_json(self, message: str, variables: List[VariableSubstitution]) -> str:
-        """Build complex tellraw JSON with variable substitutions."""
+        """Build complex tellraw JSON with variable substitutions.
+        Supports both $name<scope>$ and bare $name$ (treated as same scope as provided var).
+        """
         parts = []
         current_pos = 0
         
         for var in variables:
-            var_pattern = f"${var.name}{var.scope}$"
-            var_pos = message.find(var_pattern, current_pos)
+            scoped_pattern = f"${var.name}{var.scope}$"
+            bare_pattern = f"${var.name}$"
+            var_pos = message.find(scoped_pattern, current_pos)
+            use_pattern = scoped_pattern
+            if var_pos == -1:
+                var_pos = message.find(bare_pattern, current_pos)
+                use_pattern = bare_pattern
             
             if var_pos != -1:
                 if var_pos > current_pos:
@@ -398,7 +516,7 @@ class MDLCompiler:
                 scope = var.scope.strip("<>")
                 parts.append(f'{{"score":{{"name":"{scope}","objective":"{objective}"}}}}')
                 
-                current_pos = var_pos + len(var_pattern)
+                current_pos = var_pos + len(use_pattern)
         
         if current_pos < len(message):
             text_after = message[current_pos:]

@@ -133,6 +133,33 @@ exec game:reset_player<@s>;                      // Execute function with scope
 exec game:reset_player<@a>;                      // Execute function with different scope
 ```
 
+### Macros
+
+Macros provide compile-time expansion with parameters. Define with `macro` and call via `exec` with arguments.
+
+Declaration:
+
+```mdl
+macro util:award_points(player, amount) {
+    say Awarding $amount$ points to $player$;
+    player_score<@s> = $player_score<@s>$ + $amount$;
+}
+```
+
+Invocation:
+
+```mdl
+exec util:award_points("Alex", 10);
+exec util:award_points($name<@s>$, $bonus<@s>$);
+```
+
+Rules:
+
+- `$param$` references macro parameters. They have no scope.
+- In say messages, if the argument is a variable read, `$param$` rewrites to `$var<scope>$` for tellraw.
+- In expressions, parameters substitute the full argument expression AST.
+- `exec ns:name(args...)` resolves to a macro when arguments are present; otherwise it's a regular function call.
+
 ### Control Structures
 
 #### If Statements

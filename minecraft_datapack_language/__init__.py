@@ -13,7 +13,7 @@ __all__ = [
     "FunctionCall", "IfStatement", "WhileLoop", "HookDeclaration", "RawBlock",
     "SayCommand", "TellrawCommand", "ExecuteCommand", "ScoreboardCommand",
     "BinaryExpression", "UnaryExpression", "ParenthesizedExpression", "LiteralExpression",
-    "ScopeSelector",
+    "ScopeSelector", "MacroDeclaration", "MacroParameterRef",
     "DirMap",
     "Pack"
 ]

@@ -5,19 +5,29 @@ namespace "hello_world";
 // Global counter accessible by all players
 var num globalCounter<@a> = 0;
 
-function "main" {
+function hello_world:main {
     // Increment global counter
-    globalCounter<@a> = globalCounter<@a> + 1;
+    globalCounter<@a> = $globalCounter<@a>$ + 1;
     
-    say Hello, Minecraft!;
-    tellraw @a {"text":"Welcome to my datapack!","color":"green"};
-    say Global counter: $globalCounter$;
+    say "Hello, Minecraft!";
+    $!raw tellraw @a {"text":"Welcome to my datapack!","color":"green"} raw!$;
+    say "Global counter: $globalCounter$";
 }
 
-function "greet_player" {
+// New macro example: greet a name with current global counter
+macro example:greet(name) {
+    say "Hello, $name$! Visits: $globalCounter<@a>$";
+}
+
+function hello_world:greet_player {
     // Player-specific greeting
-    say Welcome, player! You are visitor number $globalCounter$;
+    say "Welcome, player! You are visitor number $globalCounter$";
+    // Macro invocation with literal and variable argument
+    exec example:greet("Steve");
+    exec example:greet("Player");
 }
 
-on_load "hello_world:main";
-on_tick "hello_world:greet_player<@a>";
+// Note: $globalCounter$ without scope defaults to @s for reading; prefer explicit scopes
+
+on_load hello_world:main;
+on_tick hello_world:greet_player<@a>;

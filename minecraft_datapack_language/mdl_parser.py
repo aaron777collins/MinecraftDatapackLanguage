@@ -12,7 +12,7 @@ from .ast_nodes import (
     FunctionCall, IfStatement, WhileLoop, HookDeclaration, RawBlock,
     SayCommand, TellrawCommand, ExecuteCommand, ScoreboardCommand,
     BinaryExpression, UnaryExpression, ParenthesizedExpression, LiteralExpression,
-    ScopeSelector
+    ScopeSelector, MacroDeclaration, MacroParameterRef
 )
 
 
@@ -33,6 +33,7 @@ class MDLParser:
         self.tokens: List[Token] = []
         self.current = 0
         self.current_namespace = "mdl"
+        self._macro_nesting = 0
     
     def parse(self, source: str) -> Program:
         """
@@ -62,6 +63,7 @@ class MDLParser:
         tags = []
         variables = []
         functions = []
+        macros = []
         hooks = []
         statements = []
         
@@ -77,6 +79,8 @@ class MDLParser:
                     variables.append(self._parse_variable_declaration())
                 elif self._peek().type == TokenType.FUNCTION:
                     functions.append(self._parse_function_declaration())
+                elif self._peek().type == TokenType.MACRO:
+                    macros.append(self._parse_macro_declaration())
                 elif self._peek().type == TokenType.ON_LOAD:
                     hooks.append(self._parse_hook_declaration())
                 elif self._peek().type == TokenType.ON_TICK:
@@ -111,7 +115,8 @@ class MDLParser:
             variables=variables,
             functions=functions,
             hooks=hooks,
-            statements=statements
+            statements=statements,
+            macros=macros
         )
     
     def _parse_pack_declaration(self) -> PackDeclaration:
@@ -255,15 +260,57 @@ class MDLParser:
             scope=scope,
             body=body
         )
+
+    def _parse_macro_declaration(self) -> MacroDeclaration:
+        """Parse macro declaration: macro namespace:name(param, list) { body }"""
+        self._expect(TokenType.MACRO, "Expected 'macro' keyword")
+        # Parse namespace:name
+        namespace = self._expect_identifier("Expected namespace")
+        self._expect(TokenType.COLON, "Expected ':' after namespace")
+        name = self._expect_identifier("Expected macro name")
+        # Optional parenthesized parameter list
+        params: List[str] = []
+        if self._peek().type == TokenType.LPAREN:
+            self._advance()
+            # zero or more identifiers separated by commas
+            while not self._is_at_end() and self._peek().type != TokenType.RPAREN:
+                param_name = self._expect_identifier("Expected parameter name")
+                params.append(param_name)
+                if self._peek().type == TokenType.COMMA:
+                    self._advance()
+                else:
+                    break
+            self._expect(TokenType.RPAREN, "Expected ')' after parameter list")
+        # Body
+        self._expect(TokenType.LBRACE, "Expected '{' to start macro body")
+        self._macro_nesting += 1
+        body = self._parse_block()
+        self._macro_nesting -= 1
+        self._expect(TokenType.RBRACE, "Expected '}' to end macro body")
+        return MacroDeclaration(namespace=namespace, name=name, params=params, body=body)
     
     def _parse_function_call(self) -> FunctionCall:
-        """Parse function call: exec namespace:name<scope>;"""
+        """Parse function or macro call: exec namespace:name(arg1, arg2)<scope>;"""
         self._expect(TokenType.EXEC, "Expected 'exec' keyword")
         
         # Parse namespace:name
         namespace = self._expect_identifier("Expected namespace")
         self._expect(TokenType.COLON, "Expected ':' after namespace")
-        name = self._expect_identifier("Expected function name")
+        name = self._expect_identifier("Expected function or macro name")
+        # Optional arguments list
+        args: Optional[List[Any]] = None
+        if self._peek().type == TokenType.LPAREN:
+            args = []
+            self._advance()
+            # zero or more expressions separated by commas
+            while not self._is_at_end() and self._peek().type != TokenType.RPAREN:
+                arg_expr = self._parse_expression()
+                args.append(arg_expr)
+                if self._peek().type == TokenType.COMMA:
+                    self._advance()
+                else:
+                    break
+            self._expect(TokenType.RPAREN, "Expected ')' after argument list")
         
         # Parse optional scope
         scope = None
@@ -275,7 +322,8 @@ class MDLParser:
         return FunctionCall(
             namespace=namespace,
             name=name,
-            scope=scope
+            scope=scope,
+            args=args
         )
     
     def _parse_if_statement(self) -> IfStatement:
@@ -381,17 +429,24 @@ class MDLParser:
         
         # Extract variables from the message content
         variables = []
-        # Simple regex-like extraction of $variable<scope>$ patterns
+        # Extract both $var<scope>$ and $param$ (macro parameter) patterns
         import re
-        var_pattern = r'\$([a-zA-Z_][a-zA-Z0-9_]*<[^>]+>)\$'
-        matches = re.findall(var_pattern, message)
-        
-        for match in matches:
-            # Parse the variable name and scope from the match
+        # 1) scoped variables
+        for m in re.finditer(r'\$([a-zA-Z_][a-zA-Z0-9_]*<[^>]+>)\$', message):
+            match = m.group(1)
             if '<' in match and '>' in match:
                 name = match[:match.index('<')]
                 scope = match[match.index('<'):match.index('>')+1]
                 variables.append(VariableSubstitution(name=name, scope=scope))
+        # 2) bare $name$ occurrences -> macro param if in macro body, else variable with default @s
+        for m in re.finditer(r'\$([a-zA-Z_][a-zA-Z0-9_]*)\$', message):
+            name = m.group(1)
+            # If this occurrence is not a scoped var (already captured), decide based on context
+            if not any(isinstance(v, VariableSubstitution) and v.name == name for v in variables):
+                if self._macro_nesting > 0:
+                    variables.append(MacroParameterRef(name=name))
+                else:
+                    variables.append(VariableSubstitution(name=name, scope="<@s>"))
         
         self._expect(TokenType.QUOTE, "Expected closing quote for say message")
         self._expect(TokenType.SEMICOLON, "Expected semicolon after say command")
@@ -404,7 +459,13 @@ class MDLParser:
         
         name = self._expect_identifier("Expected variable name")
         
-        # For variable substitutions, use LANGLE/RANGLE
+        # For variable substitutions, use LANGLE/RANGLE; if not present, treat as macro param when inside macro, else default var @s
+        if self._peek().type != TokenType.LANGLE:
+            self._expect(TokenType.DOLLAR, "Expected '$' to end substitution")
+            if self._macro_nesting > 0:
+                return MacroParameterRef(name=name)
+            else:
+                return VariableSubstitution(name=name, scope="<@s>")
         self._expect(TokenType.LANGLE, "Expected '<' for scope selector")
         
         # Parse the selector content
