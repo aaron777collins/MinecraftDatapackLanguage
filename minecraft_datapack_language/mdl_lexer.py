@@ -33,6 +33,7 @@ class TokenType:
     IF = "IF"
     ELSE = "ELSE"
     WHILE = "WHILE"
+    SCHEDULED_WHILE = "SCHEDULED_WHILE"
     ON_LOAD = "ON_LOAD"
     ON_TICK = "ON_TICK"
     EXEC = "EXEC"
@@ -599,6 +600,7 @@ class MDLLexer:
             'if': TokenType.IF,
             'else': TokenType.ELSE,
             'while': TokenType.WHILE,
+            'scheduledwhile': TokenType.SCHEDULED_WHILE,
             'on_load': TokenType.ON_LOAD,
             'on_tick': TokenType.ON_TICK,
             'exec': TokenType.EXEC,

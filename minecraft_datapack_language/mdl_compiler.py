@@ -11,7 +11,7 @@ from typing import Dict, List, Any, Optional
 from .ast_nodes import (
     Program, PackDeclaration, NamespaceDeclaration, TagDeclaration,
     VariableDeclaration, VariableAssignment, VariableSubstitution, FunctionDeclaration,
-    FunctionCall, IfStatement, WhileLoop, HookDeclaration, RawBlock, MacroLine,
+    FunctionCall, IfStatement, WhileLoop, ScheduledWhileLoop, HookDeclaration, RawBlock, MacroLine,
     SayCommand, BinaryExpression, LiteralExpression, ParenthesizedExpression
 )
 from .dir_map import get_dir_map, DirMap
@@ -345,6 +345,8 @@ class MDLCompiler:
             return self._if_statement_to_command(statement)
         elif isinstance(statement, WhileLoop):
             return self._while_loop_to_command(statement)
+        elif isinstance(statement, ScheduledWhileLoop):
+            return self._scheduled_while_to_command(statement)
         elif isinstance(statement, FunctionCall):
             return self._function_call_to_command(statement)
         else:
@@ -606,6 +608,62 @@ class MDLCompiler:
         # Store the loop function as its own file
         self._store_generated_function(loop_function_name, loop_body_lines)
         
+        return "\n".join(lines)
+
+    def _scheduled_while_to_command(self, while_loop: ScheduledWhileLoop) -> str:
+        """Convert scheduledwhile to tick-scheduled loop to avoid recursion limits.
+        Strategy:
+        - Generate a unique loop function that contains the body, then conditionally schedules itself 1t later.
+        - Entry statement schedules the first tick run.
+        - Breakout occurs naturally by not scheduling when condition is false.
+        """
+        loop_function_name = self._generate_while_function_name()
+
+        # Schedule first iteration for next tick
+        lines: List[str] = []
+        lines.append(f"schedule function {self.current_namespace}:{loop_function_name} 1t")
+
+        # Build the loop function body
+        loop_body_lines: List[str] = [f"# Function: {self.current_namespace}:{loop_function_name}"]
+
+        if not hasattr(self, '_temp_sink_stack'):
+            self._temp_sink_stack = []
+        self._temp_sink_stack.append(loop_body_lines)
+        for stmt in while_loop.body:
+            if isinstance(stmt, VariableAssignment):
+                cmd = self._variable_assignment_to_command(stmt)
+                loop_body_lines.append(cmd)
+            elif isinstance(stmt, VariableDeclaration):
+                cmd = self._variable_declaration_to_command(stmt)
+                loop_body_lines.append(cmd)
+            elif isinstance(stmt, SayCommand):
+                cmd = self._say_command_to_command(stmt)
+                loop_body_lines.append(cmd)
+            elif isinstance(stmt, RawBlock):
+                loop_body_lines.append(stmt.content)
+            elif isinstance(stmt, IfStatement):
+                cmd = self._if_statement_to_command(stmt)
+                loop_body_lines.append(cmd)
+            elif isinstance(stmt, WhileLoop):
+                cmd = self._while_loop_to_command(stmt)
+                loop_body_lines.append(cmd)
+            elif isinstance(stmt, ScheduledWhileLoop):
+                cmd = self._scheduled_while_to_command(stmt)
+                loop_body_lines.append(cmd)
+            elif isinstance(stmt, FunctionCall):
+                cmd = self._function_call_to_command(stmt)
+                loop_body_lines.append(cmd)
+        self._temp_sink_stack.pop()
+
+        cond_str, invert_then = self._build_condition(while_loop.condition)
+        if invert_then:
+            # Inverted means schedule unless condition (NOT desired). We want continue-when-true.
+            # cond_str represents equality in inverted case; continue when not(cond) → use unless.
+            loop_body_lines.append(f"execute unless {cond_str} run schedule function {self.current_namespace}:{loop_function_name} 1t")
+        else:
+            loop_body_lines.append(f"execute if {cond_str} run schedule function {self.current_namespace}:{loop_function_name} 1t")
+
+        self._store_generated_function(loop_function_name, loop_body_lines)
         return "\n".join(lines)
     
     def _is_scoreboard_condition(self, expression: Any) -> bool:

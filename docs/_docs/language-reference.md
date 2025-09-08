@@ -177,7 +177,28 @@ while $counter<@s>$ > 0 {
 }
 ```
 
-**Note:** All control structures generate proper Minecraft conditional logic using `execute if` commands and recursive function calls for loops. The compiler automatically handles nested structures and generates the appropriate Minecraft datapack commands.
+**Note:** The standard `while` loop uses recursive function calls internally. This is simple and fast but can hit Minecraft's function call depth limit for very long-running loops.
+
+#### Scheduled While Loops
+
+Use `scheduledwhile` to iterate via the scheduler instead of recursion. This avoids recursion limits by running one iteration per game tick and scheduling the next iteration only if the condition remains true.
+
+```mdl
+scheduledwhile $counter<@s>$ > 0 {
+    counter<@s> = $counter<@s>$ - 1;
+    exec game:countdown;
+}
+```
+
+Compilation strategy:
+- Generates a helper function containing the loop body
+- At the end of the helper, emits `execute if <condition> run schedule function <helper> 1t`
+- Entry point schedules the first iteration with `schedule function <helper> 1t`
+- Breakout occurs naturally when the condition becomes false (no re-schedule)
+
+When to use:
+- Prefer `while` for short/medium loops
+- Prefer `scheduledwhile` for long-running loops, per-tick processes, or when avoiding recursion depth limits
 
 ### Hooks
 ```mdl
@@ -521,7 +542,7 @@ This section defines exactly how MDL source code is broken down into tokens. Thi
 
 #### **Keywords** (Reserved Words)
 ```
-pack, namespace, function, var, num, if, else, while, on_load, on_tick, exec, tag
+pack, namespace, function, var, num, if, else, while, scheduledwhile, on_load, on_tick, exec, tag
 ```
 
 #### **Tag Types** (Resource Categories)

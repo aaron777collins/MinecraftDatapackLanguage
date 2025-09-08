@@ -9,7 +9,7 @@ from .mdl_errors import MDLParserError
 from .ast_nodes import (
     ASTNode, Program, PackDeclaration, NamespaceDeclaration, TagDeclaration,
     VariableDeclaration, VariableAssignment, VariableSubstitution, FunctionDeclaration,
-    FunctionCall, IfStatement, WhileLoop, HookDeclaration, RawBlock, MacroLine,
+    FunctionCall, IfStatement, WhileLoop, ScheduledWhileLoop, HookDeclaration, RawBlock, MacroLine,
     SayCommand, TellrawCommand, ExecuteCommand, ScoreboardCommand,
     BinaryExpression, UnaryExpression, ParenthesizedExpression, LiteralExpression,
     ScopeSelector
@@ -87,6 +87,8 @@ class MDLParser:
                     statements.append(self._parse_if_statement())
                 elif self._peek().type == TokenType.WHILE:
                     statements.append(self._parse_while_loop())
+                elif self._peek().type == TokenType.SCHEDULED_WHILE:
+                    statements.append(self._parse_scheduled_while_loop())
                 elif self._peek().type == TokenType.DOLLAR and self._peek(1).type == TokenType.EXCLAMATION:
                     statements.append(self._parse_raw_block())
                 elif self._peek().type == TokenType.IDENTIFIER:
@@ -348,6 +350,18 @@ class MDLParser:
         self._expect(TokenType.RBRACE, "Expected '}' to end while body")
         
         return WhileLoop(condition=condition, body=body)
+
+    def _parse_scheduled_while_loop(self) -> ScheduledWhileLoop:
+        """Parse scheduledwhile loop: scheduledwhile condition { body }"""
+        self._expect(TokenType.SCHEDULED_WHILE, "Expected 'scheduledwhile' keyword")
+        
+        condition = self._parse_expression()
+        
+        self._expect(TokenType.LBRACE, "Expected '{' to start while body")
+        body = self._parse_block()
+        self._expect(TokenType.RBRACE, "Expected '}' to end while body")
+        
+        return ScheduledWhileLoop(condition=condition, body=body)
     
     def _parse_hook_declaration(self) -> HookDeclaration:
         """Parse hook declaration: on_load/on_tick namespace:name<scope>;"""
@@ -524,6 +538,8 @@ class MDLParser:
                 statements.append(self._parse_if_statement())
             elif self._peek().type == TokenType.WHILE:
                 statements.append(self._parse_while_loop())
+            elif self._peek().type == TokenType.SCHEDULED_WHILE:
+                statements.append(self._parse_scheduled_while_loop())
             elif self._peek().type == TokenType.EXEC:
                 statements.append(self._parse_function_call())
             elif self._peek().type == TokenType.MACRO_LINE:

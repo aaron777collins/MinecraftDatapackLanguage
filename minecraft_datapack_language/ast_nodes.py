@@ -95,6 +95,13 @@ class WhileLoop(ASTNode):
 
 
 @dataclass
+class ScheduledWhileLoop(ASTNode):
+    """Scheduled-while loop that iterates via Minecraft's schedule command each tick."""
+    condition: Any  # Expression
+    body: List[ASTNode]
+
+
+@dataclass
 class HookDeclaration(ASTNode):
     """Hook declaration (on_load, on_tick)."""
     hook_type: str  # on_load, on_tick

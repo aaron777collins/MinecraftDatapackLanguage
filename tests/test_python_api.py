@@ -249,7 +249,8 @@ class TestPythonAPITags:
             else:
                 tick_content = {"values": []}
             
-            assert "test:init" in load_content["values"]
+            # load.json always references namespace:load; hooks are invoked from load.mcfunction
+            assert "test:load" in load_content["values"]
             # Only assert tick if present
             if tick_content["values"]:
                 assert "test:tick" in tick_content["values"]
