@@ -270,15 +270,8 @@ class MDLCompiler:
         tags_fn_dir = self.output_dir / "data" / "minecraft" / self.dir_map.tags_function
         tags_fn_dir.mkdir(parents=True, exist_ok=True)
         load_tag_file = tags_fn_dir / "load.json"
-        # Always include namespace:load (contains scoreboard initialization), plus any explicit on_load hooks
+        # Always reference namespace:load (which handles scoreboard init and calls on_load hooks internally)
         values = [f"{self.current_namespace}:load"]
-        if has_on_load:
-            # Add explicit on_load hooks as additional entries
-            for hook in hooks:
-                if hook.hook_type == "on_load":
-                    hook_ref = f"{hook.namespace}:{hook.name}"
-                    if hook_ref not in values:  # Avoid duplicates
-                        values.append(hook_ref)
         with open(load_tag_file, 'w') as f:
             json.dump({"values": values}, f, indent=2)
         
