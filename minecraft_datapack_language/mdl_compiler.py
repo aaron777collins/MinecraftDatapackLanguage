@@ -561,14 +561,17 @@ class MDLCompiler:
     
     def _while_loop_to_command(self, while_loop: WhileLoop) -> str:
         """Convert while loop to proper Minecraft loop logic."""
-        condition = self._expression_to_condition(while_loop.condition)
         lines = []
         
         # Generate the while loop using a recursive function approach
         loop_function_name = self._generate_while_function_name()
         
-        # First, call the loop function
-        lines.append(f"function {self.current_namespace}:{loop_function_name}")
+        # First, call the loop function conditionally (true while semantics)
+        cond_str, invert_then = self._build_condition(while_loop.condition)
+        if invert_then:
+            lines.append(f"execute unless {cond_str} run function {self.current_namespace}:{loop_function_name}")
+        else:
+            lines.append(f"execute if {cond_str} run function {self.current_namespace}:{loop_function_name}")
         
         # Generate the loop function body
         loop_body_lines = [f"# Function: {self.current_namespace}:{loop_function_name}"]
@@ -600,8 +603,11 @@ class MDLCompiler:
                 loop_body_lines.append(cmd)
         
         # Add the recursive call at the end to continue the loop
-        cond_str, _inv = self._build_condition(while_loop.condition)
-        loop_body_lines.append(f"execute if {cond_str} run function {self.current_namespace}:{loop_function_name}")
+        # Respect inverted conditions (e.g., NOT_EQUAL)
+        if invert_then:
+            loop_body_lines.append(f"execute unless {cond_str} run function {self.current_namespace}:{loop_function_name}")
+        else:
+            loop_body_lines.append(f"execute if {cond_str} run function {self.current_namespace}:{loop_function_name}")
         # Stop routing temp commands for while-body
         self._temp_sink_stack.pop()
         
@@ -619,9 +625,15 @@ class MDLCompiler:
         """
         loop_function_name = self._generate_while_function_name()
 
-        # Schedule first iteration for next tick
+        # Build condition once
+        cond_str, invert_then = self._build_condition(while_loop.condition)
+
+        # Schedule first iteration for next tick (conditionally for true while semantics)
         lines: List[str] = []
-        lines.append(f"schedule function {self.current_namespace}:{loop_function_name} 1t")
+        if invert_then:
+            lines.append(f"execute unless {cond_str} run schedule function {self.current_namespace}:{loop_function_name} 1t")
+        else:
+            lines.append(f"execute if {cond_str} run schedule function {self.current_namespace}:{loop_function_name} 1t")
 
         # Build the loop function body
         loop_body_lines: List[str] = [f"# Function: {self.current_namespace}:{loop_function_name}"]
@@ -655,10 +667,8 @@ class MDLCompiler:
                 loop_body_lines.append(cmd)
         self._temp_sink_stack.pop()
 
-        cond_str, invert_then = self._build_condition(while_loop.condition)
+        # Conditionally schedule next tick
         if invert_then:
-            # Inverted means schedule unless condition (NOT desired). We want continue-when-true.
-            # cond_str represents equality in inverted case; continue when not(cond) → use unless.
             loop_body_lines.append(f"execute unless {cond_str} run schedule function {self.current_namespace}:{loop_function_name} 1t")
         else:
             loop_body_lines.append(f"execute if {cond_str} run schedule function {self.current_namespace}:{loop_function_name} 1t")
