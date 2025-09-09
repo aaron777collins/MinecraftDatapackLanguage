@@ -375,8 +375,4 @@ MDL is open source software licensed under the MIT License. See the [LICENSE](ht
   }
 }
 
-[data-theme="dark"] .install-code code {
-  background: #21262d;
-}
-
 </style>

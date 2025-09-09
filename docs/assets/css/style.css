@@ -95,7 +95,7 @@ a:hover {
 code {
   font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
   font-size: 0.875rem;
-  background-color: var(--code-background);
+  background-color: var(--code-background) !important;
   border: 1px solid var(--code-border);
   border-radius: 3px;
   padding: 0.2rem 0.4rem;
