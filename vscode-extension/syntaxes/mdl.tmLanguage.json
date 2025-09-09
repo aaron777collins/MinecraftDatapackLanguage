@@ -4,7 +4,7 @@
   "patterns": [
     {
       "name": "keyword.control.mdl",
-      "match": "\\b(pack|namespace|function|on_tick|on_load|tag|if|else|while|var|num|exec|recipe|loot_table|advancement|predicate|item_modifier|structure)\\b"
+      "match": "\\b(pack|namespace|function|on_tick|on_load|tag|if|else|while|scheduledwhile|var|num|exec|recipe|loot_table|advancement|predicate|item_modifier|structure)\\b"
     },
     {
       "name": "entity.name.section.mdl",
