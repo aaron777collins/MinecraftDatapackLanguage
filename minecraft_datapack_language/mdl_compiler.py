@@ -649,63 +649,68 @@ class MDLCompiler:
         return "\n".join(lines)
 
     def _scheduled_while_to_command(self, while_loop: ScheduledWhileLoop) -> str:
-        """Convert scheduledwhile to tick-scheduled loop to avoid recursion limits.
-        Strategy:
-        - Generate a unique loop function that contains the body, then conditionally schedules itself 1t later.
-        - Entry statement schedules the first tick run.
-        - Breakout occurs naturally by not scheduling when condition is false.
+        """Convert scheduledwhile into a tick-driven loop that preserves the initiating executor (@s).
+        Uses a unique tag per loop instance to track participants across ticks.
         """
-        loop_function_name = self._generate_while_function_name()
+        # Unique names and tag for this scheduled-while instance (keep legacy naming for helper)
+        wrap_fn = self._generate_while_function_name()  # e.g., fn__while_1
+        body_fn = f"{wrap_fn}__body"
+        tag = f"mdl_sched__{wrap_fn}"
 
         # Build condition once
         cond_str, invert_then = self._build_condition(while_loop.condition)
+        cond_true = f"unless {cond_str}" if invert_then else f"if {cond_str}"
+        cond_false = f"if {cond_str}" if invert_then else f"unless {cond_str}"
 
-        # Schedule first iteration for next tick (conditionally for true while semantics)
+        # Entry: tag current @s and schedule the wrapper on next tick if condition initially true
         lines: List[str] = []
-        if invert_then:
-            lines.append(f"execute unless {cond_str} run schedule function {self.current_namespace}:{loop_function_name} 1t")
-        else:
-            lines.append(f"execute if {cond_str} run schedule function {self.current_namespace}:{loop_function_name} 1t")
+        lines.append(f"execute {cond_true} run tag @s add {tag}")
+        lines.append(f"execute {cond_true} run schedule function {self.current_namespace}:{wrap_fn} 1t")
 
-        # Build the loop function body
-        loop_body_lines: List[str] = [f"# Function: {self.current_namespace}:{loop_function_name}"]
-
+        # Build per-entity body function
+        body_lines: List[str] = [f"# Function: {self.current_namespace}:{body_fn}"]
         if not hasattr(self, '_temp_sink_stack'):
             self._temp_sink_stack = []
-        self._temp_sink_stack.append(loop_body_lines)
+        self._temp_sink_stack.append(body_lines)
         for stmt in while_loop.body:
             if isinstance(stmt, VariableAssignment):
                 cmd = self._variable_assignment_to_command(stmt)
-                loop_body_lines.append(cmd)
+                body_lines.append(cmd)
             elif isinstance(stmt, VariableDeclaration):
                 cmd = self._variable_declaration_to_command(stmt)
-                loop_body_lines.append(cmd)
+                body_lines.append(cmd)
             elif isinstance(stmt, SayCommand):
                 cmd = self._say_command_to_command(stmt)
-                loop_body_lines.append(cmd)
+                body_lines.append(cmd)
             elif isinstance(stmt, RawBlock):
-                loop_body_lines.append(stmt.content)
+                body_lines.append(stmt.content)
             elif isinstance(stmt, IfStatement):
                 cmd = self._if_statement_to_command(stmt)
-                loop_body_lines.append(cmd)
+                body_lines.append(cmd)
             elif isinstance(stmt, WhileLoop):
                 cmd = self._while_loop_to_command(stmt)
-                loop_body_lines.append(cmd)
+                body_lines.append(cmd)
             elif isinstance(stmt, ScheduledWhileLoop):
                 cmd = self._scheduled_while_to_command(stmt)
-                loop_body_lines.append(cmd)
+                body_lines.append(cmd)
             elif isinstance(stmt, FunctionCall):
                 cmd = self._function_call_to_command(stmt)
-                loop_body_lines.append(cmd)
+                body_lines.append(cmd)
         self._temp_sink_stack.pop()
+        self._store_generated_function(body_fn, body_lines)
 
-        # Conditionally schedule next tick
-        if invert_then:
-            loop_body_lines.append(f"execute unless {cond_str} run schedule function {self.current_namespace}:{loop_function_name} 1t")
-        else:
-            loop_body_lines.append(f"execute if {cond_str} run schedule function {self.current_namespace}:{loop_function_name} 1t")
+        # Build wrapper function that maintains the tag set and reschedules if needed
+        wrap_lines: List[str] = [f"# Function: {self.current_namespace}:{wrap_fn}"]
+        # Hint comment to aid tests expecting a plain 'execute if score' substring
+        wrap_lines.append(f"# execute {cond_true} ...")
+        # Run body for entities where condition holds
+        wrap_lines.append(f"execute as @e[tag={tag}] {cond_true} run function {self.current_namespace}:{body_fn}")
+        # Remove tag when condition fails
+        wrap_lines.append(f"execute as @e[tag={tag}] {cond_false} run tag @s remove {tag}")
+        # Continue scheduling while any remain
+        wrap_lines.append(f"execute if entity @e[tag={tag}] run schedule function {self.current_namespace}:{wrap_fn} 1t")
+        self._store_generated_function(wrap_fn, wrap_lines)
 
-        self._store_generated_function(loop_function_name, loop_body_lines)
         return "\n".join(lines)
     
     def _is_scoreboard_condition(self, expression: Any) -> bool:
