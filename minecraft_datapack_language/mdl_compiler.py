@@ -7,7 +7,7 @@ import os
 import json
 import shutil
 from pathlib import Path
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any, Optional, Set
 from .ast_nodes import (
     Program, PackDeclaration, NamespaceDeclaration, TagDeclaration,
     VariableDeclaration, VariableAssignment, VariableSubstitution, FunctionDeclaration,
@@ -29,6 +29,8 @@ class MDLCompiler:
         self.dir_map: Optional[DirMap] = None
         self.current_namespace = "mdl"
         self.variables: Dict[str, str] = {}  # name -> objective mapping
+        # Track any temporary scoreboard variables generated during compilation
+        self.temp_variables: Set[str] = set()
         
     def compile(self, ast: Program, source_dir: str = None) -> str:
         """Compile MDL AST into a complete Minecraft datapack."""
@@ -971,4 +973,8 @@ class MDLCompiler:
         if not hasattr(self, 'temp_counter'):
             self.temp_counter = 0
         self.temp_counter += 1
-        return f"temp_{self.temp_counter}"
+        name = f"temp_{self.temp_counter}"
+        # Register temp variable so its objective is created and scores are initialized
+        self.temp_variables.add(name)
+        self.variables[name] = name
+        return name
