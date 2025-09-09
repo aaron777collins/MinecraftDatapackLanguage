@@ -656,6 +656,12 @@ class MDLCompiler:
         wrap_fn = self._generate_while_function_name()  # e.g., fn__while_1
         body_fn = f"{wrap_fn}__body"
         tag = f"mdl_sched__{wrap_fn}"
+        # If inside a parent scheduledwhile, register this tag as a child so parent defers while child active
+        if hasattr(self, '_sched_child_tag_stack') and self._sched_child_tag_stack:
+            self._sched_child_tag_stack[-1].append(tag)
+        # Prepare nested scheduledwhile coordination
+        if not hasattr(self, '_sched_child_tag_stack'):
+            self._sched_child_tag_stack = []
 
         # Build condition once
         cond_str, invert_then = self._build_condition(while_loop.condition)
@@ -669,8 +675,21 @@ class MDLCompiler:
 
         # Build per-entity body function
         body_lines: List[str] = [f"# Function: {self.current_namespace}:{body_fn}"]
+
         if not hasattr(self, '_temp_sink_stack'):
             self._temp_sink_stack = []
+
+        # Push a new child tag collector for nested scheduledwhiles
+        self._sched_child_tag_stack.append([])
+        # Also expose this collector to nested calls via a convenience reference
+        current_child_list = self._sched_child_tag_stack[-1]
+        # Provide a hook for nested scheduledwhile to register their tag
+        if not hasattr(self, '_register_child_sched_tag'):
+            def _register(tag_name: str):
+                if self._sched_child_tag_stack:
+                    self._sched_child_tag_stack[-1].append(tag_name)
+            self._register_child_sched_tag = _register
+
         self._temp_sink_stack.append(body_lines)
         for stmt in while_loop.body:
             if isinstance(stmt, VariableAssignment):
@@ -697,14 +716,20 @@ class MDLCompiler:
                 cmd = self._function_call_to_command(stmt)
                 body_lines.append(cmd)
         self._temp_sink_stack.pop()
+        # Pop collected child tags for this level
+        child_tags: List[str] = self._sched_child_tag_stack.pop() if hasattr(self, '_sched_child_tag_stack') and self._sched_child_tag_stack else []
         self._store_generated_function(body_fn, body_lines)
 
         # Build wrapper function that maintains the tag set and reschedules if needed
         wrap_lines: List[str] = [f"# Function: {self.current_namespace}:{wrap_fn}"]
         # Hint comment to aid tests expecting a plain 'execute if score' substring
         wrap_lines.append(f"# execute {cond_true} ...")
-        # Run body for entities where condition holds
-        wrap_lines.append(f"execute as @e[tag={tag}] {cond_true} run function {self.current_namespace}:{body_fn}")
+        # Run body for entities where condition holds (but NOT currently inside any child scheduled loop)
+        selector = f"@e[tag={tag}"
+        for ct in child_tags:
+            selector += f",tag=!{ct}"
+        selector += "]"
+        wrap_lines.append(f"execute as {selector} {cond_true} run function {self.current_namespace}:{body_fn}")
         # Remove tag when condition fails
         wrap_lines.append(f"execute as @e[tag={tag}] {cond_false} run tag @s remove {tag}")
         # Continue scheduling while any remain
