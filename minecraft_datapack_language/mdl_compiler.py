@@ -29,6 +29,8 @@ class MDLCompiler:
         self.dir_map: Optional[DirMap] = None
         self.current_namespace = "mdl"
         self.variables: Dict[str, str] = {}  # name -> objective mapping
+        # Preserve declared variables so we can initialize defaults in load.mcfunction
+        self.declared_variables: List[VariableDeclaration] = []
         # Track any temporary scoreboard variables generated during compilation
         self.temp_variables: Set[str] = set()
         
@@ -123,6 +125,7 @@ class MDLCompiler:
         for var in variables:
             objective_name = var.name
             self.variables[var.name] = objective_name
+            self.declared_variables.append(var)
             print(f"Variable: {var.name} -> scoreboard objective '{objective_name}'")
     
     def _compile_functions(self, functions: List[FunctionDeclaration], data_dir: Path):
@@ -301,6 +304,33 @@ class MDLCompiler:
         for var_name, objective in self.variables.items():
             lines.append(f"scoreboard objectives add {objective} dummy \"{var_name}\"")
         
+        # Initialize declared variables with explicit initial values
+        # Use @a for any @s-scoped variable since load runs without an executor
+        for decl in self.declared_variables:
+            if getattr(decl, 'initial_value', None) is None:
+                continue
+            objective = self.variables.get(decl.name, decl.name)
+            scope = decl.scope.strip("<>") if decl.scope else "@a"
+            if scope == "@s":
+                scope = "@a"
+            init = decl.initial_value
+            from .ast_nodes import LiteralExpression, VariableSubstitution
+            if isinstance(init, LiteralExpression):
+                # Normalize number to int if possible
+                val = init.value
+                try:
+                    v = float(val)
+                    val_str = str(int(v)) if v.is_integer() else str(v)
+                except Exception:
+                    val_str = str(val)
+                lines.append(f"scoreboard players set {scope} {objective} {val_str}")
+            elif isinstance(init, VariableSubstitution):
+                src_obj = self.variables.get(init.name, init.name)
+                src_scope = init.scope.strip("<>") if init.scope else "@a"
+                if src_scope == "@s":
+                    src_scope = "@a"
+                lines.append(f"scoreboard players operation {scope} {objective} = {src_scope} {src_obj}")
+
         lines.append("")
         
         # Add on_load hook calls
