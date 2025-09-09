@@ -12,7 +12,11 @@ from pathlib import Path
 
 
 def run_test_suite(name, command, description=""):
-    """Run a test suite and return results."""
+    """Run a test suite and return results.
+
+    If command is a list, execute without a shell to avoid shell expansions.
+    If command is a string, execute via the shell (backward compatible).
+    """
     print(f"\n{'='*60}")
     print(f"Running {name}")
     if description:
@@ -22,7 +26,8 @@ def run_test_suite(name, command, description=""):
     start_time = time.time()
     
     try:
-        result = subprocess.run(command, shell=True, capture_output=True, text=True)
+        use_shell = isinstance(command, str)
+        result = subprocess.run(command, shell=use_shell, capture_output=True, text=True)
         duration = time.time() - start_time
         
         if result.returncode == 0:
@@ -64,11 +69,16 @@ def main():
         has_cov = importlib.util.find_spec("pytest_cov") is not None
     except Exception:
         has_cov = False
-    base_cmd = "python -m pytest tests/ -v"
-    cov_args = " --cov=minecraft_datapack_language --cov-report=term-missing --cov-report=html:htmlcov" if has_cov else ""
+    base_cmd = [sys.executable, "-m", "pytest", "tests/", "-v"]
+    if has_cov:
+        base_cmd += [
+            "--cov=minecraft_datapack_language",
+            "--cov-report=term-missing",
+            "--cov-report=html:htmlcov",
+        ]
     pytest_result = run_test_suite(
         "Pytest Suite",
-        f"{base_cmd}{cov_args}",
+        base_cmd,
         "Comprehensive pytest suite" + (" with coverage" if has_cov else "")
     )
     results.append(("Pytest", pytest_result))
@@ -87,7 +97,7 @@ def main():
         if test_path.exists():
             result = run_test_suite(
                 f"Pytest {test_file}",
-                f"python -m pytest -q tests/{test_file}",
+                [sys.executable, "-m", "pytest", "-q", f"tests/{test_file}"],
                 description
             )
             results.append((test_file, result))
@@ -100,7 +110,11 @@ def main():
     # Test complex scenarios
     complex_result = run_test_suite(
         "Complex Scenarios Compilation",
-        "python -c \"from minecraft_datapack_language.mdl_parser import MDLParser; from minecraft_datapack_language.mdl_compiler import MDLCompiler; import tempfile; from pathlib import Path; source = '''pack \\\"test\\\" \\\"Test pack\\\" 82; namespace \\\"test\\\"; var num counter<@s> = 0; var num health<@s> = 20; var num bonus<@s> = 5; function test:complex_math<@s> { counter<@s> = ($counter<@s>$ + $health<@s>$) * $bonus<@s>$; }'''; parser = MDLParser(); ast = parser.parse(source); compiler = MDLCompiler('temp_output'); compiler.compile(ast); print('Complex expressions compilation successful')\"",
+        [
+            sys.executable,
+            "-c",
+            "from minecraft_datapack_language.mdl_parser import MDLParser; from minecraft_datapack_language.mdl_compiler import MDLCompiler; import tempfile; from pathlib import Path; source = '''pack \"test\" \"Test pack\" 82; namespace \"test\"; var num counter<@s> = 0; var num health<@s> = 20; var num bonus<@s> = 5; function test:complex_math<@s> { counter<@s> = ($counter<@s>$ + $health<@s>$) * $bonus<@s>$; }'''; parser = MDLParser(); ast = parser.parse(source); compiler = MDLCompiler('temp_output'); compiler.compile(ast); print('Complex expressions compilation successful')",
+        ],
         "Test complex mathematical expressions compilation"
     )
     results.append(("Complex Expressions", complex_result))
@@ -108,7 +122,11 @@ def main():
     # Test control flow
     control_result = run_test_suite(
         "Control Flow Compilation",
-        "python -c \"from minecraft_datapack_language.mdl_parser import MDLParser; from minecraft_datapack_language.mdl_compiler import MDLCompiler; import tempfile; from pathlib import Path; source = '''pack \\\"test\\\" \\\"Test pack\\\" 82; namespace \\\"test\\\"; var num health<@s> = 20; function test:health_check<@s> { if $health<@s>$ < 10 { say \\\"Health is low!\\\"; } else { say \\\"Health is good!\\\"; } }'''; parser = MDLParser(); ast = parser.parse(source); compiler = MDLCompiler('temp_output'); compiler.compile(ast); print('Control flow compilation successful')\"",
+        [
+            sys.executable,
+            "-c",
+            "from minecraft_datapack_language.mdl_parser import MDLParser; from minecraft_datapack_language.mdl_compiler import MDLCompiler; import tempfile; from pathlib import Path; source = '''pack \"test\" \"Test pack\" 82; namespace \"test\"; var num health<@s> = 20; function test:health_check<@s> { if $health<@s>$ < 10 { say \"Health is low!\"; } else { say \"Health is good!\"; } }'''; parser = MDLParser(); ast = parser.parse(source); compiler = MDLCompiler('temp_output'); compiler.compile(ast); print('Control flow compilation successful')",
+        ],
         "Test if/else control flow compilation"
     )
     results.append(("Control Flow", control_result))
@@ -116,7 +134,11 @@ def main():
     # Test function execution
     function_result = run_test_suite(
         "Function Execution Compilation",
-        "python -c \"from minecraft_datapack_language.mdl_parser import MDLParser; from minecraft_datapack_language.mdl_compiler import MDLCompiler; import tempfile; from pathlib import Path; source = '''pack \\\"test\\\" \\\"Test pack\\\" 82; namespace \\\"test\\\"; function test:helper<@s> { say \\\"Helper function!\\\"; } function test:main<@s> { exec test:helper<@s>; }'''; parser = MDLParser(); ast = parser.parse(source); compiler = MDLCompiler('temp_output'); compiler.compile(ast); print('Function execution compilation successful')\"",
+        [
+            sys.executable,
+            "-c",
+            "from minecraft_datapack_language.mdl_parser import MDLParser; from minecraft_datapack_language.mdl_compiler import MDLCompiler; import tempfile; from pathlib import Path; source = '''pack \"test\" \"Test pack\" 82; namespace \"test\"; function test:helper<@s> { say \"Helper function!\"; } function test:main<@s> { exec test:helper<@s>; }'''; parser = MDLParser(); ast = parser.parse(source); compiler = MDLCompiler('temp_output'); compiler.compile(ast); print('Function execution compilation successful')",
+        ],
         "Test function execution with scopes"
     )
     results.append(("Function Execution", function_result))
@@ -125,7 +147,11 @@ def main():
     print("\nTesting Python bindings...")
     api_result = run_test_suite(
         "Python Bindings Basic",
-        "python -c \"from minecraft_datapack_language import Pack; import tempfile, shutil; from pathlib import Path; td=tempfile.mkdtemp(); p=Pack('Test','Test pack',82); ns=p.namespace('test'); ns.function('hello','say Hello World!'); p.build(td); output=Path(td)/'data'/'test'/'function'/'hello.mcfunction'; assert output.exists(); print('Python API test successful'); shutil.rmtree(td)\"",
+        [
+            sys.executable,
+            "-c",
+            "from minecraft_datapack_language import Pack; import tempfile, shutil; from pathlib import Path; td=tempfile.mkdtemp(); p=Pack('Test','Test pack',82); ns=p.namespace('test'); ns.function('hello','say Hello World!'); p.build(td); output=Path(td)/'data'/'test'/'function'/'hello.mcfunction'; assert output.exists(); print('Python API test successful'); shutil.rmtree(td)",
+        ],
         "Test basic Python bindings functionality"
     )
     results.append(("Python Bindings", api_result))
@@ -134,7 +160,7 @@ def main():
     print("\nTesting CLI...")
     cli_result = run_test_suite(
         "CLI Help",
-        "python -m minecraft_datapack_language.cli --help",
+        [sys.executable, "-m", "minecraft_datapack_language.cli", "--help"],
         "Test CLI help command"
     )
     results.append(("CLI Help", cli_result))
