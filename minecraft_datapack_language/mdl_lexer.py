@@ -357,6 +357,14 @@ class MDLLexer:
             if (self.source[self.current:self.current + 5] == 'raw!$'):
                 # Found the end marker - extract the content
                 raw_content = self.source[content_start:self.current]
+                # Trim leading/trailing whitespace on each line within the raw block
+                try:
+                    lines = raw_content.split('\n')
+                    trimmed_lines = [ln.strip() for ln in lines]
+                    raw_content = '\n'.join(trimmed_lines)
+                except Exception:
+                    # If anything goes wrong, fall back to original content
+                    pass
                 
                 # Generate a single RAW_CONTENT token with all the content
                 self.tokens.append(Token(TokenType.RAW_CONTENT, raw_content, self.line, self.column))

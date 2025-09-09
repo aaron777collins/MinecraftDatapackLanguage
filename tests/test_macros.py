@@ -50,6 +50,8 @@ def test_function_macros_exec_and_macro_lines():
 
         # Macro line should be preserved verbatim
         assert "$say \"Hello $(name)\"" in target_content
+        # Ensure there is no whitespace between '$' and the command token anywhere
+        assert "$ say" not in target_content
         # Exec with inline JSON compound
         assert "function macro:target {name:\"purple elephant\"}" in caller_content
         # Exec with data source 'with' clause

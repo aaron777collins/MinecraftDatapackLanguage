@@ -14,6 +14,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from minecraft_datapack_language.mdl_compiler import MDLCompiler
 from minecraft_datapack_language.mdl_parser import MDLParser
+from minecraft_datapack_language.mdl_parser import MDLParser
 
 def test_complex_expressions():
     """Test that complex expressions compile correctly."""
@@ -34,7 +35,7 @@ function test:complex_math<@s> {
     
     with tempfile.TemporaryDirectory() as temp_dir:
         # Parse and compile
-        parser = MDLParser()
+        parser = MDLParser("<test>")
         ast = parser.parse(source)
         
         compiler = MDLCompiler(temp_dir)
@@ -77,6 +78,9 @@ function test:control_test<@s> {
     
     while $counter<@s>$ < 10 {
         counter<@s> = $counter<@s>$ + 1;
+        $!raw
+          say   Hello
+        raw!$
     }
 }
 """
@@ -92,15 +96,20 @@ function test:control_test<@s> {
         # Check output
         output_file = Path(temp_dir) / "data" / "test" / "function" / "control_test.mcfunction"
         assert output_file.exists(), "Output file should exist"
-        
+
         content = output_file.read_text()
         print(f"Generated content:\n{content}")
-        
+
         # Verify it contains proper control flow
         assert "execute if score" in content, "Should generate execute if commands"
         assert "execute unless score" in content, "Should generate execute unless commands"
         # While body is emitted as a generated function call with parent-name prefix
         assert "__while_" in content, "Should generate while loop functions"
+        # Raw block lines should be trimmed per line within generated function files
+        mcfuncs = list((Path(temp_dir) / "data" / "test").rglob("*.mcfunction"))
+        combined = "\n".join(p.read_text() for p in mcfuncs)
+        assert "\nsay   Hello" in combined
+        assert "\n  say" not in combined
         
         print("✅ Control flow test passed!")
 

@@ -187,7 +187,10 @@ class MDLCompiler:
             if macro_re.search(line):
                 stripped = line.lstrip()
                 if not stripped.startswith('$'):
-                    return '$' + line
+                    # Insert '$' immediately after indentation so there is no space after '$'
+                    leading_ws_len = len(line) - len(stripped)
+                    leading_ws = line[:leading_ws_len]
+                    return f"{leading_ws}${stripped}"
             return line
         if '\n' in text:
             return '\n'.join(process_line(ln) for ln in text.split('\n'))

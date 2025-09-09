@@ -34,8 +34,8 @@ def test_build_macros_example(tmp_path: Path):
     greeter = target_files[0].read_text()
     runner = runner_files[0].read_text()
 
-    # Macro line should be present as raw
-    assert '$say "Hello $(name)"' in greeter
+    # Macro line should be present as raw and no space after '$'
+    assert '$say "Hello $(name)"' in greeter and '$ say' not in greeter
     # Both exec forms should be emitted
     assert 'function macros_ex:greeter {name:"Casey"}' in runner
     assert 'function macros_ex:greeter with storage macros_ex:ctx player.profile' in runner
