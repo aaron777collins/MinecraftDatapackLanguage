@@ -40,6 +40,10 @@
       {
         pattern: /"([^"\\]|\\.)*"/,
         greedy: true
+      },
+      {
+        pattern: /'([^'\\]|\\.)*'/,
+        greedy: true
       }
     ],
     'raw-block': {
@@ -50,22 +54,65 @@
       }
     },
     'keyword': {
-      pattern: /\b(pack|namespace|function|on_tick|on_load|tag|add|if|else if|else|while|for|in|var|let|const|num|str|list|try|catch|throw|switch|case|default|break|continue|return|import|from|as|recipe|loot_table|advancement|predicate|item_modifier|structure|scope|global)\b/
+      pattern: /\b(pack|namespace|function|on_tick|on_load|tag|if|else|while|scheduledwhile|var|num|exec|with|recipe|loot_table|advancement|predicate|item_modifier|structure)\b/
     },
     'builtin': {
       pattern: /\b(say|tellraw|effect|particle|execute|scoreboard|data|function|tag|tp|kill|summon|give|clear|enchant|gamemode|weather|time|difficulty|gamerule|title|playsound|stopsound|kick|ban|ban-ip|pardon|pardon-ip|whitelist|op|deop|save-all|save-off|save-on|list|me|msg|team|trigger|advancement|recipe|loot|schedule|return|run|fill|setblock|clone|teleport|spreadplayers|worldborder|xp|experience|replaceitem|clear|testfor|testforblock|testforblocks|stats|blockdata|entitydata|setworldspawn|setidletimeout|stop|save|save-all|save-off|save-on|whitelist|ban|ban-ip|pardon|pardon-ip|kick|op|deop|list|me|msg|tell|w|say|broadcast|help|version|reload|debug|seed|defaultgamemode|difficulty|gamemode|gamerule|publish|spawnpoint|setworldspawn|time|toggledownfall|weather|xp|experience|achievement|advancement|bossbar|clear|clone|data|datapack|debug|defaultgamemode|difficulty|effect|enchant|execute|experience|fill|forceload|function|gamemode|gamerule|give|help|item|kick|kill|list|locate|me|msg|op|pardon|particle|playsound|publish|recipe|reload|replaceitem|save|save-all|save-off|save-on|say|schedule|scoreboard|seed|setblock|setidletimeout|setworldspawn|spawnpoint|spreadplayers|stop|summon|tag|team|teleport|tell|tellraw|time|title|toggledownfall|tp|trigger|weather|whitelist|worldborder|xp)\b/
     },
     'selector': {
-      pattern: /\b(@p|@r|@a|@e|@s)\b/
+      pattern: /\b(@p|@r|@a|@e|@s|@initiator|@c|@v|@d|@w)\b/
     },
     'boolean': {
       pattern: /\b(true|false|null|undefined)\b/
     },
     'number': {
-      pattern: /\b\d+\b/
+      pattern: /\b\d+(?:\.\d+)?\b/
     },
-    'operator': {
-      pattern: /\b(\+|-|\*|\/|%|=|==|!=|<|>|<=|>=|&&|\|\||!|\+=|-=|\*=|\/=|%=)\b/
+    'operator-comparison': {
+      pattern: /(==|!=|<=|>=|<|>)/
+    },
+    'operator-logical': {
+      pattern: /(&&|\|\||!)/
+    },
+    'operator-assignment': {
+      pattern: /=/
+    },
+    'operator-arithmetic': {
+      pattern: /(\+|\-|\*|\/)/
+    },
+    'range': {
+      pattern: /\.\./
+    },
+    // Scope blocks like <global> or <@e[tag=...]>
+    'scope': {
+      pattern: /<[^>]+>/,
+      inside: {
+        'global': /\bglobal\b/,
+        'selector': /@p|@r|@a|@e|@s|@initiator|@c|@v|@d|@w/,
+        'selector-args': /\[[^\]]*\]/,
+        'tag-attr': /tag\s*=\s*[A-Za-z0-9_\-]+/
+      }
+    },
+    // Variable substitution like $var<scope>$
+    'varsub': {
+      pattern: /\$[A-Za-z_][A-Za-z0-9_]*<[^>]+>\$/,
+      inside: {
+        'punctuation': /\$|<|>/,
+        'variable': /[A-Za-z_][A-Za-z0-9_]*/,
+        'scope': {
+          pattern: /<[^>]+>/,
+          inside: {
+            'global': /\bglobal\b/,
+            'selector': /@p|@r|@a|@e|@s|@initiator|@c|@v|@d|@w/,
+            'selector-args': /\[[^\]]*\]/,
+            'tag-attr': /tag\s*=\s*[A-Za-z0-9_\-]+/
+          }
+        }
+      }
+    },
+    // Macro line (single-line) starting with $ but not $!raw
+    'macro-line': {
+      pattern: /^\s*\$(?!!raw).*$/m
     },
     'punctuation': /[{}();[\]]/
   };
