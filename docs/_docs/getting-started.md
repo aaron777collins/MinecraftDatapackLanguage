@@ -225,6 +225,6 @@ mdl check myproject/
 
 ## Next Steps
 
-- Read the [Language Reference](language-reference.md) for complete syntax
-- Check out [Examples](examples.md) for more complex examples
-- Learn about [Multi-file Projects](multi-file-projects.md) for larger datapacks
+- Read the [Language Reference](https://www.mcmdl.com/docs/language-reference/) for complete syntax
+- Check out [Examples](https://www.mcmdl.com/docs/examples/) for more complex examples
+- Learn about [Multi-file Projects](https://www.mcmdl.com/docs/multi-file-projects/) for larger datapacks
