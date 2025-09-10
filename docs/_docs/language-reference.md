@@ -11,9 +11,9 @@ MDL is a simple, scope-aware language that compiles to Minecraft datapack `.mcfu
 ## Core Language Design
 
 ### Philosophy
-- **Explicit scoping**: Every variable operation specifies its scope with `<>` brackets
-- **Clear reading vs writing**: Use `$variable<scope>$` for reading, `variable<scope>` for writing
-- **No scope inheritance**: Each operation uses its own explicitly defined scope
+- **Explicit scoping**: Variables support explicit `<scope>`; if omitted, `@s` (current player) is assumed
+- **Clear reading vs writing**: Use `$variable<scope>$` or `$variable$` for reading, and `variable<scope>` or `variable` for writing
+- **No scope inheritance**: Each operation uses its own explicitly defined scope (or defaults to `@s` when omitted)
 - **Default scope**: When no scope specified, always use `@s` (current player)
 - **No return values**: All functions are void - they execute commands and modify state
 - **No quotes needed**: Use `$variable<scope>$` syntax directly instead of string literals
@@ -63,16 +63,17 @@ tag structure "custom_house" "structures/custom_house.json";
 
 ### Variable Declaration
 ```mdl
-// Declare variables with explicit scope
+// Declare variables (scope optional; defaults to @s)
 var num player_score<@a> = 0;                    // Global scope - accessible by all players
 var num player_health<@s> = 20;                  // Player-specific scope
+var num player_health = 20;                      // Same as player_health<@s> = 20
 var num team_score<@a[team=red]> = 0;            // Team scope
 var num entity_data<@e[type=armor_stand,tag=mdl_server,limit=1]> = 0; // Custom entity scope
 ```
 
 ### Variable Assignment
 ```mdl
-// Always specify scope for assignments
+// Scope optional; defaults to @s for both reads and writes when omitted
 player_score<@s> = $player_score<@s>$ + 1;       // Add 1 to current player's score
 player_health<@a> = $player_health<@s>$;         // Read from @s, write to @a
 team_score<@a[team=red]> = 5;                   // Set red team score to 5
@@ -83,13 +84,15 @@ player_score = 0;                                // Same as player_score<@s> = 0
 
 ### Variable Substitution
 ```mdl
-// Use $variable<scope>$ syntax anywhere in the code
+// Use $variable<scope>$ or $variable$ anywhere in the code
+// $variable$ defaults to <@s>
 tellraw @s {"text":"You have ","extra":[{"score":{"name":"@s","objective":"player_score"}}," points"]};
+tellraw @s {"text":"You have ","extra":[{"score":{"name":"@s","objective":"player_score"}}," points"]}; // $player_score$
 execute if score @s player_score matches 10.. run game:celebrate;
 
 // In conditions
-if $player_score<@s>$ > 10 {
-    player_score<@s> = 0;
+if $player_score$ > 10 {
+    player_score = 0;                             // defaults to <@s>
 }
 ```
 
@@ -241,8 +244,8 @@ $summon minecraft:cow ~ ~ ~ {CustomName:'{"text":"$(name)"}'}
 
 ### Core Scope Rules
 
-1. **Variable Writing**: Use `variable<scope>` for assignments and declarations
-2. **Variable Reading**: Use `$variable<scope>$` for reading values
+1. **Variable Writing**: Use `variable<scope>` for assignments and declarations; `variable` defaults to `<@s>`
+2. **Variable Reading**: Use `$variable<scope>$` for reading values; `$variable$` defaults to `<@s>`
 3. **Function Execution**: Use `exec` keyword to run any function (with or without scope)
 4. **No Inheritance**: Functions do not inherit scope from their caller
 5. **Default Scope**: When no scope specified, always use `@s` (current player)
@@ -272,6 +275,7 @@ var num global_counter<@a> = 0;
 global_counter<@s> = 5;                         // Set current player's counter to 5
 global_counter<@a> = $global_counter<@a>$ + 1;  // Increment global counter
 global_counter = 10;                            // Same as global_counter<@s> = 10 (defaults to @s)
+say "Player has $global_counter$ points";      // $global_counter$ defaults to <@s>
 
 // Function calls
 exec game:increment;                            // Execute function
@@ -692,6 +696,17 @@ Tokenized as:
 4. `IDENTIFIER` (`@s`)
 5. `RANGLE` (`>`)
 6. `DOLLAR` (`$`)
+
+#### **Shorthand (Default Scope)**
+```
+$player_score$
+```
+Tokenized as:
+1. `DOLLAR` (`$`)
+2. `IDENTIFIER` (`player_score`)
+3. `DOLLAR` (`$`)
+
+Note: When the scope is omitted, the parser defaults it to `<@s>` during AST construction.
 
 #### **Complex Substitution**
 ```
