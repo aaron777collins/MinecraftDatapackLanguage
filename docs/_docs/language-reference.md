@@ -142,6 +142,11 @@ exec game:spawn_mob '{id:"minecraft:cow",name:"Betsy"}';
 exec game:spawn_mob with storage mymod:ctx path.to.compound;
 ```
 
+### Exec and Scope Execution Rules
+- `exec ns:name` runs `function ns:name` in the current executor context.
+- `exec ns:name<selector>` compiles to `execute as <selector> run function ns:name`.
+- Macro args compile to `function ns:name {json}` form; with-clause compiles to `function ns:name with <data source and path>`.
+
 ### Control Structures
 
 #### If Statements
@@ -324,7 +329,22 @@ exec utils:helper;                              // Execute from different namesp
 && (logical AND)
 || (logical OR)
 !  (logical NOT)
+
+// Range (for matches)
+.. (range operator)
 ```
+
+### Unary Operators and Precedence
+- Unary minus: `-x` applies before multiplication/division and addition/subtraction. Literals are constant-folded; non-literals are compiled as `0 - x` via a temp score.
+- Logical NOT: `!expr` negates a boolean expression. For comparisons like `!$a$ > 0`, the comparison is compiled first, then inverted using `execute unless`.
+- Precedence (lowest to highest):
+  1) `||`
+  2) `&&`
+  3) Comparisons (`>`, `>=`, `<`, `<=`, `==`, `!=`)
+  4) `+`, `-`
+  5) `*`, `/`
+  6) Unary (`!`, unary `-`)
+  7) Parentheses `(...)`
 
 ### Expression Examples
 ```mdl
@@ -348,15 +368,18 @@ if $a<@s>$ > 0 || $b<@s>$ > 0 {
     say "At least one is greater than 0";
 }
 
-// NOT negates the entire comparison when used like: !$a<@s>$ > 0
-if !$a<@s>$ > 0 {
+// NOT negates the entire comparison when used like: !$a$ > 0
+if !$a$ > 0 {
     say "a is not greater than 0";
 }
 
 // Complex logical expression with parentheses
-if ($a<@s>$ > 0 && $b<@s>$ > 0) || $c<@s>$ > 0 {
+if ($a$ > 0 && $b$ > 0) || $c$ > 0 {
     say "Condition satisfied";
 }
+// Unary minus with literals and variables
+var num t = -2;
+if ($x$ + -($y$ * 3)) >= -5 { say "ok"; }
 ```
 
 ## Reserved Names
@@ -523,17 +546,18 @@ on_tick "game:update_timer";
 3. **No Return Values**: Functions compile to a series of Minecraft commands
 
 ### Control Structure Compilation
-1. **If Statements**: Generate `execute if score condition run function namespace:if_function` commands
-2. **Else If Statements**: Handle nested if statements recursively, generating proper conditional chains
-3. **Else Blocks**: Generate `execute unless score condition run function namespace:else_function` commands
-4. **While Loops**: Generate recursive function calls that continue while the condition is true
-5. **Nested Structures**: Automatically handle complex nested if/else and while loop combinations
+1. **If Statements**: Comparisons compile to scoreboard comparisons. `!=` uses equality with inversion. Boolean expressions (`&&`, `||`, `!`) compile via temporary boolean scores and `execute` chaining.
+2. **Else If Statements**: Handled as nested `if` with separate generated helper functions; chains are preserved.
+3. **Else Blocks**: Compiled using inverted conditions with `execute unless` to run the else helper function.
+4. **While Loops**: Generate recursive function calls that continue while the condition is true.
+5. **Scheduled While Loops**: Generate a per-tick scheduled helper, tagging entities to iterate; schedule continues while the condition remains true.
+6. **Nested Structures**: Automatically handle complex nested if/else and while loop combinations.
 
 ### Say Command Compilation
 1. **Simple Text**: `say "message"` becomes `tellraw @a {"text":"message"}`
-2. **With Variables**: `say "Score: $score<@s>$"` becomes `tellraw @a {"text":"Score: ","extra":[{"score":{"name":"@s","objective":"score"}}]}`
-3. **Multiple Variables**: Complex variable substitutions are automatically formatted into proper JSON structure
-4. **Default Target**: All say commands target `@a` (all players) for maximum visibility
+2. **With Variables**: `say "Score: $score<@s>$"` or `say "Score: $score$"` compiles to `tellraw` with a `score` component; `$var$` defaults to `<@s>`.
+3. **Multiple Variables**: Complex variable substitutions are automatically formatted into proper JSON structure.
+4. **Default Target**: All say commands target `@a` (all players) for maximum visibility.
 
 ### Tag Compilation
 1. **Recipe Tags**: `tag recipe "name" "path"` generates appropriate tag files
@@ -599,8 +623,14 @@ Examples: `0`, `42`, `3.14`, `1000`
 // Comparison
 == (EQUAL), != (NOT_EQUAL), > (GREATER), < (LESS), >= (GREATER_EQUAL), <= (LESS_EQUAL)
 
+// Logical
+&& (AND), || (OR), ! (NOT)
+
 // Assignment
 = (ASSIGN)
+
+// Range
+.. (RANGE)
 
 // Execution
 exec (EXEC)
@@ -623,8 +653,10 @@ exec (EXEC)
 
 #### **Special Tokens**
 ```
-$ (DOLLAR)        - Variable substitution delimiter
-" (QUOTE)         - String literal delimiter
+$ (DOLLAR)        - Variable substitution delimiter; line-start $... as MACRO_LINE
+! (EXCLAMATION)   - Used in $!raw markers
+RAW_CONTENT       - Entire content of a raw block
+" (QUOTE)         - String literal delimiter (supports both " and ' in lexer)
 ```
 
 ### Tag Declaration Tokenization
@@ -1273,10 +1305,10 @@ def _parse_comparison(self) -> Any:
 
 ### Integer-Only Arithmetic and Literal Handling
 
-- Scoreboard arithmetic is integer-only. MDL normalizes literals: `2.0` -> `2`; non-integer literals (e.g., `2.5`) are rejected with a compiler error when used in scoreboard operations.
-- Literal addition/subtraction uses `add`/`remove` and elides `+0`/`-0`.
-- Literal multiplication/division uses `multiply`/`divide` and elides `*1`/`/1`; `*0` sets to 0; `/(-k)` becomes `/|k|` then `*-1`.
-- Mixed expressions lower via temps; operations against other scores use `operation +=, -=, *=, /=`.
+- Scoreboard arithmetic is integer-only. MDL normalizes integer-like literals: `2.0` -> `2`. Non-integer literals (e.g., `2.5`) cause a compile-time error when used in scoreboard math.
+- Literal addition/subtraction uses `scoreboard players add/remove`; elides `+0`/`-0`.
+- Literal multiplication/division uses `scoreboard players multiply/divide`; elides `*1`/`/1`. `*0` sets the temp to zero. Division by zero is a compile-time error.
+- Mixed expressions are lowered via temporary scores to preserve precedence. Score-to-score operations use `scoreboard players operation`.
 
 ### AST Traversal and Code Generation
 
