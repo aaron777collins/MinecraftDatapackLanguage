@@ -314,6 +314,11 @@ exec utils:helper;                              // Execute from different namesp
 < (less than)
 >= (greater than or equal)
 <= (less than or equal)
+
+// Logical
+&& (logical AND)
+|| (logical OR)
+!  (logical NOT)
 ```
 
 ### Expression Examples
@@ -324,9 +329,28 @@ player_score<@s> = $x<@a>$ + $y<@p>$ * $z<@r>$;
 // Parentheses for precedence
 player_score<@s> = ($x<@s>$ + $y<@s>$) * 2;
 
-// Simple comparisons (no logical operators)
+// Comparisons
 if $score<@s>$ > 10 {
     exec game:reward;
+}
+
+// Logical operators
+if $a<@s>$ > 0 && $b<@s>$ > 0 {
+    say "Both are greater than 0";
+}
+
+if $a<@s>$ > 0 || $b<@s>$ > 0 {
+    say "At least one is greater than 0";
+}
+
+// NOT negates the entire comparison when used like: !$a<@s>$ > 0
+if !$a<@s>$ > 0 {
+    say "a is not greater than 0";
+}
+
+// Complex logical expression with parentheses
+if ($a<@s>$ > 0 && $b<@s>$ > 0) || $c<@s>$ > 0 {
+    say "Condition satisfied";
 }
 ```
 
@@ -1223,6 +1247,13 @@ def _parse_comparison(self) -> Any:
 2. **Factors**: Multiplication, division
 3. **Terms**: Addition, subtraction
 4. **Comparisons**: Greater, less, equal, not equal
+
+### Logical Operators - Compilation Notes
+
+- Logical expressions compile into temporary boolean scoreboard values (1 true, 0 false) checked via `execute if/unless`.
+- `&&` is compiled as a chain of `execute if` conditions; `||` sets the result true if either operand is true.
+- `!` negates the entire operand. For comparisons like `!$a<@s>$ > 0`, the comparison is evaluated first, then negated.
+- `!=` is compiled using equality with inversion (`unless score ... = ...`) because Minecraft lacks a direct not-equal comparator.
 
 ### AST Traversal and Code Generation
 

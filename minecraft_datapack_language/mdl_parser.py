@@ -527,8 +527,8 @@ class MDLParser:
         return expr
 
     def _parse_unary(self) -> Any:
-        """Parse unary expressions (logical NOT)."""
-        if not self._is_at_end() and self._peek().type in [TokenType.NOT]:
+        """Parse unary expressions (logical NOT, unary minus)."""
+        if not self._is_at_end() and self._peek().type in [TokenType.NOT, TokenType.MINUS]:
             operator = self._peek().type
             self._advance()
             operand = self._parse_unary()

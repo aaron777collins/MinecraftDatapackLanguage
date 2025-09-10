@@ -12,7 +12,7 @@ from .ast_nodes import (
     Program, PackDeclaration, NamespaceDeclaration, TagDeclaration,
     VariableDeclaration, VariableAssignment, VariableSubstitution, FunctionDeclaration,
     FunctionCall, IfStatement, WhileLoop, ScheduledWhileLoop, HookDeclaration, RawBlock, MacroLine,
-    SayCommand, BinaryExpression, LiteralExpression, ParenthesizedExpression
+    SayCommand, BinaryExpression, UnaryExpression, LiteralExpression, ParenthesizedExpression
 )
 from .dir_map import get_dir_map, DirMap
 from .mdl_errors import MDLCompilerError
@@ -809,6 +809,42 @@ class MDLCompiler:
             objective = self.variables.get(expression.name, expression.name)
             scope = expression.scope.strip("<>")
             return f"score {scope} {objective}"
+        elif isinstance(expression, UnaryExpression):
+            # Handle logical NOT elsewhere; here support unary minus for arithmetic
+            op = self._normalize_operator(expression.operator)
+            if op == '!':
+                # For values, ! is not meaningful; fallback to boolean temp
+                bool_var = self._compile_boolean_expression(expression)
+                return f"score @s {bool_var}"
+            if op == '-':
+                # If operand is a literal, constant-fold
+                if isinstance(expression.operand, LiteralExpression) and isinstance(expression.operand.value, (int, float)):
+                    try:
+                        v = float(expression.operand.value)
+                        v = -v
+                        if v.is_integer():
+                            return str(int(v))
+                        return str(v)
+                    except Exception:
+                        pass
+                # Otherwise, compute 0 - <operand>
+                rhs = self._expression_to_value(expression.operand)
+                temp_var = self._generate_temp_variable_name()
+                self._store_temp_command(f"scoreboard players set @s {temp_var} 0")
+                if isinstance(expression.operand, VariableSubstitution) or (isinstance(rhs, str) and rhs.startswith("score ")):
+                    parts = str(rhs).split()
+                    if len(parts) >= 3:
+                        scope = parts[1]
+                        obj = parts[2]
+                        self._store_temp_command(f"scoreboard players operation @s {temp_var} -= {scope} {obj}")
+                    else:
+                        self._store_temp_command(f"scoreboard players operation @s {temp_var} -= {rhs}")
+                else:
+                    # rhs is a literal number string
+                    self._store_temp_command(f"scoreboard players remove @s {temp_var} {rhs}")
+                return f"score @s {temp_var}"
+            # Fallback
+            return self._expression_to_value(expression.operand)
         elif isinstance(expression, BinaryExpression):
             # For complex expressions, we need to use temporary variables
             temp_var = self._generate_temp_variable_name()
@@ -898,6 +934,18 @@ class MDLCompiler:
         def unwrap(e: Any) -> Any:
             while isinstance(e, ParenthesizedExpression):
                 e = e.expression
+            # Collapse unary minus literal for better comparisons
+            try:
+                from .ast_nodes import UnaryExpression as _UExpr, LiteralExpression as _LExpr
+                if isinstance(e, _UExpr) and self._normalize_operator(getattr(e, 'operator', None)) == '-' and isinstance(e.operand, _LExpr) and isinstance(e.operand.value, (int, float)):
+                    try:
+                        v = float(e.operand.value)
+                        v = -v
+                        return LiteralExpression(value=v, type="number")
+                    except Exception:
+                        return e
+            except Exception:
+                pass
             return e
 
         # Handle logical operators by compiling to a boolean temp scoreboard var
