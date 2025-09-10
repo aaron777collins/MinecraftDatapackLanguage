@@ -1137,7 +1137,8 @@ class MDLCompiler:
                     obj = parts[2]
                     self._store_temp_command(f"scoreboard players operation @s {temp_var} = {scope} {obj}")
                 else:
-                    self._store_temp_command(f"scoreboard players set @s {temp_var} {left_value}")
+                    lit = self._normalize_integer_literal_string(str(left_value), ctx="addition left operand")
+                    self._store_temp_command(f"scoreboard players set @s {temp_var} {lit}")
             # Add right value
             if isinstance(expression.right, VariableSubstitution) or (isinstance(right_value, str) and right_value.startswith("score ")):
                 parts = str(right_value).split()
@@ -1145,7 +1146,13 @@ class MDLCompiler:
                 obj = parts[2]
                 self._store_temp_command(f"scoreboard players operation @s {temp_var} += {scope} {obj}")
             else:
-                self._store_temp_command(f"scoreboard players add @s {temp_var} {right_value}")
+                lit = self._normalize_integer_literal_string(str(right_value), ctx="addition right operand")
+                if lit == "0":
+                    pass
+                elif lit.startswith("-"):
+                    self._store_temp_command(f"scoreboard players remove @s {temp_var} {lit[1:]}")
+                else:
+                    self._store_temp_command(f"scoreboard players add @s {temp_var} {lit}")
                 
         elif expression.operator == "MINUS":
             if isinstance(expression.left, BinaryExpression):
@@ -1157,7 +1164,8 @@ class MDLCompiler:
                     obj = parts[2]
                     self._store_temp_command(f"scoreboard players operation @s {temp_var} = {scope} {obj}")
                 else:
-                    self._store_temp_command(f"scoreboard players set @s {temp_var} {left_value}")
+                    lit = self._normalize_integer_literal_string(str(left_value), ctx="subtraction left operand")
+                    self._store_temp_command(f"scoreboard players set @s {temp_var} {lit}")
             # Subtract right value
             if isinstance(expression.right, VariableSubstitution) or (isinstance(right_value, str) and right_value.startswith("score ")):
                 parts = str(right_value).split()
@@ -1165,7 +1173,14 @@ class MDLCompiler:
                 obj = parts[2]
                 self._store_temp_command(f"scoreboard players operation @s {temp_var} -= {scope} {obj}")
             else:
-                self._store_temp_command(f"scoreboard players remove @s {temp_var} {right_value}")
+                lit = self._normalize_integer_literal_string(str(right_value), ctx="subtraction right operand")
+                if lit == "0":
+                    pass
+                elif lit.startswith("-"):
+                    # x - (-k) == x + k
+                    self._store_temp_command(f"scoreboard players add @s {temp_var} {lit[1:]}")
+                else:
+                    self._store_temp_command(f"scoreboard players remove @s {temp_var} {lit}")
                 
         elif expression.operator == "MULTIPLY":
             if isinstance(expression.left, BinaryExpression):
@@ -1185,8 +1200,13 @@ class MDLCompiler:
                 # For literal values, keep explicit multiply command for compatibility
                 if isinstance(expression.right, LiteralExpression):
                     # Normalize number formatting (e.g., 2.0 -> 2)
-                    literal_str = self._expression_to_value(expression.right)
-                    self._store_temp_command(f"scoreboard players multiply @s {temp_var} {literal_str}")
+                    literal_str = self._normalize_integer_literal_string(self._expression_to_value(expression.right), ctx="multiply literal")
+                    if literal_str == "0":
+                        self._store_temp_command(f"scoreboard players set @s {temp_var} 0")
+                    elif literal_str == "1":
+                        pass
+                    else:
+                        self._store_temp_command(f"scoreboard players multiply @s {temp_var} {literal_str}")
                 else:
                     # If right_value is a score reference string, strip the leading 'score '
                     if isinstance(right_value, str) and right_value.startswith("score "):
@@ -1198,7 +1218,17 @@ class MDLCompiler:
                         else:
                             self._store_temp_command(f"scoreboard players operation @s {temp_var} *= {right_value}")
                     else:
-                        self._store_temp_command(f"scoreboard players operation @s {temp_var} *= {right_value}")
+                        # If RHS is a numeric literal string (incl. negatives), use multiply
+                        if self._is_numeric_literal_string(right_value):
+                            lit = self._normalize_integer_literal_string(str(right_value), ctx="multiply literal string")
+                            if lit == "0":
+                                self._store_temp_command(f"scoreboard players set @s {temp_var} 0")
+                            elif lit == "1":
+                                pass
+                            else:
+                                self._store_temp_command(f"scoreboard players multiply @s {temp_var} {lit}")
+                        else:
+                            self._store_temp_command(f"scoreboard players operation @s {temp_var} *= {right_value}")
                 
         elif expression.operator == "DIVIDE":
             if isinstance(expression.left, BinaryExpression):
@@ -1218,8 +1248,17 @@ class MDLCompiler:
                 # For literal values, keep explicit divide command for compatibility
                 if isinstance(expression.right, LiteralExpression):
                     # Normalize number formatting (e.g., 2.0 -> 2)
-                    literal_str = self._expression_to_value(expression.right)
-                    self._store_temp_command(f"scoreboard players divide @s {temp_var} {literal_str}")
+                    lit = self._normalize_integer_literal_string(self._expression_to_value(expression.right), ctx="divide literal")
+                    if lit == "0":
+                        raise MDLCompilerError("Division by zero literal is not allowed", "Use a non-zero integer literal")
+                    if lit == "1":
+                        pass
+                    elif lit.startswith("-"):
+                        abs_lit = lit[1:]
+                        self._store_temp_command(f"scoreboard players divide @s {temp_var} {abs_lit}")
+                        self._store_temp_command(f"scoreboard players multiply @s {temp_var} -1")
+                    else:
+                        self._store_temp_command(f"scoreboard players divide @s {temp_var} {lit}")
                 else:
                     # If right_value is a score reference string, strip the leading 'score '
                     if isinstance(right_value, str) and right_value.startswith("score "):
@@ -1231,7 +1270,21 @@ class MDLCompiler:
                         else:
                             self._store_temp_command(f"scoreboard players operation @s {temp_var} /= {right_value}")
                     else:
-                        self._store_temp_command(f"scoreboard players operation @s {temp_var} /= {right_value}")
+                        # If RHS is a numeric literal string (incl. negatives), use divide
+                        if self._is_numeric_literal_string(right_value):
+                            lit = self._normalize_integer_literal_string(str(right_value), ctx="divide literal string")
+                            if lit == "0":
+                                raise MDLCompilerError("Division by zero literal is not allowed", "Use a non-zero integer literal")
+                            if lit == "1":
+                                pass
+                            elif lit.startswith("-"):
+                                abs_lit = lit[1:]
+                                self._store_temp_command(f"scoreboard players divide @s {temp_var} {abs_lit}")
+                                self._store_temp_command(f"scoreboard players multiply @s {temp_var} -1")
+                            else:
+                                self._store_temp_command(f"scoreboard players divide @s {temp_var} {lit}")
+                        else:
+                            self._store_temp_command(f"scoreboard players operation @s {temp_var} /= {right_value}")
         else:
             # For other operators, just set the value
             self._store_temp_command(f"scoreboard players set @s {temp_var} 0")
@@ -1243,6 +1296,36 @@ class MDLCompiler:
         else:
             # Fallback: do nothing, but keep behavior predictable
             pass
+
+    def _is_numeric_literal_string(self, s: Any) -> bool:
+        """Return True if s is a string representing an integer literal (incl. negatives)."""
+        if not isinstance(s, str):
+            return False
+        try:
+            # Allow floats that are integer-valued like "2.0" by casting then checking is_integer
+            if "." in s:
+                f = float(s)
+                return f.is_integer()
+            int(s)
+            return True
+        except Exception:
+            return False
+
+    def _normalize_integer_literal_string(self, s: str, ctx: str = "") -> str:
+        """Normalize a numeric literal string to an integer string, or raise MDLCompilerError.
+        Accepts negatives and floats that are mathematically integers (e.g., "2.0").
+        """
+        try:
+            f = float(s)
+        except Exception:
+            raise MDLCompilerError(f"Expected integer literal, got '{s}'", f"Invalid numeric literal in {ctx}")
+        if not float(f).is_integer():
+            raise MDLCompilerError(f"Scoreboards are integer-only; got non-integer '{s}'", f"Use integers in {ctx}")
+        n = int(f)
+        # Normalize -0 to 0
+        if n == 0:
+            return "0"
+        return str(n)
     
     def _generate_temp_variable_name(self) -> str:
         """Generate a unique temporary variable name."""
