@@ -181,14 +181,17 @@ class MDLParser:
                        "Use: recipe, loot_table, advancement, item_modifier, predicate, or structure")
     
     def _parse_variable_declaration(self) -> VariableDeclaration:
-        """Parse variable declaration: var num name<scope> = value;"""
+        """Parse variable declaration: var num name<scope?> = value; defaults to <@s>."""
         self._expect(TokenType.VAR, "Expected 'var' keyword")
         
         self._expect(TokenType.NUM, "Expected 'num' keyword")
         
         name = self._expect_identifier("Expected variable name")
-        
-        scope = self._parse_scope_selector()
+        # Optional scope selector; default to <@s>
+        if self._peek().type == TokenType.LANGLE:
+            scope = self._parse_scope_selector()
+        else:
+            scope = "<@s>"
         
         self._expect(TokenType.ASSIGN, "Expected '=' after variable declaration")
         
@@ -204,10 +207,14 @@ class MDLParser:
         )
     
     def _parse_variable_assignment(self) -> VariableAssignment:
-        """Parse variable assignment: name<scope> = value;"""
+        """Parse variable assignment: name<scope?> = value; defaults to <@s>."""
         name = self._expect_identifier("Expected variable name")
         
-        scope = self._parse_scope_selector()
+        # Optional scope selector; default to <@s>
+        if self._peek().type == TokenType.LANGLE:
+            scope = self._parse_scope_selector()
+        else:
+            scope = "<@s>"
         
         self._expect(TokenType.ASSIGN, "Expected '=' after variable name")
         
@@ -423,17 +430,12 @@ class MDLParser:
         
         # Extract variables from the message content
         variables = []
-        # Simple regex-like extraction of $variable<scope>$ patterns
+        # Support both $var<scope>$ and $var$
         import re
-        var_pattern = r'\$([a-zA-Z_][a-zA-Z0-9_]*<[^>]+>)\$'
-        matches = re.findall(var_pattern, message)
-        
-        for match in matches:
-            # Parse the variable name and scope from the match
-            if '<' in match and '>' in match:
-                name = match[:match.index('<')]
-                scope = match[match.index('<'):match.index('>')+1]
-                variables.append(VariableSubstitution(name=name, scope=scope))
+        for m in re.finditer(r'\$([a-zA-Z_][a-zA-Z0-9_]*)(<[^>]+>)?\$', message):
+            name = m.group(1)
+            scope = m.group(2) if m.group(2) else "<@s>"
+            variables.append(VariableSubstitution(name=name, scope=scope))
         
         self._expect(TokenType.QUOTE, "Expected closing quote for say message")
         self._expect(TokenType.SEMICOLON, "Expected semicolon after say command")
@@ -441,23 +443,23 @@ class MDLParser:
         return SayCommand(message=message, variables=variables)
     
     def _parse_variable_substitution(self) -> VariableSubstitution:
-        """Parse variable substitution: $variable<scope>$"""
+        """Parse variable substitution: $variable<scope?>$; defaults to <@s>."""
         self._expect(TokenType.DOLLAR, "Expected '$' to start variable substitution")
         
         name = self._expect_identifier("Expected variable name")
         
-        # For variable substitutions, use LANGLE/RANGLE
-        self._expect(TokenType.LANGLE, "Expected '<' for scope selector")
-        
-        # Parse the selector content
-        selector_content = ""
-        while not self._is_at_end() and self._peek().type != TokenType.RANGLE:
-            selector_content += self._peek().value
-            self._advance()
-        
-        self._expect(TokenType.RANGLE, "Expected '>' to close scope selector")
-        
-        scope = f"<{selector_content}>"
+        # Optional scope selector; if absent, default to <@s>
+        if self._peek().type == TokenType.LANGLE:
+            # Parse the selector content
+            self._advance()  # consume '<'
+            selector_content = ""
+            while not self._is_at_end() and self._peek().type != TokenType.RANGLE:
+                selector_content += self._peek().value
+                self._advance()
+            self._expect(TokenType.RANGLE, "Expected '>' to close scope selector")
+            scope = f"<{selector_content}>"
+        else:
+            scope = "<@s>"
         
         self._expect(TokenType.DOLLAR, "Expected '$' to end variable substitution")
         

@@ -463,10 +463,15 @@ class MDLCompiler:
         current_pos = 0
         
         for var in variables:
-            var_pattern = f"${var.name}{var.scope}$"
-            var_pos = message.find(var_pattern, current_pos)
-            
-            if var_pos != -1:
+            # Support both $name<scope>$ and $name$ forms; parser already defaults scope to <@s>
+            with_scope = f"${var.name}{var.scope}$"
+            no_scope = f"${var.name}$"
+            pos_with = message.find(with_scope, current_pos)
+            pos_no = message.find(no_scope, current_pos)
+            # Choose the earliest valid occurrence >= current_pos
+            candidates = [p for p in [pos_with, pos_no] if p != -1]
+            if candidates:
+                var_pos = min(candidates)
                 if var_pos > current_pos:
                     text_before = message[current_pos:var_pos]
                     parts.append(f'{{"text":"{text_before}"}}')
@@ -475,7 +480,11 @@ class MDLCompiler:
                 scope = self._resolve_scope(var.scope)
                 parts.append(f'{{"score":{{"name":"{scope}","objective":"{objective}"}}}}')
                 
-                current_pos = var_pos + len(var_pattern)
+                # Advance past whichever token we matched
+                if var_pos == pos_with:
+                    current_pos = var_pos + len(with_scope)
+                else:
+                    current_pos = var_pos + len(no_scope)
         
         if current_pos < len(message):
             text_after = message[current_pos:]
