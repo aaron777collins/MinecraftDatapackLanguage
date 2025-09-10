@@ -324,9 +324,8 @@ class MDLCompiler:
             if getattr(decl, 'initial_value', None) is None:
                 continue
             objective = self.variables.get(decl.name, decl.name)
-            scope = decl.scope.strip("<>") if decl.scope else "@a"
-            if scope == "@s":
-                scope = "@a"
+            resolved_scope = self._resolve_scope(decl.scope) if decl.scope else "@a"
+            scope = "@a" if resolved_scope == "@s" else resolved_scope
             init = decl.initial_value
             from .ast_nodes import LiteralExpression, VariableSubstitution
             if isinstance(init, LiteralExpression):
@@ -340,9 +339,8 @@ class MDLCompiler:
                 lines.append(f"scoreboard players set {scope} {objective} {val_str}")
             elif isinstance(init, VariableSubstitution):
                 src_obj = self.variables.get(init.name, init.name)
-                src_scope = init.scope.strip("<>") if init.scope else "@a"
-                if src_scope == "@s":
-                    src_scope = "@a"
+                src_resolved = self._resolve_scope(init.scope) if init.scope else "@a"
+                src_scope = "@a" if src_resolved == "@s" else src_resolved
                 lines.append(f"scoreboard players operation {scope} {objective} = {src_scope} {src_obj}")
 
         lines.append("")
@@ -404,7 +402,7 @@ class MDLCompiler:
         if assignment.name not in self.variables:
             self.variables[assignment.name] = assignment.name
         objective = self.variables.get(assignment.name, assignment.name)
-        scope = assignment.scope.strip("<>")
+        scope = self._resolve_scope(assignment.scope)
         
         # Check if the value is a complex expression
         if isinstance(assignment.value, BinaryExpression):
@@ -435,7 +433,7 @@ class MDLCompiler:
         # Register objective so load function adds it
         self.variables[decl.name] = objective
         # If there is an initial value, set it in current context
-        scope = decl.scope.strip("<>")
+        scope = self._resolve_scope(decl.scope)
         init = None
         try:
             init = self._expression_to_value(decl.initial_value)
@@ -474,7 +472,7 @@ class MDLCompiler:
                     parts.append(f'{{"text":"{text_before}"}}')
                 
                 objective = self.variables.get(var.name, var.name)
-                scope = var.scope.strip("<>")
+                scope = self._resolve_scope(var.scope)
                 parts.append(f'{{"score":{{"name":"{scope}","objective":"{objective}"}}}}')
                 
                 current_pos = var_pos + len(var_pattern)
