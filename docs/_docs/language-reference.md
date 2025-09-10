@@ -11,10 +11,10 @@ MDL is a simple, scope-aware language that compiles to Minecraft datapack `.mcfu
 ## Core Language Design
 
 ### Philosophy
-- **Explicit scoping**: Variables support explicit `<scope>`; if omitted, `@s` (current player) is assumed
+- **Explicit scoping**: Variables support explicit `<scope>`; if omitted, `@s` (current entity) is assumed
 - **Clear reading vs writing**: Use `$variable<scope>$` or `$variable$` for reading, and `variable<scope>` or `variable` for writing
 - **No scope inheritance**: Each operation uses its own explicitly defined scope (or defaults to `@s` when omitted)
-- **Default scope**: When no scope specified, always use `@s` (current player)
+- **Default scope**: When no scope specified, always use `@s` (current entity)
 - **No return values**: All functions are void - they execute commands and modify state
 - **No quotes needed**: Use `$variable<scope>$` syntax directly instead of string literals
 - **Function execution**: Use `exec` keyword to execute all functions
@@ -248,7 +248,7 @@ $summon minecraft:cow ~ ~ ~ {CustomName:'{"text":"$(name)"}'}
 2. **Variable Reading**: Use `$variable<scope>$` for reading values; `$variable$` defaults to `<@s>`
 3. **Function Execution**: Use `exec` keyword to run any function (with or without scope)
 4. **No Inheritance**: Functions do not inherit scope from their caller
-5. **Default Scope**: When no scope specified, always use `@s` (current player)
+5. **Default Scope**: When no scope specified, always use `@s` (current entity)
 6. **No Memory**: The system does not remember a variable's declared scope for subsequent operations
 
 ### Scope Usage Examples
