@@ -915,6 +915,23 @@ class MDLCompiler:
             left = unwrap(expression.left)
             right = unwrap(expression.right)
             op_sym = self._normalize_operator(expression.operator)
+            # Treat a leading logical NOT on a comparator operand as negating the entire comparison
+            # Example: !$a > 0  =>  NOT ( $a > 0 )
+            if op_sym in (">", ">=", "<", "<=", "==", "!="):
+                try:
+                    from .ast_nodes import UnaryExpression as _UnaryExpr
+                except Exception:
+                    _UnaryExpr = None
+                if _UnaryExpr is not None and isinstance(left, _UnaryExpr) and self._normalize_operator(getattr(left, 'operator', None)) == '!':
+                    # Build condition for (left.operand op right) and invert
+                    inner = BinaryExpression(left=left.operand, operator=expression.operator, right=right)
+                    cond_str, inv = self._build_condition(inner)
+                    return (cond_str, not inv)
+                if _UnaryExpr is not None and isinstance(right, _UnaryExpr) and self._normalize_operator(getattr(right, 'operator', None)) == '!':
+                    # Build condition for (left op right.operand) and invert
+                    inner = BinaryExpression(left=left, operator=expression.operator, right=right.operand)
+                    cond_str, inv = self._build_condition(inner)
+                    return (cond_str, not inv)
             # Variable vs literal
             if op_sym and isinstance(left, VariableSubstitution) and isinstance(right, LiteralExpression) and isinstance(right.value, (int, float)):
                 objective = self.variables.get(left.name, left.name)
