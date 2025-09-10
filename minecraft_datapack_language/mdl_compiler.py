@@ -945,6 +945,25 @@ class MDLCompiler:
                 if op_sym == "!=":
                     # Use equals with inversion
                     return (f"score {lscope} {lobj} = {rscope} {robj}", True)
+
+            # General scoreboard vs scoreboard (covers temps produced by BinaryExpression)
+            if op_sym:
+                try:
+                    left_val = self._expression_to_value(left)
+                    right_val = self._expression_to_value(right)
+                except Exception:
+                    left_val = None
+                    right_val = None
+                if isinstance(left_val, str) and left_val.startswith("score ") and isinstance(right_val, str) and right_val.startswith("score "):
+                    lparts = left_val.split()
+                    rparts = right_val.split()
+                    if len(lparts) >= 3 and len(rparts) >= 3:
+                        lscope, lobj = lparts[1], lparts[2]
+                        rscope, robj = rparts[1], rparts[2]
+                        if op_sym == "!=":
+                            return (f"score {lscope} {lobj} = {rscope} {robj}", True)
+                        comp = op_sym if op_sym != "==" else "="
+                        return (f"score {lscope} {lobj} {comp} {rscope} {robj}", False)
         
         # Fallback: treat as generic condition string
         return (self._expression_to_condition(expression), False)
