@@ -56,3 +56,56 @@ def test_bindings_complex_expression():
         # Temp ops are inlined now; footer removed
         assert 'temp_' in text
 
+
+def test_bindings_equality_and_inequality_symbols():
+    p = Pack("Bindings3", "desc", 82)
+    ns = p.namespace("cmp")
+
+    def build(fb):
+        fb.declare_var("a", "<@s>", 1)
+        fb.declare_var("b", "<@s>", 1)
+        # Use symbol operators that previously leaked into output
+        cond_eq = binop(var_read("a", "<@s>"), "==", var_read("b", "<@s>"))
+        fb.if_(cond_eq, lambda t: t.say("eq"), lambda e: e.say("neq"))
+        cond_ne = binop(var_read("a", "<@s>"), "!=", var_read("b", "<@s>"))
+        fb.if_(cond_ne, lambda t: t.say("ne_true"), lambda e: e.say("ne_false"))
+
+    ns.function("main", build)
+
+    with tempfile.TemporaryDirectory() as td:
+        p.build(td)
+        func = Path(td) / 'data' / 'cmp' / 'function'
+        main = (func / 'main.mcfunction').read_text()
+        # Equality should map to '=' and inequality should invert the execute
+        assert 'execute if score @s a = @s b' in main
+        assert 'execute unless score @s a = @s b' in main
+        # Ensure invalid raw operators are not present
+        assert '==' not in main
+        assert '!=' not in main
+
+
+def test_bindings_equality_literal_and_not_equal_word():
+    p = Pack("Bindings4", "desc", 82)
+    ns = p.namespace("lit")
+
+    def build(fb):
+        fb.declare_var("x", "<@s>", 5)
+        # Symbol equality against literal and word-form NOT_EQUAL
+        cond_eq = binop(var_read("x", "<@s>"), "==", num(5))
+        fb.if_(cond_eq, lambda t: t.say("is5"))
+        cond_ne = binop(var_read("x", "<@s>"), "NOT_EQUAL", num(7))
+        fb.if_(cond_ne, lambda t: t.say("not7"))
+
+    ns.function("main", build)
+
+    with tempfile.TemporaryDirectory() as td:
+        p.build(td)
+        func = Path(td) / 'data' / 'lit' / 'function'
+        main = (func / 'main.mcfunction').read_text()
+        # Equality to literal uses matches N
+        assert 'execute if score @s x matches 5' in main
+        # Not equal to literal uses unless matches N
+        assert 'execute unless score @s x matches 7' in main
+        # Ensure invalid raw operators are not present
+        assert '==' not in main
+        assert '!=' not in main

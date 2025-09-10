@@ -819,12 +819,58 @@ class MDLCompiler:
         else:
             return str(expression)
     
+    def _normalize_operator(self, op_in: Any) -> Optional[str]:
+        """Normalize operator tokens/strings to Minecraft execute/scoreboard symbols.
+        Returns one of: '>', '>=', '<', '<=', '==', '!=' or None if unknown.
+        """
+        # Direct symbol passthrough
+        if op_in in ('>', '>=', '<', '<=', '==', '!='):
+            return op_in
+        # TokenType instances
+        try:
+            if op_in == TokenType.GREATER:
+                return '>'
+            if op_in == TokenType.GREATER_EQUAL:
+                return '>='
+            if op_in == TokenType.LESS:
+                return '<'
+            if op_in == TokenType.LESS_EQUAL:
+                return '<='
+            if op_in == TokenType.EQUAL:
+                return '=='
+            if op_in == TokenType.NOT_EQUAL:
+                return '!='
+        except Exception:
+            pass
+        # String names from bindings or parser
+        if isinstance(op_in, str):
+            upper = op_in.upper()
+            if upper == 'GREATER':
+                return '>'
+            if upper == 'GREATER_EQUAL':
+                return '>='
+            if upper == 'LESS':
+                return '<'
+            if upper == 'LESS_EQUAL':
+                return '<='
+            if upper == 'EQUAL' or upper == 'EQ':
+                return '=='
+            if upper == 'NOT_EQUAL' or upper == 'NE':
+                return '!='
+        return None
+    
     def _expression_to_condition(self, expression: Any) -> str:
         """Legacy: Convert expression to a naive condition string (internal use)."""
         if isinstance(expression, BinaryExpression):
             left = self._expression_to_value(expression.left)
             right = self._expression_to_value(expression.right)
-            return f"{left} {expression.operator} {right}"
+            op_sym = self._normalize_operator(expression.operator)
+            # Minecraft scoreboard uses '=' instead of '=='
+            if op_sym == '==':
+                op_text = '='
+            else:
+                op_text = op_sym if op_sym is not None else str(expression.operator)
+            return f"{left} {op_text} {right}"
         else:
             return self._expression_to_value(expression)
 
@@ -841,41 +887,10 @@ class MDLCompiler:
                 e = e.expression
             return e
 
-        def norm_op(op_in: Any) -> Optional[str]:
-            # Return one of: '>', '>=', '<', '<=', '==', '!=' or None
-            if op_in == TokenType.GREATER or op_in == ">":
-                return ">"
-            if op_in == TokenType.GREATER_EQUAL or op_in == ">=":
-                return ">="
-            if op_in == TokenType.LESS or op_in == "<":
-                return "<"
-            if op_in == TokenType.LESS_EQUAL or op_in == "<=":
-                return "<="
-            if op_in == TokenType.EQUAL or op_in == "==" or op_in == "EQUAL":
-                return "=="
-            if op_in == TokenType.NOT_EQUAL or op_in == "!=" or op_in == "NOT_EQUAL":
-                return "!="
-            # Accept python bindings string names as well
-            if isinstance(op_in, str):
-                upper = op_in.upper()
-                if upper == "GREATER":
-                    return ">"
-                if upper == "GREATER_EQUAL":
-                    return ">="
-                if upper == "LESS":
-                    return "<"
-                if upper == "LESS_EQUAL":
-                    return "<="
-                if upper == "EQUAL":
-                    return "=="
-                if upper == "NOT_EQUAL":
-                    return "!="
-            return None
-
         if isinstance(expression, BinaryExpression):
             left = unwrap(expression.left)
             right = unwrap(expression.right)
-            op_sym = norm_op(expression.operator)
+            op_sym = self._normalize_operator(expression.operator)
             # Variable vs literal
             if op_sym and isinstance(left, VariableSubstitution) and isinstance(right, LiteralExpression) and isinstance(right.value, (int, float)):
                 objective = self.variables.get(left.name, left.name)
