@@ -199,12 +199,12 @@ on_tick "example:update";
 mdl build --mdl myfile.mdl -o dist
 ```
 
-### Multiple Files
+### Build a directory (multiple files)
 ```bash
-mdl build --mdl "file1.mdl file2.mdl" -o dist
+mdl build --mdl . -o dist
 ```
 
-### Directory
+### Directory (explicit path)
 ```bash
 mdl build --mdl myproject/ -o dist
 ```
