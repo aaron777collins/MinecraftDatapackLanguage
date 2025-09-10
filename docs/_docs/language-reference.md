@@ -294,7 +294,8 @@ exec utils:helper;                              // Execute from different namesp
 <@s[distance=..5]>                                // Current player within 5 blocks
 
 // Global scope (special case)
-<global>                                           // Maps to @e[type=armor_stand,tag=mdl_server,limit=1]
+<global>                                           // Maps to @e[type=armor_stand,tag=mdl_global,limit=1]
+                                                   // A single invisible armor stand with tag 'mdl_global' is ensured on load
 ```
 
 ## Mathematical Expressions
@@ -1254,6 +1255,13 @@ def _parse_comparison(self) -> Any:
 - `&&` is compiled as a chain of `execute if` conditions; `||` sets the result true if either operand is true.
 - `!` negates the entire operand. For comparisons like `!$a<@s>$ > 0`, the comparison is evaluated first, then negated.
 - `!=` is compiled using equality with inversion (`unless score ... = ...`) because Minecraft lacks a direct not-equal comparator.
+
+### Integer-Only Arithmetic and Literal Handling
+
+- Scoreboard arithmetic is integer-only. MDL normalizes literals: `2.0` -> `2`; non-integer literals (e.g., `2.5`) are rejected with a compiler error when used in scoreboard operations.
+- Literal addition/subtraction uses `add`/`remove` and elides `+0`/`-0`.
+- Literal multiplication/division uses `multiply`/`divide` and elides `*1`/`/1`; `*0` sets to 0; `/(-k)` becomes `/|k|` then `*-1`.
+- Mixed expressions lower via temps; operations against other scores use `operation +=, -=, *=, /=`.
 
 ### AST Traversal and Code Generation
 

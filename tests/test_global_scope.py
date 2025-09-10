@@ -1,0 +1,66 @@
+import os
+import re
+from minecraft_datapack_language.mdl_parser import MDLParser
+from minecraft_datapack_language.mdl_compiler import MDLCompiler
+
+
+def compile_snippet(src: str, outdir: str):
+    parser = MDLParser("test.mdl")
+    program = parser.parse(src)
+    compiler = MDLCompiler(output_dir=outdir)
+    return compiler.compile(program, source_dir=outdir)
+
+
+def find_function_file(out_dir: str, ns: str, name: str):
+    candidates = [
+        os.path.join(out_dir, "data", ns, "functions", f"{name}.mcfunction"),
+        os.path.join(out_dir, "data", ns, "function", f"{name}.mcfunction"),
+    ]
+    for fn in candidates:
+        if os.path.exists(fn):
+            return fn
+    raise FileNotFoundError(f"{name}.mcfunction not found under {candidates}")
+
+
+def test_global_scope_ensure_and_assignment(tmp_path):
+    src = '''
+pack "p" "d" 82;
+namespace "p";
+var num g<global> = 0;
+
+function p:f {
+    g<global> = $g<global>$ + 1;
+    if $g<global>$ > 0 {
+        say "ok";
+    }
+}
+'''
+    out = compile_snippet(src, str(tmp_path))
+    # Load function should contain ensure-global
+    load_fn = find_function_file(out, "p", "load")
+    load_text = open(load_fn, "r", encoding="utf-8").read()
+    assert "execute unless entity @e[type=armor_stand,tag=mdl_global,limit=1] run summon armor_stand" in load_text
+    # Function should also have ensure-global lines at top
+    f_fn = find_function_file(out, "p", "f")
+    f_text = open(f_fn, "r", encoding="utf-8").read()
+    assert "execute unless entity @e[type=armor_stand,tag=mdl_global,limit=1] run summon armor_stand" in f_text
+    # Assignment should target the global selector in its score operations
+    assert "@e[type=armor_stand,tag=mdl_global,limit=1]" in f_text
+    # Condition should use the selector in a score comparison
+    assert re.search(r"score @e\[type=armor_stand,tag=mdl_global,limit=1\] g matches", f_text) or re.search(r"score @e\[type=armor_stand,tag=mdl_global,limit=1\] g >", f_text)
+
+
+def test_function_call_with_global_scope(tmp_path):
+    src = '''
+pack "p" "d" 82;
+namespace "p";
+function p:callee {}
+function p:caller {
+    exec p:callee<global>;
+}
+'''
+    out = compile_snippet(src, str(tmp_path))
+    caller_fn = find_function_file(out, "p", "caller")
+    txt = open(caller_fn, "r", encoding="utf-8").read()
+    assert "execute as @e[type=armor_stand,tag=mdl_global,limit=1] run function p:callee" in txt
+
