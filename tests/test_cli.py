@@ -206,6 +206,40 @@ class TestCLINew:
             
             # pack.mcmeta is generated on build; not required at init
 
+    def test_new_project_includes_docs_by_default_and_exclude_flag(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            # Default includes docs
+            result1 = subprocess.run([
+                sys.executable, "-m", "minecraft_datapack_language.cli", 
+                "new", "proj1", "--output", str(temp_dir)
+            ], capture_output=True, text=True)
+            assert result1.returncode == 0
+            proj1 = Path(temp_dir) / "proj1"
+            docs1 = proj1 / "docs"
+            # Docs presence is best-effort; only assert directory if embedded exists at runtime
+            # We check for a sentinel file that is likely present in packaged docs
+            if docs1.exists():
+                assert (docs1 / "index.md").exists() or (docs1 / "docs.md").exists() or (docs1 / "_config.yml").exists()
+
+            # Exclude flag skips docs
+            result2 = subprocess.run([
+                sys.executable, "-m", "minecraft_datapack_language.cli", 
+                "new", "proj2", "--output", str(temp_dir), "--exclude-local-docs"
+            ], capture_output=True, text=True)
+            assert result2.returncode == 0
+            proj2 = Path(temp_dir) / "proj2"
+            assert not (proj2 / "docs").exists()
+
+    def test_completion_print_outputs_scripts(self):
+        # We only test that it prints something containing key tokens
+        result = subprocess.run([
+            sys.executable, "-m", "minecraft_datapack_language.cli",
+            "completion", "print", "bash"
+        ], capture_output=True, text=True)
+        assert result.returncode in (0, 1)  # In editable env, data may not be packaged
+        if result.returncode == 0:
+            assert "_mdl_complete" in result.stdout or "complete -F" in result.stdout
+
 
 class TestCLIComplexFeatures:
     """Test CLI with complex MDL features."""

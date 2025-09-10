@@ -61,6 +61,13 @@ git tag -a "$NEW_TAG" -m "Release $NEW_TAG"
 git push origin "$NEW_TAG"
 git push || true
 
+# Sync embedded docs from repo docs into package before building
+echo "[+] Syncing docs into package embedded directory"
+PKG_DOCS_DIR="minecraft_datapack_language/_embedded/docs"
+rm -rf "$PKG_DOCS_DIR"
+mkdir -p "$PKG_DOCS_DIR"
+cp -R docs/* "$PKG_DOCS_DIR" || true
+
 # [CLEAN] Clean old local artifacts so we never upload stale files
 rm -rf dist
 

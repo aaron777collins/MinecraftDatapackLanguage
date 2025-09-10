@@ -38,10 +38,17 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
 package-dir = {"" = "."}
+include-package-data = true
 
 [tool.setuptools.packages.find]
 include = ["minecraft_datapack_language*"]
 exclude = ["dist*", "build*", "scripts*", "tools*", "vscode-extension*", "tests*", "examples*", ".*", "tmp_*", "dist_nesting_test*"]
+
+[tool.setuptools.package-data]
+"minecraft_datapack_language" = [
+    "_embedded/docs/**/*",
+    "completions/*",
+]
 
 [project.scripts]
 mdl = "minecraft_datapack_language.cli:main"

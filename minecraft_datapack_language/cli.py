@@ -8,6 +8,13 @@ import sys
 import os
 from pathlib import Path
 import shutil
+from typing import Optional
+try:
+    # Python 3.9+
+    from importlib.resources import files as importlib_resources_files
+except Exception:  # pragma: no cover
+    import importlib_resources  # type: ignore
+    importlib_resources_files = importlib_resources.files  # type: ignore
 from .mdl_lexer import MDLLexer
 from .mdl_parser import MDLParser
 from .mdl_compiler import MDLCompiler
@@ -53,6 +60,25 @@ Examples:
     new_parser.add_argument('--pack-name', help='Custom name for the datapack')
     new_parser.add_argument('--pack-format', type=int, default=82, help='Pack format number (default: 82)')
     new_parser.add_argument('--output', help='Directory to create the project in (defaults to current directory)')
+    new_parser.add_argument('--exclude-local-docs', action='store_true', help='Do not copy packaged docs into the project')
+
+    # Completion command
+    completion_parser = subparsers.add_parser('completion', help='Shell completion utilities')
+    completion_sub = completion_parser.add_subparsers(dest='completion_cmd', help='Completion subcommands')
+    comp_print = completion_sub.add_parser('print', help='Print completion script for a shell')
+    comp_print.add_argument('shell', nargs='?', choices=['bash', 'zsh', 'fish', 'powershell'], help='Target shell (default: auto-detect)')
+    comp_install = completion_sub.add_parser('install', help='Install completion for current user shell')
+    comp_install.add_argument('shell', nargs='?', choices=['bash', 'zsh', 'fish', 'powershell'], help='Target shell (default: auto-detect)')
+    comp_uninstall = completion_sub.add_parser('uninstall', help='Uninstall completion from current user shell')
+    comp_uninstall.add_argument('shell', nargs='?', choices=['bash', 'zsh', 'fish', 'powershell'], help='Target shell (default: auto-detect)')
+    completion_sub.add_parser('doctor', help='Diagnose completion install status')
+
+    # Docs command
+    docs_parser = subparsers.add_parser('docs', help='Docs utilities')
+    docs_sub = docs_parser.add_subparsers(dest='docs_cmd', help='Docs subcommands')
+    docs_serve = docs_sub.add_parser('serve', help='Serve project docs locally')
+    docs_serve.add_argument('--port', type=int, default=8000, help='Port to serve on (default: 8000)')
+    docs_serve.add_argument('--dir', default='docs', help='Docs directory to serve (default: docs)')
     
     args = parser.parse_args()
     
@@ -76,6 +102,10 @@ Examples:
             return check_command(args)
         elif args.command == 'new':
             return new_command(args)
+        elif args.command == 'completion':
+            return completion_command(args)
+        elif args.command == 'docs':
+            return docs_command(args)
         else:
             print(f"Unknown command: {args.command}")
             return 1
@@ -295,6 +325,26 @@ A Minecraft datapack created with MDL (Minecraft Datapack Language).
     with open(readme_file, 'w', encoding='utf-8') as f:
         f.write(readme_content)
     
+    # Copy packaged docs unless excluded
+    if not getattr(args, 'exclude_local_docs', False):
+        try:
+            copied = copy_packaged_docs_into(project_dir)
+            if copied:
+                print(f"  - docs/ (local docs copied)")
+            else:
+                print(f"  - docs/ (skipped: no embedded docs found)")
+        except FileExistsError:
+            print("  - docs/ already exists (skipped). Use --exclude-local-docs to suppress this step.")
+        except Exception as e:
+            print(f"  - docs/ copy failed: {e}")
+
+    # Add simple serve scripts
+    try:
+        create_docs_serve_scripts(project_dir)
+        print("  - serve_docs.sh, serve_docs.ps1")
+    except Exception as e:
+        print(f"  - serve script creation failed: {e}")
+
     print(f"Created new MDL project: {project_dir}/")
     print(f"  - {mdl_file}")
     print(f"  - {readme_file}")
@@ -304,6 +354,277 @@ A Minecraft datapack created with MDL (Minecraft Datapack Language).
     print(f"  3. Copy dist/{project_name}/ to your Minecraft world's datapacks folder")
     
     return 0
+
+
+def copy_packaged_docs_into(project_dir: Path) -> bool:
+    """Copy embedded docs folder into the given project directory.
+    Returns True if copied, False if no embedded docs packaged.
+    Raises FileExistsError if destination exists.
+    """
+    embedded_root = importlib_resources_files("minecraft_datapack_language").joinpath("_embedded", "docs")
+    try:
+        # Some importlib.resources implementations require as_file for files; for dirs, check existence
+        if not Path(str(embedded_root)).exists():
+            return False
+    except Exception:
+        return False
+
+    dest = project_dir / "docs"
+    if dest.exists():
+        raise FileExistsError("docs directory already exists")
+    shutil.copytree(str(embedded_root), str(dest))
+    return True
+
+
+def create_docs_serve_scripts(project_dir: Path) -> None:
+    """Create convenience scripts to serve the project's docs."""
+    bash_script = project_dir / "serve_docs.sh"
+    bash_script.write_text("""#!/usr/bin/env bash
+set -e
+PORT=${PORT:-8000}
+DIR=${1:-docs}
+if [ ! -d "$DIR" ]; then
+  echo "Error: docs directory '$DIR' not found"; exit 1
+fi
+# Prefer Jekyll if available and Gemfile exists
+if command -v bundle >/dev/null 2>&1 && [ -f "$DIR/Gemfile" ] || [ -f "Gemfile" ]; then
+  (cd "$DIR" && bundle exec jekyll serve --livereload --port "$PORT")
+else
+  (cd "$DIR" && python -m http.server "$PORT")
+fi
+""", encoding='utf-8')
+    try:
+        os.chmod(bash_script, 0o755)
+    except Exception:
+        pass
+
+    ps1_script = project_dir / "serve_docs.ps1"
+    ps1_script.write_text("""
+param(
+  [int]$Port = 8000,
+  [string]$Dir = "docs"
+)
+if (-not (Test-Path $Dir)) { Write-Host "Error: docs directory '$Dir' not found"; exit 1 }
+# Prefer Jekyll if available and Gemfile exists
+$gemfile = (Test-Path (Join-Path $Dir 'Gemfile')) -or (Test-Path 'Gemfile')
+if ($gemfile -and (Get-Command bundle -ErrorAction SilentlyContinue)) {
+  Push-Location $Dir
+  & bundle exec jekyll serve --livereload --port $Port
+  Pop-Location
+} else {
+  Push-Location $Dir
+  python -m http.server $Port
+  Pop-Location
+}
+""", encoding='utf-8')
+
+
+def completion_command(args) -> int:
+    """Handle completion subcommands: print/install/uninstall/doctor."""
+    cmd = args.completion_cmd
+    if not cmd:
+        print("Usage: mdl completion [print|install|uninstall|doctor] [shell]")
+        return 1
+
+    shell = getattr(args, 'shell', None)
+    if cmd == 'print':
+        return print_completion(shell)
+    elif cmd == 'install':
+        return install_completion(shell)
+    elif cmd == 'uninstall':
+        return uninstall_completion(shell)
+    elif cmd == 'doctor':
+        return doctor_completion()
+    else:
+        print(f"Unknown completion subcommand: {cmd}")
+        return 1
+
+
+def detect_shell() -> str:
+    sh = os.environ.get('SHELL', '')
+    if 'zsh' in sh:
+        return 'zsh'
+    if 'bash' in sh:
+        return 'bash'
+    # Windows PowerShell detection
+    if os.name == 'nt' or os.environ.get('ComSpec', '').endswith('cmd.exe'):
+        return 'powershell'
+    return 'bash'
+
+
+def _read_completion_text(shell: str) -> Optional[str]:
+    base = importlib_resources_files("minecraft_datapack_language").joinpath("completions")
+    mapping = {
+        'bash': 'mdl.bash',
+        'zsh': 'mdl.zsh',
+        'fish': 'mdl.fish',
+        'powershell': 'mdl.ps1',
+    }
+    name = mapping.get(shell)
+    if not name:
+        return None
+    path = Path(str(base)) / name
+    if not path.exists():
+        return None
+    return path.read_text(encoding='utf-8')
+
+
+def print_completion(shell: Optional[str]) -> int:
+    sh = shell or detect_shell()
+    text = _read_completion_text(sh)
+    if not text:
+        print(f"No completion script packaged for shell: {sh}")
+        return 1
+    print(text)
+    return 0
+
+
+def install_completion(shell: Optional[str]) -> int:
+    sh = shell or detect_shell()
+    text = _read_completion_text(sh)
+    if not text:
+        print(f"No completion script packaged for shell: {sh}")
+        return 1
+    home = Path.home()
+    target_dir = home / ".mdl" / "completion"
+    target_dir.mkdir(parents=True, exist_ok=True)
+    filename = {
+        'bash': 'mdl.bash',
+        'zsh': 'mdl.zsh',
+        'fish': 'mdl.fish',
+        'powershell': 'mdl.ps1',
+    }[sh]
+    target_path = target_dir / filename
+    target_path.write_text(text, encoding='utf-8')
+
+    if sh == 'bash':
+        rc = home / ".bashrc"
+        _ensure_line_in_file(rc, f"source {target_path.as_posix()}")
+        print(f"Installed bash completion. Restart your shell or 'source {rc}'.")
+    elif sh == 'zsh':
+        rc = home / ".zshrc"
+        _ensure_line_in_file(rc, f"source {target_path.as_posix()}")
+        print(f"Installed zsh completion. Restart your shell or 'source {rc}'.")
+    elif sh == 'fish':
+        fish_dir = home / ".config" / "fish" / "completions"
+        fish_dir.mkdir(parents=True, exist_ok=True)
+        (fish_dir / "mdl.fish").write_text(text, encoding='utf-8')
+        print("Installed fish completion. Restart your shell.")
+    elif sh == 'powershell':
+        print(f"Saved PowerShell completion to {target_path}. Add this line to your $PROFILE:")
+        print(f". {target_path}")
+    else:
+        print(f"Unknown shell: {sh}")
+        return 1
+    return 0
+
+
+def uninstall_completion(shell: Optional[str]) -> int:
+    sh = shell or detect_shell()
+    home = Path.home()
+    target_dir = home / ".mdl" / "completion"
+    filename = {
+        'bash': 'mdl.bash',
+        'zsh': 'mdl.zsh',
+        'fish': 'mdl.fish',
+        'powershell': 'mdl.ps1',
+    }.get(sh)
+    if not filename:
+        print(f"Unknown shell: {sh}")
+        return 1
+    try:
+        (target_dir / filename).unlink(missing_ok=True)  # type: ignore[arg-type]
+    except TypeError:
+        # Python < 3.8 fallback
+        path = target_dir / filename
+        if path.exists():
+            path.unlink()
+    if sh == 'bash':
+        _remove_line_from_file(home / ".bashrc", "source ~/.mdl/completion/mdl.bash")
+    elif sh == 'zsh':
+        _remove_line_from_file(home / ".zshrc", "source ~/.mdl/completion/mdl.zsh")
+    elif sh == 'fish':
+        fish_path = home / ".config" / "fish" / "completions" / "mdl.fish"
+        if fish_path.exists():
+            fish_path.unlink()
+    elif sh == 'powershell':
+        pass
+    print(f"Uninstalled {sh} completion.")
+    return 0
+
+
+def doctor_completion() -> int:
+    sh = detect_shell()
+    print(f"Detected shell: {sh}")
+    print("Check if 'mdl' completion activates after restarting your shell. If not, re-run: 'mdl completion install'.")
+    return 0
+
+
+def _ensure_line_in_file(path: Path, line: str) -> None:
+    try:
+        if not path.exists():
+            path.write_text(f"# Added by MDL CLI\n{line}\n", encoding='utf-8')
+            return
+        content = path.read_text(encoding='utf-8')
+        if line not in content:
+            with open(path, 'a', encoding='utf-8') as f:
+                f.write(f"\n{line}\n")
+    except Exception:
+        pass
+
+
+def _remove_line_from_file(path: Path, line: str) -> None:
+    try:
+        if not path.exists():
+            return
+        lines = path.read_text(encoding='utf-8').splitlines()
+        new_lines = [l for l in lines if l.strip() != line.strip()]
+        if new_lines != lines:
+            path.write_text("\n".join(new_lines) + "\n", encoding='utf-8')
+    except Exception:
+        pass
+
+
+def docs_command(args) -> int:
+    cmd = args.docs_cmd
+    if cmd == 'serve':
+        port = getattr(args, 'port', 8000)
+        directory = getattr(args, 'dir', 'docs')
+        docs_dir = Path(directory)
+        if not docs_dir.exists() or not docs_dir.is_dir():
+            print(f"Error: docs directory '{docs_dir}' not found")
+            return 1
+        print(f"Serving docs on http://localhost:{port} from {docs_dir}")
+        try:
+            # Prefer Jekyll if Gemfile exists and 'bundle' is available
+            use_jekyll = (docs_dir / 'Gemfile').exists() or Path('Gemfile').exists()
+            has_bundle = shutil.which('bundle') is not None
+            if use_jekyll and has_bundle:
+                import subprocess
+                subprocess.run(['bundle', 'exec', 'jekyll', 'serve', '--livereload', '--port', str(port)], cwd=str(docs_dir), check=True)
+                return 0
+        except Exception as e:
+            print(f"Jekyll serve failed or unavailable: {e}")
+            print("Falling back to Python static server.")
+        # Fallback to Python HTTP server
+        try:
+            import http.server
+            import socketserver
+            os.chdir(str(docs_dir))
+            handler = http.server.SimpleHTTPRequestHandler
+            with socketserver.TCPServer(('', port), handler) as httpd:
+                print("Press Ctrl+C to stop...")
+                httpd.serve_forever()
+        except KeyboardInterrupt:
+            print("Stopped.")
+            return 0
+        except Exception as e:
+            print(f"Failed to serve docs: {e}")
+            return 1
+        return 0
+    else:
+        print("Usage: mdl docs serve [--dir DIR] [--port PORT]")
+        return 1
 
 
 if __name__ == '__main__':
