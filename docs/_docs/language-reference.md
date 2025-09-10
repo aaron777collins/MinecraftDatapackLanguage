@@ -68,7 +68,7 @@ var num player_score<@a> = 0;                    // Global scope - accessible by
 var num player_health<@s> = 20;                  // Player-specific scope
 var num player_health = 20;                      // Same as player_health<@s> = 20
 var num team_score<@a[team=red]> = 0;            // Team scope
-var num entity_data<@e[type=armor_stand,tag=mdl_server,limit=1]> = 0; // Custom entity scope
+var num entity_data<@e[type=armor_stand,tag=mdl_global,limit=1]> = 0; // Custom entity scope
 ```
 
 ### Variable Assignment
@@ -294,7 +294,7 @@ exec utils:helper;                              // Execute from different namesp
 
 // Complex selectors
 <@a[team=red]>                                    // Red team players
-<@e[type=armor_stand,tag=mdl_server,limit=1]>    // Specific entity
+<@e[type=armor_stand,tag=mdl_global,limit=1]>    // Specific entity
 <@s[distance=..5]>                                // Current player within 5 blocks
 
 // Global scope (special case)
@@ -670,7 +670,7 @@ These are tokenized as single `IDENTIFIER` tokens.
 
 #### **Complex Selectors**
 ```
-@e[type=armor_stand,tag=mdl_server,limit=1]
+@e[type=armor_stand,tag=mdl_global,limit=1]
 ```
 This entire selector is tokenized as a single `IDENTIFIER` token.
 
@@ -959,7 +959,7 @@ var num score<@s> = 0;
 var num score<@invalid[type=armor_stand]> = 0;
 
 // ✅ Correct
-var num score<@e[type=armor_stand,tag=mdl_server,limit=1]> = 0;
+var num score<@e[type=armor_stand,tag=mdl_global,limit=1]> = 0;
 ```
 
 #### **Missing Semicolons**
@@ -1023,7 +1023,7 @@ raw!$
 #### **Scope Selectors with Special Characters**
 ```mdl
 // Valid - selector with complex parameters
-var num data<@e[type=armor_stand,tag=mdl_server,limit=1,nbt={CustomName:'{"text":"Server"}'}]> = 0;
+var num data<@e[type=armor_stand,tag=mdl_global,limit=1,nbt={CustomName:'{"text":"Server"}'}]> = 0;
 ```
 
 #### **Variable Names with Underscores**

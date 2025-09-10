@@ -224,7 +224,7 @@
   "Summon Command": {
     "prefix": "summon",
     "body": [
-      "summon ${1:minecraft:armor_stand} ${2:~} ${3:~} ${4:~} {${5:Tags:['mdl_server']}};"
+      "summon ${1:minecraft:armor_stand} ${2:~} ${3:~} ${4:~} {${5:Tags:['mdl_global']}};"
     ],
     "description": "Summon entity"
   },
