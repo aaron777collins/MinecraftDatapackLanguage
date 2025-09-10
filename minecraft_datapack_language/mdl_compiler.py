@@ -824,7 +824,7 @@ class MDLCompiler:
         Returns one of: '>', '>=', '<', '<=', '==', '!=' or None if unknown.
         """
         # Direct symbol passthrough
-        if op_in in ('>', '>=', '<', '<=', '==', '!='):
+        if op_in in ('>', '>=', '<', '<=', '==', '!=', '&&', '||', '!'):
             return op_in
         # TokenType instances
         try:
@@ -840,6 +840,13 @@ class MDLCompiler:
                 return '=='
             if op_in == TokenType.NOT_EQUAL:
                 return '!='
+            # Logical
+            if getattr(TokenType, 'AND', None) and op_in == TokenType.AND:
+                return '&&'
+            if getattr(TokenType, 'OR', None) and op_in == TokenType.OR:
+                return '||'
+            if getattr(TokenType, 'NOT', None) and op_in == TokenType.NOT:
+                return '!'
         except Exception:
             pass
         # String names from bindings or parser
@@ -857,6 +864,12 @@ class MDLCompiler:
                 return '=='
             if upper == 'NOT_EQUAL' or upper == 'NE':
                 return '!='
+            if upper in ('AND', '&&'):
+                return '&&'
+            if upper in ('OR', '||'):
+                return '||'
+            if upper in ('NOT', '!'):
+                return '!'
         return None
     
     def _expression_to_condition(self, expression: Any) -> str:
@@ -886,6 +899,17 @@ class MDLCompiler:
             while isinstance(e, ParenthesizedExpression):
                 e = e.expression
             return e
+
+        # Handle logical operators by compiling to a boolean temp scoreboard var
+        unwrapped = unwrap(expression)
+        op_sym_unwrapped = None
+        # Import here to avoid top-level cycle
+        from .ast_nodes import UnaryExpression as _UnaryExpr
+        if isinstance(unwrapped, BinaryExpression) or isinstance(unwrapped, _UnaryExpr):
+            op_sym_unwrapped = self._normalize_operator(getattr(unwrapped, 'operator', None))
+        if op_sym_unwrapped in ('&&', '||', '!'):
+            bool_var = self._compile_boolean_expression(unwrapped)
+            return (f"score @s {bool_var} matches 1..", False)
 
         if isinstance(expression, BinaryExpression):
             left = unwrap(expression.left)
@@ -967,6 +991,53 @@ class MDLCompiler:
         
         # Fallback: treat as generic condition string
         return (self._expression_to_condition(expression), False)
+
+    def _compile_boolean_expression(self, expression: Any, out_var: Optional[str] = None) -> str:
+        """Compile a logical expression into a temporary boolean scoreboard variable (1 true, 0 false).
+        Returns the objective name for the boolean temp variable.
+        """
+        from .ast_nodes import BinaryExpression as Bin, UnaryExpression as Un, ParenthesizedExpression as Par
+        if out_var is None:
+            out_var = self._generate_temp_variable_name()
+        # Ensure initialized to 0
+        self._store_temp_command(f"scoreboard players set @s {out_var} 0")
+
+        def emit_set_true_when(cond_expr: Any):
+            cond_str, inv = self._build_condition(cond_expr)
+            prefix = "unless" if inv else "if"
+            self._store_temp_command(f"execute {prefix} {cond_str} run scoreboard players set @s {out_var} 1")
+
+        expr = expression
+        # Parentheses
+        if isinstance(expr, Par):
+            return self._compile_boolean_expression(expr.expression, out_var)
+        # Unary NOT
+        if isinstance(expr, Un):
+            op = self._normalize_operator(expr.operator)
+            if op == '!':
+                inner_var = self._compile_boolean_expression(expr.operand)
+                # out = NOT inner
+                self._store_temp_command(f"execute unless score @s {inner_var} matches 1.. run scoreboard players set @s {out_var} 1")
+                return out_var
+        # Binary logical
+        if isinstance(expr, Bin):
+            op = self._normalize_operator(expr.operator)
+            if op == '&&':
+                left_var = self._compile_boolean_expression(expr.left)
+                right_var = self._compile_boolean_expression(expr.right)
+                # Set true only when both true
+                self._store_temp_command(f"execute if score @s {left_var} matches 1.. if score @s {right_var} matches 1.. run scoreboard players set @s {out_var} 1")
+                return out_var
+            if op == '||':
+                left_var = self._compile_boolean_expression(expr.left)
+                right_var = self._compile_boolean_expression(expr.right)
+                # Set true when either true
+                self._store_temp_command(f"execute if score @s {left_var} matches 1.. run scoreboard players set @s {out_var} 1")
+                self._store_temp_command(f"execute if score @s {right_var} matches 1.. run scoreboard players set @s {out_var} 1")
+                return out_var
+        # Base comparator or non-logical: set true if base condition holds
+        emit_set_true_when(expr)
+        return out_var
     
     def _compile_expression_to_temp(self, expression: BinaryExpression, temp_var: str):
         """Compile a complex expression to a temporary variable using valid Minecraft commands."""

@@ -465,7 +465,27 @@ class MDLParser:
     
     def _parse_expression(self) -> Any:
         """Parse an expression with operator precedence."""
-        return self._parse_comparison()
+        return self._parse_or()
+
+    def _parse_or(self) -> Any:
+        """Parse logical OR (||) with left associativity."""
+        expr = self._parse_and()
+        while not self._is_at_end() and self._peek().type == TokenType.OR:
+            operator = self._peek().type
+            self._advance()
+            right = self._parse_and()
+            expr = BinaryExpression(left=expr, operator=operator, right=right)
+        return expr
+
+    def _parse_and(self) -> Any:
+        """Parse logical AND (&&) with left associativity."""
+        expr = self._parse_comparison()
+        while not self._is_at_end() and self._peek().type == TokenType.AND:
+            operator = self._peek().type
+            self._advance()
+            right = self._parse_comparison()
+            expr = BinaryExpression(left=expr, operator=operator, right=right)
+        return expr
     
     def _parse_comparison(self) -> Any:
         """Parse comparison expressions (>, <, >=, <=, ==, !=)."""
@@ -496,15 +516,24 @@ class MDLParser:
     
     def _parse_factor(self) -> Any:
         """Parse multiplication and division factors."""
-        expr = self._parse_primary()
+        expr = self._parse_unary()
         
         while not self._is_at_end() and self._peek().type in [TokenType.MULTIPLY, TokenType.DIVIDE]:
             operator = self._peek().type
             self._advance()
-            right = self._parse_primary()
+            right = self._parse_unary()
             expr = BinaryExpression(left=expr, operator=operator, right=right)
         
         return expr
+
+    def _parse_unary(self) -> Any:
+        """Parse unary expressions (logical NOT)."""
+        if not self._is_at_end() and self._peek().type in [TokenType.NOT]:
+            operator = self._peek().type
+            self._advance()
+            operand = self._parse_unary()
+            return UnaryExpression(operator=operator, operand=operand)
+        return self._parse_primary()
     
     def _parse_primary(self) -> Any:
         """Parse primary expressions (literals, variables, parenthesized expressions)."""

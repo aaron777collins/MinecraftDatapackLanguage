@@ -59,6 +59,9 @@ class TokenType:
     LESS = "LESS"                    # <
     GREATER_EQUAL = "GREATER_EQUAL"  # >=
     LESS_EQUAL = "LESS_EQUAL"        # <=
+    AND = "AND"                      # &&
+    OR = "OR"                        # ||
+    NOT = "NOT"                      # ! (logical not)
     
     # Delimiters
     SEMICOLON = "SEMICOLON"          # ;
@@ -552,7 +555,7 @@ class MDLLexer:
         if self.current + 1 < len(self.source):
             two_char = self.source[self.current:self.current + 2]
             
-            if two_char in ['==', '!=', '>=', '<=', '..']:
+            if two_char in ['==', '!=', '>=', '<=', '..', '&&', '||']:
                 self.current += 2
                 self.column += 2
                 
@@ -561,7 +564,9 @@ class MDLLexer:
                     '!=': TokenType.NOT_EQUAL,
                     '>=': TokenType.GREATER_EQUAL,
                     '<=': TokenType.LESS_EQUAL,
-                    '..': TokenType.RANGE
+                    '..': TokenType.RANGE,
+                    '&&': TokenType.AND,
+                    '||': TokenType.OR
                 }[two_char]
                 
                 self.tokens.append(Token(token_type, two_char, self.line, self.column - 2))
@@ -576,6 +581,7 @@ class MDLLexer:
             '=': TokenType.ASSIGN,
             '>': TokenType.GREATER,
             '<': TokenType.LESS,
+            '!': TokenType.NOT,
             ';': TokenType.SEMICOLON,
             ',': TokenType.COMMA,
             ':': TokenType.COLON,
