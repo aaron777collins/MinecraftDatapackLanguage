@@ -34,7 +34,7 @@ on_load hello:main;
 Compile it:
 
 ```bash
-mdl build --mdl hello.mdl -o dist
+mdl build
 ```
 
 The compiled datapack will be in the `dist` folder. Copy it to your Minecraft world's `datapacks` folder and run `/reload` in-game.
@@ -196,17 +196,26 @@ on_tick example:update;
 
 ### Single File
 ```bash
-mdl build --mdl myfile.mdl -o dist
+mdl build --mdl myfile.mdl
 ```
 
 ### Build a directory (multiple files)
 ```bash
-mdl build --mdl . -o dist
+mdl build
 ```
 
 ### Directory (explicit path)
 ```bash
-mdl build --mdl myproject/ -o dist
+mdl build --mdl myproject/
+```
+
+### Checking
+```bash
+# Check current directory
+mdl check
+
+# Check a specific directory
+mdl check myproject/
 ```
 
 ### Testing
