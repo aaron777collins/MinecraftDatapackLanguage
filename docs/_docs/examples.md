@@ -136,10 +136,10 @@ pack "raw" "Raw command example" 82;
 namespace "raw";
 
 function raw:custom {
-    // Use raw Minecraft commands
-    effect give @s minecraft:speed 10 1;
-    particle minecraft:explosion ~ ~ ~ 1 1 1 0 10;
-    playsound minecraft:entity.player.levelup player @s ~ ~ ~ 1 1;
+    // Use raw Minecraft commands via single-line raw blocks
+    $!raw effect give @s minecraft:speed 10 1 raw!$
+    $!raw particle minecraft:explosion ~ ~ ~ 1 1 1 0 10 raw!$
+    $!raw playsound minecraft:entity.player.levelup player @s ~ ~ ~ 1 1 raw!$
 }
 
 on_load raw:custom;

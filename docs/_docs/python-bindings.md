@@ -4,7 +4,7 @@ title: Python Bindings
 permalink: /docs/python-bindings/
 ---
 
-The MDL Python bindings provide a clean, programmatic way to create Minecraft datapacks. They're fully compatible with the MDL language and support all advanced features including variables, control flow, complex nesting, and the explicit scope system.
+The MDL Python bindings provide a clean, programmatic way to create Minecraft datapacks. They're fully compatible with the MDL language and support variables, control flow, nested functions, and MDL's scope system (default `@s`, explicit selectors, and `<global>`).
 
 ## Quick Start
 
@@ -42,7 +42,7 @@ from minecraft_datapack_language import Pack
 p = Pack(
     name="My Pack",           # Pack name
     description="Description", # Optional description
-    pack_format=82            # Minecraft pack format (default: 82)
+    pack_format=82            # Minecraft pack format
 )
 ```
 
@@ -150,8 +150,7 @@ def create_particle_pack():
 ## Advanced Features
 
 ### Variables and Control Flow
-
-The bindings support all the advanced features of the MDL language including the explicit scope system:
+The bindings support MDL's scope model (default @s and explicit selectors):
 
 ```python
 from minecraft_datapack_language import Pack
@@ -161,32 +160,31 @@ def create_advanced_pack():
     
     ns = p.namespace("advanced")
     
-    # Functions with variables and control flow using explicit scopes
+    # Functions with variables and control flow
     ns.function("variable_demo",
-        "var num counter<@a> = 0",
+        "var num counter<global> = 0",
         "counter<global> = 10",
         "counter<global> = counter<global> + 5",
-        "if \"$counter$ >= 15\" {",
+        "if $counter<global>$ >= 15 {",
         "    say Counter is 15!",
         "    counter<global> = counter<global> - 5",
-        "}",
-        "say Counter is 15!"
+        "}"
     )
     
     ns.function("control_flow_demo",
         "var num playerHealth = 20",
-        "if \"$playerHealth$ < 10\" {",
+        "if $playerHealth$ < 10 {",
         "    say Health is low!",
-        "    playerHealth<@s> = playerHealth<@s> + 5",
+        "    playerHealth = playerHealth + 5",
         "} else {",
         "    say Health is good",
         "}"
     )
     
     ns.function("loop_demo",
-        "var num countdown<@a> = 5",
-        "while \"$countdown$ > 0\" {",
-        "    say Countdown: $countdown$",
+        "var num countdown<global> = 5",
+        "while $countdown<global>$ > 0 {",
+        "    say Countdown: $countdown<global>$",
         "    countdown<global> = countdown<global> - 1",
         "}",
         "say Blast off!"
@@ -267,116 +265,27 @@ def create_tag_pack():
     return p
 ```
 
-## Multi-Namespace Projects
-
-```python
-from minecraft_datapack_language import Pack
-
-def create_complex_pack():
-    p = Pack("Complex Pack", "Multi-namespace project", 82)
-    
-    # Core systems
-    core = p.namespace("core")
-    core.function("init", "say Core systems initialized")
-    core.function("tick", "say Core tick")
-    
-    # Combat system
-    combat = p.namespace("combat")
-    combat.function("weapon_effects",
-        "execute as @a[nbt={SelectedItem:{id:\"minecraft:diamond_sword\"}}] run effect give @s minecraft:strength 1 0 true"
-    )
-    combat.function("update_combat",
-        "function core:tick",
-        "function combat:weapon_effects"
-    )
-    
-    # UI system
-    ui = p.namespace("ui")
-    ui.function("hud", "title @a actionbar {\"text\":\"Pack Active\",\"color\":\"gold\"}")
-    ui.function("update_ui",
-        "function ui:hud",
-        "function combat:update_combat"
-    )
-    
-    # Lifecycle hooks
-    p.on_load("core:init")
-    p.on_tick("ui:update_ui")
-    
-    return p
-```
-
-## Error Handling and Validation
-
-```python
-from minecraft_datapack_language import Pack
-
-def create_safe_pack():
-    p = Pack("Safe Pack", "Demonstrates error handling", 82)
-    
-    ns = p.namespace("safe")
-    
-    # Safe function calls
-    ns.function("safe_teleport",
-        "execute as @a if entity @s run tp @s ~ ~ ~",
-        "execute unless entity @a run tellraw @a {\"text\":\"No players to teleport\",\"color\":\"red\"}"
-    )
-    
-    # Conditional effects
-    ns.function("conditional_effects",
-        "execute as @a[nbt={SelectedItem:{id:\"minecraft:diamond\"}}] run effect give @s minecraft:strength 1 0 true",
-        "execute as @a unless entity @s[nbt={SelectedItem:{id:\"minecraft:diamond\"}}] run effect clear @s minecraft:strength"
-    )
-    
-    p.on_tick("safe:safe_teleport")
-    p.on_tick("safe:conditional_effects")
-    
-    return p
-```
-
-## Building and Output
-
-### Basic Build
-
-```python
-from minecraft_datapack_language import Pack
-
-p = Pack("My Pack", "Description", 82)
-ns = p.namespace("example")
-ns.function("hello", "say Hello World")
-
-# Build to directory
-p.build("dist")
-```
-
-### Custom Output
-
-```python
-# Build with custom options
-p.build("output_dir", wrapper="my_pack")
-```
-
 ## Integration with MDL Files
-
 You can use the Python bindings alongside MDL files:
 
 ```python
 from minecraft_datapack_language import Pack
-from minecraft_datapack_language.mdl_parser_js import parse_mdl_js
+from minecraft_datapack_language.mdl_parser import MDLParser
 
 def create_hybrid_pack():
     # Parse MDL file
     with open("my_functions.mdl", "r") as f:
         mdl_content = f.read()
     
-    ast = parse_mdl_js(mdl_content)
+    ast = MDLParser().parse(mdl_content)
     
     # Create pack via Python bindings
     p = Pack("Hybrid Pack", "Combines MDL and Python", 82)
     
-    # Add functions from MDL
-    for func in ast['functions']:
+    # Add functions from MDL (placeholder emission; compile MDL separately when mixing)
+    for func in ast.functions:
         ns = p.namespace(func.namespace)
-        ns.function(func.name, *func.commands)
+        ns.function(func.name, "say Imported from MDL via parser")
     
     # Add additional functions via Python bindings
     ns = p.namespace("python")
@@ -448,8 +357,7 @@ def create_robust_pack():
 ```
 
 ## Complete Example
-
-Here's a complete example that demonstrates all features including the new explicit scope system:
+Here's a complete example that demonstrates all features including the explicit scope system:
 
 ```python
 from minecraft_datapack_language import Pack
@@ -463,10 +371,10 @@ def create_complete_pack():
     # Core namespace
     core = p.namespace("core")
     core.function("init",
-        "var num gameState<@a> = 0",
+        "var num gameState<global> = 0",
         "var num playerLevel = 1",
         "gameState<global> = 0",
-        "playerLevel<@s> = 1",
+        "playerLevel = 1",
         "say [core:init] Initializing Complete Example...",
         "tellraw @a {\"text\":\"Complete Example loaded!\",\"color\":\"green\"}",
         "scoreboard objectives add example_counter dummy \"Example Counter\""
@@ -474,7 +382,7 @@ def create_complete_pack():
     
     core.function("tick",
         "gameState<global> = gameState<global> + 1",
-        "say [core:tick] Core systems running... Game state: $gameState$",
+        "say [core:tick] Core systems running... Game state: $gameState<global>$",
         "execute as @a run particle minecraft:end_rod ~ ~ ~ 0.1 0.1 0.1 0.01 1"
     )
     
@@ -535,4 +443,4 @@ if __name__ == "__main__":
     print("Complete example pack built successfully!")
 ```
 
-The Python bindings provide a powerful, flexible way to create Minecraft datapacks with full support for the MDL language features including the explicit scope system.
+The Python bindings provide a powerful, flexible way to create Minecraft datapacks with full support for the MDL language features including scopes and control flow.

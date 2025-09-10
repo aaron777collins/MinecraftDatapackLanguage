@@ -18,41 +18,46 @@ pipx install minecraft-datapack-language
 
 ### Build Command
 
-Build MDL files into Minecraft datapacks:
+Build MDL files into Minecraft datapacks. Defaults: `--mdl .` and `-o dist`.
 
 ```bash
-mdl build --mdl <files> -o <output_dir>
+# Simplest
+mdl build
+
+# Explicit
+mdl build --mdl <path> -o <output_dir>
 # Zips by default -> creates <output_dir>.zip
 # Use --no-zip to skip archive creation
 ```
 
 **Examples:**
 ```bash
-# Build single file
-mdl build --mdl hello.mdl -o dist
+# Build single file (output defaults to dist)
+mdl build --mdl hello.mdl
 
-# Build entire directory
-mdl build --mdl myproject/ -o dist
+# Build entire directory (both default)
+mdl build
 
-# Build current directory
-mdl build --mdl . -o dist
-
-# Build with warnings suppressed
-mdl build --mdl . -o dist --ignore-warnings
+# Build with custom output
+mdl build --mdl myproject/ -o out
 ```
 
 **Options:**
-- `--mdl <files>`: MDL files or directories to build
-- `-o <output_dir>`: Output directory for compiled datapack
+- `--mdl <path>`: Path to a single `.mdl` file or a directory to build (default: `.`)
+- `-o <output_dir>`: Output directory for compiled datapack (default: `dist`)
 - `--verbose`: Show detailed build information
 - `--wrapper <name>`: Custom wrapper name for the datapack
 
 ### Check Command
 
-Validate MDL files for syntax and semantic errors:
+Validate MDL files for syntax and semantic errors. If no paths are given, it scans the current directory for `**/*.mdl`.
 
 ```bash
-mdl check <files>
+# Simplest
+mdl check
+
+# Explicit
+mdl check <files_or_directories>
 ```
 
 **Examples:**
@@ -60,10 +65,10 @@ mdl check <files>
 # Check single file
 mdl check hello.mdl
 
-# Check current directory
-mdl check .
+# Check current directory (implicit)
+mdl check
 
-# Check entire directory
+# Check a specific directory
 mdl check myproject/
 
 # Check with warnings suppressed
@@ -120,11 +125,9 @@ mdl new projects/survival_plus
 ```
 
 **What it creates:**
-The new command generates a complete project structure with:
-- `README.md` - Project documentation and setup instructions
-- `main.mdl` - Main MDL file with basic template structure
-- Proper pack declaration and namespace setup
-- Example functions and basic syntax
+The new command generates a minimal project structure with:
+- `README.md` - Quick start with build instructions
+- `main.mdl` - Hello world (pack, namespace, simple function, on_load)
 
 **Generated project structure:**
 ```
@@ -136,9 +139,8 @@ my_awesome_pack/
 **Template content includes:**
 - Pack metadata (name, description, format)
 - Namespace declaration
-- Sample function definitions
-- Basic MDL syntax examples
-- Load function setup
+- One function that says hello
+- on_load hook
 
 ## Command Options
 
@@ -146,8 +148,8 @@ my_awesome_pack/
 
 | Option | Description | Example |
 |--------|-------------|---------|
-| `--mdl <files>` | MDL files or directories to build | `--mdl "main.mdl ui.mdl"` |
-| `-o <dir>` | Output directory | `-o dist` |
+| `--mdl <path>` | .mdl file or directory to build (default: `.`) | `--mdl .` |
+| `-o <dir>` | Output directory (default: `dist`) | `-o dist` |
 | `--verbose` | Show detailed output | `--verbose` |
 | `--wrapper <name>` | Custom wrapper name | `--wrapper mypack` |
 | `--no-zip` | Skip creating zip archive (zip is default) | `--no-zip` |
@@ -245,7 +247,7 @@ mdl check hello_world/main.mdl
 
 3. **Build the datapack:**
 ```bash
-mdl build --mdl hello_world/main.mdl -o dist
+mdl build --mdl hello_world/main.mdl
 ```
 
 4. **Install in Minecraft:**
@@ -273,7 +275,7 @@ mdl check hello.mdl
 
 3. **Build the datapack:**
 ```bash
-mdl build --mdl hello.mdl -o dist
+mdl build --mdl hello.mdl
 ```
 
 4. **Install in Minecraft:**
@@ -292,7 +294,7 @@ my_project/
 
 **Build command:**
 ```bash
-mdl build --mdl . -o dist
+mdl build
 ```
 
 ### Explicit Scopes in Conditions
@@ -337,7 +339,7 @@ function hello:main {
 Get detailed information about the build process:
 
 ```bash
-mdl build --mdl hello.mdl -o dist --verbose
+mdl build --mdl hello.mdl --verbose
 ```
 
 Output includes:
@@ -356,10 +358,10 @@ Output includes:
 ls *.mdl
 
 # Use explicit file paths
-mdl build --mdl ./myfile.mdl -o dist
+mdl build --mdl ./myfile.mdl
 
 # or build the directory itself
-mdl build --mdl . -o dist
+mdl build
 ```
 
 **"Failed to parse MDL files"**
@@ -381,7 +383,7 @@ mdl check myproject/
 Use verbose mode to get more information:
 
 ```bash
-mdl build --mdl myfile.mdl -o dist --verbose
+mdl build --mdl myfile.mdl --verbose
 mdl check myfile.mdl --verbose
 ```
 
@@ -413,7 +415,7 @@ dist/
 .PHONY: build clean
 
 build:
-	mdl build --mdl . -o dist
+	mdl build
 
 clean:
 	rm -rf dist/
@@ -426,7 +428,7 @@ check:
 ```json
 {
   "scripts": {
-    "build": "mdl build --mdl . -o dist",
+    "build": "mdl build",
     "check": "mdl check .",
     "clean": "rm -rf dist/"
   }
@@ -450,6 +452,6 @@ jobs:
           python-version: '3.9'
       - run: pip install minecraft-datapack-language
       - run: mdl check .
-      - run: mdl build --mdl . -o dist
+      - run: mdl build
       - run: mdl check .
 ```

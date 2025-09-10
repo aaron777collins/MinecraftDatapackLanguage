@@ -21,9 +21,11 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  mdl build --mdl main.mdl -o dist          # Build a single MDL file
-  mdl build --mdl . -o dist                 # Build all MDL files in current directory
-  mdl check main.mdl                        # Check syntax without building
+  mdl build                                 # Build all MDL files in current directory (to ./dist)
+  mdl build --mdl main.mdl                  # Build a single MDL file (to ./dist)
+  mdl build -o out                          # Build current directory to custom output
+  mdl check                                 # Check all .mdl files in current directory
+  mdl check main.mdl                        # Check a single file
   mdl new my_project                        # Create a new project
         """
     )
@@ -34,15 +36,15 @@ Examples:
     
     # Build command
     build_parser = subparsers.add_parser('build', help='Build MDL files into a datapack')
-    build_parser.add_argument('--mdl', required=True, help='MDL file(s) or directory to build')
-    build_parser.add_argument('-o', '--output', required=True, help='Output directory for the datapack')
+    build_parser.add_argument('--mdl', default='.', help='MDL file(s) or directory to build (default: .)')
+    build_parser.add_argument('-o', '--output', default='dist', help='Output directory for the datapack (default: dist)')
     build_parser.add_argument('--verbose', action='store_true', help='Show detailed output')
     build_parser.add_argument('--wrapper', help='Optional wrapper directory name for the datapack output')
     build_parser.add_argument('--no-zip', action='store_true', help='Do not create a zip archive (zip is created by default)')
     
     # Check command
     check_parser = subparsers.add_parser('check', help='Check MDL files for syntax errors')
-    check_parser.add_argument('files', nargs='+', help='MDL files to check')
+    check_parser.add_argument('files', nargs='*', help='MDL files or directories to check (default: current directory)')
     check_parser.add_argument('--verbose', action='store_true', help='Show detailed output')
     
     # New command
@@ -172,30 +174,44 @@ def build_command(args):
 def check_command(args):
     """Check MDL files for syntax errors."""
     all_errors = []
-    
-    for file_path in args.files:
-        file_path = Path(file_path)
-        if not file_path.exists():
-            print(f"Error: File '{file_path}' does not exist")
-            continue
-        
+
+    # If no files provided, default to scanning current directory
+    input_paths = args.files if getattr(args, 'files', None) else ['.']
+
+    # Collect .mdl files from provided files/directories
+    mdl_files = []
+    for input_path in input_paths:
+        path_obj = Path(input_path)
+        if path_obj.is_dir():
+            mdl_files.extend(path_obj.glob('**/*.mdl'))
+        elif path_obj.is_file():
+            if path_obj.suffix.lower() == '.mdl':
+                mdl_files.append(path_obj)
+        else:
+            print(f"Error: Path '{path_obj}' does not exist")
+
+    if not mdl_files:
+        print("Error: No .mdl files found to check")
+        return 1
+
+    for file_path in mdl_files:
         try:
             with open(file_path, 'r', encoding='utf-8') as f:
                 source = f.read()
-            
+
             if args.verbose:
                 print(f"Checking {file_path}...")
-            
+
             # Lex and parse to check for errors
             lexer = MDLLexer(str(file_path))
             tokens = list(lexer.lex(source))
-            
+
             parser = MDLParser(str(file_path))
             ast = parser.parse(source)
-            
+
             if args.verbose:
                 print(f"  ✓ {file_path} - {len(ast.functions)} functions, {len(ast.variables)} variables")
-            
+
         except MDLLexerError as e:
             print(f"Lexer error in {file_path}: {e}")
             all_errors.append(e)
@@ -205,7 +221,7 @@ def check_command(args):
         except Exception as e:
             print(f"Unexpected error in {file_path}: {e}")
             all_errors.append(e)
-    
+
     if all_errors:
         print(f"\nFound {len(all_errors)} error(s)")
         return 1

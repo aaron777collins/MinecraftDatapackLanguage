@@ -1,6 +1,6 @@
 ---
 layout: page
-title: Multi File Projects
+title: Multi-File Projects
 permalink: /docs/multi-file-projects/
 ---
 
@@ -10,21 +10,21 @@ MDL supports organizing code across multiple files for better project structure.
 
 ### Main File (with pack declaration)
 
-Only the first file needs a pack declaration:
+Only the main entry file needs a pack declaration:
 
 ```mdl
 // main.mdl
 pack "my_project" "A multi-file project" 82;
 namespace "core";
 
-var num playerCount<@a> = 0;
+var num playerCount<global> = 0;
 
 function "init" {
     playerCount<global> = 0;
-    say Core system initialized!;
+    say "Core system initialized!";
 }
 
-on_load "core:init";
+on_load core:init;
 ```
 
 ### Additional Files (no pack declaration)
@@ -35,12 +35,12 @@ Other files don't need pack declarations:
 // ui.mdl
 namespace "ui";
 
-function "show_hud" {
-    tellraw @a {"text":"Players: $playerCount$","color":"green"};
+function ui:show_hud {
+    tellraw @a {"text":"Players: $playerCount<global>$","color":"green"};
 }
 
-function "update_hud" {
-    function "ui:show_hud<@a>";
+function ui:update_hud {
+    exec ui:show_hud<@a>;
 }
 ```
 
@@ -48,9 +48,9 @@ function "update_hud" {
 // game.mdl
 namespace "game";
 
-function "start" {
-    say Game started!;
-    function "ui:update_hud";
+function game:start {
+    say "Game started!";
+    exec ui:update_hud;
 }
 ```
 
@@ -59,7 +59,7 @@ function "start" {
 ### Build All Files Together
 
 ```bash
-mdl build --mdl "main.mdl ui.mdl game.mdl" -o dist
+mdl build --mdl . -o dist
 ```
 
 ### Build Entire Directory
@@ -95,10 +95,10 @@ namespace "magic";
 
 var num mana = 100;  // Defaults to player-specific scope
 
-function "cast_spell" {
-    if "$mana$ >= 20" {
-        mana<@s> = mana<@s> - 20;
-        say Spell cast! Mana: $mana$;
+function magic:cast_spell {
+    if $mana$ >= 20 {
+        mana = $mana$ - 20;
+        say "Spell cast! Mana: $mana$";
     }
 }
 ```
@@ -109,14 +109,15 @@ Variables from all files are automatically merged:
 
 ```mdl
 // core.mdl
-var num globalTimer<@a> = 0;
+var num globalTimer<global> = 0;
 var num playerScore = 0;  // Defaults to player-specific scope
 ```
 
 ```mdl
 // ui.mdl
-function "show_stats" {
-    tellraw @a {"text":"Timer: $globalTimer$, Score: $playerScore$","color":"gold"};
+namespace "ui";
+function ui:show_stats {
+    tellraw @a {"text":"Timer: $globalTimer<global>$, Score: $playerScore$","color":"gold"};
 }
 ```
 
@@ -126,22 +127,23 @@ When working with multiple files, you can use explicit scope selectors in condit
 
 ```mdl
 // core.mdl
-var num globalTimer<@a> = 0;
+namespace "core";
+var num globalTimer<global> = 0;
 var num playerScore = 0;  // Defaults to player-specific scope
 
-function "check_status" {
+function core:check_status {
     // Check global timer
-    if "$globalTimer<@a>$ > 1000" {
+    if $globalTimer<global>$ > 1000 {
         say "Game has been running for a while!";
     }
     
     // Check current player's score
-    if "$playerScore<@s>$ > 50" {
+    if $playerScore<@s>$ > 50 {
         say "You have a high score!";
     }
     
     // Check if any player has a very high score
-    if "$playerScore<@a>$ > 100" {
+    if $playerScore<@a>$ > 100 {
         say "Someone has an amazing score!";
     }
 }
@@ -149,9 +151,10 @@ function "check_status" {
 
 ```mdl
 // ui.mdl
-function "show_leaderboard" {
+namespace "ui";
+function ui:show_leaderboard {
     // Compare scores across different players
-    if "$playerScore<@p[name=Alice]>$ > $playerScore<@p[name=Bob]>$" {
+    if $playerScore<@p[name=Alice]>$ > $playerScore<@p[name=Bob]>$ {
         tellraw @a {"text":"Alice is winning!","color":"green"};
     } else {
         tellraw @a {"text":"Bob is winning!","color":"blue"};
@@ -217,23 +220,23 @@ function "update_ui" {
 ```mdl
 namespace "game";
 
-function "start" {
+function game:start {
     gameState<global> = 1;
-    say Game started!;
-    function "ui:update_ui";
+    say "Game started!";
+    exec ui:update_ui;
 }
 
-function "level_up" {
+function game:level_up {
     if "$playerLevel$ < 10" {
         playerLevel<@s> = playerLevel<@s> + 1;
-        say Level up! New level: $playerLevel$;
+        say "Level up! New level: $playerLevel$";
     }
 }
 ```
 
 Build the project:
 ```bash
-mdl build --mdl "main.mdl combat.mdl ui.mdl game.mdl" -o dist
+mdl build --mdl . -o dist
 ```
 
 ## Best Practices
@@ -243,8 +246,8 @@ mdl build --mdl "main.mdl combat.mdl ui.mdl game.mdl" -o dist
 3. **Clear naming**: Use descriptive file and namespace names
 4. **Shared variables**: Declare shared variables in the main file
 5. **Function organization**: Group related functions in the same file
-6. **Proper scoping**: Use `<@a>` for server-wide variables, no scope for player-specific variables
-7. **Explicit scope access**: Always access variables with their scope like `variable<scope>`
+6. **Proper scoping**: Use `<global>` for server-wide variables, omit scope for player-specific (defaults to @s)
+7. **Explicit scope access**: Omit scope for @s; use `<...>` only when you need a different selector
 
 ## File Structure Example
 

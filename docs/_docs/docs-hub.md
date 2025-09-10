@@ -57,14 +57,14 @@ Search and browse all available documentation for the Minecraft Datapack Languag
     <a href="{{ site.baseurl }}/docs/multi-file-projects/" class="doc-link">Project Structure →</a>
   </div>
   
-  <div class="doc-card" data-categories="python api programming">
+  <div class="doc-card" data-categories="python bindings programming">
     <h3>🐍 Python Bindings</h3>
-    <p>Programmatic access to MDL functionality for automation and integration.</p>
+    <p>Programmatic access to MDL for automation and integration.</p>
     <div class="doc-meta">
-      <span class="category">API</span>
+      <span class="category">Bindings</span>
       <span class="category">Python</span>
     </div>
-    <a href="{{ site.baseurl }}/docs/python-api/" class="doc-link">API Reference →</a>
+    <a href="{{ site.baseurl }}/docs/python-bindings/" class="doc-link">Bindings Guide →</a>
   </div>
   
   <div class="doc-card" data-categories="vscode extension ide">
