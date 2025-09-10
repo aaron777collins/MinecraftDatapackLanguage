@@ -835,12 +835,49 @@ class MDLCompiler:
         # Default: generic expression string, no inversion
         invert_then = False
         
+        # Helpers local to this method to keep concerns contained
+        def unwrap(e: Any) -> Any:
+            while isinstance(e, ParenthesizedExpression):
+                e = e.expression
+            return e
+
+        def norm_op(op_in: Any) -> Optional[str]:
+            # Return one of: '>', '>=', '<', '<=', '==', '!=' or None
+            if op_in == TokenType.GREATER or op_in == ">":
+                return ">"
+            if op_in == TokenType.GREATER_EQUAL or op_in == ">=":
+                return ">="
+            if op_in == TokenType.LESS or op_in == "<":
+                return "<"
+            if op_in == TokenType.LESS_EQUAL or op_in == "<=":
+                return "<="
+            if op_in == TokenType.EQUAL or op_in == "==" or op_in == "EQUAL":
+                return "=="
+            if op_in == TokenType.NOT_EQUAL or op_in == "!=" or op_in == "NOT_EQUAL":
+                return "!="
+            # Accept python bindings string names as well
+            if isinstance(op_in, str):
+                upper = op_in.upper()
+                if upper == "GREATER":
+                    return ">"
+                if upper == "GREATER_EQUAL":
+                    return ">="
+                if upper == "LESS":
+                    return "<"
+                if upper == "LESS_EQUAL":
+                    return "<="
+                if upper == "EQUAL":
+                    return "=="
+                if upper == "NOT_EQUAL":
+                    return "!="
+            return None
+
         if isinstance(expression, BinaryExpression):
-            left = expression.left
-            right = expression.right
-            op = expression.operator
+            left = unwrap(expression.left)
+            right = unwrap(expression.right)
+            op_sym = norm_op(expression.operator)
             # Variable vs literal
-            if isinstance(left, VariableSubstitution) and isinstance(right, LiteralExpression) and isinstance(right.value, (int, float)):
+            if op_sym and isinstance(left, VariableSubstitution) and isinstance(right, LiteralExpression) and isinstance(right.value, (int, float)):
                 objective = self.variables.get(left.name, left.name)
                 scope = left.scope.strip("<>")
                 # Normalize number
@@ -850,41 +887,47 @@ class MDLCompiler:
                     v = None
                 if v is not None:
                     n = int(v) if float(v).is_integer() else v
-                    if op == TokenType.GREATER:
+                    if op_sym == ">":
                         rng = f"{int(n)+1}.." if isinstance(n, int) else f"{v+1}.."
                         return (f"score {scope} {objective} matches {rng}", False)
-                    if op == TokenType.GREATER_EQUAL:
+                    if op_sym == ">=":
                         rng = f"{int(n)}.."
                         return (f"score {scope} {objective} matches {rng}", False)
-                    if op == TokenType.LESS:
+                    if op_sym == "<":
                         rng = f"..{int(n)-1}"
                         return (f"score {scope} {objective} matches {rng}", False)
-                    if op == TokenType.LESS_EQUAL:
+                    if op_sym == "<=":
                         rng = f"..{int(n)}"
                         return (f"score {scope} {objective} matches {rng}", False)
-                    if op == TokenType.EQUAL:
+                    if op_sym == "==":
                         rng = f"{int(n)}"
                         return (f"score {scope} {objective} matches {rng}", False)
-                    if op == TokenType.NOT_EQUAL:
+                    if op_sym == "!=":
                         rng = f"{int(n)}"
                         return (f"score {scope} {objective} matches {rng}", True)
+            # Literal vs variable (swap sides)
+            if op_sym and isinstance(left, LiteralExpression) and isinstance(left.value, (int, float)) and isinstance(right, VariableSubstitution):
+                # Swap by inverting the operator appropriately, then reuse logic
+                invert_map = {
+                    ">": "<",
+                    ">=": "<=",
+                    "<": ">",
+                    "<=": ">=",
+                    "==": "==",
+                    "!=": "!="
+                }
+                swapped = BinaryExpression(left=right, operator=invert_map.get(op_sym, op_sym), right=left)
+                return self._build_condition(swapped)
             # Variable vs variable
-            if isinstance(left, VariableSubstitution) and isinstance(right, VariableSubstitution):
+            if op_sym and isinstance(left, VariableSubstitution) and isinstance(right, VariableSubstitution):
                 lobj = self.variables.get(left.name, left.name)
                 lscope = left.scope.strip("<>")
                 robj = self.variables.get(right.name, right.name)
                 rscope = right.scope.strip("<>")
-                if op in (TokenType.GREATER, TokenType.GREATER_EQUAL, TokenType.LESS, TokenType.LESS_EQUAL, TokenType.EQUAL):
-                    comp_map = {
-                        TokenType.GREATER: ">",
-                        TokenType.GREATER_EQUAL: ">=",
-                        TokenType.LESS: "<",
-                        TokenType.LESS_EQUAL: "<=",
-                        TokenType.EQUAL: "="
-                    }
-                    comp = comp_map[op]
+                if op_sym in (">", ">=", "<", "<=", "=="):
+                    comp = op_sym if op_sym != "==" else "="
                     return (f"score {lscope} {lobj} {comp} {rscope} {robj}", False)
-                if op == TokenType.NOT_EQUAL:
+                if op_sym == "!=":
                     # Use equals with inversion
                     return (f"score {lscope} {lobj} = {rscope} {robj}", True)
         
