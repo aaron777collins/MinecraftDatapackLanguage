@@ -32,8 +32,24 @@
       "match": "\\b\\d+(\\.\\d+)?\\b"
     },
     {
-      "name": "keyword.operator.mdl",
-      "match": "(\\+|\\-|\\*|/|=|==|!=|<|>|<=|>=|&&|\\|\\||!|\\.\\.)"
+      "name": "keyword.operator.comparison.mdl",
+      "match": "(==|!=|<=|>=|<|>)"
+    },
+    {
+      "name": "keyword.operator.logical.mdl",
+      "match": "(&&|\\|\\||!)"
+    },
+    {
+      "name": "keyword.operator.assignment.mdl",
+      "match": "="
+    },
+    {
+      "name": "keyword.operator.arithmetic.mdl",
+      "match": "(\\+|\\-|\\*|/)"
+    },
+    {
+      "name": "constant.other.range.mdl",
+      "match": "\\.\\."
     },
     {
       "name": "punctuation.terminator.mdl",
@@ -78,6 +94,10 @@
           "match": "(@p|@r|@a|@e|@s|@initiator|@c|@v|@d|@w)"
         },
         {
+          "name": "entity.name.selector.tag.mdl",
+          "match": "tag\\s*=\\s*[a-zA-Z0-9_\-]+"
+        },
+        {
           "name": "constant.language.global.mdl",
           "match": "global"
         },
@@ -106,6 +126,10 @@
         {
           "name": "entity.name.selector.mdl",
           "match": "(@p|@r|@a|@e|@s|@initiator|@c|@v|@d|@w)"
+        },
+        {
+          "name": "entity.name.selector.tag.mdl",
+          "match": "tag\\s*=\\s*[a-zA-Z0-9_\-]+"
         },
         {
           "name": "constant.language.global.mdl",
@@ -139,6 +163,10 @@
           "match": "(@p|@r|@a|@e|@s|@initiator|@c|@v|@d|@w)"
         },
         {
+          "name": "entity.name.selector.tag.mdl",
+          "match": "tag\\s*=\\s*[a-zA-Z0-9_\-]+"
+        },
+        {
           "name": "constant.language.global.mdl",
           "match": "global"
         },
@@ -169,6 +197,10 @@
         {
           "name": "entity.name.selector.mdl",
           "match": "(@p|@r|@a|@e|@s|@initiator|@c|@v|@d|@w)"
+        },
+        {
+          "name": "entity.name.selector.tag.mdl",
+          "match": "tag\\s*=\\s*[a-zA-Z0-9_\-]+"
         },
         {
           "name": "constant.language.global.mdl",
