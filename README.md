@@ -29,7 +29,7 @@ A **modern, scope-aware language** that lets you write Minecraft datapacks with 
 - **📚 Extensive documentation** with examples for every feature
 
 ### 🏗️ Core Features
-- ✅ **Modern pack format 15** by default for latest Minecraft features
+- ✅ **Default pack_format 82** for latest Minecraft features
 - ✅ **Explicit scoping** - every variable operation specifies its scope
 - ✅ **Real control structures** - `if/else`, `while` loops
 - ✅ **Number variables** stored in scoreboards with `$variable<scope>$` substitution
@@ -42,7 +42,7 @@ A **modern, scope-aware language** that lets you write Minecraft datapacks with 
 - ✅ **Raw blocks** for direct Minecraft command injection
 - ✅ **Say commands** that auto-convert to `tellraw` with JSON formatting
 
-> **Note**: Version 1.0+ uses **pack_format 15** by default for the modern MDL syntax.
+> **Note**: Version 1.0+ uses **pack_format 82** by default for the modern MDL syntax.
 
 ---
 
@@ -85,16 +85,20 @@ python -m pip install -e .
 
 ### Modern MDL (v1.0+)
 ```bash
-# Build MDL files
-mdl build --mdl my_pack/mypack.mdl -o dist --wrapper mypack
-mdl check my_pack/mypack.mdl
+# Build (defaults: --mdl . and -o dist)
+mdl build
 
-# Validate generated mcfunction files
-mdl check my_pack/mypack.mdl
+# Check (scans current directory)
+mdl check
 
-# Multi-file projects
-mdl build --mdl my_pack/ -o dist      # Build entire directory
-mdl build --mdl "file1.mdl file2.mdl" -o dist  # Build specific files
+# Build single file (output still defaults to dist)
+mdl build --mdl my_pack/mypack.mdl
+
+# Custom output directory
+mdl build -o out
+
+# Optional wrapper directory for output
+mdl build --wrapper mypack
 
 # Create new projects
 mdl new my_awesome_pack
@@ -107,10 +111,10 @@ mdl new my_first_pack
 
 # Build it
 cd my_first_pack
-mdl build --mdl main.mdl -o dist
+mdl build
 
 # Check for errors
-mdl check main.mdl
+mdl check
 ```
 
 ---
@@ -208,9 +212,10 @@ npm run compile
 
 ## 📚 Documentation
 
-- **[Language Reference](docs/_docs/language-reference.md)** - Complete language specification
-- **[VS Code Extension](vscode-extension/README.md)** - Extension documentation
-- **[Examples](examples/)** - Sample projects and code snippets
+- **[Language Reference](https://www.mcmdl.com/docs/language-reference/)** - Complete language specification
+- **[CLI Reference](https://www.mcmdl.com/docs/cli-reference/)** - Command usage and options
+- **[VS Code Extension](https://www.mcmdl.com/docs/vscode-extension/)** - Extension documentation
+- **[Examples](https://www.mcmdl.com/docs/examples/)** - Sample projects and code snippets
 
 ---
 
