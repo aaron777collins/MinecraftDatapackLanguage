@@ -126,6 +126,8 @@ def build_command(args):
             parser = MDLParser(str(mdl_file))
             ast = parser.parse(source)
             all_asts.append(ast)
+            # Indicate per-file success
+            print(f"[OK] {mdl_file}")
             
         except (MDLLexerError, MDLParserError) as e:
             print(f"Error in {mdl_file}: {e}")
@@ -211,6 +213,8 @@ def check_command(args):
 
             if args.verbose:
                 print(f"  ✓ {file_path} - {len(ast.functions)} functions, {len(ast.variables)} variables")
+            # Indicate per-file success
+            print(f"[OK] {file_path}")
 
         except MDLLexerError as e:
             print(f"Lexer error in {file_path}: {e}")

@@ -75,7 +75,7 @@ mdl check myproject/
 mdl check myproject/ --ignore-warnings
 ```
 
-**Error Reporting:**
+**Output and Error Reporting:**
 The check command provides comprehensive error reporting with:
 - Exact file location (line, column)
 - Context lines showing the problematic code
@@ -347,6 +347,7 @@ Output includes:
 - Functions being generated
 - Variables being initialized
 - Any warnings or errors
+ - Per-file status lines in the form `[OK] <file>` when a file is parsed successfully
 
 ## Error Handling
 
