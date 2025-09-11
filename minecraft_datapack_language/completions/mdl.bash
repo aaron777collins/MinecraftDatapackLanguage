@@ -1,9 +1,9 @@
 _mdl_complete() {
   local cur prev words cword
-  _init_completion -n : || {
-    COMPREPLY=()
-    return
-  }
+  cur="${COMP_WORDS[COMP_CWORD]}"
+  prev="${COMP_WORDS[COMP_CWORD-1]}"
+  words=("${COMP_WORDS[@]}")
+  cword=${COMP_CWORD}
 
   local subcommands="build check new completion docs"
   if [[ ${cword} -eq 1 ]]; then
