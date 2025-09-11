@@ -4,11 +4,11 @@
   "patterns": [
     {
       "name": "keyword.control.mdl",
-      "match": "\\b(pack|namespace|function|on_tick|on_load|tag|if|else|while|scheduledwhile|var|num|exec|with|recipe|loot_table|advancement|predicate|item_modifier|structure)\\b"
+      "match": "\\b(pack|namespace|function|on_tick|on_load|tag|if|else|while|scheduledwhile|var|num|exec|with|recipe|loot_table|advancement|predicate|item_modifier|structure|pack_format|description)\\b"
     },
     {
       "name": "entity.name.section.mdl",
-      "match": "^(\\s*)(pack|namespace|function|tag|recipe|loot_table|advancement|predicate|item_modifier|structure)\\b"
+      "match": "^(\\s*)(pack|namespace|function|tag|recipe|loot_table|advancement|predicate|item_modifier|structure|on_tick|on_load)\\b"
     },
     {
       "name": "string.quoted.double.mdl",
@@ -46,6 +46,10 @@
     {
       "name": "keyword.operator.arithmetic.mdl",
       "match": "(\\+|\\-|\\*|/)"
+    },
+    {
+      "name": "support.function.mdl",
+      "match": "\\b(say|tellraw|effect|particle|execute|scoreboard|data|function|tag|tp|kill|summon|give|clear|enchant|gamemode|weather|time|difficulty|gamerule|title|playsound|stopsound|kick|ban|ban-ip|pardon|pardon-ip|whitelist|op|deop|save-all|save-off|save-on|list|me|msg|team|trigger|advancement|recipe|loot|schedule|return|run|fill|setblock|clone|teleport|spreadplayers|worldborder|xp|experience|replaceitem|testfor|testforblock|testforblocks|stats|blockdata|entitydata|setworldspawn|setidletimeout|stop|save|defaultgamemode|publish|spawnpoint|toggledownfall|bossbar|forceload|locate|seed|help|version|reload|debug|achievement|datapack|item|w|tell|broadcast)\\b"
     },
     {
       "name": "constant.other.range.mdl",
@@ -179,6 +183,13 @@
           "match": "[a-zA-Z_][a-zA-Z0-9_]*"
         }
       ]
+    },
+    {
+      "name": "variable.substitution.simple.mdl",
+      "match": "\\$([a-zA-Z_][a-zA-Z0-9_]*)\\$",
+      "captures": {
+        "1": { "name": "variable.other.mdl" }
+      }
     },
     {
       "name": "function.declaration.mdl",
@@ -358,6 +369,18 @@
           "match": "."
         }
       ]
+    },
+    {
+      "name": "keyword.control.with.mdl",
+      "match": "\\b(with)\\b"
+    },
+    {
+      "name": "constant.language.boolean.mdl",
+      "match": "\\b(true|false)\\b"
+    },
+    {
+      "name": "constant.language.null.mdl",
+      "match": "\\b(null|undefined)\\b"
     }
   ]
 }

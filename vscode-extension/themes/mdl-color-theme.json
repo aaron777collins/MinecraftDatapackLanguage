@@ -78,10 +78,17 @@
         "keyword",
         "keyword.control",
         "keyword.control.mdl",
+        "keyword.control.with.mdl",
         "keyword.operator",
         "keyword.operator.mdl",
         "keyword.operator.assignment",
-        "keyword.operator.assignment.mdl"
+        "keyword.operator.assignment.mdl",
+        "keyword.operator.arithmetic",
+        "keyword.operator.arithmetic.mdl",
+        "keyword.operator.comparison",
+        "keyword.operator.comparison.mdl",
+        "keyword.operator.logical",
+        "keyword.operator.logical.mdl"
       ],
       "settings": {
         "foreground": "#ff7b72",
@@ -169,7 +176,10 @@
       "name": "Booleans and Constants",
       "scope": [
         "constant.language",
-        "constant.language.mdl"
+        "constant.language.mdl",
+        "constant.language.boolean.mdl",
+        "constant.language.null.mdl",
+        "constant.language.global.mdl"
       ],
       "settings": {
         "foreground": "#79c0ff",
@@ -181,7 +191,11 @@
       "scope": [
         "variable",
         "variable.other",
-        "variable.other.mdl"
+        "variable.other.mdl",
+        "variable.declaration.mdl",
+        "variable.assignment.mdl",
+        "variable.substitution.mdl",
+        "variable.substitution.simple.mdl"
       ],
       "settings": {
         "foreground": "#ffa198"
@@ -198,10 +212,42 @@
         "punctuation.section.parens",
         "punctuation.section.parens.mdl",
         "punctuation.section.brackets",
-        "punctuation.section.brackets.mdl"
+        "punctuation.section.brackets.mdl",
+        "punctuation.angle.brackets.mdl",
+        "punctuation.separator.mdl"
       ],
       "settings": {
         "foreground": "#c9d1d9"
+      }
+    },
+    {
+      "name": "Function Names",
+      "scope": [
+        "entity.name.function.mdl",
+        "entity.name.namespace.mdl"
+      ],
+      "settings": {
+        "foreground": "#d2a8ff",
+        "fontStyle": "bold"
+      }
+    },
+    {
+      "name": "Type Keywords",
+      "scope": [
+        "keyword.type.mdl"
+      ],
+      "settings": {
+        "foreground": "#79c0ff",
+        "fontStyle": "bold"
+      }
+    },
+    {
+      "name": "Range Operator",
+      "scope": [
+        "constant.other.range.mdl"
+      ],
+      "settings": {
+        "foreground": "#ffa657"
       }
     }
   ]
