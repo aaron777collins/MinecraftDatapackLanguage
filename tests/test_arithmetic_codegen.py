@@ -35,8 +35,8 @@ function p:f {
     text = open(fn, "r", encoding="utf-8").read()
     # We compile via temps: expect add/remove on a temp variable, not directly on x
     # Look for add/remove on any objective used as temp or x
-    assert re.search(r"players add @s (temp_\\d+|x) 5", text) is not None or re.search(r"players add @s .* 5", text) is not None
-    assert re.search(r"players (remove|add) @s (temp_\\d+|x) 3", text) is not None or re.search(r"players (remove|add) @s .* 3", text) is not None
+    assert re.search(r"scoreboard players add @s (temp_\d+|x) 5", text) is not None or re.search(r"scoreboard players add @s .* 5", text) is not None
+    assert re.search(r"scoreboard players (remove|add) @s (temp_\d+|x) 3", text) is not None or re.search(r"scoreboard players (remove|add) @s .* 3", text) is not None
 
 def test_multiply_divide_literal(tmp_path):
     src = '''
@@ -61,11 +61,11 @@ function p:f {
         raise FileNotFoundError("f.mcfunction not found in expected directories")
     text = open(fn, "r", encoding="utf-8").read()
     # Accept legacy multiply/divide forms or the new operation with temp constants
-    legacy_mul = re.search(r"players multiply @s (temp_\\d+|x) 3", text) or re.search(r"players multiply @s .* 3", text)
-    legacy_div = re.search(r"players divide @s (temp_\\d+|x) 2", text) or re.search(r"players divide @s .* 2", text)
+    legacy_mul = re.search(r"scoreboard players multiply @s (temp_\d+|x) 3", text) or re.search(r"scoreboard players multiply @s .* 3", text)
+    legacy_div = re.search(r"scoreboard players divide @s (temp_\d+|x) 2", text) or re.search(r"scoreboard players divide @s .* 2", text)
     # Accept presence of operation with temp constant even if we don't explicitly match the prior set
-    op_mul = re.search(r"players operation @s (temp_\\d+|x) \\*= @s temp_\\d+", text) or re.search(r"players operation @s x = @s temp_\\d+", text)
-    op_div = re.search(r"players operation @s (temp_\\d+|x) /= @s temp_\\d+", text)
+    op_mul = re.search(r"scoreboard players operation @s (temp_\d+|x) \*= @s temp_\d+", text) or re.search(r"scoreboard players operation @s x = @s temp_\d+", text)
+    op_div = re.search(r"scoreboard players operation @s (temp_\d+|x) /= @s temp_\d+", text)
     assert legacy_mul or op_mul
     assert legacy_div or op_div
 
