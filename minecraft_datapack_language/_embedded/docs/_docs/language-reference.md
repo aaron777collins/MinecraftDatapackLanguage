@@ -1307,7 +1307,7 @@ def _parse_comparison(self) -> Any:
 
 - Scoreboard arithmetic is integer-only. MDL normalizes integer-like literals: `2.0` -> `2`. Non-integer literals (e.g., `2.5`) cause a compile-time error when used in scoreboard math.
 - Literal addition/subtraction uses `scoreboard players add/remove`; elides `+0`/`-0`.
-- Literal multiplication/division uses `scoreboard players multiply/divide`; elides `*1`/`/1`. `*0` sets the temp to zero. Division by zero is a compile-time error.
+- Literal multiplication/division uses temporary constants with `scoreboard players operation` (e.g., set a temp score to the constant, then `*=`/`/=`). `*1`/`/1` are elided; `*0` sets the temp to zero. Division by zero is a compile-time error.
 - Mixed expressions are lowered via temporary scores to preserve precedence. Score-to-score operations use `scoreboard players operation`.
 
 ### AST Traversal and Code Generation

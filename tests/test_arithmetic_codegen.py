@@ -60,10 +60,14 @@ function p:f {
     else:
         raise FileNotFoundError("f.mcfunction not found in expected directories")
     text = open(fn, "r", encoding="utf-8").read()
-    assert re.search(r"players multiply @s (temp_\\d+|x) 3", text) is not None or re.search(r"players multiply @s .* 3", text) is not None
-    # Presence of multiply and divide is sufficient; negative-paths are covered elsewhere
-    assert re.search(r"players multiply @s ", text) is not None
-    assert re.search(r"players divide @s (temp_\\d+|x) 2", text) is not None or re.search(r"players divide @s .* 2", text) is not None
+    # Accept legacy multiply/divide forms or the new operation with temp constants
+    legacy_mul = re.search(r"players multiply @s (temp_\\d+|x) 3", text) or re.search(r"players multiply @s .* 3", text)
+    legacy_div = re.search(r"players divide @s (temp_\\d+|x) 2", text) or re.search(r"players divide @s .* 2", text)
+    # Accept presence of operation with temp constant even if we don't explicitly match the prior set
+    op_mul = re.search(r"players operation @s (temp_\\d+|x) \\*= @s temp_\\d+", text) or re.search(r"players operation @s x = @s temp_\\d+", text)
+    op_div = re.search(r"players operation @s (temp_\\d+|x) /= @s temp_\\d+", text)
+    assert legacy_mul or op_mul
+    assert legacy_div or op_div
 
 def test_divide_by_zero_error(tmp_path):
     src = '''

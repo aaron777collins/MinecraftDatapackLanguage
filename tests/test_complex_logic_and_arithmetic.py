@@ -43,10 +43,11 @@ function cx:calc {
     text = open(fn, "r", encoding="utf-8").read()
     # No token names like GREATER etc
     assert "GREATER" not in text and "LESS" not in text
-    # Must use multiply/divide/add/remove, never operation with numeric literal
-    assert " operation @s temp" not in text or " operation @s temp" in text  # allowed but not with numeric literal
-    assert re.search(r"players (multiply|divide) @s ", text)
-    # No 'operation *= 3' with numeric literal
+    # Accept legacy multiply/divide or new operation with temp constants
+    legacy = re.search(r"players (multiply|divide) @s ", text)
+    op_with_const = re.search(r"players set @s temp_\d+ \d+", text) and re.search(r"players operation @s .* (\*=|/=) @s temp_\d+", text)
+    assert legacy or op_with_const
+    # Still forbid direct numeric literal on operation
     assert re.search(r"operation @s .* \*= \d+", text) is None
     assert re.search(r"operation @s .* /= \d+", text) is None
 
