@@ -6,6 +6,8 @@ permalink: /docs/getting-started/
 
 MDL (Minecraft Datapack Language) is a simple language that compiles to Minecraft datapack `.mcfunction` files.
 
+Quick link: [Language Reference](https://www.mcmdl.com/docs/language-reference/)
+
 ## Installation
 
 Install MDL using pipx:
