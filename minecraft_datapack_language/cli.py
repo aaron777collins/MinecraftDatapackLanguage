@@ -96,8 +96,7 @@ Examples:
         parser.print_help()
         print("")
         print("Tip: Create a new project with: mdl new <project_name>")
-        print("     After creating a project, you can serve local docs with: mdl docs serve --dir docs")
-        print("     Or run the generated scripts: ./serve_docs.sh (bash) or ./serve_docs.ps1 (PowerShell)")
+        print("     Then open the Getting Started guide in your browser: mdl docs")
         return 0
     
     try:
