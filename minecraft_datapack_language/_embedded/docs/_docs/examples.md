@@ -191,4 +191,15 @@ function fanout:increment {
 on_load fanout:increment<@a>;
 ```
 
+## Real-World Example: BetterWorldEdit
+
+For a comprehensive real-world example of MDL in action, check out [BetterWorldEdit](https://github.com/aaron777collins/BetterWorldEdit/blob/main/betterworldedit.mdl) - a powerful world editing datapack built entirely with MDL!
+
+This project demonstrates:
+- Complex variable management and scoping
+- Large-scale command generation
+- Real-world datapack architecture
+
+You can download and test the latest version from the [releases page](https://github.com/aaron777collins/BetterWorldEdit/releases).
+
 
