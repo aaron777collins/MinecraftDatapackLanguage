@@ -7,27 +7,57 @@ _mdl_complete() {
 
   local subcommands="build check new completion docs"
   if [[ ${cword} -eq 1 ]]; then
-    COMPREPLY=( $(compgen -W "${subcommands}" -- "$cur") )
+    if [[ "$cur" == -* ]]; then
+      COMPREPLY=( $(compgen -W "-h --help --version" -- "$cur") )
+    else
+      COMPREPLY=( $(compgen -W "${subcommands}" -- "$cur") )
+    fi
+    return
+  fi
+
+  # Global options available anywhere
+  if [[ "$cur" == -* ]]; then
+    COMPREPLY=( $(compgen -W "-h --help --version" -- "$cur") )
     return
   fi
 
   case "${words[1]}" in
     build)
-      COMPREPLY=( $(compgen -W "--mdl -o --output --verbose --wrapper --no-zip" -- "$cur") )
+      COMPREPLY=( $(compgen -W "--mdl -o --output --verbose --wrapper --no-zip -h --help" -- "$cur") )
+      [[ "$prev" == "--mdl" ]] && { COMPREPLY=( $(compgen -f -d -- "$cur") ); return; }
+      [[ "$prev" == "-o" || "$prev" == "--output" ]] && { COMPREPLY=( $(compgen -d -- "$cur") ); return; }
       [[ ${cur} == -* ]] || COMPREPLY+=( $(compgen -f -d -- "$cur") )
       ;;
     check)
-      COMPREPLY=( $(compgen -W "--verbose" -- "$cur") )
+      COMPREPLY=( $(compgen -W "--verbose -h --help" -- "$cur") )
       [[ ${cur} == -* ]] || COMPREPLY+=( $(compgen -f -d -- "$cur") )
       ;;
     new)
-      COMPREPLY=( $(compgen -W "--pack-name --pack-format --output --exclude-local-docs" -- "$cur") )
+      COMPREPLY=( $(compgen -W "--pack-name --pack-format --output --exclude-local-docs -h --help" -- "$cur") )
+      [[ "$prev" == "--output" ]] && { COMPREPLY=( $(compgen -d -- "$cur") ); return; }
       ;;
     completion)
-      COMPREPLY=( $(compgen -W "print install uninstall doctor" -- "$cur") )
+      # Suggest subcommands or shells for 3rd arg
+      if [[ ${cword} -eq 2 ]]; then
+        COMPREPLY=( $(compgen -W "print install uninstall doctor -h --help" -- "$cur") )
+      else
+        case "${words[2]}" in
+          print|install|uninstall)
+            COMPREPLY=( $(compgen -W "bash zsh fish powershell" -- "$cur") )
+            ;;
+          *) ;;
+        esac
+      fi
       ;;
     docs)
-      COMPREPLY=( $(compgen -W "open serve" -- "$cur") )
+      if [[ ${cword} -eq 2 ]]; then
+        COMPREPLY=( $(compgen -W "open serve -h --help" -- "$cur") )
+      else
+        if [[ "${words[2]}" == "serve" ]]; then
+          COMPREPLY=( $(compgen -W "--port --dir -h --help" -- "$cur") )
+          [[ ${cur} == -* ]] || COMPREPLY+=( $(compgen -d -- "$cur") )
+        fi
+      fi
       ;;
   esac
 }
