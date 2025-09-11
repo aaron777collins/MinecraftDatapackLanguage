@@ -92,8 +92,12 @@ Examples:
         return 0
 
     if not args.command:
+        print("Tip: Create a new project with: mdl new <project_name>")
+        print("     After creating a project, you can serve local docs with: mdl docs serve --dir docs")
+        print("     Or run the generated scripts: ./serve_docs.sh (bash) or ./serve_docs.ps1 (PowerShell)")
+        print("")
         parser.print_help()
-        return 1
+        return 0
     
     try:
         if args.command == 'build':

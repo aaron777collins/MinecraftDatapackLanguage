@@ -1,0 +1,362 @@
+<!-- Main Navigation -->
+<nav class="nav-menu" role="navigation" aria-label="Main Navigation">
+  <div class="nav-container">
+    <div class="nav-brand">
+      <a href="{{ "/" | relative_url }}" class="nav-logo">
+        <img src="{{ site.baseurl }}/icons/icon-64.png" alt="MDL" width="24" height="24">
+        <span>MDL</span>
+      </a>
+    </div>
+    <ul class="nav-list">
+      {%- assign top_level_items = site.nav | slice: 0, 4 -%}
+      {%- assign doc_items = site.nav | slice: 4, 5 -%}
+
+      {%- for item in top_level_items -%}
+        <li class="nav-item">
+          <a href="{{ item.url | relative_url }}" class="nav-link{% if page.url == item.url or page.url contains item.url %} active{% endif %}">{{ item.title }}</a>
+        </li>
+      {%- endfor -%}
+
+      <!-- Docs Hub -->
+      <li class="nav-item">
+        <a href="{{ "/docs/docs-hub/" | relative_url }}" class="nav-link{% if page.url contains '/docs/docs-hub/' %} active{% endif %}">Docs</a>
+      </li>
+
+    </ul>
+    <div class="nav-actions">
+      <button class="nav-icon-link theme-toggle" aria-label="Toggle dark mode" id="themeToggle">
+        <svg class="theme-icon sun-icon" width="48" height="48" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <circle cx="12" cy="12" r="5"/>
+          <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l-1.42-1.42"/>
+        </svg>
+        <svg class="theme-icon moon-icon" width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+      </button>
+      <a href="https://github.com/{{ site.github_username }}/{{ site.github_repo }}" class="nav-icon-link" aria-label="GitHub Repository" target="_blank" rel="noopener noreferrer">
+        <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+          <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path>
+        </svg>
+      </a>
+    </div>
+    <button class="nav-toggle" aria-label="Toggle navigation menu">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+        <path d="M2 4h16v2H2V4zm0 5h16v2H2V9zm0 5h16v2H2v-2z"/>
+      </svg>
+    </button>
+  </div>
+</nav>
+
+<!-- Breadcrumb Navigation -->
+{% if page.url != "/" %}
+<nav class="breadcrumb-nav" aria-label="Breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item">
+      <a href="{{ "/" | relative_url }}" class="breadcrumb-link">
+        <svg class="breadcrumb-icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M8 0L0 6v10h6v-6h4v6h6V6L8 0z"/>
+        </svg>
+        Home
+      </a>
+    </li>
+    {% if page.url contains "/docs/" and page.url != "/docs/docs-hub/" %}
+      <li class="breadcrumb-item">
+        <a href="{{ "/docs/docs-hub/" | relative_url }}" class="breadcrumb-link">Docs</a>
+      </li>
+    {% endif %}
+    <li class="breadcrumb-item active" aria-current="page">
+      {{ page.title }}
+    </li>
+  </ol>
+</nav>
+{% endif %}
+
+<style>
+/* Main Navigation Styles */
+.nav-menu {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  color: #ffffff;
+  padding: 0;
+  margin-bottom: 2rem;
+  box-shadow: 0 8px 20px rgba(2, 6, 23, 0.35);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.nav-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 60px;
+  position: relative;
+}
+
+.nav-brand {
+  display: flex;
+  align-items: center;
+}
+
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 1.2rem;
+  letter-spacing: 0.2px;
+}
+
+.nav-logo:hover {
+  text-decoration: none;
+  color: #e2e8f0;
+}
+
+.nav-list {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: 1rem;
+  align-items: center;
+}
+
+.nav-item {
+  margin: 0;
+}
+
+.nav-link {
+  color: rgba(255, 255, 255, 0.85);
+  text-decoration: none;
+  padding: 0.5rem 0.85rem;
+  border-radius: 999px;
+  transition: background-color 0.2s, color 0.2s;
+  font-weight: 500;
+}
+
+.nav-link:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.nav-link.active {
+  background: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: 1rem;
+}
+
+.nav-icon-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  text-decoration: none;
+  padding: 0.35rem;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+}
+
+.nav-icon-link:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+
+/* Theme Toggle Button */
+.theme-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.35rem;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+  position: relative;
+  color: #ffffff;
+  width: 40px;
+  height: 40px;
+}
+
+.theme-toggle:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.theme-icon {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.theme-icon.sun-icon {
+  opacity: 1;
+  transform: translate(-50%, -50%) rotate(0deg);
+}
+
+.theme-icon.moon-icon {
+  opacity: 0;
+  transform: translate(-50%, -50%) rotate(-90deg);
+}
+
+/* Dark mode styles for theme toggle */
+[data-theme="dark"] .theme-icon.sun-icon {
+  opacity: 0;
+  transform: translate(-50%, -50%) rotate(90deg);
+}
+
+[data-theme="dark"] .theme-icon.moon-icon {
+  opacity: 1;
+  transform: translate(-50%, -50%) rotate(0deg);
+}
+
+.nav-toggle {
+  display: none;
+  background: none;
+  border: none;
+  color: #ffffff;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+}
+
+.nav-toggle:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .nav-menu {
+    position: static;
+    margin-bottom: 1rem;
+  }
+
+  .nav-list {
+    display: none;
+    position: absolute;
+    top: 60px;
+    left: 0;
+    right: 0;
+    background: linear-gradient(135deg, #0b1220 0%, #131c2b 100%);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    flex-direction: column;
+    padding: 1rem;
+    box-shadow: 0 10px 20px rgba(2,6,23,0.35);
+    max-height: 60vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .nav-list.show {
+    display: flex;
+  }
+  
+  .nav-toggle {
+    display: block;
+  }
+  
+  .nav-actions {
+    margin-left: 0.5rem;
+  }
+}
+</style>
+
+<script>
+// Theme Toggle Functionality
+document.addEventListener('DOMContentLoaded', function() {
+  const themeToggle = document.getElementById('themeToggle');
+  const html = document.documentElement;
+  
+  // Get saved theme or default to system preference
+  const savedTheme = localStorage.getItem('theme');
+  const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  
+  // Set initial theme
+  if (savedTheme) {
+    html.setAttribute('data-theme', savedTheme);
+  } else if (systemPrefersDark) {
+    html.setAttribute('data-theme', 'dark');
+  } else {
+    html.setAttribute('data-theme', 'light');
+  }
+  
+  // Theme toggle click handler
+  if (themeToggle) {
+    themeToggle.addEventListener('click', function() {
+      const currentTheme = html.getAttribute('data-theme');
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      
+      html.setAttribute('data-theme', newTheme);
+      localStorage.setItem('theme', newTheme);
+      
+      // Update aria-label
+      themeToggle.setAttribute('aria-label', newTheme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
+      
+      // Dispatch custom event for other scripts to listen to
+      document.dispatchEvent(new CustomEvent('themeChanged', { detail: { theme: newTheme } }));
+      
+      // Force re-highlight code blocks with new theme
+      if (typeof Prism !== 'undefined') {
+        setTimeout(() => {
+          Prism.highlightAll();
+        }, 100);
+      }
+    });
+  }
+  
+  // Listen for system theme changes
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
+    if (!localStorage.getItem('theme')) {
+      html.setAttribute('data-theme', e.matches ? 'dark' : 'light');
+      document.dispatchEvent(new CustomEvent('themeChanged', { detail: { theme: e.matches ? 'dark' : 'light' } }));
+    }
+  });
+});
+
+// Mobile Navigation Toggle
+document.addEventListener('DOMContentLoaded', function() {
+  const toggle = document.querySelector('.nav-toggle');
+  const navList = document.querySelector('.nav-list');
+  
+  if (toggle && navList) {
+    toggle.addEventListener('click', function() {
+      navList.classList.toggle('show');
+      toggle.setAttribute('aria-expanded', navList.classList.contains('show') ? 'true' : 'false');
+    });
+    
+    // Close mobile menu when clicking outside
+    document.addEventListener('click', function(event) {
+      if (!toggle.contains(event.target) && !navList.contains(event.target)) {
+        navList.classList.remove('show');
+        toggle.setAttribute('aria-expanded', 'false');
+      }
+    });
+
+    // Close on link click to free screen space on mobile
+    navList.querySelectorAll('a.nav-link').forEach(function(link) {
+      link.addEventListener('click', function() {
+        navList.classList.remove('show');
+        toggle.setAttribute('aria-expanded', 'false');
+      });
+    });
+
+    // Close on Escape key
+    document.addEventListener('keydown', function(event) {
+      if (event.key === 'Escape') {
+        navList.classList.remove('show');
+        toggle.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
+});
+</script>

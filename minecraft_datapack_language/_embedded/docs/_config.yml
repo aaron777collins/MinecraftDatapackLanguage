@@ -1,0 +1,74 @@
+title: Minecraft Datapack Language (MDL) v12
+description: A powerful compiler that lets you write Minecraft datapacks in a modern JavaScript-style language (.mdl) or via clean Python bindings
+url: "https://www.mcmdl.com"
+github_username: aaron777collins
+github_repo: MinecraftDatapackLanguage
+
+# Build settings
+markdown: kramdown
+highlighter: rouge
+permalink: pretty
+
+# Collections
+collections:
+  docs:
+    output: true
+    permalink: /:collection/:name/
+
+# Defaults
+defaults:
+  - scope:
+      path: ""
+      type: "docs"
+    values:
+      layout: "page"
+  - scope:
+      path: ""
+      type: "posts"
+    values:
+      layout: "post"
+
+# Plugins
+plugins:
+  - jekyll-feed
+  - jekyll-seo-tag
+  - jekyll-sitemap
+  - jekyll-github-metadata
+
+# GitHub metadata
+github:
+  is_project_page: true
+  show_downloads: false
+
+# Exclude from processing
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor/bundle/
+  - vendor/cache/
+  - vendor/gems/
+  - vendor/ruby/
+
+# Theme settings
+theme: jekyll-theme-cayman
+show_downloads: false
+
+# Navigation - Clean, organized structure
+nav:
+  - title: Downloads
+    url: /downloads/
+  - title: Getting Started
+    url: /docs/getting-started/
+  - title: Examples
+    url: /docs/examples/
+  - title: Language Reference
+    url: /docs/language-reference/
+  - title: Multi-file Projects
+    url: /docs/multi-file-projects/
+  - title: CLI Reference
+    url: /docs/cli-reference/
+  - title: Python Bindings
+    url: /docs/python-api/
+  - title: VS Code Extension
+    url: /docs/vscode-extension/
