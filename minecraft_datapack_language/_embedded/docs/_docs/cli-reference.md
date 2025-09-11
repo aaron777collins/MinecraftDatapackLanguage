@@ -194,13 +194,25 @@ Serve the docs quickly with the generated scripts:
 
 Both scripts prefer Jekyll (if `bundle` and a `Gemfile` are present), otherwise they fall back to a simple Python web server.
 
-You can also serve docs via the CLI:
+You can open the docs site in your browser via the CLI:
 
 ```bash
-mdl docs serve --dir docs --port 8000
+mdl docs            # opens Getting Started in your default browser
+mdl docs open       # same as above
+mdl docs serve --dir docs --port 8000   # optional: serve local docs (if you prefer)
 ```
 
-This starts a local web server for the `docs/` directory.
+When running `mdl new`, the output will list all generated files:
+
+```
+my_awesome_pack/
+├── README.md
+├── main.mdl
+├── docs/
+├── docs_site/          # present when packaged HTML is available
+├── serve_docs.sh
+└── serve_docs.ps1
+```
 
 ## Completion Command
 
