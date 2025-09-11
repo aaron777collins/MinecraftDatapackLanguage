@@ -99,7 +99,7 @@
         },
         {
           "name": "entity.name.selector.tag.mdl",
-          "match": "tag\\s*=\\s*[a-zA-Z0-9_\-]+"
+          "match": "tag\\s*=\\s*[a-zA-Z0-9_\\-]+"
         },
         {
           "name": "constant.language.global.mdl",
@@ -133,7 +133,7 @@
         },
         {
           "name": "entity.name.selector.tag.mdl",
-          "match": "tag\\s*=\\s*[a-zA-Z0-9_\-]+"
+          "match": "tag\\s*=\\s*[a-zA-Z0-9_\\-]+"
         },
         {
           "name": "constant.language.global.mdl",
@@ -168,7 +168,7 @@
         },
         {
           "name": "entity.name.selector.tag.mdl",
-          "match": "tag\\s*=\\s*[a-zA-Z0-9_\-]+"
+          "match": "tag\\s*=\\s*[a-zA-Z0-9_\\-]+"
         },
         {
           "name": "constant.language.global.mdl",
@@ -211,7 +211,7 @@
         },
         {
           "name": "entity.name.selector.tag.mdl",
-          "match": "tag\\s*=\\s*[a-zA-Z0-9_\-]+"
+          "match": "tag\\s*=\\s*[a-zA-Z0-9_\\-]+"
         },
         {
           "name": "constant.language.global.mdl",
@@ -348,10 +348,6 @@
     {
       "name": "entity.name.selector.arguments.mdl",
       "match": "\\[([^\\]]*)\\]"
-    },
-    {
-      "name": "variable.other.mdl",
-      "match": "\\b[a-zA-Z_][a-zA-Z0-9_]*\\b"
     },
     {
       "name": "string.raw.mdl",
