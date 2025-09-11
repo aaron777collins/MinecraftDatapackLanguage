@@ -124,16 +124,24 @@ mdl new adventure_map
 mdl new projects/survival_plus
 ```
 
-**What it creates:**
-The new command generates a minimal project structure with:
+**What it creates (by default):**
+The new command generates a project structure with:
 - `README.md` - Quick start with build instructions
 - `main.mdl` - Hello world (pack, namespace, simple function, on_load)
+- `docs/` - A literal copy of the MDL documentation for offline/local browsing
+- `serve_docs.sh` and `serve_docs.ps1` - Convenience scripts to serve docs locally
 
-**Generated project structure:**
+**Generated project structure (default):**
 ```
 my_awesome_pack/
 ├── README.md
-└── main.mdl
+├── main.mdl
+├── docs/
+│   ├── index.md
+│   ├── _config.yml
+│   └── ...
+├── serve_docs.sh
+└── serve_docs.ps1
 ```
 
 **Template content includes:**
@@ -167,6 +175,46 @@ my_awesome_pack/
 | Option | Description | Example |
 |--------|-------------|---------|
 | `<project_name>` | Name of the new project to create | `mdl new my_pack` |
+| `--pack-name <name>` | Override datapack name used in `pack.mcmeta` | `--pack-name Adventure` |
+| `--pack-format <num>` | Pack format number (defaults to modern value) | `--pack-format 82` |
+| `--output <dir>` | Directory to create the project in | `--output ./projects` |
+| `--exclude-local-docs` | Do not copy the MDL docs into `docs/` | `--exclude-local-docs` |
+
+By default, `mdl new` includes a full `docs/` folder in your project so new users have local docs offline. Use `--exclude-local-docs` to skip this step.
+
+Serve the docs quickly with the generated scripts:
+
+```bash
+# Bash/Git Bash
+./serve_docs.sh
+
+# PowerShell
+./serve_docs.ps1
+```
+
+Both scripts prefer Jekyll (if `bundle` and a `Gemfile` are present), otherwise they fall back to a simple Python web server.
+
+You can also serve docs via the CLI:
+
+```bash
+mdl docs serve --dir docs --port 8000
+```
+
+This starts a local web server for the `docs/` directory.
+
+## Completion Command
+
+Install shell autocompletion so you can type `mdl bui<Tab>` and get `build`:
+
+```bash
+mdl completion install           # auto-detects your shell
+mdl completion install bash      # explicit shell
+mdl completion uninstall zsh     # remove
+mdl completion print fish        # print script for manual use/CI
+mdl completion doctor            # basic diagnostics
+```
+
+Supported shells: Bash (incl. Git Bash), Zsh, Fish, and PowerShell.
 
 ## Error Handling
 
