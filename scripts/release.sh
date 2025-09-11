@@ -86,6 +86,8 @@ rm -rf dist
 if command -v python >/dev/null 2>&1; then
   python -m pip install --upgrade pip >/dev/null 2>&1 || true
   python -m pip install build >/dev/null 2>&1 || true
+  # Avoid .post0 when building after tagging but with a dirty tree due to sync steps
+  export SETUPTOOLS_SCM_PRETEND_VERSION="${NEW_TAG#v}"
   python -m build || true
 fi
 

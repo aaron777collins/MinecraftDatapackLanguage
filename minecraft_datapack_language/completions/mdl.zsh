@@ -20,7 +20,7 @@ _mdl() {
       _values 'subcommands' 'print' 'install' 'uninstall' 'doctor'
       ;;
     docs)
-      _values 'subcommands' 'serve'
+      _values 'subcommands' 'open' 'serve'
       ;;
   esac
 }

@@ -74,8 +74,9 @@ Examples:
     completion_sub.add_parser('doctor', help='Diagnose completion install status')
 
     # Docs command
-    docs_parser = subparsers.add_parser('docs', help='Docs utilities')
+    docs_parser = subparsers.add_parser('docs', help='Open or serve docs')
     docs_sub = docs_parser.add_subparsers(dest='docs_cmd', help='Docs subcommands')
+    docs_sub.add_parser('open', help='Open the MDL Getting Started docs in your browser')
     docs_serve = docs_sub.add_parser('serve', help='Serve project docs locally')
     docs_serve.add_argument('--port', type=int, default=8000, help='Port to serve on (default: 8000)')
     docs_serve.add_argument('--dir', default='docs', help='Docs directory to serve (default: docs)')
@@ -352,6 +353,11 @@ A Minecraft datapack created with MDL (Minecraft Datapack Language).
     print(f"Created new MDL project: {project_dir}/")
     print(f"  - {mdl_file}")
     print(f"  - {readme_file}")
+    if (project_dir / 'docs').exists():
+        print("  - docs/ (local docs)")
+    if (project_dir / 'docs_site').exists():
+        print("  - docs_site/ (prebuilt HTML docs)")
+    print("  - serve_docs.sh, serve_docs.ps1")
     print(f"\nNext steps:")
     print(f"  1. cd {project_name}")
     print(f"  2. mdl build --mdl {project_name}.mdl -o dist")
@@ -605,6 +611,16 @@ def _remove_line_from_file(path: Path, line: str) -> None:
 
 def docs_command(args) -> int:
     cmd = args.docs_cmd
+    # Default action: open website getting started page
+    if cmd is None or cmd == 'open':
+        try:
+            import webbrowser
+            webbrowser.open('https://www.mcmdl.com/docs/getting-started/')
+            print("Opened MDL Getting Started in your default browser.")
+            return 0
+        except Exception as e:
+            print(f"Failed to open browser: {e}")
+            return 1
     if cmd == 'serve':
         port = getattr(args, 'port', 8000)
         directory = getattr(args, 'dir', 'docs')

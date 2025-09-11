@@ -27,5 +27,6 @@ complete -c mdl -n "__fish_seen_subcommand_from completion" -a "uninstall" -d "U
 complete -c mdl -n "__fish_seen_subcommand_from completion" -a "doctor" -d "Diagnose setup"
 
 # docs subcommands
+complete -c mdl -n "__fish_seen_subcommand_from docs" -a "open" -d "Open docs website"
 complete -c mdl -n "__fish_seen_subcommand_from docs" -a "serve" -d "Serve docs locally"
 

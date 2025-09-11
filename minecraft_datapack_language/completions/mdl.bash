@@ -27,7 +27,7 @@ _mdl_complete() {
       COMPREPLY=( $(compgen -W "print install uninstall doctor" -- "$cur") )
       ;;
     docs)
-      COMPREPLY=( $(compgen -W "serve" -- "$cur") )
+      COMPREPLY=( $(compgen -W "open serve" -- "$cur") )
       ;;
   esac
 }
