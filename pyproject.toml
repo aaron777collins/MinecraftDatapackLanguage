@@ -47,6 +47,7 @@ exclude = ["dist*", "build*", "scripts*", "tools*", "vscode-extension*", "tests*
 [tool.setuptools.package-data]
 "minecraft_datapack_language" = [
     "_embedded/docs/**/*",
+    "_embedded/docs_site/**/*",
     "completions/*",
 ]
 

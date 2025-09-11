@@ -92,11 +92,11 @@ Examples:
         return 0
 
     if not args.command:
+        parser.print_help()
+        print("")
         print("Tip: Create a new project with: mdl new <project_name>")
         print("     After creating a project, you can serve local docs with: mdl docs serve --dir docs")
         print("     Or run the generated scripts: ./serve_docs.sh (bash) or ./serve_docs.ps1 (PowerShell)")
-        print("")
-        parser.print_help()
         return 0
     
     try:
@@ -366,6 +366,7 @@ def copy_packaged_docs_into(project_dir: Path) -> bool:
     Raises FileExistsError if destination exists.
     """
     embedded_root = importlib_resources_files("minecraft_datapack_language").joinpath("_embedded", "docs")
+    embedded_site = importlib_resources_files("minecraft_datapack_language").joinpath("_embedded", "docs_site")
     try:
         # Some importlib.resources implementations require as_file for files; for dirs, check existence
         if not Path(str(embedded_root)).exists():
@@ -373,10 +374,19 @@ def copy_packaged_docs_into(project_dir: Path) -> bool:
     except Exception:
         return False
 
+    # Copy raw docs
     dest = project_dir / "docs"
     if dest.exists():
         raise FileExistsError("docs directory already exists")
     shutil.copytree(str(embedded_root), str(dest))
+    # Copy prebuilt HTML site if available
+    try:
+        if Path(str(embedded_site)).exists():
+            site_dest = project_dir / "docs_site"
+            if not site_dest.exists():
+                shutil.copytree(str(embedded_site), str(site_dest))
+    except Exception:
+        pass
     return True
 
 
@@ -386,7 +396,10 @@ def create_docs_serve_scripts(project_dir: Path) -> None:
     bash_script.write_text("""#!/usr/bin/env bash
 set -e
 PORT=${PORT:-8000}
-DIR=${1:-docs}
+DIR=${1:-}
+if [ -z "$DIR" ]; then
+  if [ -d docs_site ]; then DIR=docs_site; else DIR=docs; fi
+fi
 if [ ! -d "$DIR" ]; then
   echo "Error: docs directory '$DIR' not found"; exit 1
 fi
@@ -406,8 +419,9 @@ fi
     ps1_script.write_text("""
 param(
   [int]$Port = 8000,
-  [string]$Dir = "docs"
+  [string]$Dir = ""
 )
+if (-not $Dir) { if (Test-Path 'docs_site') { $Dir = 'docs_site' } else { $Dir = 'docs' } }
 if (-not (Test-Path $Dir)) { Write-Host "Error: docs directory '$Dir' not found"; exit 1 }
 # Prefer Jekyll if available and Gemfile exists
 $gemfile = (Test-Path (Join-Path $Dir 'Gemfile')) -or (Test-Path 'Gemfile')

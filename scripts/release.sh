@@ -68,6 +68,17 @@ rm -rf "$PKG_DOCS_DIR"
 mkdir -p "$PKG_DOCS_DIR"
 cp -R docs/* "$PKG_DOCS_DIR" || true
 
+# Build static HTML docs (if bundler/jekyll available)
+PKG_SITE_DIR="minecraft_datapack_language/_embedded/docs_site"
+rm -rf "$PKG_SITE_DIR"
+if command -v bundle >/dev/null 2>&1; then
+  echo "[+] Building static docs site with Jekyll"
+  (cd docs && bundle install >/dev/null 2>&1 || true)
+  bundle exec jekyll build -s docs -d "$PKG_SITE_DIR" || echo "[!] Jekyll build failed; shipping raw docs only"
+else
+  echo "[!] 'bundle' not found; skipping static docs site build"
+fi
+
 # [CLEAN] Clean old local artifacts so we never upload stale files
 rm -rf dist
 
