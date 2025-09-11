@@ -1251,18 +1251,18 @@ class MDLCompiler:
             if isinstance(expression.right, BinaryExpression):
                 self._store_temp_command(f"scoreboard players operation @s {temp_var} *= @s {right_temp}")
             else:
-                # For literal values, keep explicit multiply command for compatibility
+                # Normalize and use operation with a temp constant to maximize compatibility
                 if isinstance(expression.right, LiteralExpression):
-                    # Normalize number formatting (e.g., 2.0 -> 2)
                     literal_str = self._normalize_integer_literal_string(self._expression_to_value(expression.right), ctx="multiply literal")
                     if literal_str == "0":
                         self._store_temp_command(f"scoreboard players set @s {temp_var} 0")
                     elif literal_str == "1":
                         pass
                     else:
-                        self._store_temp_command(f"scoreboard players multiply @s {temp_var} {literal_str}")
+                        const_var = self._generate_temp_variable_name()
+                        self._store_temp_command(f"scoreboard players set @s {const_var} {literal_str}")
+                        self._store_temp_command(f"scoreboard players operation @s {temp_var} *= @s {const_var}")
                 else:
-                    # If right_value is a score reference string, strip the leading 'score '
                     if isinstance(right_value, str) and right_value.startswith("score "):
                         parts = right_value.split()
                         if len(parts) >= 3:
@@ -1272,7 +1272,6 @@ class MDLCompiler:
                         else:
                             self._store_temp_command(f"scoreboard players operation @s {temp_var} *= {right_value}")
                     else:
-                        # If RHS is a numeric literal string (incl. negatives), use multiply
                         if self._is_numeric_literal_string(right_value):
                             lit = self._normalize_integer_literal_string(str(right_value), ctx="multiply literal string")
                             if lit == "0":
@@ -1280,7 +1279,9 @@ class MDLCompiler:
                             elif lit == "1":
                                 pass
                             else:
-                                self._store_temp_command(f"scoreboard players multiply @s {temp_var} {lit}")
+                                const_var = self._generate_temp_variable_name()
+                                self._store_temp_command(f"scoreboard players set @s {const_var} {lit}")
+                                self._store_temp_command(f"scoreboard players operation @s {temp_var} *= @s {const_var}")
                         else:
                             self._store_temp_command(f"scoreboard players operation @s {temp_var} *= {right_value}")
                 
@@ -1299,9 +1300,8 @@ class MDLCompiler:
             if isinstance(expression.right, BinaryExpression):
                 self._store_temp_command(f"scoreboard players operation @s {temp_var} /= @s {right_temp}")
             else:
-                # For literal values, keep explicit divide command for compatibility
+                # Normalize and use operation with a temp constant to maximize compatibility
                 if isinstance(expression.right, LiteralExpression):
-                    # Normalize number formatting (e.g., 2.0 -> 2)
                     lit = self._normalize_integer_literal_string(self._expression_to_value(expression.right), ctx="divide literal")
                     if lit == "0":
                         raise MDLCompilerError("Division by zero literal is not allowed", "Use a non-zero integer literal")
@@ -1309,12 +1309,17 @@ class MDLCompiler:
                         pass
                     elif lit.startswith("-"):
                         abs_lit = lit[1:]
-                        self._store_temp_command(f"scoreboard players divide @s {temp_var} {abs_lit}")
-                        self._store_temp_command(f"scoreboard players multiply @s {temp_var} -1")
+                        const_div = self._generate_temp_variable_name()
+                        self._store_temp_command(f"scoreboard players set @s {const_div} {abs_lit}")
+                        self._store_temp_command(f"scoreboard players operation @s {temp_var} /= @s {const_div}")
+                        const_neg = self._generate_temp_variable_name()
+                        self._store_temp_command(f"scoreboard players set @s {const_neg} -1")
+                        self._store_temp_command(f"scoreboard players operation @s {temp_var} *= @s {const_neg}")
                     else:
-                        self._store_temp_command(f"scoreboard players divide @s {temp_var} {lit}")
+                        const_div = self._generate_temp_variable_name()
+                        self._store_temp_command(f"scoreboard players set @s {const_div} {lit}")
+                        self._store_temp_command(f"scoreboard players operation @s {temp_var} /= @s {const_div}")
                 else:
-                    # If right_value is a score reference string, strip the leading 'score '
                     if isinstance(right_value, str) and right_value.startswith("score "):
                         parts = right_value.split()
                         if len(parts) >= 3:
@@ -1324,7 +1329,6 @@ class MDLCompiler:
                         else:
                             self._store_temp_command(f"scoreboard players operation @s {temp_var} /= {right_value}")
                     else:
-                        # If RHS is a numeric literal string (incl. negatives), use divide
                         if self._is_numeric_literal_string(right_value):
                             lit = self._normalize_integer_literal_string(str(right_value), ctx="divide literal string")
                             if lit == "0":
@@ -1333,10 +1337,16 @@ class MDLCompiler:
                                 pass
                             elif lit.startswith("-"):
                                 abs_lit = lit[1:]
-                                self._store_temp_command(f"scoreboard players divide @s {temp_var} {abs_lit}")
-                                self._store_temp_command(f"scoreboard players multiply @s {temp_var} -1")
+                                const_div = self._generate_temp_variable_name()
+                                self._store_temp_command(f"scoreboard players set @s {const_div} {abs_lit}")
+                                self._store_temp_command(f"scoreboard players operation @s {temp_var} /= @s {const_div}")
+                                const_neg = self._generate_temp_variable_name()
+                                self._store_temp_command(f"scoreboard players set @s {const_neg} -1")
+                                self._store_temp_command(f"scoreboard players operation @s {temp_var} *= @s {const_neg}")
                             else:
-                                self._store_temp_command(f"scoreboard players divide @s {temp_var} {lit}")
+                                const_div = self._generate_temp_variable_name()
+                                self._store_temp_command(f"scoreboard players set @s {const_div} {lit}")
+                                self._store_temp_command(f"scoreboard players operation @s {temp_var} /= @s {const_div}")
                         else:
                             self._store_temp_command(f"scoreboard players operation @s {temp_var} /= {right_value}")
         else:
